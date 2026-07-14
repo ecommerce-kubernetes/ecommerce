@@ -51,6 +51,11 @@ public class OrderSheet {
         Assert.hasText(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
         Assert.notNull(orderer, "주문서(OrderSheet) 생성시 주문자는 필수이다.");
         Assert.notNull(items, "주문서(OrderSheet) 생성시 주문 항목은 필수이다.");
+        Assert.notNull(totalOriginalPrice, "주문서(OrderSheet) 생성시 총 상품 원가격은 필수이다.");
+        Assert.notNull(totalProductDiscountAmount, "주문서(OrderSheet) 생성시 총 상품 할인 금액은 필수이다.");
+        Assert.notNull(totalCouponDiscountAmount, "주문서(OrderSheet) 생성시 총 쿠폰 할인 금액은 필수이다.");
+        Assert.notNull(usedPoints, "주문서(OrderSheet) 생성시 적용 포인트 금액은 필수이다.");
+        Assert.notNull(totalPaymentAmount, "주문서(OrderSheet) 생성시 총 결제 금액은 필수이다.");
         Assert.notNull(expiresAt, "주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
 
         this.id = id;
@@ -81,6 +86,8 @@ public class OrderSheet {
                 .items(items)
                 .totalOriginalPrice(totalOriginalPrice)
                 .totalProductDiscountAmount(totalProductDiscountAmount)
+                .totalCouponDiscountAmount(Money.ZERO)
+                .usedPoints(Money.ZERO)
                 .totalPaymentAmount(totalPaymentAmount)
                 .expiresAt(expiresAt)
                 .build();
@@ -100,7 +107,7 @@ public class OrderSheet {
 
     private static Money calculateTotalPaymentAmount(List<OrderSheetItem> items) {
         return items.stream()
-                .map(OrderSheetItem::getLineTotal)
+                .map(OrderSheetItem::getFinalAmount)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -108,7 +115,7 @@ public class OrderSheet {
         this.shippingAddress = newAddress;
     }
 
-    public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
+    public void applyPoints(Money appliedPoints) {
 
     }
 

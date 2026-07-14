@@ -33,9 +33,11 @@ public class OrderSheetTest {
         assertThat(orderSheet.getExpiresAt()).isEqualTo(expiresAt);
 
         assertThat(orderSheet)
-                .extracting(OrderSheet::getTotalOriginalPrice, OrderSheet::getTotalProductDiscountAmount, OrderSheet::getTotalPaymentAmount)
+                .extracting(OrderSheet::getTotalOriginalPrice, OrderSheet::getTotalProductDiscountAmount,
+                        OrderSheet::getTotalCouponDiscountAmount, OrderSheet::getUsedPoints, OrderSheet::getTotalPaymentAmount)
                 .containsExactly(
-                        item.getOriginalLineTotal(), item.getProductDiscountLineTotal(), item.getLineTotal()
+                        item.getOriginalLineTotal(), item.getProductDiscountLineTotal(),
+                        Money.ZERO, Money.ZERO, item.getFinalAmount()
                 );
     }
 

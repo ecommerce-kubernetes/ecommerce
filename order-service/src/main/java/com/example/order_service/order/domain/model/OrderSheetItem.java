@@ -202,7 +202,7 @@ public class OrderSheetItem {
      *
      * @param itemCoupon 주문 상품 쿠폰 정보
      */
-    public void changeItemCoupon(ItemCouponSnapshot newItemCoupon) {
+    protected void changeItemCoupon(ItemCouponSnapshot newItemCoupon) {
         this.itemCouponSnapshot = newItemCoupon;
     }
 
