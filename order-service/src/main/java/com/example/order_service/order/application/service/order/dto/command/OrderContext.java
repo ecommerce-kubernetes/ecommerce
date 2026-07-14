@@ -13,7 +13,7 @@ public class OrderContext {
             Orderer orderer,
             ShippingAddress shippingAddress,
             List<ItemContext> orderItems,
-            OrderCouponSnapshot cartCoupon,
+            CartCouponSnapshot cartCoupon,
             Money totalOriginalPrice,
             Money totalProductDiscountAmount,
             Money totalCouponDiscountAmount,
@@ -25,7 +25,7 @@ public class OrderContext {
     public record ItemContext(
             ProductSnapshot productSnapshot,
             ProductPriceSnapshot itemPrice,
-            OrderCouponSnapshot itemCoupon,
+            ItemCouponSnapshot itemCouponSnapshot,
             Integer quantity,
             List<ProductOptionSnapshot> optionSnapshots
     ) {}

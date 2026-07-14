@@ -90,10 +90,18 @@ public class OrderSheetResponse {
             String couponName,
             Long discountAmount
     ) {
-        public static OrderCouponResponse from(OrderCouponSnapshot coupon) {
+        public static OrderCouponResponse from(CartCouponSnapshot coupon) {
             return OrderCouponResponse.builder()
                     .couponId(coupon.getCouponId())
                     .couponName(coupon.getCouponName())
+                    .discountAmount(coupon.getDiscountAmount().longValue())
+                    .build();
+        }
+
+        public static OrderCouponResponse from(ItemCouponSnapshot coupon) {
+            return OrderCouponResponse.builder()
+                    .couponId(coupon.getItemCouponId())
+                    .couponName(coupon.getItemCouponName())
                     .discountAmount(coupon.getDiscountAmount().longValue())
                     .build();
         }

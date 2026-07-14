@@ -13,7 +13,7 @@ class OrderSheetRedisEntity {
     private OrderSheetOrdererRedisEntity orderer;
     private OrderSheetShippingAddressRedisEntity shippingAddress;
     private List<OrderSheetItemRedisEntity> items;
-    private CouponSnapshotRedisEntity cartCoupon;
+    private CartCouponSnapshotRedisEntity cartCoupon;
     private long totalOriginalPrice;
     private long totalProductDiscountAmount;
     private long totalCouponDiscountAmount;
@@ -45,7 +45,7 @@ class OrderSheetRedisEntity {
         private String sheetItemId;
         private ProductSnapshotRedisEntity productSnapshot;
         private PriceSnapshotRedisEntity priceSnapshot;
-        private CouponSnapshotRedisEntity itemCoupon;
+        private ItemCouponSnapshotRedisEntity itemCouponSnapshot;
         private int quantity;
         private List<OptionSnapshot> optionSnapshots;
     }
@@ -71,7 +71,15 @@ class OrderSheetRedisEntity {
 
     @Getter
     @Builder
-    static class CouponSnapshotRedisEntity {
+    static class CartCouponSnapshotRedisEntity {
+        private Long couponId;
+        private String couponName;
+        private Long discountAmount;
+    }
+
+    @Getter
+    @Builder
+    static class ItemCouponSnapshotRedisEntity {
         private Long couponId;
         private String couponName;
         private Long discountAmount;

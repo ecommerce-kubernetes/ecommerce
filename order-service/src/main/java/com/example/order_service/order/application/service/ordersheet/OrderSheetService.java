@@ -15,7 +15,8 @@ import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.CartCouponSnapshot;
+import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
@@ -177,7 +178,7 @@ public class OrderSheetService {
     public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
+        ItemCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 상품 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용가능 포인트로 조정됨
         orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
@@ -186,13 +187,13 @@ public class OrderSheetService {
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
-    private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
+    private ItemCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
         List<OrderCouponCommand.AppliedCouponItem> appliedItems = createAppliedItemsWithTarget(orderSheet, sheetItemId, newItemCouponId);
         OrderCouponResult.Calculate calculate =
                 requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCouponId(), appliedItems);
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
-        Map<Long, OrderCouponSnapshot> itemCouponMap = calculate.toItemCouponMap();
-        return itemCouponMap.getOrDefault(sheetItem.getProductVariantId(), OrderCouponSnapshot.empty());
+        Map<Long, ItemCouponSnapshot> itemCouponMap = calculate.toItemCouponMap();
+        return itemCouponMap.getOrDefault(sheetItem.getProductVariantId(), ItemCouponSnapshot.empty());
     }
 
     private List<OrderCouponCommand.AppliedCouponItem> createAppliedItemsWithTarget(
@@ -223,7 +224,7 @@ public class OrderSheetService {
         List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
         OrderCouponResult.Calculate calculate =
                 requestCouponCalculation(orderSheet.getOrderer().getUserId(), command.couponId(), appliedItems);
-        OrderCouponSnapshot newCartCouponSnapshot = calculate.cartCoupon() != null ? calculate.cartCoupon() : OrderCouponSnapshot.empty();
+        CartCouponSnapshot newCartCouponSnapshot = calculate.cartCoupon() != null ? calculate.cartCoupon() : CartCouponSnapshot.empty();
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
         orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);

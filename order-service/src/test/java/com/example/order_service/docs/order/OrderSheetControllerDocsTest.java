@@ -314,7 +314,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     private List<OrderSheetResult.OrderItem> createItems() {
         ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
         List<ProductOptionSnapshot> productOptionSnapshots = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "BLUE")
@@ -349,7 +349,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
     private OrderSheetResult.Detail createOrderSheetResult() {
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
         return OrderSheetResult.Detail.builder()
                 .sheetId("sheetId")
                 .expiresAt(LocalDateTime.now().plusMinutes(30))

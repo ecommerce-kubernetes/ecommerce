@@ -127,11 +127,19 @@ public class OrderResponse {
             String couponName,
             Long discountAmount
     ) {
-        public static OrderCouponResponse from(OrderCouponSnapshot orderCouponSnapshot) {
+        public static OrderCouponResponse from(CartCouponSnapshot cartCouponSnapshot) {
             return OrderCouponResponse.builder()
-                    .couponId(orderCouponSnapshot.getCouponId())
-                    .couponName(orderCouponSnapshot.getCouponName())
-                    .discountAmount(orderCouponSnapshot.getDiscountAmount().longValue())
+                    .couponId(cartCouponSnapshot.getCouponId())
+                    .couponName(cartCouponSnapshot.getCouponName())
+                    .discountAmount(cartCouponSnapshot.getDiscountAmount().longValue())
+                    .build();
+        }
+
+        public static OrderCouponResponse from(ItemCouponSnapshot cartCouponSnapshot) {
+            return OrderCouponResponse.builder()
+                    .couponId(cartCouponSnapshot.getItemCouponId())
+                    .couponName(cartCouponSnapshot.getItemCouponName())
+                    .discountAmount(cartCouponSnapshot.getDiscountAmount().longValue())
                     .build();
         }
     }

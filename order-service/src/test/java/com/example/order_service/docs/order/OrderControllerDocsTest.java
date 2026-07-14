@@ -176,7 +176,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
                 "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
         return OrderResult.Detail.builder()
                 .orderNo("orderNo")
                 .status(OrderStatus.COMPLETED)
@@ -214,7 +214,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     private List<OrderResult.OrderedItem> createItems() {
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
         ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 할인", Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 할인", Money.wons(1000L));
         ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
         return List.of(

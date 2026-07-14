@@ -125,7 +125,7 @@ public class OrderSearchRepositoryTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345",
                 "서울시 테헤란로 123", "123동 1234호");
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
         OrderItem orderItem = createOrderItem();
         return Order.init("orderNo", orderer, shippingAddress, cartCoupon, List.of(orderItem),
                 Money.wons(10000L), Money.wons(1000L), Money.wons(2000L), Money.ZERO, Money.wons(7000L));
@@ -138,7 +138,7 @@ public class OrderSearchRepositoryTest {
                 Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
         return OrderItem.create(productSnapshot, productPrice, itemCoupon, 1, List.of(xl, blue));
     }
 }

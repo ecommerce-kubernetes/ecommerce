@@ -70,7 +70,7 @@ class OrderSheetRepositoryTest {
                 orderer,
                 shippingAddress,
                 List.of(createOrderSheetItem()),
-                createOrderCouponSnapshot(),
+                createCartCouponSnapshot(),
                 LocalDateTime.now(),
                 30
         );
@@ -89,14 +89,18 @@ class OrderSheetRepositoryTest {
                 "sheetItemId",
                 createProductSnapshot(),
                 createPriceSnapshot(),
-                createOrderCouponSnapshot(),
+                createItemCouponSnapshot(),
                 1,
                 List.of(createProductOptionSnapshot())
         );
     }
 
-    private OrderCouponSnapshot createOrderCouponSnapshot() {
-        return OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
+    private CartCouponSnapshot createCartCouponSnapshot() {
+        return CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
+    }
+
+    private ItemCouponSnapshot createItemCouponSnapshot() {
+        return ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
     }
 
     private ProductSnapshot createProductSnapshot() {

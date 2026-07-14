@@ -5,7 +5,8 @@ import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.CartCouponSnapshot;
+import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,8 +19,8 @@ public interface OrderCouponMapper {
     CouponCommand.Item toItemCommand(OrderCouponCommand.AppliedCouponItem command);
 
     OrderCouponResult.Calculate toResult(CouponClientResponse.Calculate response);
-    OrderCouponSnapshot toCartCouponSnapshot(CouponClientResponse.CartCoupon response);
+    CartCouponSnapshot toCartCouponSnapshot(CouponClientResponse.CartCoupon response);
     @Mapping(source = ".", target = "itemCoupon")
     OrderCouponResult.ItemCoupon toItemCouponResult(CouponClientResponse.ItemCoupon response);
-    OrderCouponSnapshot toItemCouponSnapshot(CouponClientResponse.ItemCoupon response);
+    ItemCouponSnapshot toItemCouponSnapshot(CouponClientResponse.ItemCoupon response);
 }

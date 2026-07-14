@@ -9,14 +9,14 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class OrderCouponSnapshotTest {
+class CartCouponSnapshotTest {
 
     @Test
     @DisplayName("쿠폰 스냅샷을 생성한다")
     void of() {
         //given
         //when
-        OrderCouponSnapshot coupon = OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
+        CartCouponSnapshot coupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
         //then
         assertThat(coupon)
                 .extracting("couponId", "couponName", "discountAmount")
@@ -31,7 +31,7 @@ class OrderCouponSnapshotTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> OrderCouponSnapshot.of(null, "1000원 할인 쿠폰", Money.wons(1000L)))
+        assertThatThrownBy(() -> CartCouponSnapshot.of(null, "1000원 할인 쿠폰", Money.wons(1000L)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("적용 쿠폰 Id 는 필수 입니다");
     }
@@ -45,7 +45,7 @@ class OrderCouponSnapshotTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> OrderCouponSnapshot.of(1L, couponName, Money.wons(1000L)))
+        assertThatThrownBy(() -> CartCouponSnapshot.of(1L, couponName, Money.wons(1000L)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("적용 쿠폰 이름은 필수입니다");
     }
@@ -56,7 +56,7 @@ class OrderCouponSnapshotTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", null))
+        assertThatThrownBy(() -> CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("적용 쿠폰 할인금은 0원 이상이여야 합니다");
     }
@@ -66,7 +66,7 @@ class OrderCouponSnapshotTest {
     void empty() {
         //given
         //when
-        OrderCouponSnapshot empty = OrderCouponSnapshot.empty();
+        CartCouponSnapshot empty = CartCouponSnapshot.empty();
         //then
         assertThat(empty)
                 .extracting("couponId", "couponName", "discountAmount")

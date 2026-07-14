@@ -1,6 +1,7 @@
 package com.example.order_service.order.application.external.dto.result;
 
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.CartCouponSnapshot;
+import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import lombok.Builder;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public class OrderCouponResult {
 
     @Builder
     public record Calculate(
-            OrderCouponSnapshot cartCoupon,
+            CartCouponSnapshot cartCoupon,
             List<ItemCoupon> itemCoupons
     ) {
         public static Calculate empty(){
@@ -21,7 +22,7 @@ public class OrderCouponResult {
                     .build();
         }
 
-        public Map<Long, OrderCouponSnapshot> toItemCouponMap() {
+        public Map<Long, ItemCouponSnapshot> toItemCouponMap() {
             return itemCoupons.stream().collect(Collectors.toMap(ItemCoupon::productVariantId, ItemCoupon::itemCoupon));
         }
     }
@@ -29,6 +30,6 @@ public class OrderCouponResult {
     @Builder
     public record ItemCoupon(
             Long productVariantId,
-            OrderCouponSnapshot itemCoupon
+            ItemCouponSnapshot itemCoupon
     ) {}
 }

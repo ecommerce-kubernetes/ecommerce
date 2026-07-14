@@ -45,25 +45,25 @@ public class OrderSheetFactory {
         Orderer orderer = userResult.orderer();
         ShippingAddress shippingAddress = userResult.shippingAddress();
         List<OrderSheetItem> sheetItems = createItems(command, productResult, couponResult);
-        OrderCouponSnapshot cartCoupon = couponResult.cartCoupon() != null ? couponResult.cartCoupon() : OrderCouponSnapshot.empty();
+        CartCouponSnapshot cartCoupon = couponResult.cartCoupon() != null ? couponResult.cartCoupon() : CartCouponSnapshot.empty();
         return OrderSheet.create(sheetId, orderer, shippingAddress, sheetItems, cartCoupon, LocalDateTime.now(), ttlMinute);
     }
 
     private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult) {
         Map<Long, OrderProductResult.Info> productsMap = productResult.getProductsMap();
-        Map<Long, OrderCouponSnapshot> itemCouponMap = couponResult.toItemCouponMap();
+        Map<Long, ItemCouponSnapshot> itemCouponMap = couponResult.toItemCouponMap();
         return command.items().stream().map(item -> createItem(item, productsMap, itemCouponMap)).toList();
     }
 
     private OrderSheetItem createItem(OrderSheetCommand.OrderItem command, Map<Long, OrderProductResult.Info> productsMap,
-                                      Map<Long, OrderCouponSnapshot> itemCouponMap) {
+                                      Map<Long, ItemCouponSnapshot> itemCouponMap) {
         Long orderedVariantId = command.productVariantId();
         String sheetItemId = generateId();
         OrderProductResult.Info product = productsMap.get(orderedVariantId);
         ProductSnapshot productSnapshot = product.productSnapshot();
         ProductPriceSnapshot priceSnapshot = product.priceSnapshot();
         List<ProductOptionSnapshot> optionSnapshots = product.options();
-        OrderCouponSnapshot couponSnapshot = itemCouponMap.getOrDefault(orderedVariantId, OrderCouponSnapshot.empty());
+        ItemCouponSnapshot couponSnapshot = itemCouponMap.getOrDefault(orderedVariantId, ItemCouponSnapshot.empty());
         return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, command.quantity(), optionSnapshots);
     }
 

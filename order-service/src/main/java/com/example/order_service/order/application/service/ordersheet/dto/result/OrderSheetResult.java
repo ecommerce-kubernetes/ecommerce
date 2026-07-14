@@ -31,7 +31,7 @@ public class OrderSheetResult {
             Orderer orderer,
             ShippingAddress shippingAddress,
             List<OrderItem> items,
-            OrderCouponSnapshot cartCoupon,
+            CartCouponSnapshot cartCoupon,
             Point point,
             PaymentSummary paymentSummary
     ) {
@@ -93,7 +93,7 @@ public class OrderSheetResult {
             int quantity,
             ProductPriceSnapshot productPrice,
             Money lineTotal,
-            OrderCouponSnapshot appliedItemCoupon,
+            ItemCouponSnapshot appliedItemCoupon,
             List<ProductOptionSnapshot> options
     ) {
         public static OrderItem from(OrderSheetItem item) {

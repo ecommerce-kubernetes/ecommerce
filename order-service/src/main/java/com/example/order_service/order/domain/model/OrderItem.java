@@ -2,10 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.util.ProductOptionSnapshotConverter;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
-import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
-import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
-import com.example.order_service.order.domain.vo.ProductSnapshot;
+import com.example.order_service.order.domain.vo.*;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -36,13 +33,13 @@ public class OrderItem extends BaseEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "discountAmount", column = @Column(name = "coupon_discount_amount"))
     })
-    private OrderCouponSnapshot itemCoupon;
+    private ItemCouponSnapshot itemCoupon;
     private Integer quantity;
     @Convert(converter = ProductOptionSnapshotConverter.class)
     private List<ProductOptionSnapshot> options;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(ProductSnapshot product, ProductPriceSnapshot productPrice, OrderCouponSnapshot itemCoupon,
+    private OrderItem(ProductSnapshot product, ProductPriceSnapshot productPrice, ItemCouponSnapshot itemCoupon,
                       Integer quantity, List<ProductOptionSnapshot> options) {
         this.product = product;
         this.productPrice = productPrice;
@@ -51,7 +48,7 @@ public class OrderItem extends BaseEntity {
         this.options = options;
     }
 
-    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
+    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, ItemCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
         return OrderItem.builder()
                 .product(product)
                 .productPrice(productPrice)

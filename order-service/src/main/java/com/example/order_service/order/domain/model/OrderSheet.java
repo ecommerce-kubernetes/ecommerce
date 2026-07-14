@@ -3,7 +3,8 @@ package com.example.order_service.order.domain.model;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.CartCouponSnapshot;
+import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -35,7 +36,7 @@ public class OrderSheet {
     private Orderer orderer;
     private ShippingAddress shippingAddress;
     private List<OrderSheetItem> items;
-    private OrderCouponSnapshot cartCoupon;
+    private CartCouponSnapshot cartCoupon;
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
     private Money totalCouponDiscountAmount;
@@ -44,7 +45,7 @@ public class OrderSheet {
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot cartCoupon,
+    private OrderSheet(String id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot cartCoupon,
                        Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
                        Money usedPoints, Money totalPaymentAmount, LocalDateTime expiresAt) {
         Assert.hasText(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
@@ -80,7 +81,7 @@ public class OrderSheet {
      * @param ttl             주문서 만료 기간
      * @return 주문서 애그리거트 루트 도메인
      */
-    public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
+    public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
         if (items.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
@@ -148,7 +149,7 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private static Money calcAppliedCartCouponDiscount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+    private static Money calcAppliedCartCouponDiscount(List<OrderSheetItem> items, CartCouponSnapshot coupon) {
         Money itemFinalPrice = calcTotalItemFinalPrice(items);
         // [NOTE]
         // 총 상품 쿠폰 적용 금액(상품 할인금액 - 상품 쿠폰할인금)이 장바구니 쿠폰 할인금보다 작은 경우
@@ -156,7 +157,7 @@ public class OrderSheet {
         return itemFinalPrice.min(coupon.getDiscountAmount());
     }
 
-    private static Money calcPointEligibleAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+    private static Money calcPointEligibleAmount(List<OrderSheetItem> items, CartCouponSnapshot coupon) {
         Money itemFinalPrice = calcTotalItemFinalPrice(items);
         Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
         return itemFinalPrice.subtract(appliedCartDiscount);
@@ -287,7 +288,7 @@ public class OrderSheet {
      * @param ownedPoints       보유 포인트
      * @param pointPolicy       포인트 정책
      */
-    public void changeItemCoupon(String sheetItemId, OrderCouponSnapshot newCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
+    public void changeItemCoupon(String sheetItemId, ItemCouponSnapshot newCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
         OrderSheetItem sheetItem = getItem(sheetItemId);
         sheetItem.changeCoupon(newCouponSnapshot);
         recalculateTotals(ownedPoints, pointPolicy);
@@ -304,7 +305,7 @@ public class OrderSheet {
      * @param ownedPoints           보유 포인트
      * @param pointPolicy           포인트 정책
      */
-    public void changeCartCoupon(OrderCouponSnapshot newCartCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
+    public void changeCartCoupon(CartCouponSnapshot newCartCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
         this.cartCoupon = newCartCouponSnapshot;
         recalculateTotals(ownedPoints, pointPolicy);
     }

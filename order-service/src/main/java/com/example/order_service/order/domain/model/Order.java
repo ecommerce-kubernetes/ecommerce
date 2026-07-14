@@ -3,7 +3,7 @@ package com.example.order_service.order.domain.model;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -35,7 +35,7 @@ public class Order extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
     @Embedded
-    private OrderCouponSnapshot cartCoupon;
+    private CartCouponSnapshot cartCoupon;
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
     private Money totalCouponDiscountAmount;
@@ -45,7 +45,7 @@ public class Order extends BaseEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private Order(String orderNo, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
-                  OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
+                  CartCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
                   Money usedPoints, Money totalPaymentAmount, String failureReason) {
         this.orderNo = orderNo;
         this.status = status;
@@ -61,7 +61,7 @@ public class Order extends BaseEntity {
         this.failureReason = failureReason;
     }
 
-    public static Order init(String orderNo, Orderer orderer, ShippingAddress shippingAddress, OrderCouponSnapshot cartCoupon,
+    public static Order init(String orderNo, Orderer orderer, ShippingAddress shippingAddress, CartCouponSnapshot cartCoupon,
                              List<OrderItem> orderItems, Money totalOriginalPrice, Money totalProductDiscountAmount,
                              Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount) {
         String orderName = generateOrderName(orderItems);
@@ -96,7 +96,7 @@ public class Order extends BaseEntity {
     }
 
     private static Order create(String orderNo, String orderName, Orderer orderer, ShippingAddress shippingAddress,
-                                OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount,
+                                CartCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount,
                                 Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount) {
         return Order.builder()
                 .orderNo(orderNo)

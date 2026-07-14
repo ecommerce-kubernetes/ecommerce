@@ -2,10 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
-import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
-import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
-import com.example.order_service.order.domain.vo.ProductSnapshot;
+import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -28,12 +25,12 @@ public class OrderSheetItem {
     private String id;
     private ProductSnapshot productSnapshot;
     private ProductPriceSnapshot priceSnapshot;
-    private OrderCouponSnapshot itemCouponSnapshot;
+    private ItemCouponSnapshot itemCouponSnapshot;
     private int quantity;
     private List<ProductOptionSnapshot> optionSnapshots;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(String id, ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, OrderCouponSnapshot itemCoupon,
+    private OrderSheetItem(String id, ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, ItemCouponSnapshot itemCoupon,
                            int quantity, List<ProductOptionSnapshot> optionSnapshots) {
         Assert.hasText(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
         Assert.notNull(productSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
@@ -62,7 +59,7 @@ public class OrderSheetItem {
      * @return 주문 상품 도메인
      */
     public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
-                                        OrderCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
+                                        ItemCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
         if ( quantity <= 0) {
             throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
         }
@@ -175,7 +172,7 @@ public class OrderSheetItem {
      * @return 주문 상품 쿠폰 아이디
      */
     public Long getCouponId() {
-        return this.getItemCouponSnapshot().getCouponId();
+        return this.getItemCouponSnapshot().getItemCouponId();
     }
 
     /**
@@ -198,11 +195,11 @@ public class OrderSheetItem {
      *
      * @param itemCoupon 주문 상품 쿠폰 정보
      */
-    public void changeCoupon(OrderCouponSnapshot itemCoupon) {
+    public void changeCoupon(ItemCouponSnapshot itemCoupon) {
         this.itemCouponSnapshot = itemCoupon;
     }
 
     public boolean hasCoupon() {
-        return this.itemCouponSnapshot.getCouponId() != null;
+        return this.itemCouponSnapshot.getItemCouponId() != null;
     }
 }

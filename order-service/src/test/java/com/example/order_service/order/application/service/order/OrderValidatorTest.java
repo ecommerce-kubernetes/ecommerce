@@ -147,7 +147,7 @@ public class OrderValidatorTest {
                 .itemCoupon(item.getItemCouponSnapshot())
                 .build()).toList();
         OrderCouponResult.Calculate couponResult = OrderCouponResult.Calculate.builder()
-                .cartCoupon(OrderCouponSnapshot.of(orderSheet.getCartCoupon().getCouponId(),
+                .cartCoupon(CartCouponSnapshot.of(orderSheet.getCartCoupon().getCouponId(),
                         orderSheet.getCartCoupon().getCouponName(), orderSheet.getCartCoupon().getDiscountAmount().add(Money.wons(1000L))))
                 .itemCoupons(itemCoupons)
                 .build();
@@ -167,8 +167,8 @@ public class OrderValidatorTest {
         OrderProductResult.ProductList productResult = createValidProductList(orderSheet);
         List<OrderCouponResult.ItemCoupon> invalidItemCoupons = orderSheet.getItems().stream()
                 .map(item -> {
-                    OrderCouponSnapshot itemCoupon = item.getItemCouponSnapshot().getCouponId() == null ?
-                            OrderCouponSnapshot.empty() : OrderCouponSnapshot.of(item.getCouponId(), item.getItemCouponSnapshot().getCouponName(),
+                    ItemCouponSnapshot itemCoupon = item.getItemCouponSnapshot().getItemCouponId() == null ?
+                            ItemCouponSnapshot.empty() : ItemCouponSnapshot.of(item.getCouponId(), item.getItemCouponSnapshot().getItemCouponName(),
                             item.getItemCouponSnapshot().getDiscountAmount().add(Money.wons(1000L)));
                     return OrderCouponResult.ItemCoupon.builder()
                             .productVariantId(item.getProductVariantId())
@@ -248,8 +248,8 @@ public class OrderValidatorTest {
         ProductSnapshot product1 = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
         ProductSnapshot product2 = ProductSnapshot.of(1L, 2L, "PROD1-XL-RED", "청바지", "/product/product/jean_1.jpg");
         ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
         List<ProductOptionSnapshot> options1 = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "BLUE")
@@ -259,7 +259,7 @@ public class OrderValidatorTest {
                 ProductOptionSnapshot.of("색상", "RED")
         );
         OrderSheetItem sheetItem1 = OrderSheetItem.create("sheetItemId", product1, price, itemCoupon, 1, options1);
-        OrderSheetItem sheetItem2 = OrderSheetItem.create("sheetItemId2", product2, price, OrderCouponSnapshot.empty(), 5, options2);
+        OrderSheetItem sheetItem2 = OrderSheetItem.create("sheetItemId2", product2, price, itemCoupon.empty(), 5, options2);
         return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem1, sheetItem2), cartCoupon, LocalDateTime.now(), 30);
     }
 }

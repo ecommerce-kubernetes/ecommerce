@@ -38,7 +38,7 @@ public class OrderResult {
             String orderName,
             Orderer orderer,
             ShippingAddress shippingAddress,
-            OrderCouponSnapshot cartCoupon,
+            CartCouponSnapshot cartCoupon,
             List<OrderedItem> items,
             Money totalOriginalPrice,
             Money totalProductDiscountAmount,
@@ -90,7 +90,7 @@ public class OrderResult {
     public record OrderedItem(
             ProductSnapshot product,
             ProductPriceSnapshot productPrice,
-            OrderCouponSnapshot itemCoupon,
+            ItemCouponSnapshot itemCoupon,
             Integer quantity,
             List<ProductOptionSnapshot> options
     ) {

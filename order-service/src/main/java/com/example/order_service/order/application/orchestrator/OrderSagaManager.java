@@ -48,7 +48,7 @@ public class OrderSagaManager {
 
     private SagaPayload createPayload(OrderResult.Detail order) {
         List<Long> itemCouponIds = order.items().stream()
-                .map(item -> item.itemCoupon().getCouponId())
+                .map(item -> item.itemCoupon().getItemCouponId())
                 .filter(java.util.Objects::nonNull)
                 .toList();
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(order.usedPoints());
