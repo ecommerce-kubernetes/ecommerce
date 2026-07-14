@@ -17,6 +17,7 @@ import org.springframework.util.Assert;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -115,8 +116,27 @@ public class OrderSheet {
         this.shippingAddress = newAddress;
     }
 
-    public void applyPoints(Money appliedPoints) {
+    public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon) {
+        OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
 
+        item.applyItemCoupon(itemCoupon);
+        recalculateTotals();
+    }
+
+    private void recalculateTotals() {
+        Money totalItemCouponDiscount = this.items.stream()
+                .map(OrderSheetItem::getCouponDiscount)
+                .reduce(Money.ZERO, Money::add);
+
+        this.totalCouponDiscountAmount = (this.cartCoupon == null) ?
+                totalItemCouponDiscount : totalItemCouponDiscount.add(cartCoupon.getDiscountAmount());
+        this.totalPaymentAmount = calculateTotalPaymentAmount(this.items);
+    }
+
+    private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
+        return this.items.stream().filter(item -> item.getId().equals(orderSheetItemId))
+                .findFirst();
     }
 
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {

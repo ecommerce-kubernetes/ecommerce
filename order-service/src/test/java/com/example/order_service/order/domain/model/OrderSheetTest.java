@@ -28,7 +28,7 @@ public class OrderSheetTest {
         //then
         assertThat(orderSheet.getOrderer()).isEqualTo(orderer);
         assertThat(orderSheet.getItems()).hasSize(1)
-                        .containsExactly(item);
+                .containsExactly(item);
 
         assertThat(orderSheet.getExpiresAt()).isEqualTo(expiresAt);
 
@@ -97,6 +97,44 @@ public class OrderSheetTest {
         orderSheet.changeShippingAddress(shippingAddress);
         //then
         assertThat(orderSheet.getShippingAddress()).isEqualTo(shippingAddress);
+    }
+
+    @Test
+    @DisplayName("주문 항목에 상품 쿠폰을 적용하면 가격 정보가 다시 계산된다.")
+    void applyItemCoupon() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", Money.wons(1000L));
+        //when
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon);
+        //then
+        assertThat(orderSheet)
+                .extracting(OrderSheet::getTotalCouponDiscountAmount, OrderSheet::getTotalPaymentAmount)
+                .containsExactly(
+                        itemCoupon.getDiscountAmount(), Money.wons(26000L)
+                );
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰을 적용할 때 주문 상품을 찾을 수 없으면 예외가 발생한다.")
+    void applyItemCoupon_notFound_orderSheetItem() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", Money.wons(1000L));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_ITEM_NOT_FOUND);
     }
 
     private OrderSheetItem createOrderSheetItem() {

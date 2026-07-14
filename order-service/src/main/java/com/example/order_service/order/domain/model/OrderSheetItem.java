@@ -45,34 +45,6 @@ public class OrderSheetItem {
         this.optionSnapshots = optionSnapshots;
     }
 
-    /**
-     * 주문 상품 정적 팩토리 메서드
-     * <p>
-     *     주문 상품 정보를 통해 주문서 상품 도메인을 생성하는 정적 팩토리 메서드
-     * </p>
-     * @param sheetItemId 주문 상품 아이디
-     * @param productSnapshot 상품 정보
-     * @param itemPrice 상품 가격 정보
-     * @param coupon 상품 쿠폰 정보
-     * @param quantity 주문 수량
-     * @param options 상품 옵션
-     * @return 주문 상품 도메인
-     */
-    public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
-                                        ItemCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
-        if ( quantity <= 0) {
-            throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
-        }
-        return OrderSheetItem.reconstitute()
-                .id(sheetItemId)
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(itemPrice)
-                .itemCoupon(coupon)
-                .quantity(quantity)
-                .optionSnapshots(options)
-                .build();
-    }
-
     public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, int quantity, List<ProductOptionSnapshot> optionSnapshots) {
         String id = UUID.randomUUID().toString();
 
@@ -125,6 +97,13 @@ public class OrderSheetItem {
         return priceSnapshot.getDiscountedPrice().multiple(quantity);
     }
 
+    public Money getCouponDiscount() {
+        if (this.itemCouponSnapshot == null) {
+            return Money.ZERO;
+        }
+        return this.itemCouponSnapshot.getDiscountAmount();
+    }
+
     public Money getFinalAmount() {
         Money lineTotal = getLineTotal();
         if (this.itemCouponSnapshot == null) {
@@ -165,6 +144,34 @@ public class OrderSheetItem {
         Money productTotal = getLineTotal();
         Money couponAmount = itemCouponSnapshot.getDiscountAmount();
         return productTotal.min(couponAmount);
+    }
+
+    /**
+     * 주문 상품 정적 팩토리 메서드
+     * <p>
+     *     주문 상품 정보를 통해 주문서 상품 도메인을 생성하는 정적 팩토리 메서드
+     * </p>
+     * @param sheetItemId 주문 상품 아이디
+     * @param productSnapshot 상품 정보
+     * @param itemPrice 상품 가격 정보
+     * @param coupon 상품 쿠폰 정보
+     * @param quantity 주문 수량
+     * @param options 상품 옵션
+     * @return 주문 상품 도메인
+     */
+    public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
+                                        ItemCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
+        if ( quantity <= 0) {
+            throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
+        }
+        return OrderSheetItem.reconstitute()
+                .id(sheetItemId)
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(itemPrice)
+                .itemCoupon(coupon)
+                .quantity(quantity)
+                .optionSnapshots(options)
+                .build();
     }
 
     /**
