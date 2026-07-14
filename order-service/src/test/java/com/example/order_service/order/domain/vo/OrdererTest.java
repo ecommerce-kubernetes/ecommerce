@@ -1,5 +1,7 @@
 package com.example.order_service.order.domain.vo;
 
+import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,48 +20,43 @@ class OrdererTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         //then
         assertThat(orderer)
-                .extracting("userId", "userName", "phoneNumber")
+                .extracting(Orderer::getUserId, Orderer::getUserName, Orderer::getPhoneNumber)
                 .containsExactlyInAnyOrder(
                         1L, "주문자", "010-1234-5678"
                 );
     }
 
     @Test
-    @DisplayName("유저 아이디가 null이면 예외가 발생한다")
+    @DisplayName("유저 아이디가 없으면 예외가 발생한다")
     void of_userId_null() {
         //given
         //when
         //then
         assertThatThrownBy(() -> Orderer.of(null, "주문자", "010-1234-6789"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("유저 아이디는 필수값 입니다");
+                .hasMessage("유저 아이디는 필수 입니다.");
     }
 
-    @ParameterizedTest(name = "이름이 유효하지 않으면 예외가 발생한다")
-    @CsvSource(
-            value = {"null, ''"},
-            nullValues = "null"
-    )
-    void of_invalid_userName(String userName) {
+    @Test
+    @DisplayName("유저 이름이 없으면 예외가 발생한다.")
+    void of_userName_null() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> Orderer.of(1L, userName, "010-2134-5124"))
+        assertThatThrownBy(() -> Orderer.of(1L, "", "010-1234-5678"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("유저 이름은 필수 입니다");
+                .hasMessage("유저 이름은 필수 입니다.");
     }
 
-    @ParameterizedTest(name = "전화번호가 유효하지 않으면 예외가 발생한다")
-    @CsvSource(
-            value = {"null, '', 1231215"},
-            nullValues = "null"
-    )
-    void of_invalid_userPhone(String phone) {
+    @Test
+    @DisplayName("전화 번호가 유효하지 않으면 예외가 발생한다.")
+    void of_invalid_phoneNumber() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> Orderer.of(1L, "주문자", phone))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("유효하지 않은 전화번호 형식입니다.");
+        assertThatThrownBy(() -> Orderer.of(1L, "주문자", "1233"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.INVALID_PHONE_NUMBER);
     }
 }

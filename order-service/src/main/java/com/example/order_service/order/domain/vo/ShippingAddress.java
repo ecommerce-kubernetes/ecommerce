@@ -1,5 +1,6 @@
 package com.example.order_service.order.domain.vo;
 
+import com.mysema.commons.lang.Assert;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,6 +19,12 @@ public class ShippingAddress {
 
     @Builder(builderMethodName = "reconstitute")
     private ShippingAddress(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
+        Assert.hasText(receiverName, "배송 정보에 수령인 이름은 필수 입니다.");
+        Assert.hasText(receiverPhone, "배송 정보에 수령인 전화번호는 필수 입니다.");
+        Assert.hasText(zipCode, "배송 정보에 우편 번호는 필수 입니다.");
+        Assert.hasText(address, "배송 정보에 주소는 필수 입니다.");
+        Assert.hasText(addressDetail, "배송 정보에 상세 주소는 필수 입니다.");
+
         this.receiverName = receiverName;
         this.receiverPhone = receiverPhone;
         this.zipCode = zipCode;
@@ -26,20 +33,8 @@ public class ShippingAddress {
     }
 
     public static ShippingAddress of(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
-        if (receiverName == null || receiverName.isBlank()) {
-            throw new IllegalArgumentException("수령인 이름은 필수 입니다");
-        }
         if (receiverPhone == null || !receiverPhone.matches("^01[016-9]-\\d{3,4}-\\d{4}$")) {
             throw new IllegalArgumentException("유효하지 않은 전화번호 형식입니다.");
-        }
-        if (zipCode == null || zipCode.isBlank()) {
-            throw new IllegalArgumentException("우편번호는 필수입니다");
-        }
-        if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("주소는 필수입니다");
-        }
-        if (addressDetail == null || addressDetail.isBlank()) {
-            throw new IllegalArgumentException("상세 주소는 필수입니다");
         }
         return new ShippingAddress(receiverName, receiverPhone, zipCode, address, addressDetail);
     }

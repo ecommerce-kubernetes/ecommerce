@@ -104,6 +104,14 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
+    public void changeShippingAddress(ShippingAddress newAddress) {
+        this.shippingAddress = newAddress;
+    }
+
+    public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
+
+    }
+
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getAppliedCouponDiscount)
@@ -170,18 +178,6 @@ public class OrderSheet {
      */
     public Duration getRemainingTtl(LocalDateTime currentTime) {
         return Duration.between(currentTime, this.expiresAt);
-    }
-
-    /**
-     * 주문서 배송 정보를 수정
-     * <p>
-     * 주문서 배송 정보를 파라미터 VO로 수정
-     * </p>
-     *
-     * @param newAddress 배송 정보 VO
-     */
-    public void changeShippingAddress(ShippingAddress newAddress) {
-        this.shippingAddress = newAddress;
     }
 
     /**

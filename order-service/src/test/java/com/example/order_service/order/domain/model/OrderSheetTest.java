@@ -80,6 +80,23 @@ public class OrderSheetTest {
                 .hasMessage("주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
     }
 
+    @Test
+    @DisplayName("주문서의 배송 정보를 변경한다")
+    void changeShippingAddress() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345",
+                "서울시 테헤란로 123", "123동 1234호");
+        //when
+        orderSheet.changeShippingAddress(shippingAddress);
+        //then
+        assertThat(orderSheet.getShippingAddress()).isEqualTo(shippingAddress);
+    }
+
     private OrderSheetItem createOrderSheetItem() {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
