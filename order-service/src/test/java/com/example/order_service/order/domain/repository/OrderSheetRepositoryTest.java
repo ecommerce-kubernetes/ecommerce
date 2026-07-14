@@ -66,13 +66,9 @@ class OrderSheetRepositoryTest {
         Orderer orderer = createOrderer();
         ShippingAddress shippingAddress = createShippingAddress();
         return OrderSheet.create(
-                "test",
                 orderer,
-                shippingAddress,
                 List.of(createOrderSheetItem()),
-                createCartCouponSnapshot(),
-                LocalDateTime.now(),
-                30
+                LocalDateTime.now().plusMinutes(30)
         );
     }
 

@@ -66,45 +66,6 @@ public class OrderSheet {
         this.expiresAt = expiresAt;
     }
 
-    /**
-     * 주문서 정적 팩토리 메서드
-     * <p>
-     * 주문 정보를 통해 주문서 도메인을 생성하는 정적 팩토리 메서드
-     * </p>
-     *
-     * @param sheetId         주문서 아이디
-     * @param orderer         주문자 정보(VO)
-     * @param shippingAddress 배송 정보(VO)
-     * @param items           주문 아이템
-     * @param coupon          장바구니 쿠폰
-     * @param createdAt       생성시간
-     * @param ttl             주문서 만료 기간
-     * @return 주문서 애그리거트 루트 도메인
-     */
-    public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
-        if (items.isEmpty()) {
-            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
-        }
-        Money totalOriginalPrice = calculateTotalOriginalPrice(items);
-        Money totalProductDiscount = calculateTotalProductDiscountAmount(items);
-        Money totalItemCouponDiscount = calcTotalItemCouponDiscountAmount(items);
-        Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
-        Money pointEligibleAmount = calcPointEligibleAmount(items, coupon);
-        return OrderSheet.reconstitute()
-                .id(sheetId)
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .items(items)
-                .cartCoupon(coupon)
-                .totalOriginalPrice(totalOriginalPrice)
-                .totalProductDiscountAmount(totalProductDiscount)
-                .totalCouponDiscountAmount(appliedCartDiscount.add(totalItemCouponDiscount))
-                .usedPoints(Money.ZERO)
-                .totalPaymentAmount(pointEligibleAmount)
-                .expiresAt(createdAt.plusMinutes(ttl))
-                .build();
-    }
-
     public static OrderSheet create(Orderer orderer, List<OrderSheetItem> items, LocalDateTime expiresAt) {
         if (items.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);

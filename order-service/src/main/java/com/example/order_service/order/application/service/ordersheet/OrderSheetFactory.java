@@ -46,7 +46,7 @@ public class OrderSheetFactory {
         ShippingAddress shippingAddress = userResult.shippingAddress();
         List<OrderSheetItem> sheetItems = createItems(command, productResult, couponResult);
         CartCouponSnapshot cartCoupon = couponResult.cartCoupon() != null ? couponResult.cartCoupon() : CartCouponSnapshot.empty();
-        return OrderSheet.create(sheetId, orderer, shippingAddress, sheetItems, cartCoupon, LocalDateTime.now(), ttlMinute);
+        return OrderSheet.create(orderer, sheetItems, LocalDateTime.now().plusMinutes(ttlMinute));
     }
 
     private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult) {

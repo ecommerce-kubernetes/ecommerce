@@ -57,6 +57,6 @@ public class OrderMapperTest {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(), 30);
+        return OrderSheet.create(orderer, List.of(sheetItem), LocalDateTime.now().plusMinutes(30));
     }
 }

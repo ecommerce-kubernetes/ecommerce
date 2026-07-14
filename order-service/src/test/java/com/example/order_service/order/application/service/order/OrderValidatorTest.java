@@ -260,6 +260,6 @@ public class OrderValidatorTest {
         );
         OrderSheetItem sheetItem1 = OrderSheetItem.create("sheetItemId", product1, price, itemCoupon, 1, options1);
         OrderSheetItem sheetItem2 = OrderSheetItem.create("sheetItemId2", product2, price, itemCoupon.empty(), 5, options2);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem1, sheetItem2), cartCoupon, LocalDateTime.now(), 30);
+        return OrderSheet.create(orderer,  List.of(sheetItem1, sheetItem2), LocalDateTime.now().plusMinutes(30));
     }
 }

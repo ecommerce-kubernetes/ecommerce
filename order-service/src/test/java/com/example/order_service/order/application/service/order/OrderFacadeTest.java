@@ -201,7 +201,7 @@ public class OrderFacadeTest {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
+        return OrderSheet.create(orderer, List.of(sheetItem), LocalDateTime.now(clock).plusMinutes(30));
     }
 
     private OrderSheet createOrderSheetWithoutCoupon() {
@@ -216,6 +216,6 @@ public class OrderFacadeTest {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
+        return OrderSheet.create(orderer, List.of(sheetItem), LocalDateTime.now(clock).plusMinutes(30));
     }
 }
