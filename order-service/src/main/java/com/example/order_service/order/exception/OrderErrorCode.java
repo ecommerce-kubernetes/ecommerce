@@ -36,6 +36,7 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_ORDER_STATUS_FOR_PAYMENT(HttpStatus.CONFLICT, "INVALID_ORDER_STATUS_FOR_PAYMENT", "결제 가능한 주문이 아닙니다"),
     ORDER_POINT_POLICY_VIOLATION(HttpStatus.CONFLICT, "ORDER_POINT_POLICY_VIOLATION", "현재 주문에 사용할 수 있는 포인트를 초과했습니다"),
     ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_ACCESS_DENIED", "주문 조회 권한이 없습니다"),
+    INVALID_ITEM_COUPON(HttpStatus.CONFLICT, "INVALID_ITEM_COUPON", "적용할 수 없는 상품 쿠폰입니다."),
     POINTS_DISCOUNT_CHANGE(HttpStatus.CONFLICT, "POINT_DISCOUNT_CHANGE", "사용 가능 포인트가 변동되었습니다"),
     ITEM_COUPON_DISCOUNT_CHANGE(HttpStatus.CONFLICT, "ITEM_COUPON_DISCOUNT_CHANGE", "상품 쿠폰 할인금이 변동되었습니다"),
     CART_COUPON_DISCOUNT_CHANGE(HttpStatus.CONFLICT, "CART_COUPON_DISCOUNT_CHANGE", "장바구니 상품 할인금이 변동되었습니다"),

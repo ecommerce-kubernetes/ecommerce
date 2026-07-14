@@ -132,6 +132,15 @@ public class OrderSheetItem {
         }
         return lineTotal.subtract(itemCouponSnapshot.getDiscountAmount());
     }
+
+    public void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
+        Money lineTotal = getLineTotal();
+        if (lineTotal.isLessThan(itemCoupon.getDiscountAmount())) {
+            throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);
+        }
+        this.itemCouponSnapshot = itemCoupon;
+    }
+
     /**
      * 총 주문 상품의 쿠폰 적용 금액
      * <p>
