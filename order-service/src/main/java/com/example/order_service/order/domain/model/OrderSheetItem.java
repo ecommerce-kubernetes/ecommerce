@@ -61,38 +61,14 @@ public class OrderSheetItem {
                 .build();
     }
 
-    /**
-     * 총 주문 상품 원본 금액
-     * <p>
-     * 총 주문 상품의 원본 금액을 반환한다
-     * </p>
-     *
-     * @return 총 주문 상품 원본 금액
-     */
     public Money getOriginalLineTotal() {
         return priceSnapshot.getOriginalPrice().multiple(quantity);
     }
 
-    /**
-     * 총 주문 상품 할인 금액
-     * <p>
-     * 총 주문 상품 할인 금액을 반환한다
-     * </p>
-     *
-     * @return 총 주문 상품 할인 금액
-     */
     public Money getProductDiscountLineTotal() {
         return priceSnapshot.getDiscountAmount().multiple(quantity);
     }
 
-    /**
-     * 주문 상품의 총 가격
-     * <p>
-     * 주문 상품의 총 주문 가격을 반환한다
-     * </p>
-     *
-     * @return 주문 상품 총 주문 가격
-     */
     public Money getLineTotal() {
         return priceSnapshot.getDiscountedPrice().multiple(quantity);
     }
@@ -101,77 +77,17 @@ public class OrderSheetItem {
         if (this.itemCouponSnapshot == null) {
             return Money.ZERO;
         }
-        return this.itemCouponSnapshot.getDiscountAmount();
+        Money lineTotal = getLineTotal();
+        Money couponDiscountAmount = itemCouponSnapshot.getDiscountAmount();
+        return Money.min(lineTotal, couponDiscountAmount);
     }
 
     public Money getFinalAmount() {
-        Money lineTotal = getLineTotal();
-        if (this.itemCouponSnapshot == null) {
-            return lineTotal;
-        }
-        return lineTotal.subtract(itemCouponSnapshot.getDiscountAmount());
+        return getLineTotal().subtract(getCouponDiscount());
     }
 
     protected void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
-        Money lineTotal = getLineTotal();
-        if (lineTotal.isLessThan(itemCoupon.getDiscountAmount())) {
-            throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);
-        }
         this.itemCouponSnapshot = itemCoupon;
-    }
-
-    /**
-     * 총 주문 상품의 쿠폰 적용 금액
-     * <p>
-     * 총 주문 상품의 쿠폰 적용 금액을 반환한다
-     * </p>
-     *
-     * @return 총 주문 상품 쿠폰 적용 금액
-     */
-    public Money getFinalLineTotal() {
-        return getLineTotal().subtract(getAppliedCouponDiscount());
-    }
-
-    /**
-     * 주문 상품 쿠폰 할인 금액
-     * <p>
-     * 주문 상품 적용 쿠폰 할인 금액을 반환한다
-     * </p>
-     *
-     * @return 주문 상품 쿠폰 할인 금액
-     */
-    public Money getAppliedCouponDiscount() {
-        Money productTotal = getLineTotal();
-        Money couponAmount = itemCouponSnapshot.getDiscountAmount();
-        return productTotal.min(couponAmount);
-    }
-
-    /**
-     * 주문 상품 정적 팩토리 메서드
-     * <p>
-     *     주문 상품 정보를 통해 주문서 상품 도메인을 생성하는 정적 팩토리 메서드
-     * </p>
-     * @param sheetItemId 주문 상품 아이디
-     * @param productSnapshot 상품 정보
-     * @param itemPrice 상품 가격 정보
-     * @param coupon 상품 쿠폰 정보
-     * @param quantity 주문 수량
-     * @param options 상품 옵션
-     * @return 주문 상품 도메인
-     */
-    public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
-                                        ItemCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
-        if ( quantity <= 0) {
-            throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
-        }
-        return OrderSheetItem.reconstitute()
-                .id(sheetItemId)
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(itemPrice)
-                .itemCoupon(coupon)
-                .quantity(quantity)
-                .optionSnapshots(options)
-                .build();
     }
 
     /**

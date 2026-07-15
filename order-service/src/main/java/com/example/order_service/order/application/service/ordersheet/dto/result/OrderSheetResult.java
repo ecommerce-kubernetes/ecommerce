@@ -105,7 +105,7 @@ public class OrderSheetResult {
                     .thumbnail(item.getProductSnapshot().getThumbnail())
                     .quantity(item.getQuantity())
                     .productPrice(item.getPriceSnapshot())
-                    .lineTotal(item.getFinalLineTotal())
+                    .lineTotal(item.getFinalAmount())
                     .appliedItemCoupon(item.getItemCouponSnapshot())
                     .options(item.getOptionSnapshots())
                     .build();

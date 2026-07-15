@@ -79,7 +79,8 @@ public class OrderValidator {
         Map<Long, ItemCouponSnapshot> itemCouponMap = coupon.toItemCouponMap();
         for (OrderSheetItem item : items) {
             ItemCouponSnapshot itemCoupon = itemCouponMap.get(item.getProductVariantId());
-            if (!item.getAppliedCouponDiscount().equals(itemCoupon.getDiscountAmount())) {
+            if (!item.getCouponDiscount()
+                    .equals(itemCoupon.getDiscountAmount())) {
                 throw new BusinessException(OrderErrorCode.ITEM_COUPON_DISCOUNT_CHANGE);
             }
         }

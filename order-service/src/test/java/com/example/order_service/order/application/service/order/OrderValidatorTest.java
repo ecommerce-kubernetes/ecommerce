@@ -258,8 +258,8 @@ public class OrderValidatorTest {
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "RED")
         );
-        OrderSheetItem sheetItem1 = OrderSheetItem.create("sheetItemId", product1, price, itemCoupon, 1, options1);
-        OrderSheetItem sheetItem2 = OrderSheetItem.create("sheetItemId2", product2, price, itemCoupon.empty(), 5, options2);
+        OrderSheetItem sheetItem1 = OrderSheetItem.create(product1, price, 1, options1);
+        OrderSheetItem sheetItem2 = OrderSheetItem.create(product2, price, 5, options2);
         return OrderSheet.create(orderer,  List.of(sheetItem1, sheetItem2), LocalDateTime.now().plusMinutes(30));
     }
 }

@@ -64,7 +64,7 @@ public class OrderSheetFactory {
         ProductPriceSnapshot priceSnapshot = product.priceSnapshot();
         List<ProductOptionSnapshot> optionSnapshots = product.options();
         ItemCouponSnapshot couponSnapshot = itemCouponMap.getOrDefault(orderedVariantId, ItemCouponSnapshot.empty());
-        return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, command.quantity(), optionSnapshots);
+        return OrderSheetItem.create(productSnapshot, priceSnapshot, command.quantity(), optionSnapshots);
     }
 
     private String generateId() {

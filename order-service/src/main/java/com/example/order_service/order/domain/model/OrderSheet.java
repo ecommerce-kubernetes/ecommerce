@@ -80,6 +80,7 @@ public class OrderSheet {
 
         Money totalOriginalPrice = calculateTotalOriginalPrice(items);
         Money totalProductDiscountAmount = calculateTotalProductDiscountAmount(items);
+        Money totalItemCouponDiscountAmount = calculateTotalItemCouponDiscountAmount(items);
         Money totalItemFinalAmount = calculateTotalItemFinalAmount(items);
         return OrderSheet.reconstitute()
                 .id(id)
@@ -87,7 +88,7 @@ public class OrderSheet {
                 .items(items)
                 .totalOriginalPrice(totalOriginalPrice)
                 .totalProductDiscountAmount(totalProductDiscountAmount)
-                .totalCouponDiscountAmount(Money.ZERO)
+                .totalCouponDiscountAmount(totalItemCouponDiscountAmount)
                 .usedPoints(Money.ZERO)
                 .totalPaymentAmount(totalItemFinalAmount)
                 .expiresAt(expiresAt)
@@ -109,6 +110,12 @@ public class OrderSheet {
     private static Money calculateTotalItemFinalAmount(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getFinalAmount)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    private static Money calculateTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getCouponDiscount)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -174,7 +181,7 @@ public class OrderSheet {
 
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
-                .map(OrderSheetItem::getAppliedCouponDiscount)
+                .map(OrderSheetItem::getCouponDiscount)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -183,7 +190,7 @@ public class OrderSheet {
         // [NOTE]
         // 총 상품 쿠폰 적용 금액(상품 할인금액 - 상품 쿠폰할인금)이 장바구니 쿠폰 할인금보다 작은 경우
         // 장바구니 쿠폰 할인금액은 총 상품 쿠폰 적용 금액이 된다
-        return itemFinalPrice.min(coupon.getDiscountAmount());
+        return Money.min(itemFinalPrice, coupon.getDiscountAmount());
     }
 
     private static Money calcPointEligibleAmount(List<OrderSheetItem> items, CartCouponSnapshot coupon) {
@@ -194,7 +201,7 @@ public class OrderSheet {
 
     private static Money calcTotalItemFinalPrice(List<OrderSheetItem> items) {
         return items.stream()
-                .map(OrderSheetItem::getFinalLineTotal)
+                .map(OrderSheetItem::getFinalAmount)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -290,7 +297,7 @@ public class OrderSheet {
     public Money calcAvailablePoints(Money ownedPoints, PointUsagePolicy pointPolicy) {
         Money pointEligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
         Money pointsLimit = pointPolicy.calculateMaxLimit(pointEligibleAmount);
-        return ownedPoints.min(pointsLimit);
+        return Money.min(ownedPoints, pointsLimit);
     }
 
     /**
