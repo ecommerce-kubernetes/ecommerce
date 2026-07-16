@@ -79,11 +79,7 @@
 | shippingAddress            | ShippingAddress      | 배송 정보         |
 | items                      | List<OrderSheetItem> | 주문 상품 리스트     |
 | cartCoupon                 | OrderCouponSnapshot  | 장바구니 쿠폰       |
-| totalOriginalPrice         | Money                | 총 주문 상품 원가격   |
-| totalProductDiscountAmount | Money                | 총 상품 할인 금액    |
-| totalCouponDiscountAmount  | Money                | 총 적용 쿠폰 할인 금액 |
 | usedPoints                 | Money                | 적용 포인트 금액     |
-| totalPaymentAmount         | Money                | 예상 결제 금액      |
 | expiresAt                  | LocalDateTime        | 주문서 만료 시간     |
 
 #### 행위
