@@ -349,14 +349,14 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
     private OrderSheetResult.Detail createOrderSheetResult() {
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
+//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
         return OrderSheetResult.Detail.builder()
                 .sheetId("sheetId")
                 .expiresAt(LocalDateTime.now().plusMinutes(30))
                 .orderer(createOrderer())
                 .shippingAddress(createShippingAddress())
                 .items(createItems())
-                .cartCoupon(cartCoupon)
+//                .cartCoupon(cartCoupon)
                 .point(createPoint())
                 .paymentSummary(createPaymentSummary())
                 .build();

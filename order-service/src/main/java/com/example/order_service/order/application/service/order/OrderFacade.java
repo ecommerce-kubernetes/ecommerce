@@ -88,7 +88,7 @@ public class OrderFacade {
         ).toList();
         OrderCouponCommand.Calculate command = OrderCouponCommand.Calculate
                 .of(orderSheet.getOrderer().getUserId(),
-                        orderSheet.getCartCoupon().getCouponId(),
+                        orderSheet.getCartCoupon().getCartCouponId(),
                         itemCouponCommand);
         return orderCouponGateway.calculate(command);
     }

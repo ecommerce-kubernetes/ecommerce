@@ -502,7 +502,7 @@ public class OrderSheetServiceTest {
             //when
             OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
-            assertThat(result.cartCoupon().getCouponId()).isNull();
+            assertThat(result.cartCoupon().getCartCouponId()).isNull();
         }
 
         @Test
@@ -514,7 +514,7 @@ public class OrderSheetServiceTest {
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
                     orderSheet.getOrderer().getUserId(), newCouponId);
             CartCouponSnapshot cartCoupon = Instancio.of(CartCouponSnapshot.class)
-                    .set(field(CartCouponSnapshot::getCouponId), newCouponId)
+                    .set(field(CartCouponSnapshot::getCartCouponId), newCouponId)
                     .create();
             OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
                     .set(field(OrderCouponResult.Calculate::cartCoupon), cartCoupon)
@@ -528,7 +528,7 @@ public class OrderSheetServiceTest {
             //when
             OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
-            assertThat(result.cartCoupon().getCouponId()).isEqualTo(newCouponId);
+            assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(newCouponId);
         }
     }
 
@@ -538,7 +538,7 @@ public class OrderSheetServiceTest {
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
         ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
 //        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
+//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
         List<ProductOptionSnapshot> options = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "BLUE")

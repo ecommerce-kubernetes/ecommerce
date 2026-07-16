@@ -85,7 +85,8 @@ public class OrderSheet {
     }
 
     public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
-
+        Assert.notNull(cartCoupon, "적용할 쿠폰 정보는 필수 입니다.");
+        this.cartCoupon = cartCoupon;
     }
 
     private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
@@ -231,7 +232,7 @@ public class OrderSheet {
      * @return 장바구니 쿠폰 적용 여부
      */
     public boolean hasCartCoupon() {
-        return this.cartCoupon.getCouponId() != null;
+        return this.cartCoupon.getCartCouponId() != null;
     }
 
     /**

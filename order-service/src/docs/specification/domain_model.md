@@ -222,9 +222,20 @@
 
 #### 속성
 
+| 필드명                  | 타입                   | 설명        |
+|----------------------|----------------------|-----------|
+| cartCouponId         | Long                 | 적용 쿠폰 아이디 |
+| name                 | String               | 쿠폰 이름     |
+| discountPolicy       | CouponDiscountPolicy | 쿠폰 할인 정책  |
+| minimumPaymentAmount | Money                | 최소 결제 금액  |
+
 #### 행위
 
+- 장바구니 쿠폰 할인 금액을 계산한다.
+
 #### 규칙
+
+- 장바구니 쿠폰 할인 금액은 총 주문 항목 최종 금액 기준으로 계산된다.
 
 ### 4-3. 정액 할인 쿠폰 정책(FixedCouponDiscountPolicy)
 

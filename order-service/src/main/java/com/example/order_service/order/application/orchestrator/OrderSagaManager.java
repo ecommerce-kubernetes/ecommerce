@@ -52,7 +52,7 @@ public class OrderSagaManager {
                 .filter(java.util.Objects::nonNull)
                 .toList();
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(order.usedPoints());
-        SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(order.cartCoupon().getCouponId(), itemCouponIds);
+        SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(order.cartCoupon().getCartCouponId(), itemCouponIds);
         List<SagaPayload.ItemPayload> itemPayloads = order.items().stream().map(item -> SagaPayload.ItemPayload
                 .of(item.product().getProductVariantId(), item.quantity())).toList();
         return SagaPayload.of(order.orderer().getUserId(), itemPayloads, couponPayload, pointPayload);

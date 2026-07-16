@@ -87,14 +87,14 @@ public class OrderSheetFactoryTest {
     }
 
     private OrderCouponResult.Calculate createCouponResult() {
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
+//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
 //        ItemCouponSnapshot itemCouponInfo = ItemCouponSnapshot.of(2L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
         OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                 .productVariantId(1L)
 //                .itemCoupon(itemCouponInfo)
                 .build();
         return OrderCouponResult.Calculate.builder()
-                .cartCoupon(cartCoupon)
+//                .cartCoupon(cartCoupon)
                 .itemCoupons(List.of(itemCoupon))
                 .build();
     }

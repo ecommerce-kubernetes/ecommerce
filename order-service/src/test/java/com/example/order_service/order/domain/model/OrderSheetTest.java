@@ -146,33 +146,7 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("상품 쿠폰을 적용할때 쿠폰 할인 금액이 주문 항목의 판매가 총액을 초과하면 예외가 발생한다.")
-    void applyItemCoupon_exceed_itemLineTotal(){
-        //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        OrderSheetItem item = createOrderSheetItem();
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
-
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 30000원 할인", Money.wons(30000L));
-        //when
-        //then
-//        assertThatThrownBy(() -> orderSheet.applyItemCoupon(item.getId(), itemCoupon))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.INVALID_ITEM_COUPON);
-    }
-
-    @Test
-    @DisplayName("장바구니 쿠폰이 적용되어있는 주문서의 주문 항목에 상품 쿠폰을 적용하는 경우 상품 쿠폰 적용으로 인해 장바구니 쿠폰 할인금액이 총 상품 최종금액을 넘어서면 예외가 발생한다.")
-    void applyItemCoupon_conflict_coupon_combine(){
-        //given
-        //when
-        //then
-    }
-
-    @Test
-    @DisplayName("장바구니 쿠폰을 적용하면 가격 정보가 다시 계산된다")
+    @DisplayName("장바구니 쿠폰을 적용한다")
     void applyCartCoupon(){
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
@@ -180,7 +154,8 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "10000원 할인 쿠폰", Money.wons(10000L));
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "10000원 할인 쿠폰", policy, Money.wons(50000L));
         //when
         orderSheet.applyCartCoupon(cartCoupon);
         //then
@@ -188,21 +163,18 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("장바구니 쿠폰 할인 금액이 총 주문 항목 최종 금액을 초과하면 예외가 발생한다.")
-    void applyCartCoupon_exceed_TotalItemFinalAmount(){
+    @DisplayName("장바구니 쿠폰을 적용할때 장바구니 쿠폰이 없으면 예외가 발생한다")
+    void applyCartCoupon_coupon_null() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
-
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "30000원 할인 쿠폰", Money.wons(30000L));
         //when
         //then
-        assertThatThrownBy(() -> orderSheet.applyCartCoupon(cartCoupon))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.INVALID_CART_COUPON);
+        assertThatThrownBy(() -> orderSheet.applyCartCoupon(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("적용할 쿠폰 정보는 필수 입니다.");
     }
 
     private OrderSheetItem createOrderSheetItem() {

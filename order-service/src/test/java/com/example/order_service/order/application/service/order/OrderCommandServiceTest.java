@@ -53,7 +53,7 @@ public class OrderCommandServiceTest {
                 Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
+//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
 //        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
         OrderContext.ItemContext item = OrderContext.ItemContext.builder()
                 .productSnapshot(productSnapshot)
@@ -67,7 +67,6 @@ public class OrderCommandServiceTest {
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .orderItems(List.of(item))
-                .cartCoupon(cartCoupon)
                 .totalOriginalPrice(Money.wons(10000L))
                 .totalProductDiscountAmount(Money.wons(1000L))
                 .totalCouponDiscountAmount(Money.wons(2000L))

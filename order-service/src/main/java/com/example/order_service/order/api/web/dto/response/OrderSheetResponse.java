@@ -92,9 +92,9 @@ public class OrderSheetResponse {
     ) {
         public static OrderCouponResponse from(CartCouponSnapshot coupon) {
             return OrderCouponResponse.builder()
-                    .couponId(coupon.getCouponId())
-                    .couponName(coupon.getCouponName())
-                    .discountAmount(coupon.getDiscountAmount().longValue())
+                    .couponId(coupon.getCartCouponId())
+                    .couponName(coupon.getName())
+
                     .build();
         }
 

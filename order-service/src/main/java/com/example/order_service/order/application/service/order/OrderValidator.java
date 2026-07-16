@@ -72,9 +72,6 @@ public class OrderValidator {
     }
 
     private void validateCoupons(OrderSheet orderSheet, OrderCouponResult.Calculate coupon) {
-        if (!orderSheet.getCartCoupon().getDiscountAmount().equals(coupon.cartCoupon().getDiscountAmount())) {
-            throw new BusinessException(OrderErrorCode.CART_COUPON_DISCOUNT_CHANGE);
-        }
         List<OrderSheetItem> items = orderSheet.getItems();
         Map<Long, ItemCouponSnapshot> itemCouponMap = coupon.toItemCouponMap();
         for (OrderSheetItem item : items) {

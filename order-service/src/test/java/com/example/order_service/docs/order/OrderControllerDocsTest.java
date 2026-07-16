@@ -176,14 +176,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
                 "12345", "서울시 테헤란로 123", "123동 1234호");
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
+//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
         return OrderResult.Detail.builder()
                 .orderNo("orderNo")
                 .status(OrderStatus.COMPLETED)
                 .orderName("청바지")
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
-                .cartCoupon(cartCoupon)
+//                .cartCoupon(cartCoupon)
                 .items(createItems())
                 .totalOriginalPrice(Money.wons(10000L))
                 .totalProductDiscountAmount(Money.wons(1000L))

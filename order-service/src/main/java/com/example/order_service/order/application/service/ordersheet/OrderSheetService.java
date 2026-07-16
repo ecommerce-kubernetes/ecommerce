@@ -190,7 +190,7 @@ public class OrderSheetService {
     private ItemCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
         List<OrderCouponCommand.AppliedCouponItem> appliedItems = createAppliedItemsWithTarget(orderSheet, sheetItemId, newItemCouponId);
         OrderCouponResult.Calculate calculate =
-                requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCouponId(), appliedItems);
+                requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCartCouponId(), appliedItems);
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
         Map<Long, ItemCouponSnapshot> itemCouponMap = calculate.toItemCouponMap();
         return null;
