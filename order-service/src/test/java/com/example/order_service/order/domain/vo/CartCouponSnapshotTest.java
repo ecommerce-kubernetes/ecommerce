@@ -12,8 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CartCouponSnapshotTest {
 
     @Test
-    @DisplayName("주문 항목 총 가격이 최소 결제 금액보다 작으면 적용할 수 없다.")
-    void isSatisfiedBy_totalPaymentAmount_less_than_minimumPaymentAmount(){
+    @DisplayName("기준 가격이 최소 결제 금액보다 작으면 쿠폰을 적용할 수 없다.")
+    void isSatisfiedBy_baseAmount_less_than_minimumPaymentAmount(){
         //given
         Money minimumPaymentAmount = Money.wons(50000L);
         Money totalOrderAmount = Money.wons(30000L);
@@ -26,8 +26,8 @@ class CartCouponSnapshotTest {
     }
 
     @Test
-    @DisplayName("주문 항목 총 가격이 최소 결제 금액보다 크면 적용할 수 있다")
-    void isSatisfiedBy_totalPaymentAmount_greater_than_minimumPaymentAmount(){
+    @DisplayName("기준 가격이 최소 결제 금액보다 크면 쿠폰을 적용할 수 있다")
+    void isSatisfiedBy_baseAmount_greater_than_minimumPaymentAmount(){
         //given
         Money minimumPaymentAmount = Money.wons(10000L);
         Money totalOrderAmount = Money.wons(30000L);

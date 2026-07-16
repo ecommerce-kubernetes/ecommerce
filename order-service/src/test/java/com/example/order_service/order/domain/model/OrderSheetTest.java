@@ -155,7 +155,7 @@ public class OrderSheetTest {
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "10000원 할인 쿠폰", policy, Money.wons(50000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(5000L));
         //when
         orderSheet.applyCartCoupon(cartCoupon);
         //then
@@ -175,6 +175,25 @@ public class OrderSheetTest {
         assertThatThrownBy(() -> orderSheet.applyCartCoupon(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("적용할 쿠폰 정보는 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰을 적용할때 최소 결제 금액을 만족하지 못하면 예외가 발생한다.")
+    void applyCartCoupon_not_satisfy_minimumPaymentAmount(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(50000L));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.applyCartCoupon(cartCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.CART_COUPON_MINIMUM_PAYMENT_NOT_MET);
     }
 
     private OrderSheetItem createOrderSheetItem() {

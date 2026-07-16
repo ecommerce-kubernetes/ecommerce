@@ -40,8 +40,8 @@ public class ItemCouponSnapshot {
                 .build();
     }
 
-    public Money calculateTotalDiscount(Money unitPrice, int quantity) {
-        Money discount = discountPolicy.calculateDiscount(unitPrice);
+    public Money calculateTotalDiscount(Money baseAmount, int quantity) {
+        Money discount = discountPolicy.calculateDiscount(baseAmount);
         int applicableQuantity = Math.min(quantity, this.applyQuantityLimit);
         return discount.multiple(applicableQuantity);
     }

@@ -74,7 +74,7 @@ public class OrderSheet {
     }
 
     public void changeShippingAddress(ShippingAddress newAddress) {
-        Assert.notNull(shippingAddress, "변경할 배송 정보는 필수 입니다.");
+        Assert.notNull(newAddress, "변경할 배송 정보는 필수 입니다.");
         this.shippingAddress = newAddress;
     }
 
@@ -86,12 +86,22 @@ public class OrderSheet {
 
     public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
         Assert.notNull(cartCoupon, "적용할 쿠폰 정보는 필수 입니다.");
+        Money subTotal = calculateSubTotal();
+        if (!cartCoupon.isSatisfiedBy(subTotal)) {
+            throw new BusinessException(OrderErrorCode.CART_COUPON_MINIMUM_PAYMENT_NOT_MET);
+        }
         this.cartCoupon = cartCoupon;
     }
 
     private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
         return this.items.stream().filter(item -> item.getId().equals(orderSheetItemId))
                 .findFirst();
+    }
+
+    private Money calculateSubTotal() {
+        return this.items.stream()
+                .map(OrderSheetItem::calculateLineTotal)
+                .reduce(Money.ZERO, Money::add);
     }
 
     /**

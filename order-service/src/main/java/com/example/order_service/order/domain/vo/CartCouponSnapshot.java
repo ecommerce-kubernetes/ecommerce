@@ -44,11 +44,11 @@ public class CartCouponSnapshot {
         return null;
     }
 
-    public boolean isSatisfiedBy(Money orderTotalAmount) {
-        return !orderTotalAmount.isLessThan(minimumPaymentAmount);
+    public boolean isSatisfiedBy(Money baseAmount) {
+        return !baseAmount.isLessThan(minimumPaymentAmount);
     }
 
-    public Money calculateDiscount(Money totalOrderAmount) {
-        return discountPolicy.calculateDiscount(totalOrderAmount);
+    public Money calculateDiscount(Money baseAmount) {
+        return discountPolicy.calculateDiscount(baseAmount);
     }
 }

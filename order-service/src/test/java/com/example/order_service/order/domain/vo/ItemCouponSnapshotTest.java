@@ -23,7 +23,7 @@ class ItemCouponSnapshotTest {
     }
 
     @Test
-    @DisplayName("주문 항목의 수량이 쿠폰 최대 적용 가능 수량을 초과하는 경우 쿠폰 적용 수량은 쿠폰의 최대 적용 가능 수량이다.")
+    @DisplayName("수량이 쿠폰 최대 적용 가능 수량을 초과하는 경우 쿠폰 적용 수량은 쿠폰의 최대 적용 가능 수량이다.")
     void calculateTotalDiscount_exceed_applyQuantityLimit() {
         //given
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
