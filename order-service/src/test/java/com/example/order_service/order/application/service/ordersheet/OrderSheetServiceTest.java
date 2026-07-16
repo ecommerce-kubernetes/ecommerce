@@ -451,9 +451,6 @@ public class OrderSheetServiceTest {
             //when
             OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
             //then
-            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(orderSheet.getTotalCouponDiscountAmount());
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(orderSheet.getUsedPoints());
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(orderSheet.getTotalPaymentAmount());
         }
 
         @Test
@@ -478,9 +475,7 @@ public class OrderSheetServiceTest {
             //when
             OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
             //then
-            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(orderSheet.getTotalCouponDiscountAmount());
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(orderSheet.getUsedPoints());
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(orderSheet.getTotalPaymentAmount());
+
         }
     }
 
@@ -508,9 +503,6 @@ public class OrderSheetServiceTest {
             OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().getCouponId()).isNull();
-            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(orderSheet.getTotalCouponDiscountAmount());
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(orderSheet.getUsedPoints());
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(orderSheet.getTotalPaymentAmount());
         }
 
         @Test
@@ -537,9 +529,6 @@ public class OrderSheetServiceTest {
             OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().getCouponId()).isEqualTo(newCouponId);
-            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(orderSheet.getTotalCouponDiscountAmount());
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(orderSheet.getUsedPoints());
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(orderSheet.getTotalPaymentAmount());
         }
     }
 

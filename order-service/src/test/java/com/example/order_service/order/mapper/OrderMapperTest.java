@@ -38,11 +38,6 @@ public class OrderMapperTest {
         assertThat(firstItemContext.itemPrice()).usingRecursiveComparison().isEqualTo(firstSheetItem.getPriceSnapshot());
         assertThat(firstItemContext.itemCouponSnapshot()).usingRecursiveComparison().isEqualTo(firstSheetItem.getItemCouponSnapshot());
         assertThat(firstItemContext.quantity()).isEqualTo(firstSheetItem.getQuantity());
-
-        assertThat(context.totalOriginalPrice()).isEqualTo(orderSheet.getTotalOriginalPrice());
-        assertThat(context.totalCouponDiscountAmount()).isEqualTo(orderSheet.getTotalCouponDiscountAmount());
-        assertThat(context.usedPoints()).isEqualTo(orderSheet.getUsedPoints());
-        assertThat(context.totalPaymentAmount()).isEqualTo(orderSheet.getTotalPaymentAmount());
     }
 
     private OrderSheet createOrderSheet() {

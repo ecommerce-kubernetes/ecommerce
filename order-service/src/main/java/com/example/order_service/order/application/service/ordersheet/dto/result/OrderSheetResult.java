@@ -74,11 +74,6 @@ public class OrderSheetResult {
     ) {
         public static PaymentSummary from(OrderSheet orderSheet) {
             return PaymentSummary.builder()
-                    .totalOriginPrice(orderSheet.getTotalOriginalPrice())
-                    .totalProductDiscount(orderSheet.getTotalProductDiscountAmount())
-                    .totalCouponDiscount(orderSheet.getTotalCouponDiscountAmount())
-                    .usedPoints(orderSheet.getUsedPoints())
-                    .totalPaymentAmount(orderSheet.getTotalPaymentAmount())
                     .build();
         }
     }

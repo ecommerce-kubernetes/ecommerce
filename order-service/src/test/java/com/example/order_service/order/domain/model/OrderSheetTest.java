@@ -31,14 +31,6 @@ public class OrderSheetTest {
                 .containsExactly(item);
 
         assertThat(orderSheet.getExpiresAt()).isEqualTo(expiresAt);
-
-        assertThat(orderSheet)
-                .extracting(OrderSheet::getTotalOriginalPrice, OrderSheet::getTotalProductDiscountAmount,
-                        OrderSheet::getTotalCouponDiscountAmount, OrderSheet::getUsedPoints, OrderSheet::getTotalPaymentAmount)
-                .containsExactly(
-                        item.getOriginalLineTotal(), item.getProductDiscountLineTotal(),
-                        Money.ZERO, Money.ZERO, item.getFinalAmount()
-                );
     }
 
     @Test
@@ -107,16 +99,8 @@ public class OrderSheetTest {
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
-
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", Money.wons(1000L));
-        //when
-//        orderSheet.applyItemCoupon(item.getId(), itemCoupon);
         //then
-        assertThat(orderSheet)
-                .extracting(OrderSheet::getTotalCouponDiscountAmount, OrderSheet::getTotalPaymentAmount)
-                .containsExactly(
-//                        itemCoupon.getDiscountAmount(), Money.wons(26000L)
-                );
+
     }
 
     @Test
@@ -177,11 +161,6 @@ public class OrderSheetTest {
         orderSheet.applyCartCoupon(cartCoupon);
         //then
         assertThat(orderSheet.getCartCoupon()).isEqualTo(cartCoupon);
-        assertThat(orderSheet)
-                .extracting(OrderSheet::getTotalCouponDiscountAmount, OrderSheet::getTotalPaymentAmount)
-                .containsExactly(
-                        cartCoupon.getDiscountAmount(), Money.wons(17000L)
-                );
     }
 
     @Test

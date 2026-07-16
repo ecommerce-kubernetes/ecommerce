@@ -38,25 +38,16 @@ public class OrderSheet {
     private ShippingAddress shippingAddress;
     private List<OrderSheetItem> items;
     private CartCouponSnapshot cartCoupon;
-    private Money totalOriginalPrice;
-    private Money totalProductDiscountAmount;
-    private Money totalCouponDiscountAmount;
     private Money usedPoints;
-    private Money totalPaymentAmount;
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
     private OrderSheet(String id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot cartCoupon,
-                       Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
-                       Money usedPoints, Money totalPaymentAmount, LocalDateTime expiresAt) {
+                       Money usedPoints, LocalDateTime expiresAt) {
         Assert.hasText(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
         Assert.notNull(orderer, "주문서(OrderSheet) 생성시 주문자는 필수이다.");
         Assert.notNull(items, "주문서(OrderSheet) 생성시 주문 항목은 필수이다.");
-        Assert.notNull(totalOriginalPrice, "주문서(OrderSheet) 생성시 총 상품 원가격은 필수이다.");
-        Assert.notNull(totalProductDiscountAmount, "주문서(OrderSheet) 생성시 총 상품 할인 금액은 필수이다.");
-        Assert.notNull(totalCouponDiscountAmount, "주문서(OrderSheet) 생성시 총 쿠폰 할인 금액은 필수이다.");
         Assert.notNull(usedPoints, "주문서(OrderSheet) 생성시 적용 포인트 금액은 필수이다.");
-        Assert.notNull(totalPaymentAmount, "주문서(OrderSheet) 생성시 총 결제 금액은 필수이다.");
         Assert.notNull(expiresAt, "주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
 
         this.id = id;
@@ -64,11 +55,7 @@ public class OrderSheet {
         this.shippingAddress = shippingAddress;
         this.items = items;
         this.cartCoupon = cartCoupon;
-        this.totalOriginalPrice = totalOriginalPrice;
-        this.totalProductDiscountAmount = totalProductDiscountAmount;
-        this.totalCouponDiscountAmount = totalCouponDiscountAmount;
         this.usedPoints = usedPoints;
-        this.totalPaymentAmount = totalPaymentAmount;
         this.expiresAt = expiresAt;
     }
 
@@ -77,46 +64,13 @@ public class OrderSheet {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
         String id = UUID.randomUUID().toString();
-
-        Money totalOriginalPrice = calculateTotalOriginalPrice(items);
-        Money totalProductDiscountAmount = calculateTotalProductDiscountAmount(items);
-        Money totalItemCouponDiscountAmount = calculateTotalItemCouponDiscountAmount(items);
-        Money totalItemFinalAmount = calculateTotalItemFinalAmount(items);
         return OrderSheet.reconstitute()
                 .id(id)
                 .orderer(orderer)
                 .items(items)
-                .totalOriginalPrice(totalOriginalPrice)
-                .totalProductDiscountAmount(totalProductDiscountAmount)
-                .totalCouponDiscountAmount(totalItemCouponDiscountAmount)
                 .usedPoints(Money.ZERO)
-                .totalPaymentAmount(totalItemFinalAmount)
                 .expiresAt(expiresAt)
                 .build();
-    }
-
-    private static Money calculateTotalOriginalPrice(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getOriginalLineTotal)
-                .reduce(Money.ZERO, Money::add);
-    }
-
-    private static Money calculateTotalProductDiscountAmount(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getProductDiscountLineTotal)
-                .reduce(Money.ZERO, Money::add);
-    }
-
-    private static Money calculateTotalItemFinalAmount(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getFinalAmount)
-                .reduce(Money.ZERO, Money::add);
-    }
-
-    private static Money calculateTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getCouponDiscount)
-                .reduce(Money.ZERO, Money::add);
     }
 
     public void changeShippingAddress(ShippingAddress newAddress) {
@@ -127,31 +81,10 @@ public class OrderSheet {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
         item.applyItemCoupon(itemCoupon);
-        recalculateTotals();
     }
 
     public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
-        Money totalItemFinalAmount = calculateTotalItemFinalAmount(this.items);
 
-        if (cartCoupon.getDiscountAmount().isGreaterThan(totalItemFinalAmount)) {
-            throw new BusinessException(OrderErrorCode.INVALID_CART_COUPON);
-        }
-        this.cartCoupon = cartCoupon;
-        recalculateTotals();
-    }
-
-    private void recalculateTotals() {
-        Money totalItemCouponDiscount = this.items.stream()
-                .map(OrderSheetItem::getCouponDiscount)
-                .reduce(Money.ZERO, Money::add);
-
-        this.totalCouponDiscountAmount = (this.cartCoupon == null) ?
-                totalItemCouponDiscount : totalItemCouponDiscount.add(cartCoupon.getDiscountAmount());
-
-        Money totalItemFinalAmount = calculateTotalItemFinalAmount(this.items);
-        Money totalDiscountOrderAmount = (this.cartCoupon == null) ?
-                totalItemFinalAmount : totalItemFinalAmount.subtract(cartCoupon.getDiscountAmount());
-        this.totalPaymentAmount = totalDiscountOrderAmount.subtract(usedPoints);
     }
 
     private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
@@ -239,12 +172,6 @@ public class OrderSheet {
      * @throws BusinessException 비지니스 예외
      */
     public void changeUsedPoints(Money usedPoints, Money ownedPoints, PointUsagePolicy policy) {
-        Money availablePoints = calcAvailablePoints(ownedPoints, policy);
-        if (usedPoints.isGreaterThan(availablePoints)) {
-            throw new BusinessException(OrderErrorCode.ORDER_POINT_POLICY_VIOLATION);
-        }
-        this.usedPoints = usedPoints;
-        this.totalPaymentAmount = calcPointEligibleAmount(this.items, this.cartCoupon).subtract(usedPoints);
     }
 
     /**
@@ -293,9 +220,6 @@ public class OrderSheet {
      * @param pointPolicy       포인트 정책
      */
     public void changeItemCoupon(String sheetItemId, ItemCouponSnapshot newCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
-        OrderSheetItem sheetItem = getItem(sheetItemId);
-        sheetItem.changeItemCoupon(newCouponSnapshot);
-        recalculateTotals(ownedPoints, pointPolicy);
     }
 
     /**
@@ -310,21 +234,7 @@ public class OrderSheet {
      * @param pointPolicy           포인트 정책
      */
     public void changeCartCoupon(CartCouponSnapshot newCartCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
-        this.cartCoupon = newCartCouponSnapshot;
-        recalculateTotals(ownedPoints, pointPolicy);
-    }
 
-    private void recalculateTotals(Money ownedPoints, PointUsagePolicy pointPolicy) {
-        this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(this.items, this.cartCoupon)
-                .add(calcTotalItemCouponDiscountAmount(this.items));
-        Money pointEligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
-        if (!this.usedPoints.equals(Money.ZERO)) {
-            Money availablePoints = calcAvailablePoints(ownedPoints, pointPolicy);
-            if (this.usedPoints.isGreaterThan(availablePoints)) {
-                this.usedPoints = availablePoints;
-            }
-        }
-        this.totalPaymentAmount = pointEligibleAmount.subtract(this.usedPoints);
     }
 
     /**
