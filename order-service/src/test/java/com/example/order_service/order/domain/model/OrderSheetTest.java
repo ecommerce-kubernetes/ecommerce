@@ -2,6 +2,8 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -107,15 +109,20 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("주문 항목에 상품 쿠폰을 적용하면 가격 정보가 다시 계산된다.")
+    @DisplayName("주문 항목에 상품 쿠폰을 적용한다.")
     void applyItemCoupon() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
-        //then
 
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", policy, 1);
+        //when
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon);
+        //then
+        assertThat(item.getItemCouponSnapshot()).isEqualTo(itemCoupon);
     }
 
     @Test
@@ -127,13 +134,15 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", Money.wons(1000L));
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", policy, 1);
         //when
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon);
         //then
-//        assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_ITEM_NOT_FOUND);
+        assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_ITEM_NOT_FOUND);
     }
 
     @Test
