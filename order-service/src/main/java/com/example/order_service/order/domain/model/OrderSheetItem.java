@@ -55,6 +55,15 @@ public class OrderSheetItem {
                 .build();
     }
 
+    public void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
+        Assert.notNull(itemCoupon, "적용할 쿠폰 정보는 필수 입니다.");
+        this.itemCouponSnapshot = itemCoupon;
+    }
+
+    public void removeItemCoupon() {
+        this.itemCouponSnapshot = null;
+    }
+
     public Money calculateOriginalLineTotal() {
         return priceSnapshot.getOriginalPrice().multiple(quantity);
     }
@@ -78,11 +87,6 @@ public class OrderSheetItem {
 
     public Money calculateFinalAmount() {
         return calculateLineTotal().subtract(calculateCouponDiscount());
-    }
-
-    protected void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
-        Assert.notNull(itemCoupon, "적용할 쿠폰 정보는 필수 입니다.");
-        this.itemCouponSnapshot = itemCoupon;
     }
 
     /**
@@ -136,4 +140,5 @@ public class OrderSheetItem {
     public boolean hasCoupon() {
         return this.itemCouponSnapshot.getItemCouponId() != null;
     }
+
 }
