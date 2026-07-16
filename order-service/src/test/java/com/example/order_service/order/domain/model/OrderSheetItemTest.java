@@ -2,6 +2,8 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
@@ -164,12 +166,13 @@ public class OrderSheetItemTest {
         int quantity = 1;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
 
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
         Money couponDiscount = item.getCouponDiscount();
         //then
-        assertThat(couponDiscount).isEqualTo(itemCoupon.getDiscountAmount());
+        assertThat(couponDiscount).isEqualTo(Money.wons(1000L));
     }
 
     @Test
@@ -182,7 +185,8 @@ public class OrderSheetItemTest {
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "15000원 할인 쿠폰", Money.wons(15000L));
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(30000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "30000원 할인 쿠폰", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
         Money result = item.getCouponDiscount();
@@ -232,7 +236,8 @@ public class OrderSheetItemTest {
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", Money.wons(1000L));
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
         Money result = item.getFinalAmount();
@@ -250,7 +255,8 @@ public class OrderSheetItemTest {
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 30000원 할인", Money.wons(30000L));
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(30000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 30000원 할인", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
         Money result = item.getFinalAmount();

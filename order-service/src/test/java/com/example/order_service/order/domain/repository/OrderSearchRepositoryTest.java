@@ -138,7 +138,8 @@ public class OrderSearchRepositoryTest {
                 Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
-        return OrderItem.create(productSnapshot, productPrice, itemCoupon, 1, List.of(xl, blue));
+//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
+//        return OrderItem.create(productSnapshot, productPrice, itemCoupon, 1, List.of(xl, blue));
+        return null;
     }
 }

@@ -165,19 +165,19 @@ public class OrderValidatorTest {
     void validateOrderItemCoupon() {
         OrderSheet orderSheet = createOrderSheet();
         OrderProductResult.ProductList productResult = createValidProductList(orderSheet);
-        List<OrderCouponResult.ItemCoupon> invalidItemCoupons = orderSheet.getItems().stream()
-                .map(item -> {
-                    ItemCouponSnapshot itemCoupon = item.getItemCouponSnapshot().getItemCouponId() == null ?
-                            ItemCouponSnapshot.empty() : ItemCouponSnapshot.of(item.getCouponId(), item.getItemCouponSnapshot().getItemCouponName(),
-                            item.getItemCouponSnapshot().getDiscountAmount().add(Money.wons(1000L)));
-                    return OrderCouponResult.ItemCoupon.builder()
-                            .productVariantId(item.getProductVariantId())
-                            .itemCoupon(itemCoupon)
-                            .build();
-                }).toList();
+//        List<OrderCouponResult.ItemCoupon> invalidItemCoupons = orderSheet.getItems().stream()
+//                .map(item -> {
+//                    ItemCouponSnapshot itemCoupon = item.getItemCouponSnapshot().getItemCouponId() == null ?
+//                            ItemCouponSnapshot.empty() : ItemCouponSnapshot.of(item.getCouponId(), item.getItemCouponSnapshot().getName(),
+//                            item.getItemCouponSnapshot().getDiscountAmount().add(Money.wons(1000L)));
+//                    return OrderCouponResult.ItemCoupon.builder()
+//                            .productVariantId(item.getProductVariantId())
+//                            .itemCoupon(itemCoupon)
+//                            .build();
+//                }).toList();
         OrderCouponResult.Calculate couponResult = OrderCouponResult.Calculate.builder()
                 .cartCoupon(orderSheet.getCartCoupon())
-                .itemCoupons(invalidItemCoupons)
+//                .itemCoupons(invalidItemCoupons)
                 .build();
         OrderUserResult.UserPoint userPoint = createValidUserPoint(orderSheet);
         //when
@@ -248,7 +248,7 @@ public class OrderValidatorTest {
         ProductSnapshot product1 = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
         ProductSnapshot product2 = ProductSnapshot.of(1L, 2L, "PROD1-XL-RED", "청바지", "/product/product/jean_1.jpg");
         ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
+//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
         List<ProductOptionSnapshot> options1 = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),

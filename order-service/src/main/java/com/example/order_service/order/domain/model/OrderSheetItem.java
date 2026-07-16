@@ -13,12 +13,6 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 주문 상품 도메인
- * 주문서 상품 정보를 담당하는 도메인
- * @author 최민식
- * @since 2026. 05. 24
- */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
@@ -77,9 +71,9 @@ public class OrderSheetItem {
         if (this.itemCouponSnapshot == null) {
             return Money.ZERO;
         }
+        Money couponDiscount = this.itemCouponSnapshot.calculateTotalDiscount(priceSnapshot.getDiscountedPrice(), quantity);
         Money lineTotal = getLineTotal();
-        Money couponDiscountAmount = itemCouponSnapshot.getDiscountAmount();
-        return Money.min(lineTotal, couponDiscountAmount);
+        return Money.min(couponDiscount, lineTotal);
     }
 
     public Money getFinalAmount() {

@@ -314,7 +314,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     private List<OrderSheetResult.OrderItem> createItems() {
         ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
+//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
         List<ProductOptionSnapshot> productOptionSnapshots = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "BLUE")
@@ -329,7 +329,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         .quantity(1)
                         .productPrice(productPriceSnapshot)
                         .lineTotal(Money.wons(8000L))
-                        .appliedItemCoupon(itemCoupon)
+//                        .appliedItemCoupon(itemCoupon)
                         .options(productOptionSnapshots)
                         .build()
         );

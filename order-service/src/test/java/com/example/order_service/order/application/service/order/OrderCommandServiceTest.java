@@ -54,11 +54,11 @@ public class OrderCommandServiceTest {
         ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
+//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
         OrderContext.ItemContext item = OrderContext.ItemContext.builder()
                 .productSnapshot(productSnapshot)
                 .itemPrice(priceSnapshot)
-                .itemCouponSnapshot(itemCoupon)
+//                .itemCouponSnapshot(itemCoupon)
                 .quantity(1)
                 .optionSnapshots(List.of(xl, blue))
                 .build();

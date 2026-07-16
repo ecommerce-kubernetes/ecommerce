@@ -101,8 +101,8 @@ public class OrderSheetResponse {
         public static OrderCouponResponse from(ItemCouponSnapshot coupon) {
             return OrderCouponResponse.builder()
                     .couponId(coupon.getItemCouponId())
-                    .couponName(coupon.getItemCouponName())
-                    .discountAmount(coupon.getDiscountAmount().longValue())
+                    .couponName(coupon.getName())
+//                    .discountAmount(coupon.getDiscountAmount().longValue())
                     .build();
         }
     }

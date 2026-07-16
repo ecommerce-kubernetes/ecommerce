@@ -126,28 +126,8 @@ public class OrderSheet {
     public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon) {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
-        validateCartCouponConflict(item, itemCoupon);
         item.applyItemCoupon(itemCoupon);
         recalculateTotals();
-    }
-
-    private void validateCartCouponConflict(OrderSheetItem targetItem, ItemCouponSnapshot itemCoupon) {
-        if (this.cartCoupon == null) {
-            return;
-        }
-        Money lineTotal = targetItem.getLineTotal();
-        if (itemCoupon.getDiscountAmount().isGreaterThan(lineTotal)) {
-            throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);
-        }
-        Money expectedFinalAmount = lineTotal.subtract(itemCoupon.getDiscountAmount());
-        Money currentTotalItemFinalAmount = calculateTotalItemFinalAmount(this.items);
-        Money expectedTotalItemFinalAmount = currentTotalItemFinalAmount
-                .subtract(targetItem.getFinalAmount())
-                .add(expectedFinalAmount);
-
-        if (this.cartCoupon.getDiscountAmount().isGreaterThan(expectedTotalItemFinalAmount)) {
-            throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);
-        }
     }
 
     public void applyCartCoupon(CartCouponSnapshot cartCoupon) {

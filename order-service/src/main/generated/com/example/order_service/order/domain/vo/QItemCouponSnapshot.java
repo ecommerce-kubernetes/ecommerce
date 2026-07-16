@@ -19,11 +19,13 @@ public class QItemCouponSnapshot extends BeanPath<ItemCouponSnapshot> {
 
     public static final QItemCouponSnapshot itemCouponSnapshot = new QItemCouponSnapshot("itemCouponSnapshot");
 
-    public final SimplePath<com.example.order_service.common.domain.vo.Money> discountAmount = createSimple("discountAmount", com.example.order_service.common.domain.vo.Money.class);
+    public final NumberPath<Integer> applyQuantityLimit = createNumber("applyQuantityLimit", Integer.class);
+
+    public final SimplePath<com.example.order_service.order.domain.policy.CouponDiscountPolicy> discountPolicy = createSimple("discountPolicy", com.example.order_service.order.domain.policy.CouponDiscountPolicy.class);
 
     public final NumberPath<Long> itemCouponId = createNumber("itemCouponId", Long.class);
 
-    public final StringPath itemCouponName = createString("itemCouponName");
+    public final StringPath name = createString("name");
 
     public QItemCouponSnapshot(String variable) {
         super(ItemCouponSnapshot.class, forVariable(variable));

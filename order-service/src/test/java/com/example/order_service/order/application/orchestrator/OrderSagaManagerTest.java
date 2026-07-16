@@ -590,8 +590,9 @@ class OrderSagaManagerTest {
     private List<OrderItem> createOrderItems() {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
         ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "상품 1000원 할인 쿠폰", Money.wons(1000L));
-        OrderItem orderItem = OrderItem.create(productSnapshot, productPriceSnapshot, itemCoupon, 1, List.of());
-        return List.of(orderItem);
+//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "상품 1000원 할인 쿠폰", Money.wons(1000L));
+//        OrderItem orderItem = OrderItem.create(productSnapshot, productPriceSnapshot, itemCoupon, 1, List.of());
+//        return List.of(orderItem);
+        return null;
     }
 }

@@ -138,8 +138,8 @@ public class OrderResponse {
         public static OrderCouponResponse from(ItemCouponSnapshot cartCouponSnapshot) {
             return OrderCouponResponse.builder()
                     .couponId(cartCouponSnapshot.getItemCouponId())
-                    .couponName(cartCouponSnapshot.getItemCouponName())
-                    .discountAmount(cartCouponSnapshot.getDiscountAmount().longValue())
+                    .couponName(cartCouponSnapshot.getName())
+//                    .discountAmount(cartCouponSnapshot.getDiscountAmount().longValue())
                     .build();
         }
     }

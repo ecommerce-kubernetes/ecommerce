@@ -193,7 +193,7 @@ public class OrderSheetService {
                 requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCouponId(), appliedItems);
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
         Map<Long, ItemCouponSnapshot> itemCouponMap = calculate.toItemCouponMap();
-        return itemCouponMap.getOrDefault(sheetItem.getProductVariantId(), ItemCouponSnapshot.empty());
+        return null;
     }
 
     private List<OrderCouponCommand.AppliedCouponItem> createAppliedItemsWithTarget(

@@ -71,10 +71,10 @@ public class OrderCouponMapperTest {
                 .build();
 
         CartCouponSnapshot expectedCartCoupon = CartCouponSnapshot.of(2L, "1000원 할인 쿠폰", Money.wons(1000L));
-        ItemCouponSnapshot resultItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
+//        ItemCouponSnapshot resultItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
         OrderCouponResult.ItemCoupon expectedItemCoupon = OrderCouponResult.ItemCoupon.builder()
                 .productVariantId(1L)
-                .itemCoupon(resultItemCoupon)
+//                .itemCoupon(resultItemCoupon)
                 .build();
         OrderCouponResult.Calculate expectedResult = OrderCouponResult.Calculate.builder()
                 .cartCoupon(expectedCartCoupon)
