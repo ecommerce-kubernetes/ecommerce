@@ -55,12 +55,12 @@ public class OrderSheetItem {
                 .build();
     }
 
-    public void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
+    void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
         Assert.notNull(itemCoupon, "적용할 쿠폰 정보는 필수 입니다.");
         this.itemCouponSnapshot = itemCoupon;
     }
 
-    public void removeItemCoupon() {
+    void removeItemCoupon() {
         this.itemCouponSnapshot = null;
     }
 
@@ -123,18 +123,6 @@ public class OrderSheetItem {
      */
     public Money getDiscountedPrice() {
         return this.getPriceSnapshot().getDiscountedPrice();
-    }
-
-    /**
-     * 주문 상품 쿠폰 변경
-     * <p>
-     * 주문 상품 쿠폰을 변경한다
-     * </p>
-     *
-     * @param itemCoupon 주문 상품 쿠폰 정보
-     */
-    protected void changeItemCoupon(ItemCouponSnapshot newItemCoupon) {
-        this.itemCouponSnapshot = newItemCoupon;
     }
 
     public boolean hasCoupon() {

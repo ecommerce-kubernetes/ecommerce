@@ -74,6 +74,7 @@ public class OrderSheet {
     }
 
     public void changeShippingAddress(ShippingAddress newAddress) {
+        Assert.notNull(shippingAddress, "변경할 배송 정보는 필수 입니다.");
         this.shippingAddress = newAddress;
     }
 

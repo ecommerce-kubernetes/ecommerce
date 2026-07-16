@@ -92,6 +92,21 @@ public class OrderSheetTest {
     }
 
     @Test
+    @DisplayName("주문서의 배송 정보를 변경할때 배송 정보가 없으면 예외가 발생한다.")
+    void changeShippingAddress_shippingAddress_null() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.changeShippingAddress(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("변경할 배송 정보는 필수 입니다.");
+    }
+
+    @Test
     @DisplayName("주문 항목에 상품 쿠폰을 적용하면 가격 정보가 다시 계산된다.")
     void applyItemCoupon() {
         //given
