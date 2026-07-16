@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
@@ -109,7 +110,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("상품 정상가 총액을 계산한다.")
-    void getOriginalLineTotal() {
+    void calculateOriginalLineTotal() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -118,14 +119,14 @@ public class OrderSheetItemTest {
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
         //when
-        Money result = item.getOriginalLineTotal();
+        Money result = item.calculateOriginalLineTotal();
         //then
-        assertThat(result).isEqualTo(priceSnapshot.getOriginalPrice().multiple(quantity));
+        assertThat(result).isEqualTo(Money.wons(30000L));
     }
 
     @Test
     @DisplayName("상품 기본 할인 총액을 계산한다.")
-    void getProductDiscountLineTotal(){
+    void calculateProductDiscountLineTotal(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -134,14 +135,14 @@ public class OrderSheetItemTest {
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
         //when
-        Money result = item.getProductDiscountLineTotal();
+        Money result = item.calculateProductDiscountLineTotal();
         //then
-        assertThat(result).isEqualTo(priceSnapshot.getDiscountAmount().multiple(quantity));
+        assertThat(result).isEqualTo(Money.wons(3000L));
     }
 
     @Test
     @DisplayName("상품 판매가 총액을 계산한다.")
-    void getLineTotal(){
+    void calculateLineTotal(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -150,14 +151,14 @@ public class OrderSheetItemTest {
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
         //when
-        Money result = item.getLineTotal();
+        Money result = item.calculateLineTotal();
         //then
-        assertThat(result).isEqualTo(priceSnapshot.getDiscountedPrice().multiple(quantity));
+        assertThat(result).isEqualTo(Money.wons(27000L));
     }
 
     @Test
-    @DisplayName("주문 항목에 적용된 상품 쿠폰 할인 금액을 계산한다.")
-    void getCouponDiscount(){
+    @DisplayName("주문 항목의 쿠폰 할인 금액을 계산한다. (정액 할인 쿠폰)")
+    void calculateCouponDiscount_applied_fixedDiscount(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -170,14 +171,34 @@ public class OrderSheetItemTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
-        Money couponDiscount = item.getCouponDiscount();
+        Money couponDiscount = item.calculateCouponDiscount();
         //then
         assertThat(couponDiscount).isEqualTo(Money.wons(1000L));
     }
 
     @Test
+    @DisplayName("주문 항목의 쿠폰 할인 금액을 계산한다. (정률 할인 쿠폰)")
+    void calculateCouponDiscount_applied_rateDiscount() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 1;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+
+        CouponDiscountPolicy policy = new RateCouponDiscountPolicy(10, Money.wons(50000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "10% 할인 쿠폰", policy, 2);
+        item.applyItemCoupon(itemCoupon);
+        //when
+        Money couponDiscount = item.calculateCouponDiscount();
+        //then
+        assertThat(couponDiscount).isEqualTo(Money.wons(800L));
+    }
+
+    @Test
     @DisplayName("주문 항목에 적용된 상품 쿠폰 할인 금액이 주문 항목의 판매가 총액을 넘어서는 경우 쿠폰 할인 금액은 판매가 총액을 한도로 적용된다.")
-    void getCouponDiscount_lineTotal_lessThan_discountAmount(){
+    void calculateCouponDiscount_lineTotal_lessThan_discountAmount(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -189,14 +210,14 @@ public class OrderSheetItemTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "30000원 할인 쿠폰", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
-        Money result = item.getCouponDiscount();
+        Money result = item.calculateCouponDiscount();
         //then
-        assertThat(result).isEqualTo(item.getLineTotal());
+        assertThat(result).isEqualTo(item.calculateLineTotal());
     }
 
     @Test
     @DisplayName("주문 항목에 상품 쿠폰이 적용되지 않은 경우 상품 쿠폰 할인 금액은 0원 이다.")
-    void getCouponDiscount_not_apply_itemCoupon(){
+    void calculateCouponDiscount_not_apply_itemCoupon(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -205,14 +226,14 @@ public class OrderSheetItemTest {
         int quantity = 1;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
         //when
-        Money couponDiscount = item.getCouponDiscount();
+        Money couponDiscount = item.calculateCouponDiscount();
         //then
         assertThat(couponDiscount).isEqualTo(Money.ZERO);
     }
 
     @Test
     @DisplayName("주문 항목의 최종 금액을 계산한다. (상품 쿠폰 미적용 시 원금액 반환)")
-    void getFinalAmount_not_applied_itemCoupon() {
+    void calculateFinalAmount_not_applied_itemCoupon() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -221,14 +242,14 @@ public class OrderSheetItemTest {
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
         //when
-        Money result = item.getFinalAmount();
+        Money result = item.calculateFinalAmount();
         //then
-        assertThat(result).isEqualTo(item.getLineTotal());
+        assertThat(result).isEqualTo(item.calculateLineTotal());
     }
 
     @Test
     @DisplayName("주문 항목의 최종 금액을 계산한다. (상품 쿠폰 적용 시 할인액 차감)")
-    void getFinalAmount_applied_itemCoupon() {
+    void calculateFinalAmount_applied_itemCoupon() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -240,14 +261,14 @@ public class OrderSheetItemTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
-        Money result = item.getFinalAmount();
+        Money result = item.calculateFinalAmount();
         //then
         assertThat(result).isEqualTo(Money.wons(26000L));
     }
 
     @Test
     @DisplayName("주문 항목의 최종 금액을 계산한다. (쿠폰 금액이 상품 총액보다 클 경우 0원으로 캡핑)")
-    void getFinalAmount_lineTotal_lessThan_couponDiscount(){
+    void calculateFinalAmount_lineTotal_lessThan_couponDiscount(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -259,7 +280,7 @@ public class OrderSheetItemTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 30000원 할인", policy, 1);
         item.applyItemCoupon(itemCoupon);
         //when
-        Money result = item.getFinalAmount();
+        Money result = item.calculateFinalAmount();
         //then
         assertThat(result).isEqualTo(Money.ZERO);
     }

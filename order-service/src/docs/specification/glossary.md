@@ -12,8 +12,8 @@
 | 배송정보    | ShippingAddress    | 주문 배송 정보                                             | ShippingAddress    |
 | 금액      | Money              | 돈을 표현하는 정보                                           | Money              |
 | 상품 쿠폰   | ItemCouponSnapshot | 주문 항목에 적용된 상품 단위 쿠폰                                  | ItemCouponSnapshot |
-| 정상가     | OriginalPrice      | 상품 할인이 적용되지 않은 상품 원본 가격                              |                    |
-| 판매가     | DiscountedPrice    | 상품 할인이 적용된 상품 판매 가격                                  |                    |
+| 정상가     | OriginalPrice      | 상품 할인이 적용되지 않은 상품 원본 가격                              | OrderSheetItem     |
+| 판매가     | DiscountedPrice    | 상품 할인이 적용된 상품 판매 가격                                  | OrderSheetItem     |
 | 장바구니 쿠폰 | CartCouponSnapshot | 주문에 적용된 주문 단위 쿠폰                                     | CartCouponSnapshot |
 
 ### 식별자
@@ -34,3 +34,11 @@
 | AVAILABLE    | 주문 가능 |
 | NOT_FOR_SALE | 판매 불가 |
 | OUT_OF_STOCK | 재고 부족 |
+
+### 쿠폰 할인 
+
+| 용어       | 영문                        | 설명                             | 관려 도메인               |
+|----------|---------------------------|--------------------------------|----------------------|
+| 쿠폰 할인 정책 | CouponDiscountPolicy      | 쿠폰의 할인 정책을 의미한다.               | CouponDiscountPolicy |
+| 정액 할인    | FixedCouponDiscountPolicy | 고정된 금액을 할인하는 쿠폰 정책             | CouponDiscountPolicy |
+| 정률 할인    | RateCouponDiscountPolicy  | 상품 판매가를 기준으로 비율 금액을 할인하는 쿠폰 정책 | CouponDiscountPolicy |

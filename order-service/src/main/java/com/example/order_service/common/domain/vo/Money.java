@@ -110,6 +110,11 @@ public class Money {
         return a.isGreaterThan(b) ? a : b;
     }
 
+    public Money truncateToTens() {
+        long truncated = (this.amount.longValue() / 10) * 10;
+        return Money.wons(truncated);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

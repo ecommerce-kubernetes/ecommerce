@@ -55,32 +55,33 @@ public class OrderSheetItem {
                 .build();
     }
 
-    public Money getOriginalLineTotal() {
+    public Money calculateOriginalLineTotal() {
         return priceSnapshot.getOriginalPrice().multiple(quantity);
     }
 
-    public Money getProductDiscountLineTotal() {
+    public Money calculateProductDiscountLineTotal() {
         return priceSnapshot.getDiscountAmount().multiple(quantity);
     }
 
-    public Money getLineTotal() {
+    public Money calculateLineTotal() {
         return priceSnapshot.getDiscountedPrice().multiple(quantity);
     }
 
-    public Money getCouponDiscount() {
+    public Money calculateCouponDiscount() {
         if (this.itemCouponSnapshot == null) {
             return Money.ZERO;
         }
         Money couponDiscount = this.itemCouponSnapshot.calculateTotalDiscount(priceSnapshot.getDiscountedPrice(), quantity);
-        Money lineTotal = getLineTotal();
+        Money lineTotal = calculateLineTotal();
         return Money.min(couponDiscount, lineTotal);
     }
 
-    public Money getFinalAmount() {
-        return getLineTotal().subtract(getCouponDiscount());
+    public Money calculateFinalAmount() {
+        return calculateLineTotal().subtract(calculateCouponDiscount());
     }
 
     protected void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
+        Assert.notNull(itemCoupon, "적용할 쿠폰 정보는 필수 입니다.");
         this.itemCouponSnapshot = itemCoupon;
     }
 

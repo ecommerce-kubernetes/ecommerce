@@ -92,32 +92,6 @@ public class OrderSheet {
                 .findFirst();
     }
 
-    private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getCouponDiscount)
-                .reduce(Money.ZERO, Money::add);
-    }
-
-    private static Money calcAppliedCartCouponDiscount(List<OrderSheetItem> items, CartCouponSnapshot coupon) {
-        Money itemFinalPrice = calcTotalItemFinalPrice(items);
-        // [NOTE]
-        // 총 상품 쿠폰 적용 금액(상품 할인금액 - 상품 쿠폰할인금)이 장바구니 쿠폰 할인금보다 작은 경우
-        // 장바구니 쿠폰 할인금액은 총 상품 쿠폰 적용 금액이 된다
-        return Money.min(itemFinalPrice, coupon.getDiscountAmount());
-    }
-
-    private static Money calcPointEligibleAmount(List<OrderSheetItem> items, CartCouponSnapshot coupon) {
-        Money itemFinalPrice = calcTotalItemFinalPrice(items);
-        Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
-        return itemFinalPrice.subtract(appliedCartDiscount);
-    }
-
-    private static Money calcTotalItemFinalPrice(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getFinalAmount)
-                .reduce(Money.ZERO, Money::add);
-    }
-
     /**
      * 주문 접근 확인
      * <p>
@@ -202,9 +176,7 @@ public class OrderSheet {
      * @return 사용할 수 있는 최대 포인트
      */
     public Money calcAvailablePoints(Money ownedPoints, PointUsagePolicy pointPolicy) {
-        Money pointEligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
-        Money pointsLimit = pointPolicy.calculateMaxLimit(pointEligibleAmount);
-        return Money.min(ownedPoints, pointsLimit);
+        return null;
     }
 
     /**
