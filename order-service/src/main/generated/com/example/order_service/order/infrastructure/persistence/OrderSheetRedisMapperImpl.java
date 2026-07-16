@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-16T05:22:15+0900",
+    date = "2026-07-17T02:47:28+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -46,11 +46,7 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         if ( domain.hasCartCoupon() ) {
             orderSheetRedisEntity.cartCoupon( cartCouponSnapshotToCartCouponSnapshotRedisEntity( domain.getCartCoupon() ) );
         }
-        orderSheetRedisEntity.totalOriginalPrice( moneyMapper.toLong( domain.getTotalOriginalPrice() ) );
-        orderSheetRedisEntity.totalProductDiscountAmount( moneyMapper.toLong( domain.getTotalProductDiscountAmount() ) );
-        orderSheetRedisEntity.totalCouponDiscountAmount( moneyMapper.toLong( domain.getTotalCouponDiscountAmount() ) );
         orderSheetRedisEntity.usedPoints( moneyMapper.toLong( domain.getUsedPoints() ) );
-        orderSheetRedisEntity.totalPaymentAmount( moneyMapper.toLong( domain.getTotalPaymentAmount() ) );
         orderSheetRedisEntity.expiresAt( domain.getExpiresAt() );
 
         return orderSheetRedisEntity.build();
@@ -68,11 +64,7 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         orderSheet.shippingAddress( toShippingAddressDomain( entity.getShippingAddress() ) );
         orderSheet.items( orderSheetItemRedisEntityListToOrderSheetItemList( entity.getItems() ) );
         orderSheet.cartCoupon( cartCouponSnapshotRedisEntityToCartCouponSnapshot( entity.getCartCoupon() ) );
-        orderSheet.totalOriginalPrice( moneyMapper.toMoney( entity.getTotalOriginalPrice() ) );
-        orderSheet.totalProductDiscountAmount( moneyMapper.toMoney( entity.getTotalProductDiscountAmount() ) );
-        orderSheet.totalCouponDiscountAmount( moneyMapper.toMoney( entity.getTotalCouponDiscountAmount() ) );
         orderSheet.usedPoints( moneyMapper.toMoney( entity.getUsedPoints() ) );
-        orderSheet.totalPaymentAmount( moneyMapper.toMoney( entity.getTotalPaymentAmount() ) );
         orderSheet.expiresAt( entity.getExpiresAt() );
 
         return orderSheet.build();
@@ -195,10 +187,6 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
 
         OrderSheetRedisEntity.CartCouponSnapshotRedisEntity.CartCouponSnapshotRedisEntityBuilder cartCouponSnapshotRedisEntity = OrderSheetRedisEntity.CartCouponSnapshotRedisEntity.builder();
 
-        cartCouponSnapshotRedisEntity.couponId( cartCouponSnapshot.getCouponId() );
-        cartCouponSnapshotRedisEntity.couponName( cartCouponSnapshot.getCouponName() );
-        cartCouponSnapshotRedisEntity.discountAmount( moneyMapper.toLong( cartCouponSnapshot.getDiscountAmount() ) );
-
         return cartCouponSnapshotRedisEntity.build();
     }
 
@@ -221,10 +209,6 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         }
 
         CartCouponSnapshot.CartCouponSnapshotBuilder cartCouponSnapshot = CartCouponSnapshot.reconstitute();
-
-        cartCouponSnapshot.couponId( cartCouponSnapshotRedisEntity.getCouponId() );
-        cartCouponSnapshot.couponName( cartCouponSnapshotRedisEntity.getCouponName() );
-        cartCouponSnapshot.discountAmount( moneyMapper.toMoney( cartCouponSnapshotRedisEntity.getDiscountAmount() ) );
 
         return cartCouponSnapshot.build();
     }

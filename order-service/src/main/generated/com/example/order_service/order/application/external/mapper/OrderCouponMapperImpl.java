@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-16T05:22:15+0900",
+    date = "2026-07-17T02:47:28+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -81,10 +81,6 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
         }
 
         CartCouponSnapshot.CartCouponSnapshotBuilder cartCouponSnapshot = CartCouponSnapshot.reconstitute();
-
-        cartCouponSnapshot.couponId( response.couponId() );
-        cartCouponSnapshot.couponName( response.couponName() );
-        cartCouponSnapshot.discountAmount( moneyMapper.toMoney( response.discountAmount() ) );
 
         return cartCouponSnapshot.build();
     }

@@ -19,11 +19,13 @@ public class QCartCouponSnapshot extends BeanPath<CartCouponSnapshot> {
 
     public static final QCartCouponSnapshot cartCouponSnapshot = new QCartCouponSnapshot("cartCouponSnapshot");
 
-    public final NumberPath<Long> couponId = createNumber("couponId", Long.class);
+    public final NumberPath<Long> cartCouponId = createNumber("cartCouponId", Long.class);
 
-    public final StringPath couponName = createString("couponName");
+    public final SimplePath<com.example.order_service.order.domain.policy.CouponDiscountPolicy> discountPolicy = createSimple("discountPolicy", com.example.order_service.order.domain.policy.CouponDiscountPolicy.class);
 
-    public final SimplePath<com.example.order_service.common.domain.vo.Money> discountAmount = createSimple("discountAmount", com.example.order_service.common.domain.vo.Money.class);
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> minimumPaymentAmount = createSimple("minimumPaymentAmount", com.example.order_service.common.domain.vo.Money.class);
+
+    public final StringPath name = createString("name");
 
     public QCartCouponSnapshot(String variable) {
         super(CartCouponSnapshot.class, forVariable(variable));

@@ -2,12 +2,12 @@ package com.example.order_service.order.domain.vo;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
-import com.mysema.commons.lang.Assert;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Getter
 @Embeddable
@@ -42,5 +42,13 @@ public class CartCouponSnapshot {
 
     public static CartCouponSnapshot empty() {
         return null;
+    }
+
+    public boolean isSatisfiedBy(Money orderTotalAmount) {
+        return !orderTotalAmount.isLessThan(minimumPaymentAmount);
+    }
+
+    public Money calculateDiscount(Money totalOrderAmount) {
+        return discountPolicy.calculateDiscount(totalOrderAmount);
     }
 }

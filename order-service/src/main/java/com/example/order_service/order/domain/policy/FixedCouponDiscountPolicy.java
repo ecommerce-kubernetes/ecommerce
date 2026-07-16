@@ -11,6 +11,6 @@ public class FixedCouponDiscountPolicy implements CouponDiscountPolicy {
 
     @Override
     public Money calculateDiscount(Money amount) {
-        return discountAmount.truncateToTens();
+        return discountAmount;
     }
 }

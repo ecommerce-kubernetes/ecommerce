@@ -19,16 +19,4 @@ class FixedCouponDiscountPolicyTest {
         //then
         assertThat(result).isEqualTo(Money.wons(1000L));
     }
-
-    @Test
-    @DisplayName("할인 금액이 1원 단위면 10원 단위로 절삭된다")
-    void calculateDiscount_truncateTens() {
-        //given
-        FixedCouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1001L));
-        Money target = Money.wons(10000L);
-        //when
-        Money result = policy.calculateDiscount(target);
-        //then
-        assertThat(result).isEqualTo(Money.wons(1000L));
-    }
 }

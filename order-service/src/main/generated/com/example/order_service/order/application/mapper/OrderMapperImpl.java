@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-16T05:22:15+0900",
+    date = "2026-07-17T02:47:28+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -31,11 +31,7 @@ public class OrderMapperImpl implements OrderMapper {
         if ( orderSheet.hasCartCoupon() ) {
             createOrderContext.cartCoupon( orderSheet.getCartCoupon() );
         }
-        createOrderContext.totalOriginalPrice( orderSheet.getTotalOriginalPrice() );
-        createOrderContext.totalProductDiscountAmount( orderSheet.getTotalProductDiscountAmount() );
-        createOrderContext.totalCouponDiscountAmount( orderSheet.getTotalCouponDiscountAmount() );
         createOrderContext.usedPoints( orderSheet.getUsedPoints() );
-        createOrderContext.totalPaymentAmount( orderSheet.getTotalPaymentAmount() );
 
         return createOrderContext.build();
     }
