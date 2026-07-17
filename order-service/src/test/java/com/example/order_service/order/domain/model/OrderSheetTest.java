@@ -3,12 +3,15 @@ package com.example.order_service.order.domain.model;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -218,6 +221,44 @@ public class OrderSheetTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.CART_COUPON_MINIMUM_PAYMENT_NOT_MET);
+    }
+
+    @Test
+    @DisplayName("포인트를 적용한다.")
+    void applyPoints(){
+        //given
+        Money usedPoints = Money.wons(1000L);
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        //when
+        orderSheet.applyPoints(usedPoints, pointPolicy);
+        //then
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(1000L));
+    }
+
+    @Test
+    @DisplayName("포인트를 적용할때 적용 가능 포인트를 초과하는 경우 예외가 발생한다.")
+    void applyPoints_exceed_availablePoints(){
+        //given
+        Money usedPoints = Money.wons(2800L);
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.applyPoints(usedPoints, pointPolicy))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
     }
 
     private OrderSheetItem createOrderSheetItem() {

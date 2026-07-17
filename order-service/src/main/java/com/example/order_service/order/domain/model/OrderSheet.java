@@ -93,6 +93,18 @@ public class OrderSheet {
         this.cartCoupon = cartCoupon;
     }
 
+    public void applyPoints(Money usedPoints, PointUsagePolicy policy) {
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money cartCouponDiscount = calculateCartCouponDiscount();
+        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
+
+        Money availablePoints = policy.calculateAvailablePoints(totalPaymentAmount);
+        if (usedPoints.isGreaterThan(availablePoints)) {
+            throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+        }
+        this.usedPoints = usedPoints;
+    }
+
     private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
         return this.items.stream().filter(item -> item.getId().equals(orderSheetItemId))
                 .findFirst();
@@ -102,6 +114,21 @@ public class OrderSheet {
         return this.items.stream()
                 .map(OrderSheetItem::calculateLineTotal)
                 .reduce(Money.ZERO, Money::add);
+    }
+
+    private Money calculateTotalFinalAmount() {
+        return this.items.stream()
+                .map(OrderSheetItem::calculateFinalAmount)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    private Money calculateCartCouponDiscount() {
+        if (this.cartCoupon == null) {
+            return Money.ZERO;
+        }
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money discount = cartCoupon.calculateDiscount(totalFinalAmount);
+        return Money.min(totalFinalAmount, discount);
     }
 
     /**
