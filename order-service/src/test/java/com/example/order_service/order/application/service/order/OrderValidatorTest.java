@@ -6,7 +6,7 @@ import com.example.order_service.order.application.external.dto.result.OrderCoup
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
-import com.example.order_service.order.application.policy.DefaultPointUsagePolicy;
+import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;

@@ -124,6 +124,18 @@ public class OrderSheetTest {
         //then
         assertThat(item.getItemCouponSnapshot()).isEqualTo(itemCoupon);
     }
+    
+    @Test
+    @DisplayName("주문 항목 상품 쿠폰 적용으로 인해 적용된 포인트가 적용 가능 포인트를 초과하는 경우 적용 가능 포인트를 한도로 적용 포인트가 보정된다.")
+    void applyItemCoupon_usedPoints_exceed_availablePoints() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+        //when
+        //then
+    }
 
     @Test
     @DisplayName("상품 쿠폰을 적용할 때 주문 상품을 찾을 수 없으면 예외가 발생한다.")
@@ -143,6 +155,18 @@ public class OrderSheetTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_ITEM_NOT_FOUND);
+    }
+    
+    @Test
+    @DisplayName("주문서에 사용 포인트를 적용한다.")
+    void applyUsedPoints() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+        //when
+        //then
     }
 
     @Test
