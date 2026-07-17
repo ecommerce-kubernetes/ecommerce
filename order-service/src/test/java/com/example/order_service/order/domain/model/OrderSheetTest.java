@@ -5,6 +5,7 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
@@ -122,8 +123,11 @@ public class OrderSheetTest {
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", policy, 1);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
         //when
-        orderSheet.applyItemCoupon(item.getId(), itemCoupon);
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointPolicy);
         //then
         assertThat(item.getItemCouponSnapshot()).isEqualTo(itemCoupon);
     }
@@ -132,12 +136,22 @@ public class OrderSheetTest {
     @DisplayName("주문 항목 상품 쿠폰 적용으로 인해 적용된 포인트가 적용 가능 포인트를 초과하는 경우 적용 가능 포인트를 한도로 적용 포인트가 보정된다.")
     void applyItemCoupon_usedPoints_exceed_availablePoints() {
         //given
+        Money usedPoints = Money.wons(2700L);
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        orderSheet.applyPoints(usedPoints, pointPolicy);
+
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", couponPolicy, 1);
         //when
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointPolicy);
         //then
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(2500L));
     }
 
     @Test
@@ -149,27 +163,17 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", policy, 1);
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", couponPolicy, 1);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
         //when
-        orderSheet.applyItemCoupon(item.getId(), itemCoupon);
         //then
-        assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon))
+        assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon, pointPolicy))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_ITEM_NOT_FOUND);
-    }
-    
-    @Test
-    @DisplayName("주문서에 사용 포인트를 적용한다.")
-    void applyUsedPoints() {
-        //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        OrderSheetItem item = createOrderSheetItem();
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
-        //when
-        //then
     }
 
     @Test
@@ -183,8 +187,11 @@ public class OrderSheetTest {
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(5000L));
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
         //when
-        orderSheet.applyCartCoupon(cartCoupon);
+        orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
         //then
         assertThat(orderSheet.getCartCoupon()).isEqualTo(cartCoupon);
     }
@@ -197,9 +204,12 @@ public class OrderSheetTest {
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
         //when
         //then
-        assertThatThrownBy(() -> orderSheet.applyCartCoupon(null))
+        assertThatThrownBy(() -> orderSheet.applyCartCoupon(null, pointPolicy))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("적용할 쿠폰 정보는 필수 입니다.");
     }
@@ -215,12 +225,38 @@ public class OrderSheetTest {
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(50000L));
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
         //when
         //then
-        assertThatThrownBy(() -> orderSheet.applyCartCoupon(cartCoupon))
+        assertThatThrownBy(() -> orderSheet.applyCartCoupon(cartCoupon, pointPolicy))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.CART_COUPON_MINIMUM_PAYMENT_NOT_MET);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 적용으로 인해 적용된 포인트가 적용 가능 포인트를 초과하는 경우 적용 가능 포인트를 한도로 적용 포인트가 보정된다.")
+    void applyCartCoupon_usedPoints_exceed_availablePoints(){
+        //given
+        Money usedPoints = Money.wons(2700L);
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+
+        orderSheet.applyPoints(usedPoints, pointPolicy);
+
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(5000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "5000원 할인 쿠폰", policy, Money.wons(10000L));
+        //when
+        orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
+        //then
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(2200L));
     }
 
     @Test

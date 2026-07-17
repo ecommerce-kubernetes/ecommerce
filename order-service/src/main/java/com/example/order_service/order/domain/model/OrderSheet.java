@@ -78,19 +78,39 @@ public class OrderSheet {
         this.shippingAddress = newAddress;
     }
 
-    public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon) {
+    public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon, PointUsagePolicy pointPolicy) {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
         item.applyItemCoupon(itemCoupon);
+
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money cartCouponDiscount = calculateCartCouponDiscount();
+
+        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
+        Money availablePoints = pointPolicy.calculateAvailablePoints(totalPaymentAmount);
+
+        if (this.usedPoints.isGreaterThan(availablePoints)) {
+            this.usedPoints = availablePoints;
+        }
     }
 
-    public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
+    public void applyCartCoupon(CartCouponSnapshot cartCoupon, PointUsagePolicy pointPolicy) {
         Assert.notNull(cartCoupon, "적용할 쿠폰 정보는 필수 입니다.");
         Money subTotal = calculateSubTotal();
         if (!cartCoupon.isSatisfiedBy(subTotal)) {
             throw new BusinessException(OrderErrorCode.CART_COUPON_MINIMUM_PAYMENT_NOT_MET);
         }
         this.cartCoupon = cartCoupon;
+
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money cartCouponDiscount = calculateCartCouponDiscount();
+
+        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
+        Money availablePoints = pointPolicy.calculateAvailablePoints(totalPaymentAmount);
+
+        if (this.usedPoints.isGreaterThan(availablePoints)) {
+            this.usedPoints = availablePoints;
+        }
     }
 
     public void applyPoints(Money usedPoints, PointUsagePolicy policy) {
