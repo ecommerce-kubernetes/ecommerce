@@ -83,15 +83,7 @@ public class OrderSheet {
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
         item.applyItemCoupon(itemCoupon);
 
-        Money totalFinalAmount = calculateTotalFinalAmount();
-        Money cartCouponDiscount = calculateCartCouponDiscount();
-
-        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
-        Money availablePoints = pointPolicy.calculateAvailablePoints(totalPaymentAmount);
-
-        if (this.usedPoints.isGreaterThan(availablePoints)) {
-            this.usedPoints = availablePoints;
-        }
+        adjustUsedPointsByPolicy(pointPolicy);
     }
 
     public void applyCartCoupon(CartCouponSnapshot cartCoupon, PointUsagePolicy pointPolicy) {
@@ -102,15 +94,7 @@ public class OrderSheet {
         }
         this.cartCoupon = cartCoupon;
 
-        Money totalFinalAmount = calculateTotalFinalAmount();
-        Money cartCouponDiscount = calculateCartCouponDiscount();
-
-        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
-        Money availablePoints = pointPolicy.calculateAvailablePoints(totalPaymentAmount);
-
-        if (this.usedPoints.isGreaterThan(availablePoints)) {
-            this.usedPoints = availablePoints;
-        }
+        adjustUsedPointsByPolicy(pointPolicy);
     }
 
     public void applyPoints(Money usedPoints, PointUsagePolicy policy) {
@@ -149,6 +133,18 @@ public class OrderSheet {
         Money totalFinalAmount = calculateTotalFinalAmount();
         Money discount = cartCoupon.calculateDiscount(totalFinalAmount);
         return Money.min(totalFinalAmount, discount);
+    }
+
+    private void adjustUsedPointsByPolicy(PointUsagePolicy pointPolicy) {
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money cartCouponDiscount = calculateCartCouponDiscount();
+        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
+
+        Money availablePoints = pointPolicy.calculateAvailablePoints(totalPaymentAmount);
+
+        if (this.usedPoints.isGreaterThan(availablePoints)) {
+            this.usedPoints = availablePoints;
+        }
     }
 
     /**
