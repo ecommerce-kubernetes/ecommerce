@@ -23,6 +23,15 @@ public class OrderSheetDescriptor {
         };
     }
 
+    public static FieldDescriptor[] getCartCreateRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("cartItemIds")
+                        .type(JsonFieldType.ARRAY)
+                        .description("장바구니 항목 ID 리스트")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
+
     public static FieldDescriptor[] getCreateRequest() {
         return new FieldDescriptor[] {
                 fieldWithPath("items[].productVariantId").description("상품 변형 아이디"),

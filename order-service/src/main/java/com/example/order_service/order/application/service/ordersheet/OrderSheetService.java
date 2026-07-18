@@ -10,6 +10,7 @@ import com.example.order_service.order.application.external.dto.command.OrderCou
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -264,5 +265,9 @@ public class OrderSheetService {
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
         orderSheet.validateAccess(userId, LocalDateTime.now(clock));
         return orderSheet;
+    }
+
+    public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
+        return null;
     }
 }

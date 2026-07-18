@@ -3,9 +3,11 @@ package com.example.order_service.docs.order;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.web.OrderSheetController;
+import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -78,6 +80,41 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(OrderSheetDescriptor.getDirectCreateRequest()),
+                        responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
+                ));
+    }
+
+    @Test
+    @DisplayName("장바구니 주문서 생성")
+    void createCartOrderSheet() throws Exception {
+        //given
+        CartOrderSheetCreateRequest request = CartOrderSheetCreateRequest.builder()
+                .cartItemIds(List.of(1L))
+                .build();
+
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        OrderSheetCreateResult result = createOrderSheetResult();
+        given(orderSheetService.createCartOrderSheet(any(CreateCartOrderSheetCommand.class)))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(document(
+                        "order-sheets/create/cart",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(OrderSheetDescriptor.getCartCreateRequest()),
                         responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
                 ));
     }

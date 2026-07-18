@@ -1,11 +1,13 @@
 package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.security.model.UserPrincipal;
+import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
 import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.api.web.dto.response.OrderSheetResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -39,6 +41,15 @@ public class OrderSheetController {
                                                                            @RequestBody @Validated DirectOrderSheetCreateRequest request) {
         CreateDirectOrderSheetCommand command = request.toCommand(userPrincipal.getUserId());
         OrderSheetCreateResult result = orderSheetService.createDirectOrderSheet(command);
+        OrderSheetCreateResponse response = OrderSheetCreateResponse.from(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/cart")
+    public ResponseEntity<OrderSheetCreateResponse> createCartOrderSheet(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                         @RequestBody @Validated CartOrderSheetCreateRequest request) {
+        CreateCartOrderSheetCommand command = request.toCommand(userPrincipal.getUserId());
+        OrderSheetCreateResult result = orderSheetService.createCartOrderSheet(command);
         OrderSheetCreateResponse response = OrderSheetCreateResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

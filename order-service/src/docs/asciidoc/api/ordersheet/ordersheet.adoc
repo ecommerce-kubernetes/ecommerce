@@ -12,6 +12,20 @@ include::{snippets}/order-sheets/create/direct/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/order-sheets/create/direct/response-fields.adoc[]
 
+[[ordersheet-create-cart]]
+=== 장바구니 주문서 생성
+
+==== HTTP Request
+include::{snippets}/order-sheets/create/cart/http-request.adoc[]
+===== Request Header
+include::{snippets}/order-sheets/create/cart/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/order-sheets/create/cart/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/order-sheets/create/cart/http-response.adoc[]
+===== Response Fields
+include::{snippets}/order-sheets/create/cart/response-fields.adoc[]
+
 [[ordersheet-get]]
 === 주문서 조회
 

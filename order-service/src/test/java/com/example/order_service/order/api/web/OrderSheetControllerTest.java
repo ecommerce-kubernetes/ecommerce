@@ -1,10 +1,12 @@
 package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
+import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
 import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -149,6 +151,95 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/order-sheets/direct"));
+    }
+
+    @Test
+    @DisplayName("장바구니 주문서 생성")
+    @WithCustomMockUser
+    void createCartOrderSheet() throws Exception {
+        //given
+        CartOrderSheetCreateRequest request = CartOrderSheetCreateRequest.builder()
+                .cartItemIds(List.of(1L))
+                .build();
+
+        OrderSheetCreateResult result = Instancio.create(OrderSheetCreateResult.class);
+
+        given(orderSheetService.createCartOrderSheet(any(CreateCartOrderSheetCommand.class)))
+                .willReturn(result);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expectedExpiresAt = result.expiresAt().format(formatter);
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
+                .andExpect(jsonPath("$.expiresAt").value(expectedExpiresAt));
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자는 주문서를 생성할 수 없다.")
+    void createCartOrderSheet_unAuthorized() throws Exception {
+        //given
+        CartOrderSheetCreateRequest request = CartOrderSheetCreateRequest.builder()
+                .cartItemIds(List.of(1L))
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/cart"));
+    }
+
+    @Test
+    @DisplayName("사용자 권한이 부족하면 주문서를 생성할 수 없다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void createCartOrderSheet_forbidden() throws Exception {
+        //given
+        CartOrderSheetCreateRequest request = CartOrderSheetCreateRequest.builder()
+                .cartItemIds(List.of(1L))
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/cart"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidCreateCartOrderSheetRequest")
+    @WithCustomMockUser
+    @DisplayName("장바구니 주문서 생성 요청 검증")
+    void createCartOrderSheet_validation(String description, CartOrderSheetCreateRequest request, String expectedField, String expectedMessage) throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/cart"));
     }
 
     @Nested
@@ -885,6 +976,27 @@ class OrderSheetControllerTest {
                                 .build(),
                         "variants[0].quantity",
                         "수량(quantity)은 1개 이상이어야 합니다."
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidCreateCartOrderSheetRequest(){
+        return Stream.of(
+                Arguments.of(
+                        "장바구니 항목 아이디가 없으면 검증에 실패한다",
+                        CartOrderSheetCreateRequest.builder()
+                                .cartItemIds(null)
+                                .build(),
+                        "cartItemIds",
+                        "장바구니 항목은 한개 이상이여야 합니다."
+                ),
+                Arguments.of(
+                        "장바구니 항목 아이디 빈 경우 없으면 검증에 실패한다",
+                        CartOrderSheetCreateRequest.builder()
+                                .cartItemIds(Collections.emptyList())
+                                .build(),
+                        "cartItemIds",
+                        "장바구니 항목은 한개 이상이여야 합니다."
                 )
         );
     }
