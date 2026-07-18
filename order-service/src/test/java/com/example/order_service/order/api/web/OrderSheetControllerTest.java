@@ -1,12 +1,17 @@
 package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
+import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
+import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -22,12 +28,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,6 +50,106 @@ class OrderSheetControllerTest {
     private ObjectMapper objectMapper;
     @MockitoBean
     private OrderSheetService orderSheetService;
+
+    @Test
+    @DisplayName("즉시 주문서 생성")
+    @WithCustomMockUser
+    void createDirectOrderSheet() throws Exception {
+        //given
+        DirectOrderSheetCreateRequest.OrderVariant item = DirectOrderSheetCreateRequest.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(1)
+                .build();
+        DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
+                .variants(List.of(item))
+                .build();
+
+        OrderSheetCreateResult result = Instancio.create(OrderSheetCreateResult.class);
+        given(orderSheetService.createDirectOrderSheet(any(CreateDirectOrderSheetCommand.class)))
+                .willReturn(result);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expectedExpiresAt = result.expiresAt().format(formatter);
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/direct")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
+                .andExpect(jsonPath("$.expiresAt").value(expectedExpiresAt));
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자는 주문서를 생성할 수 없다.")
+    void createDirectOrderSheet_unAuthorized() throws Exception {
+        //given
+        DirectOrderSheetCreateRequest.OrderVariant item = DirectOrderSheetCreateRequest.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(1)
+                .build();
+        DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
+                .variants(List.of(item))
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/direct")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/direct"));
+    }
+
+    @Test
+    @DisplayName("사용자 권한이 부족하면 주문서를 생성할 수 없다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void createDirectOrderSheet_forbidden() throws Exception {
+        //given
+        DirectOrderSheetCreateRequest.OrderVariant item = DirectOrderSheetCreateRequest.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(1)
+                .build();
+        DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
+                .variants(List.of(item))
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/direct")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/direct"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidCreateDirectOrderSheetRequest")
+    @WithCustomMockUser
+    @DisplayName("주문서 즉시 생성 요청 검증")
+    void createDirectOrderSheet_validation(String description, DirectOrderSheetCreateRequest request, String expectedField, String expectedMessage) throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/direct")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/direct"));
+    }
 
     @Nested
     @DisplayName("주문서 저장")
@@ -713,5 +822,70 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/cart-coupon"));
         }
+    }
+
+    private static Stream<Arguments> provideInvalidCreateDirectOrderSheetRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "주문 상품이 없으면 검증에 실패한다",
+                        DirectOrderSheetCreateRequest.builder()
+                                .build(),
+                        "variants",
+                        "주문 상품은 한개 이상이여야 합니다."
+                ),
+                Arguments.of(
+                        "주문 상품이 한개 미만이면 검증에 실패한다",
+                        DirectOrderSheetCreateRequest.builder()
+                                .variants(Collections.emptyList())
+                                .build(),
+                        "variants",
+                        "주문 상품은 한개 이상이여야 합니다."
+                ),
+                Arguments.of(
+                        "주문 상품 식별자가 없으면 검증에 실패한다",
+                        DirectOrderSheetCreateRequest.builder()
+                                .variants(
+                                        List.of(
+                                                DirectOrderSheetCreateRequest.OrderVariant.builder()
+                                                        .productVariantId(null)
+                                                        .quantity(1)
+                                                        .build()
+                                        )
+                                )
+                                .build(),
+                        "variants[0].productVariantId",
+                        "상품 식별자(productVariantId)는 필수값입니다."
+                ),
+                Arguments.of(
+                        "주문 상품 수량이 없으면 검증에 실패한다.",
+                        DirectOrderSheetCreateRequest.builder()
+                                .variants(
+                                        List.of(
+                                                DirectOrderSheetCreateRequest.OrderVariant.builder()
+                                                        .productVariantId(1L)
+                                                        .quantity(null)
+                                                        .build()
+                                        )
+                                )
+                                .build(),
+                        "variants[0].quantity",
+                        "수량(quantity)은 필수값입니다."
+                ),
+                Arguments.of(
+                        "주문 상품 수량이 0이하면 검증에 실패한다",
+                        DirectOrderSheetCreateRequest.builder()
+                                .variants(
+                                        List.of(
+                                                DirectOrderSheetCreateRequest.OrderVariant.builder()
+                                                        .productVariantId(1L)
+                                                        .quantity(0)
+                                                        .build()
+                                        )
+                                )
+                                .build(),
+                        "variants[0].quantity",
+                        "수량(quantity)은 1개 이상이어야 합니다."
+                )
+        );
     }
 }

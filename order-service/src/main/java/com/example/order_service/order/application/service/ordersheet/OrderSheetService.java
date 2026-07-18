@@ -2,6 +2,7 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -9,7 +10,9 @@ import com.example.order_service.order.application.external.dto.command.OrderCou
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -53,6 +56,11 @@ public class OrderSheetService {
     private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
     private final Clock clock;
+
+
+    public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
+        return null;
+    }
 
     /**
      * 사용자 주문서 생성

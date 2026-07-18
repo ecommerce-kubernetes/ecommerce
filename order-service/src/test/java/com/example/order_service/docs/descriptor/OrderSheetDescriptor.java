@@ -1,10 +1,27 @@
 package com.example.order_service.docs.descriptor;
 
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
+
+import java.util.List;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class OrderSheetDescriptor {
+
+    public static FieldDescriptor[] getDirectCreateRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("variants[].productVariantId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 변형 ID(상품 판매 단위 식별자)")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("variants[].quantity")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문 수량")
+                        .attributes(key("constraint").value("필수, 1이상"))
+        };
+    }
 
     public static FieldDescriptor[] getCreateRequest() {
         return new FieldDescriptor[] {
@@ -84,6 +101,17 @@ public class OrderSheetDescriptor {
                 fieldWithPath("paymentSummary.totalCouponDiscount").description("총 쿠폰 할인금"),
                 fieldWithPath("paymentSummary.usedPoints").description("사용 포인트"),
                 fieldWithPath("paymentSummary.totalPaymentAmount").description("총 결제 가격")
+        };
+    }
+
+    public static FieldDescriptor[] getCreateOrderSheetResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("orderSheetId")
+                        .type(JsonFieldType.STRING)
+                        .description("주문서 ID"),
+                fieldWithPath("expiresAt")
+                        .type(JsonFieldType.STRING)
+                        .description("주문서 만료 시간")
         };
     }
 }

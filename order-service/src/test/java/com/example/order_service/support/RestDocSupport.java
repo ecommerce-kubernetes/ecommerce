@@ -41,7 +41,7 @@ public abstract class RestDocSupport {
     }
 
     protected static final HeaderDescriptor[] AUTH_HEADER = new HeaderDescriptor[]{
-            headerWithName("Authorization").description("JWT Access Token")
+            headerWithName("Authorization").description("인증 토큰")
     };
 
     protected abstract Object initController();

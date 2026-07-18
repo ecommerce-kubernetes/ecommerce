@@ -1,13 +1,18 @@
 package com.example.order_service.docs.order;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.web.OrderSheetController;
+import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +33,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderSheetControllerDocsTest extends RestDocSupport {
@@ -36,6 +42,44 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @Override
     protected Object initController() {
         return new OrderSheetController(orderSheetService);
+    }
+
+    @Test
+    @DisplayName("주문서 즉시 생성")
+    void createDirectOrderSheet() throws Exception {
+        //given
+        DirectOrderSheetCreateRequest.OrderVariant variant = DirectOrderSheetCreateRequest.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(1)
+                .build();
+        DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
+                .variants(List.of(variant))
+                .build();
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        OrderSheetCreateResult result = createOrderSheetResult();
+        given(orderSheetService.createDirectOrderSheet(any(CreateDirectOrderSheetCommand.class)))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(post("/order-sheets/direct")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(document(
+                        "order-sheets/create/direct",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(OrderSheetDescriptor.getDirectCreateRequest()),
+                        responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
+                ));
     }
 
     @Test
@@ -86,7 +130,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     void getOrderSheet() throws Exception {
         //given
         String orderSheetId = "sheetId";
-        OrderSheetResult.Detail result = createOrderSheetResult();
+        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         given(orderSheetService.getOrderSheet(anyString(), anyLong()))
                 .willReturn(result);
@@ -122,7 +166,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetId = "sheetId";
         OrderSheetRequest.UpdateShippingAddress request = createOrderSheetRequest();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult.Detail result = createOrderSheetResult();
+        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
         given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                 .willReturn(result);
         //when
@@ -159,7 +203,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetId = "sheetId";
         OrderSheetRequest.UpdateUsedPoints request = createUpdatePointsOrderSheetRequest();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult.Detail result = createOrderSheetResult();
+        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
         given(orderSheetService.updatePoints(any())).willReturn(result);
         //when
         //then
@@ -196,7 +240,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetItemId = "sheetItemId";
         OrderSheetRequest.UpdateCoupon request = createItemCouponRequest();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult.Detail result = createOrderSheetResult();
+        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
         given(orderSheetService.updateItemCoupon(any())).willReturn(result);
         //when
         //then
@@ -234,7 +278,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetId = "sheetId";
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         OrderSheetRequest.UpdateCoupon request = createCartCouponRequest();
-        OrderSheetResult.Detail result = createOrderSheetResult();
+        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
         given(orderSheetService.updateCartCoupon(any())).willReturn(result);
         //when
         //then
@@ -348,7 +392,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .build();
     }
 
-    private OrderSheetResult.Detail createOrderSheetResult() {
+    private OrderSheetResult.Detail createOrderSheetResultDeprecated() {
 //        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
         return OrderSheetResult.Detail.builder()
                 .sheetId("sheetId")
@@ -359,6 +403,13 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 //                .cartCoupon(cartCoupon)
                 .point(createPoint())
                 .paymentSummary(createPaymentSummary())
+                .build();
+    }
+
+    private OrderSheetCreateResult createOrderSheetResult() {
+        return OrderSheetCreateResult.builder()
+                .orderSheetId("orderSheetId")
+                .expiresAt(LocalDateTime.now())
                 .build();
     }
 }
