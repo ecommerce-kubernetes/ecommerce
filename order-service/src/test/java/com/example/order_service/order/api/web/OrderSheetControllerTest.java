@@ -4,10 +4,12 @@ import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
+import com.example.order_service.order.api.web.dto.request.UpdateOrderSheetShippingAddressRequest;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
@@ -295,154 +297,104 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
     }
 
-    @Nested
-    @DisplayName("배송 정보 수정")
-    class UpdateShippingAddress {
+    @Test
+    @DisplayName("배송 정보를 수정한다")
+    @WithCustomMockUser
+    void updateShippingAddress() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
+                .receiverName("수령인")
+                .receiverPhone("010-1234-5678")
+                .zipCode("12345")
+                .address("서울시 테헤란로 123")
+                .addressDetail("123동 1234호")
+                .build();
+        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        given(orderSheetService.updateShippingAddress(any(UpdateOrderSheetShippingAddressCommand.class)))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/shipping-address", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+    }
 
-        @Test
-        @DisplayName("배송 정보를 수정한다")
-        @WithCustomMockUser
-        void updateShippingAddress() throws Exception {
-            //given
-            OrderSheetRequest.UpdateShippingAddress request = OrderSheetRequest.UpdateShippingAddress.builder()
-                    .receiverName("수령인")
-                    .receiverPhone("010-1234-5678")
-                    .zipCode("12345")
-                    .address("서울시 테헤란로 123")
-                    .addressDetail("123동 1234호")
-                    .build();
-            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
-            given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
-        }
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 배송 정보를 수정할 수 없다")
+    void updateShippingAddress_unAuthorized() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
+                .receiverName("수령인")
+                .receiverPhone("010-1234-5678")
+                .zipCode("12345")
+                .address("서울시 테헤란로 123")
+                .addressDetail("123동 1234호")
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/shipping-address", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/shipping-address"));
+    }
 
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 배송 정보를 수정할 수 없다")
-        void updateShippingAddress_unAuthorized() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            OrderSheetRequest.UpdateShippingAddress request = OrderSheetRequest.UpdateShippingAddress.builder()
-                    .receiverName("수령인")
-                    .receiverPhone("010-1234-5678")
-                    .zipCode("12345")
-                    .address("서울시 테헤란로 123")
-                    .addressDetail("123동 1234호")
-                    .build();            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
-        }
+    @Test
+    @DisplayName("사용자 권한이 아니면 배송정보를 수정할 수 없다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void updateShippingAddress_forbidden() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
+                .receiverName("수령인")
+                .receiverPhone("010-1234-5678")
+                .zipCode("12345")
+                .address("서울시 테헤란로 123")
+                .addressDetail("123동 1234호")
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/shipping-address", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/shipping-address"));
+    }
 
-        @Test
-        @DisplayName("사용자 권한이 아니면 배송정보를 수정할 수 없다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void updateShippingAddress_forbidden() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            OrderSheetRequest.UpdateShippingAddress request = OrderSheetRequest.UpdateShippingAddress.builder()
-                    .receiverName("수령인")
-                    .receiverPhone("010-1234-5678")
-                    .zipCode("12345")
-                    .address("서울시 테헤란로 123")
-                    .addressDetail("123동 1234호")
-                    .build();            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @DisplayName("배송 정보 수정 입력 검증 테스트")
-        @MethodSource("provideInvalidRequest")
-        @WithCustomMockUser
-        void updateShippingAddress_validate(String description, OrderSheetRequest.UpdateShippingAddress req, String expectedField, String expectedMessage) throws Exception {
-            //given
-            String sheetId = "sheetId";
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
-                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
-                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
-        }
-
-        private static Stream<Arguments> provideInvalidRequest() {
-            OrderSheetRequest.UpdateShippingAddress VALID_REQUEST = OrderSheetRequest.UpdateShippingAddress.builder()
-                    .receiverName("수령인")
-                    .receiverPhone("010-1234-5678")
-                    .zipCode("12345")
-                    .address("서울시 테헤란로 123")
-                    .addressDetail("123동 1234호")
-                    .build();
-            return Stream.of(
-                    Arguments.of(
-                            "수령인이 없으면 검증에 실패한다",
-                            VALID_REQUEST.toBuilder().receiverName(null).build(),
-                            "receiverName",
-                            "수령인 이름은 필수입니다."
-                    ),
-                    Arguments.of(
-                            "수령인 전화번호가 없으면 검증에 실패한다",
-                            VALID_REQUEST.toBuilder().receiverPhone(null).build(),
-                            "receiverPhone",
-                            "수령인 전화번호는 필수입니다."
-                    ),
-                    Arguments.of(
-                            "수령인 전화번호 형식이 올바르지 않으면 검증에 실패한다",
-                            VALID_REQUEST.toBuilder().receiverPhone("123123").build(),
-                            "receiverPhone",
-                            "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)"
-                    ),
-                    Arguments.of(
-                            "우편 번호가 없으면 검증에 실패한다",
-                            VALID_REQUEST.toBuilder().zipCode(null).build(),
-                            "zipCode",
-                            "우편 번호는 필수입니다."
-                    ),
-                    Arguments.of(
-                            "기본 주소가 없으면 검증에 실패한다",
-                            VALID_REQUEST.toBuilder().address(null).build(),
-                            "address",
-                            "기본 주소는 필수입니다."
-                    ),
-                    Arguments.of(
-                            "상세 주소가 없으면 검증에 실패한다",
-                            VALID_REQUEST.toBuilder().addressDetail(null).build(),
-                            "addressDetail",
-                            "상세 주소는 필수입니다."
-                    )
-            );
-        }
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("배송 정보 수정 입력 검증 테스트")
+    @MethodSource("provideInvalidUpdateShippingAddressRequest")
+    @WithCustomMockUser
+    void updateShippingAddress_validate(String description, UpdateOrderSheetShippingAddressRequest req, String expectedField, String expectedMessage) throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/shipping-address"));
     }
 
     @Nested
@@ -783,6 +735,83 @@ class OrderSheetControllerTest {
                                 .build(),
                         "cartItemIds",
                         "장바구니 항목은 한개 이상이여야 합니다."
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidUpdateShippingAddressRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "수령인이 없으면 검증에 실패한다",
+                        UpdateOrderSheetShippingAddressRequest.builder()
+                                .receiverName(null)
+                                .receiverPhone("010-1234-5678")
+                                .zipCode("12345")
+                                .address("서울시 테헤란로 123")
+                                .addressDetail("123동 1234호")
+                                .build(),
+                        "receiverName",
+                        "수령인 이름은 필수입니다."
+                ),
+                Arguments.of(
+                        "수령인 전화번호가 없으면 검증에 실패한다",
+                        UpdateOrderSheetShippingAddressRequest.builder()
+                                .receiverName("수령인")
+                                .receiverPhone(null)
+                                .zipCode("12345")
+                                .address("서울시 테헤란로 123")
+                                .addressDetail("123동 1234호")
+                                .build(),
+                        "receiverPhone",
+                        "수령인 전화번호는 필수입니다."
+                ),
+                Arguments.of(
+                        "수령인 전화번호 형식이 올바르지 않으면 검증에 실패한다",
+                        UpdateOrderSheetShippingAddressRequest.builder()
+                                .receiverName("수령인")
+                                .receiverPhone("1234")
+                                .zipCode("12345")
+                                .address("서울시 테헤란로 123")
+                                .addressDetail("123동 1234호")
+                                .build(),
+                        "receiverPhone",
+                        "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)"
+                ),
+                Arguments.of(
+                        "우편 번호가 없으면 검증에 실패한다",
+                        UpdateOrderSheetShippingAddressRequest.builder()
+                                .receiverName("수령인")
+                                .receiverPhone("010-1234-5678")
+                                .zipCode(null)
+                                .address("서울시 테헤란로 123")
+                                .addressDetail("123동 1234호")
+                                .build(),
+                        "zipCode",
+                        "우편 번호는 필수입니다."
+                ),
+                Arguments.of(
+                        "기본 주소가 없으면 검증에 실패한다",
+                        UpdateOrderSheetShippingAddressRequest.builder()
+                                .receiverName("수령인")
+                                .receiverPhone("010-1234-5678")
+                                .zipCode("12345")
+                                .address(null)
+                                .addressDetail("123동 1234호")
+                                .build(),
+                        "address",
+                        "기본 주소는 필수입니다."
+                ),
+                Arguments.of(
+                        "상세 주소가 없으면 검증에 실패한다",
+                        UpdateOrderSheetShippingAddressRequest.builder()
+                                .receiverName("수령인")
+                                .receiverPhone("010-1234-5678")
+                                .zipCode("12345")
+                                .address("서울시 테헤란로 123")
+                                .addressDetail(null)
+                                .build(),
+                        "addressDetail",
+                        "상세 주소는 필수입니다."
                 )
         );
     }

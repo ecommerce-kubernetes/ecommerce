@@ -13,6 +13,7 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
@@ -143,16 +144,8 @@ public class OrderSheetService {
      * @param command 수정 배송 정보
      * @return 배송 정보가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResultDeprecate.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
-        LocalDateTime currentTime = LocalDateTime.now(clock);
-        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(),
-                command.address(), command.addressDetail());
-        orderSheet.changeShippingAddress(newAddress);
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
-        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+    public OrderSheetResult updateShippingAddress(UpdateOrderSheetShippingAddressCommand command) {
+        return null;
     }
 
     /**

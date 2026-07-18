@@ -7,36 +7,8 @@ import lombok.Builder;
 
 import java.util.List;
 
+@Deprecated
 public class OrderSheetRequest {
-
-    @Builder
-    public record Create(
-            @Valid
-            @NotEmpty(message = "{orderSheet.items.notEmpty}")
-            List<OrderItem> items,
-            Long cartCouponId,
-            @Valid
-            @NotNull(message = "{orderSheet.itemCoupons.notNull}")
-            List<ItemCoupon> itemCoupons
-    ) {
-
-        public OrderSheetCommand.Create toCommand(Long userId) {
-            return OrderSheetCommand.Create.builder()
-                    .userId(userId)
-                    .items(itemsMapToCommand(items))
-                    .cartCouponId(cartCouponId)
-                    .itemCoupons(couponsMapToCommand(itemCoupons))
-                    .build();
-        }
-
-        private List<OrderSheetCommand.OrderItem> itemsMapToCommand(List<OrderItem> items) {
-            return items.stream().map(OrderItem::toCommand).toList();
-        }
-
-        private List<OrderSheetCommand.ItemCoupon> couponsMapToCommand(List<ItemCoupon> coupons) {
-            return coupons.stream().map(ItemCoupon::toCommand).toList();
-        }
-    }
 
     @Builder(toBuilder = true)
     public record OrderItem(

@@ -4,6 +4,7 @@ import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
+import com.example.order_service.order.api.web.dto.request.UpdateOrderSheetShippingAddressRequest;
 import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.api.web.dto.response.OrderSheetResponse;
 import com.example.order_service.order.api.web.dto.response.OrderSheetResponseDeprecate;
@@ -11,6 +12,7 @@ import com.example.order_service.order.application.service.ordersheet.OrderSheet
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
@@ -55,23 +57,13 @@ public class OrderSheetController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PatchMapping("/{sheetId}/shipping-address")
-    public ResponseEntity<OrderSheetResponseDeprecate.Detail> updateShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                                    @PathVariable("sheetId") String sheetId,
-                                                                                    @RequestBody @Validated OrderSheetRequest.UpdateShippingAddress request) {
-        OrderSheetCommand.UpdateShippingAddress command = request.toCommand(sheetId, userPrincipal.getUserId());
-        OrderSheetResultDeprecate.Detail result = orderSheetService.updateShippingAddress(command);
-        OrderSheetResponseDeprecate.Detail response = OrderSheetResponseDeprecate.Detail.from(result);
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{sheetId}/points")
-    public ResponseEntity<OrderSheetResponseDeprecate.Detail> updateUsedPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                               @PathVariable("sheetId") String sheetId,
-                                                                               @RequestBody @Validated OrderSheetRequest.UpdateUsedPoints request) {
-        OrderSheetCommand.UpdatePoints command = request.toCommand(sheetId, userPrincipal.getUserId());
-        OrderSheetResultDeprecate.Detail result = orderSheetService.updatePoints(command);
-        OrderSheetResponseDeprecate.Detail response = OrderSheetResponseDeprecate.Detail.from(result);
+    @PatchMapping("/{orderSheetId}/shipping-address")
+    public ResponseEntity<OrderSheetResponse> updateShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                                    @PathVariable("orderSheetId") String orderSheetId,
+                                                                                    @RequestBody @Validated UpdateOrderSheetShippingAddressRequest request) {
+        UpdateOrderSheetShippingAddressCommand command = request.toCommand(orderSheetId, userPrincipal.getUserId());
+        OrderSheetResult result = orderSheetService.updateShippingAddress(command);
+        OrderSheetResponse response = OrderSheetResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
@@ -82,6 +74,16 @@ public class OrderSheetController {
                                                                                @RequestBody @Validated OrderSheetRequest.UpdateCoupon request) {
         OrderSheetCommand.UpdateItemCoupon command = request.toCommand(sheetId, sheetItemId, userPrincipal.getUserId());
         OrderSheetResultDeprecate.Detail result = orderSheetService.updateItemCoupon(command);
+        OrderSheetResponseDeprecate.Detail response = OrderSheetResponseDeprecate.Detail.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{sheetId}/points")
+    public ResponseEntity<OrderSheetResponseDeprecate.Detail> updateUsedPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                               @PathVariable("sheetId") String sheetId,
+                                                                               @RequestBody @Validated OrderSheetRequest.UpdateUsedPoints request) {
+        OrderSheetCommand.UpdatePoints command = request.toCommand(sheetId, userPrincipal.getUserId());
+        OrderSheetResultDeprecate.Detail result = orderSheetService.updatePoints(command);
         OrderSheetResponseDeprecate.Detail response = OrderSheetResponseDeprecate.Detail.from(result);
         return ResponseEntity.ok(response);
     }

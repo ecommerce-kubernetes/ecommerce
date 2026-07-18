@@ -8,7 +8,7 @@ import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class OrderSheetDescriptor {
 
-    public static FieldDescriptor[] getDirectCreateRequest() {
+    public static FieldDescriptor[] directCreateRequest() {
         return new FieldDescriptor[]{
                 fieldWithPath("items[].productVariantId")
                         .type(JsonFieldType.NUMBER)
@@ -21,7 +21,7 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getCartCreateRequest() {
+    public static FieldDescriptor[] cartCreateRequest() {
         return new FieldDescriptor[]{
                 fieldWithPath("cartItemIds")
                         .type(JsonFieldType.ARRAY)
@@ -30,23 +30,28 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getCreateRequest() {
+    public static FieldDescriptor[] shippingAddressRequest() {
         return new FieldDescriptor[]{
-                fieldWithPath("items[].productVariantId").description("상품 변형 아이디"),
-                fieldWithPath("items[].quantity").description("주문 수량"),
-                fieldWithPath("cartCouponId").description("장바구니 쿠폰 아이디"),
-                fieldWithPath("itemCoupons[].productVariantId").description("상품 쿠폰 적용 상품 아이디"),
-                fieldWithPath("itemCoupons[].couponId").description("상품 쿠폰 아이디")
-        };
-    }
-
-    public static FieldDescriptor[] getShippingAddressRequest() {
-        return new FieldDescriptor[]{
-                fieldWithPath("receiverName").description("수령인 이름"),
-                fieldWithPath("receiverPhone").description("수령인 전화번호"),
-                fieldWithPath("zipCode").description("우편 번호"),
-                fieldWithPath("address").description("기본 주소"),
-                fieldWithPath("addressDetail").description("상세 주소")
+                fieldWithPath("receiverName")
+                        .type(JsonFieldType.STRING)
+                        .description("수령인 이름")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("receiverPhone")
+                        .type(JsonFieldType.STRING)
+                        .description("수령인 전화번호")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("zipCode")
+                        .type(JsonFieldType.STRING)
+                        .description("우편 번호")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("address")
+                        .type(JsonFieldType.STRING)
+                        .description("기본 주소")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("addressDetail")
+                        .type(JsonFieldType.STRING)
+                        .description("상세 주소")
+                        .attributes(key("constraint").value("필수"))
         };
     }
 
@@ -62,7 +67,7 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getOrderSheetResult() {
+    public static FieldDescriptor[] orderSheetResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("orderSheetId")
                         .type(JsonFieldType.STRING)
@@ -87,7 +92,7 @@ public class OrderSheetDescriptor {
                         .description("우편 번호"),
                 fieldWithPath("shippingAddress.address")
                         .type(JsonFieldType.STRING)
-                        .description("주소"),
+                        .description("기본 주소"),
                 fieldWithPath("shippingAddress.addressDetail")
                         .type(JsonFieldType.STRING)
                         .description("상세 주소"),

@@ -6,9 +6,11 @@ import com.example.order_service.order.api.web.OrderSheetController;
 import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
+import com.example.order_service.order.api.web.dto.request.UpdateOrderSheetShippingAddressRequest;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
@@ -78,7 +80,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        requestFields(OrderSheetDescriptor.getDirectCreateRequest()),
+                        requestFields(OrderSheetDescriptor.directCreateRequest()),
                         responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
                 ));
     }
@@ -113,7 +115,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        requestFields(OrderSheetDescriptor.getCartCreateRequest()),
+                        requestFields(OrderSheetDescriptor.cartCreateRequest()),
                         responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
                 ));
     }
@@ -142,7 +144,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(getOrderSheetResult()),
+                        responseFields(orderSheetResponse()),
                         pathParameters(
                                 parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -155,12 +157,22 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @DisplayName("배송 정보를 수정한다")
     void updateShippingAddress() throws Exception {
         //given
-        String sheetId = "sheetId";
-        OrderSheetRequest.UpdateShippingAddress request = createOrderSheetRequest();
+        String orderSheetId = "orderSheetId";
+        UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
+                .receiverName("수령인")
+                .receiverPhone("010-1234-5678")
+                .zipCode("12345")
+                .address("서울시 테헤란로 123")
+                .addressDetail("123동 1234호")
+                .build();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        OrderSheetResult result = createOrderSheetResult();
+        given(orderSheetService.updateShippingAddress(any(UpdateOrderSheetShippingAddressCommand.class)))
+                .willReturn(result);
+
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/shipping-address", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser)
                         .content(objectMapper.writeValueAsString(request)))
@@ -175,10 +187,10 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        requestFields(getShippingAddressRequest()),
-                        responseFields(getOrderSheetResult()),
+                        requestFields(shippingAddressRequest()),
+                        responseFields(orderSheetResponse()),
                         pathParameters(
-                                parameterWithName("sheetId")
+                                parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
                         )
                 ));
@@ -210,7 +222,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getUpdatePointsRequest()),
-                        responseFields(getOrderSheetResult()),
+                        responseFields(orderSheetResponse()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -245,7 +257,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getUpdateCouponRequest()),
-                        responseFields(getOrderSheetResult()),
+                        responseFields(orderSheetResponse()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)"),
@@ -281,7 +293,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getUpdateCouponRequest()),
-                        responseFields(getOrderSheetResult()),
+                        responseFields(orderSheetResponse()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)")
