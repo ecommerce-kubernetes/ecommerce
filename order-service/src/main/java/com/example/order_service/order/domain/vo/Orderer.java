@@ -2,12 +2,12 @@ package com.example.order_service.order.domain.vo;
 
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.mysema.commons.lang.Assert;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Getter
 @Embeddable

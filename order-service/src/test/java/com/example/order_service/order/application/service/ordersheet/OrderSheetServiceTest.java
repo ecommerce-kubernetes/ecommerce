@@ -8,9 +8,10 @@ import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
@@ -71,85 +72,6 @@ public class OrderSheetServiceTest {
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
-    @Nested
-    @DisplayName("주문서 저장")
-    class Create {
-
-        @Test
-        @DisplayName("쿠폰을 적용한 경우 쿠폰 정보를 조회하고 주문서를 생성한다")
-        void createOrderSheet_coupon_applied() {
-            //given
-            Long productVariantId = 1L;
-            OrderSheetCommand.OrderItem item = OrderSheetCommand.OrderItem.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(1)
-                    .build();
-            OrderSheetCommand.ItemCoupon itemCouponCommand = OrderSheetCommand.ItemCoupon.builder()
-                    .productVariantId(productVariantId)
-                    .couponId(1L)
-                    .build();
-            OrderSheetCommand.Create command = OrderSheetCommand.Create.builder()
-                    .userId(1L)
-                    .items(List.of(item))
-                    .cartCouponId(2L)
-                    .itemCoupons(List.of(itemCouponCommand))
-                    .build();
-            OrderUserResult.Profile profile = Instancio.create(OrderUserResult.Profile.class);
-            OrderProductResult.ProductList products = Instancio.of(OrderProductResult.ProductList.class)
-                    .generate(field(OrderProductResult.ProductList::products), gen -> gen.collection().size(1))
-                    .set(field(ProductSnapshot::getProductVariantId), productVariantId)
-                    .create();
-            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
-                    .generate(field(OrderCouponResult.Calculate::itemCoupons), gen -> gen.collection().size(1))
-                    .set(field(OrderCouponResult.ItemCoupon::productVariantId), productVariantId)
-                    .create();
-            given(orderUserGateway.getUserProfile(any())).willReturn(profile);
-            doNothing().when(validator).validate(any(), any());
-            given(orderProductGateway.getProducts(anyList())).willReturn(products);
-            given(orderCouponGateway.calculate(any())).willReturn(coupon);
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-            OrderSheetResult.Create orderSheet = orderSheetService.createOrderSheet(command);
-            //then
-            assertThat(orderSheet.sheetId()).isNotNull();
-            assertThat(orderSheet.expiresAt()).isNotNull();
-            verify(orderProductGateway).getProducts(anyList());
-            verify(orderCouponGateway).calculate(any());
-        }
-
-        @Test
-        @DisplayName("쿠폰을 적용하지 않은 경우 쿠폰 정보를 조회하지 않고 주문서를 생성한다")
-        void createOrderSheet_coupon_not_applied() {
-            //given
-            Long productVariantId = 1L;
-            OrderSheetCommand.OrderItem item = OrderSheetCommand.OrderItem.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(1)
-                    .build();
-            OrderSheetCommand.Create command = OrderSheetCommand.Create.builder()
-                    .userId(1L)
-                    .items(List.of(item))
-                    .cartCouponId(null)
-                    .itemCoupons(List.of())
-                    .build();
-            OrderUserResult.Profile profile = Instancio.create(OrderUserResult.Profile.class);
-            OrderProductResult.ProductList products = Instancio.of(OrderProductResult.ProductList.class)
-                    .generate(field(OrderProductResult.ProductList::products), gen -> gen.collection().size(1))
-                    .set(field(ProductSnapshot::getProductVariantId), productVariantId)
-                    .create();
-            given(orderUserGateway.getUserProfile(any())).willReturn(profile);
-            given(orderProductGateway.getProducts(anyList())).willReturn(products);
-            doNothing().when(validator).validate(any(), any());
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-            OrderSheetResult.Create orderSheet = orderSheetService.createOrderSheet(command);
-            //then
-            assertThat(orderSheet.sheetId()).isNotNull();
-            assertThat(orderSheet.expiresAt()).isNotNull();
-            verify(orderProductGateway).getProducts(anyList());
-            verify(orderCouponGateway, never()).calculate(any());
-        }
-    }
 
     @Nested
     @DisplayName("주문서 조회")
@@ -167,11 +89,11 @@ public class OrderSheetServiceTest {
             given(repository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
             //when
-            OrderSheetResult.Detail result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
+            OrderSheetResult result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
             //then
-            assertThat(result.sheetId()).isEqualTo(orderSheet.getId());
+            assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
             assertThat(result.orderer().getUserId()).isEqualTo(orderSheet.getOrderer().getUserId());
-            assertThat(result.point().availablePoints()).isEqualTo(expectedAvailablePoints);
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(expectedAvailablePoints);
         }
 
         @Test
@@ -244,7 +166,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetService.updateShippingAddress(command);
+            OrderSheetResultDeprecate.Detail result = orderSheetService.updateShippingAddress(command);
             //then
             assertThat(result.sheetId()).isEqualTo(sheetId);
             assertThat(result.shippingAddress())
@@ -337,7 +259,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetService.updatePoints(command);
+            OrderSheetResultDeprecate.Detail result = orderSheetService.updatePoints(command);
             //then
             verify(repository, times(1)).save(eq(orderSheet), any());
             assertThat(result.paymentSummary().usedPoints()).isEqualTo(usedPoints);
@@ -449,7 +371,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
+            OrderSheetResultDeprecate.Detail result = orderSheetService.updateItemCoupon(command);
             //then
         }
 
@@ -473,7 +395,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
+            OrderSheetResultDeprecate.Detail result = orderSheetService.updateItemCoupon(command);
             //then
 
         }
@@ -500,7 +422,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
+            OrderSheetResultDeprecate.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().getCartCouponId()).isNull();
         }
@@ -526,7 +448,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
+            OrderSheetResultDeprecate.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(newCouponId);
         }

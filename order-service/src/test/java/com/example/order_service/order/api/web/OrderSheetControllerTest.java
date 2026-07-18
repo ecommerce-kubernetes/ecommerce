@@ -4,16 +4,15 @@ import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
 import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
-import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -63,7 +61,7 @@ class OrderSheetControllerTest {
                 .quantity(1)
                 .build();
         DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
-                .variants(List.of(item))
+                .items(List.of(item))
                 .build();
 
         OrderSheetCreateResult result = Instancio.create(OrderSheetCreateResult.class);
@@ -92,7 +90,7 @@ class OrderSheetControllerTest {
                 .quantity(1)
                 .build();
         DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
-                .variants(List.of(item))
+                .items(List.of(item))
                 .build();
         //when
         //then
@@ -117,7 +115,7 @@ class OrderSheetControllerTest {
                 .quantity(1)
                 .build();
         DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
-                .variants(List.of(item))
+                .items(List.of(item))
                 .build();
         //when
         //then
@@ -242,271 +240,59 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.path").value("/order-sheets/cart"));
     }
 
-    @Nested
-    @DisplayName("주문서 저장")
-    class Create {
-
-        @Test
-        @DisplayName("주문서를 저장한다")
-        @WithCustomMockUser
-        void createOrderSheet() throws Exception {
-            //given
-            Long productVariantId = 1L;
-            OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(1)
-                    .build();
-            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
-                    .couponId(2L)
-                    .productVariantId(productVariantId)
-                    .build();
-            OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
-                    .items(List.of(item))
-                    .cartCouponId(1L)
-                    .itemCoupons(List.of(itemCoupon))
-                    .build();
-
-            OrderSheetResult.Create result = Instancio.create(OrderSheetResult.Create.class);
-            given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(post("/order-sheets")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 주문서를 저장할 수 없다")
-        void createOrderSheet_unAuthorized() throws Exception {
-            //given
-            Long productVariantId = 1L;
-            OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(1)
-                    .build();
-            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
-                    .couponId(2L)
-                    .productVariantId(productVariantId)
-                    .build();
-            OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
-                    .items(List.of(item))
-                    .cartCouponId(1L)
-                    .itemCoupons(List.of(itemCoupon))
-                    .build();
-            //when
-            //then
-            mockMvc.perform(post("/order-sheets")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets"));
-        }
-
-        @Test
-        @DisplayName("유저 권한이 아니면 주문서를 저장할 수 없다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void createOrderSheet_forbidden() throws Exception {
-            //given
-            Long productVariantId = 1L;
-            OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(1)
-                    .build();
-            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
-                    .couponId(2L)
-                    .productVariantId(productVariantId)
-                    .build();
-            OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
-                    .items(List.of(item))
-                    .cartCouponId(1L)
-                    .itemCoupons(List.of(itemCoupon))
-                    .build();
-            //when
-            //then
-            mockMvc.perform(post("/order-sheets")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets"));
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @DisplayName("주문서 저장 입력 검증 테스트")
-        @MethodSource("provideInvalidCreateRequest")
-        @WithCustomMockUser
-        void createOrderSheet_validate(String description, OrderSheetRequest.Create req, String expectedField, String expectedMessage) throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(post("/order-sheets")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
-                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
-                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets"));
-        }
-
-        private static Stream<Arguments> provideInvalidCreateRequest() {
-            OrderSheetRequest.OrderItem VALID_BASE_ITEM = OrderSheetRequest.OrderItem.builder()
-                    .productVariantId(1L)
-                    .quantity(3)
-                    .build();
-            OrderSheetRequest.ItemCoupon VALID_BASE_ITEM_COUPON = OrderSheetRequest.ItemCoupon.builder()
-                    .productVariantId(1L)
-                    .couponId(1L)
-                    .build();
-            return Stream.of(
-                    Arguments.of(
-                            "주문 상품 리스트가 빈 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .cartCouponId(null)
-                                    .itemCoupons(List.of())
-                                    .build(),
-                            "items",
-                            "주문 상품은 한개 이상이여야 합니다."
-                    ),
-
-                    Arguments.of(
-                            "상품 변형 Id 가 없는 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .items(List.of(VALID_BASE_ITEM.toBuilder().productVariantId(null).build()))
-                                    .cartCouponId(null)
-                                    .itemCoupons(List.of())
-                                    .build(),
-                            "items[0].productVariantId",
-                            "상품 식별자(productVariantId)는 필수값입니다."
-                    ),
-
-                    Arguments.of(
-                            "수량이 없는 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .items(List.of(VALID_BASE_ITEM.toBuilder().quantity(null).build()))
-                                    .cartCouponId(null)
-                                    .itemCoupons(List.of())
-                                    .build(),
-                            "items[0].quantity",
-                            "수량(quantity)은 필수값입니다."
-                    ),
-                    Arguments.of(
-                            "수량이 0개 이하인 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .items(List.of(VALID_BASE_ITEM.toBuilder().quantity(0).build()))
-                                    .cartCouponId(null)
-                                    .itemCoupons(List.of())
-                                    .build(),
-                            "items[0].quantity",
-                            "수량(quantity)은 1개 이상이어야 합니다."
-                    ),
-                    Arguments.of(
-                            "상품 쿠폰이 null인 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .items(List.of(VALID_BASE_ITEM))
-                                    .cartCouponId(null)
-                                    .itemCoupons(null)
-                                    .build(),
-                            "itemCoupons",
-                            "상품 쿠폰은 필수값 입니다."
-                    ),
-                    Arguments.of(
-                            "상품 쿠폰 사용 상품 식별자가 없는 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .items(List.of(VALID_BASE_ITEM))
-                                    .cartCouponId(null)
-                                    .itemCoupons(List.of(VALID_BASE_ITEM_COUPON.toBuilder()
-                                            .productVariantId(null).build()))
-                                    .build(),
-                            "itemCoupons[0].productVariantId",
-                            "쿠폰을 적용할 상품 식별자(productVariantId)는 필수값 입니다."
-                    ),
-                    Arguments.of(
-                            "상품 쿠폰 아이디가 없는 경우 검증에 실패한다",
-                            OrderSheetRequest.Create.builder()
-                                    .items(List.of(VALID_BASE_ITEM))
-                                    .cartCouponId(null)
-                                    .itemCoupons(List.of(VALID_BASE_ITEM_COUPON.toBuilder()
-                                            .couponId(null)
-                                            .build()))
-                                    .build(),
-                            "itemCoupons[0].couponId",
-                            "쿠폰 식별자(couponId)는 필수값 입니다."
-                    )
-            );
-        }
+    @Test
+    @DisplayName("주문서를 조회한다")
+    @WithCustomMockUser
+    void getOrderSheet() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        Long userId = 1L;
+        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        given(orderSheetService.getOrderSheet(orderSheetId, userId))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(get("/order-sheets/{orderSheetId}", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
     }
 
-    @Nested
-    @DisplayName("주문서 조회")
-    class Get {
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문서를 조회할 수 없다")
+    void getOrderSheet_unAuthorized() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        //when
+        //then
+        mockMvc.perform(get("/order-sheets/{orderSheetId}", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
+    }
 
-        @Test
-        @DisplayName("주문서를 조회한다")
-        @WithCustomMockUser
-        void getOrderSheet() throws Exception {
-            //given
-            String orderSheetId = "sheetId";
-            Long userId = 1L;
-            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
-            given(orderSheetService.getOrderSheet(orderSheetId, userId))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
-
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 주문서를 조회할 수 없다")
-        void getOrderSheet_unAuthorized() throws Exception {
-            //given
-            String orderSheetId = "sheetId";
-            //when
-            //then
-            mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
-        }
-
-        @Test
-        @DisplayName("유저 권한이 아니면 주문서를 조회할 수 없다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void createOrderSheet_forbidden() throws Exception {
-            //given
-            String orderSheetId = "sheetId";
-            //when
-            //then
-            mockMvc.perform(get("/order-sheets/{sheetId}", "sheetId")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
-        }
+    @Test
+    @DisplayName("유저 권한이 아니면 주문서를 조회할 수 없다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void getOrderSheet_forbidden() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        //when
+        //then
+        mockMvc.perform(get("/order-sheets/{orderSheetId}", "orderSheetId")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
     }
 
     @Nested
@@ -525,7 +311,7 @@ class OrderSheetControllerTest {
                     .address("서울시 테헤란로 123")
                     .addressDetail("123동 1234호")
                     .build();
-            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
+            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
             given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
             //when
@@ -672,7 +458,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
                     .usedPoints(1000L)
                     .build();
-            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
+            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
             given(orderSheetService.updatePoints(any())).willReturn(result);
             //when
             //then
@@ -784,7 +570,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
                     .couponId(1L)
                     .build();
-            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
+            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
             given(orderSheetService.updateItemCoupon(any())).willReturn(result);
             //when
             //then
@@ -857,7 +643,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
                     .couponId(1L)
                     .build();
-            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
+            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
             given(orderSheetService.updateCartCoupon(any())).willReturn(result);
             //when
             //then
@@ -921,21 +707,21 @@ class OrderSheetControllerTest {
                         "주문 상품이 없으면 검증에 실패한다",
                         DirectOrderSheetCreateRequest.builder()
                                 .build(),
-                        "variants",
+                        "items",
                         "주문 상품은 한개 이상이여야 합니다."
                 ),
                 Arguments.of(
                         "주문 상품이 한개 미만이면 검증에 실패한다",
                         DirectOrderSheetCreateRequest.builder()
-                                .variants(Collections.emptyList())
+                                .items(Collections.emptyList())
                                 .build(),
-                        "variants",
+                        "items",
                         "주문 상품은 한개 이상이여야 합니다."
                 ),
                 Arguments.of(
                         "주문 상품 식별자가 없으면 검증에 실패한다",
                         DirectOrderSheetCreateRequest.builder()
-                                .variants(
+                                .items(
                                         List.of(
                                                 DirectOrderSheetCreateRequest.OrderVariant.builder()
                                                         .productVariantId(null)
@@ -944,13 +730,13 @@ class OrderSheetControllerTest {
                                         )
                                 )
                                 .build(),
-                        "variants[0].productVariantId",
+                        "items[0].productVariantId",
                         "상품 식별자(productVariantId)는 필수값입니다."
                 ),
                 Arguments.of(
                         "주문 상품 수량이 없으면 검증에 실패한다.",
                         DirectOrderSheetCreateRequest.builder()
-                                .variants(
+                                .items(
                                         List.of(
                                                 DirectOrderSheetCreateRequest.OrderVariant.builder()
                                                         .productVariantId(1L)
@@ -959,13 +745,13 @@ class OrderSheetControllerTest {
                                         )
                                 )
                                 .build(),
-                        "variants[0].quantity",
+                        "items[0].quantity",
                         "수량(quantity)은 필수값입니다."
                 ),
                 Arguments.of(
                         "주문 상품 수량이 0이하면 검증에 실패한다",
                         DirectOrderSheetCreateRequest.builder()
-                                .variants(
+                                .items(
                                         List.of(
                                                 DirectOrderSheetCreateRequest.OrderVariant.builder()
                                                         .productVariantId(1L)
@@ -974,7 +760,7 @@ class OrderSheetControllerTest {
                                         )
                                 )
                                 .build(),
-                        "variants[0].quantity",
+                        "items[0].quantity",
                         "수량(quantity)은 1개 이상이어야 합니다."
                 )
         );

@@ -5,7 +5,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 import java.util.List;
@@ -13,16 +12,16 @@ import java.util.List;
 @Builder
 public record DirectOrderSheetCreateRequest(
         @Valid
-        @NotEmpty(message = "{orderSheet.variants.notEmpty}")
-        List<OrderVariant> variants
+        @NotEmpty(message = "{orderSheet.items.notEmpty}")
+        List<OrderVariant> items
 ) {
 
     @Builder
     public record OrderVariant(
-            @NotNull(message = "{orderSheet.variant.productVariantId.notNull}")
+            @NotNull(message = "{orderSheet.item.productVariantId.notNull}")
             Long productVariantId,
-            @NotNull(message = "{orderSheet.variant.quantity.notNull}")
-            @Min(value = 1, message = "{orderSheet.variant.quantity.min}")
+            @NotNull(message = "{orderSheet.item.quantity.notNull}")
+            @Min(value = 1, message = "{orderSheet.item.quantity.min}")
             Integer quantity
     ) {
         public CreateDirectOrderSheetCommand.OrderVariant toCommand() {
@@ -42,6 +41,6 @@ public record DirectOrderSheetCreateRequest(
     }
 
     private List<CreateDirectOrderSheetCommand.OrderVariant> mapToCommandOrderVariants() {
-        return this.variants.stream().map(OrderVariant::toCommand).toList();
+        return this.items.stream().map(OrderVariant::toCommand).toList();
     }
 }

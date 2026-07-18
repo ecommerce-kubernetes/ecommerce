@@ -9,12 +9,11 @@ import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -55,10 +54,10 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .quantity(1)
                 .build();
         DirectOrderSheetCreateRequest request = DirectOrderSheetCreateRequest.builder()
-                .variants(List.of(variant))
+                .items(List.of(variant))
                 .build();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetCreateResult result = createOrderSheetResult();
+        OrderSheetCreateResult result = createOrderSheetCreateResult();
         given(orderSheetService.createDirectOrderSheet(any(CreateDirectOrderSheetCommand.class)))
                 .willReturn(result);
         //when
@@ -93,7 +92,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetCreateResult result = createOrderSheetResult();
+        OrderSheetCreateResult result = createOrderSheetCreateResult();
         given(orderSheetService.createCartOrderSheet(any(CreateCartOrderSheetCommand.class)))
                 .willReturn(result);
         //when
@@ -120,60 +119,16 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
     @Test
-    @DisplayName("주문서 생성 API")
-    void createOrderSheet() throws Exception {
-        //given
-        OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
-                .productVariantId(1L)
-                .quantity(2)
-                .build();
-        OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
-                .productVariantId(1L)
-                .couponId(2L)
-                .build();
-        OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
-                .items(List.of(item))
-                .cartCouponId(1L)
-                .itemCoupons(List.of(itemCoupon))
-                .build();
-        OrderSheetResult.Create result = createCreateOrderSheetResult();
-        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
-                .willReturn(result);
-        //when
-        //then
-        mockMvc.perform(post("/order-sheets")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .headers(roleUser)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andDo(document(
-                        "order-sheets/create",
-                        preprocessRequest(
-                                prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                        ),
-                        preprocessResponse(prettyPrint()),
-                        requestHeaders(AUTH_HEADER),
-                        requestFields(getCreateRequest()),
-                        responseFields(getCreateResponse())
-                ));
-    }
-
-    @Test
     @DisplayName("주문서를 조회한다")
     void getOrderSheet() throws Exception {
         //given
-        String orderSheetId = "sheetId";
-        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
+        String orderSheetId = "orderSheetId";
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        given(orderSheetService.getOrderSheet(anyString(), anyLong()))
-                .willReturn(result);
+        OrderSheetResult result = createOrderSheetResult();
+        given(orderSheetService.getOrderSheet(anyString(), anyLong())).willReturn(result);
         //when
         //then
-        mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
+        mockMvc.perform(get("/order-sheets/{orderSheetId}", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser))
                 .andExpect(status().isOk())
@@ -187,9 +142,9 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(getDetailResponse()),
+                        responseFields(getOrderSheetResult()),
                         pathParameters(
-                                parameterWithName("sheetId")
+                                parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
                         )
                 ));
@@ -203,9 +158,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetId = "sheetId";
         OrderSheetRequest.UpdateShippingAddress request = createOrderSheetRequest();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
-        given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
-                .willReturn(result);
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
@@ -224,7 +176,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getShippingAddressRequest()),
-                        responseFields(getDetailResponse()),
+                        responseFields(getOrderSheetResult()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -240,8 +192,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetId = "sheetId";
         OrderSheetRequest.UpdateUsedPoints request = createUpdatePointsOrderSheetRequest();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
-        given(orderSheetService.updatePoints(any())).willReturn(result);
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
@@ -260,7 +210,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getUpdatePointsRequest()),
-                        responseFields(getDetailResponse()),
+                        responseFields(getOrderSheetResult()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -277,8 +227,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetItemId = "sheetItemId";
         OrderSheetRequest.UpdateCoupon request = createItemCouponRequest();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
-        given(orderSheetService.updateItemCoupon(any())).willReturn(result);
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
@@ -297,7 +245,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getUpdateCouponRequest()),
-                        responseFields(getDetailResponse()),
+                        responseFields(getOrderSheetResult()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)"),
@@ -315,8 +263,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         String sheetId = "sheetId";
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         OrderSheetRequest.UpdateCoupon request = createCartCouponRequest();
-        OrderSheetResult.Detail result = createOrderSheetResultDeprecated();
-        given(orderSheetService.updateCartCoupon(any())).willReturn(result);
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{sheetId}/cart-coupon", sheetId)
@@ -335,7 +281,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(getUpdateCouponRequest()),
-                        responseFields(getDetailResponse()),
+                        responseFields(getOrderSheetResult()),
                         pathParameters(
                                 parameterWithName("sheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -374,8 +320,8 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         return ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
     }
 
-    private OrderSheetResult.PaymentSummary createPaymentSummary() {
-        return OrderSheetResult.PaymentSummary.builder()
+    private OrderSheetResultDeprecate.PaymentSummary createPaymentSummary() {
+        return OrderSheetResultDeprecate.PaymentSummary.builder()
                 .totalOriginPrice(Money.wons(10000L))
                 .totalProductDiscount(Money.wons(1000L))
                 .totalCouponDiscount(Money.wons(2000L))
@@ -384,15 +330,15 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .build();
     }
 
-    private OrderSheetResult.Point createPoint() {
-        return OrderSheetResult.Point.builder()
+    private OrderSheetResultDeprecate.Point createPoint() {
+        return OrderSheetResultDeprecate.Point.builder()
                 .ownedPoints(Money.wons(10000L))
                 .availablePoints(Money.wons(4000L))
                 .usedPoints(Money.wons(1000L))
                 .build();
     }
 
-    private List<OrderSheetResult.OrderItem> createItems() {
+    private List<OrderSheetResultDeprecate.OrderItem> createItems() {
         ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
 //        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
@@ -401,7 +347,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         return List.of(
-                OrderSheetResult.OrderItem.builder()
+                OrderSheetResultDeprecate.OrderItem.builder()
                         .sheetItemId("sheetItemId")
                         .productId(1L)
                         .productVariantId(1L)
@@ -422,28 +368,56 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .build();
     }
 
-    private OrderSheetResult.Create createCreateOrderSheetResult() {
-        return OrderSheetResult.Create.builder()
-                .sheetId("sheetId")
+    private OrderSheetResult createOrderSheetResult() {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1_XL_BLUE", "청바지", "product/product/jean.jpg");
+        OrderSheetResult.ItemPriceResult price = OrderSheetResult.ItemPriceResult.builder()
+                .unitOriginalPrice(Money.wons(10000L))
+                .unitDiscountedPrice(Money.wons(9000L))
+                .lineTotal(Money.wons(9000L))
+                .finalAmount(Money.wons(8000L))
+                .build();
+        ProductOptionSnapshot option1 = ProductOptionSnapshot.of("사이즈", "XL");
+        ProductOptionSnapshot option2 = ProductOptionSnapshot.of("색상", "BLUE");
+        OrderSheetResult.ItemCouponResult itemCoupon = OrderSheetResult.ItemCouponResult.builder()
+                .itemCouponId(1L)
+                .name("청바지 1000원 할인 쿠폰")
+                .appliedDiscountAmount(Money.wons(1000L))
+                .build();
+        OrderSheetResult.CartCouponResult cartCoupon = OrderSheetResult.CartCouponResult.builder()
+                .cartCouponId(2L)
+                .name("장바구니 1000원 할인")
+                .appliedDiscountAmount(Money.wons(1000L))
+                .build();
+        OrderSheetResult.OrderSheetItemResult item = OrderSheetResult.OrderSheetItemResult.builder()
+                .orderSheetItemId("orderSheetItemId")
+                .quantity(1)
+                .product(product)
+                .price(price)
+                .options(List.of(option1, option2))
+                .coupon(itemCoupon)
+                .build();
+        OrderSheetResult.PaymentSummaryResult paymentSummary = OrderSheetResult.PaymentSummaryResult.builder()
+                .totalOriginalAmount(Money.wons(10000L))
+                .totalItemDiscount(Money.wons(1000L))
+                .totalItemCouponDiscount(Money.wons(1000L))
+                .usedPoints(Money.wons(1000L))
+                .cartCouponDiscount(Money.wons(1000L))
+                .totalPaymentAmount(Money.wons(6000L))
+                .build();
+        return OrderSheetResult.builder()
+                .orderSheetId("orderSheetId")
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .items(List.of(item))
+                .cartCoupon(cartCoupon)
+                .paymentSummary(paymentSummary)
                 .expiresAt(LocalDateTime.now())
                 .build();
     }
 
-    private OrderSheetResult.Detail createOrderSheetResultDeprecated() {
-//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
-        return OrderSheetResult.Detail.builder()
-                .sheetId("sheetId")
-                .expiresAt(LocalDateTime.now().plusMinutes(30))
-                .orderer(createOrderer())
-                .shippingAddress(createShippingAddress())
-                .items(createItems())
-//                .cartCoupon(cartCoupon)
-                .point(createPoint())
-                .paymentSummary(createPaymentSummary())
-                .build();
-    }
-
-    private OrderSheetCreateResult createOrderSheetResult() {
+    private OrderSheetCreateResult createOrderSheetCreateResult() {
         return OrderSheetCreateResult.builder()
                 .orderSheetId("orderSheetId")
                 .expiresAt(LocalDateTime.now())

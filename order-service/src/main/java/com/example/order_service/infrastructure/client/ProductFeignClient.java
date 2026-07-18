@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @FeignClient(name = "product-service", contextId = "productClient", configuration = DefaultFeignConfig.class)
 public interface ProductFeignClient {
-    @PostMapping("/internal/variants")
+    @PostMapping("/internal/items")
     ProductClientResponse.ProductList getProducts(ProductClientRequest.BulkSearch request);
 }

@@ -1,113 +1,69 @@
 package com.example.order_service.order.application.service.ordersheet.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.model.OrderSheet;
-import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class OrderSheetResult {
+@Builder
+public record OrderSheetResult(
+        String orderSheetId,
+        Orderer orderer,
+        ShippingAddress shippingAddress,
+        List<OrderSheetItemResult> items,
+        CartCouponResult cartCoupon,
+        PaymentSummaryResult paymentSummary,
+
+        LocalDateTime expiresAt
+
+) {
 
     @Builder
-    public record Create(
-            String sheetId,
-            LocalDateTime expiresAt
+    public record OrderSheetItemResult(
+            String orderSheetItemId,
+            int quantity,
+            ProductSnapshot product,
+            List<ProductOptionSnapshot> options,
+            ItemPriceResult price,
+            ItemCouponResult coupon
     ) {
-        public static Create from(OrderSheet orderSheet) {
-            return Create.builder()
-                    .sheetId(orderSheet.getId())
-                    .expiresAt(orderSheet.getExpiresAt())
-                    .build();
-        }
     }
 
     @Builder
-    public record Detail(
-            String sheetId,
-            LocalDateTime expiresAt,
-            Orderer orderer,
-            ShippingAddress shippingAddress,
-            List<OrderItem> items,
-            CartCouponSnapshot cartCoupon,
-            Point point,
-            PaymentSummary paymentSummary
+    public record CartCouponResult(
+            Long cartCouponId,
+            String name,
+            Money appliedDiscountAmount
     ) {
-        public static Detail of(OrderSheet orderSheet, Money ownedPoints, Money availablePoints) {
-            return Detail.builder()
-                    .sheetId(orderSheet.getId())
-                    .expiresAt(orderSheet.getExpiresAt())
-                    .orderer(orderSheet.getOrderer())
-                    .shippingAddress(orderSheet.getShippingAddress())
-                    .items(OrderItem.from(orderSheet.getItems()))
-                    .cartCoupon(orderSheet.getCartCoupon())
-                    .point(Point.of(orderSheet, ownedPoints, availablePoints))
-                    .paymentSummary(PaymentSummary.from(orderSheet))
-                    .build();
-        }
     }
 
     @Builder
-    public record Point(
-            Money ownedPoints,
-            Money availablePoints,
-            Money usedPoints
-    ) {
-        public static Point of(OrderSheet orderSheet, Money ownedPoints, Money availablePoints) {
-            return Point.builder()
-                    .ownedPoints(ownedPoints)
-                    .availablePoints(availablePoints)
-                    .usedPoints(orderSheet.getUsedPoints())
-                    .build();
-        }
-    }
-
-    @Builder
-    public record PaymentSummary(
-            Money totalOriginPrice,
-            Money totalProductDiscount,
-            Money totalCouponDiscount,
+    public record PaymentSummaryResult(
+            Money totalOriginalAmount,
+            Money totalItemDiscount,
+            Money totalItemCouponDiscount,
+            Money cartCouponDiscount,
             Money usedPoints,
             Money totalPaymentAmount
     ) {
-        public static PaymentSummary from(OrderSheet orderSheet) {
-            return PaymentSummary.builder()
-                    .build();
-        }
     }
 
     @Builder
-    public record OrderItem(
-            String sheetItemId,
-            Long productId,
-            Long productVariantId,
-            String productName,
-            String thumbnail,
-            int quantity,
-            ProductPriceSnapshot productPrice,
+    public record ItemPriceResult(
+            Money unitOriginalPrice,
+            Money unitDiscountedPrice,
             Money lineTotal,
-            ItemCouponSnapshot appliedItemCoupon,
-            List<ProductOptionSnapshot> options
+            Money finalAmount
     ) {
-        public static OrderItem from(OrderSheetItem item) {
-            return OrderItem.builder()
-                    .sheetItemId(item.getId())
-                    .productId(item.getProductSnapshot().getProductId())
-                    .productVariantId(item.getProductSnapshot().getProductVariantId())
-                    .productName(item.getProductSnapshot().getProductName())
-                    .thumbnail(item.getProductSnapshot().getThumbnail())
-                    .quantity(item.getQuantity())
-                    .productPrice(item.getPriceSnapshot())
-                    .lineTotal(item.calculateFinalAmount())
-                    .appliedItemCoupon(item.getItemCouponSnapshot())
-                    .options(item.getOptionSnapshots())
-                    .build();
-        }
+    }
 
-        public static List<OrderItem> from (List<OrderSheetItem> items) {
-            return items.stream().map(OrderItem::from).toList();
-        }
+    @Builder
+    public record ItemCouponResult(
+            Long itemCouponId,
+            String name,
+            Money appliedDiscountAmount
+    ) {
     }
 }

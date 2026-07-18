@@ -50,7 +50,7 @@ class ProductFeignClientTest {
             ProductClientRequest.BulkSearch request = Instancio.create(ProductClientRequest.BulkSearch.class);
             String expectedRequestBody = objectMapper.writeValueAsString(request);
             String mockJsonResponse = readJson("product/product-response.json");
-            stubFor(post(urlEqualTo("/internal/variants"))
+            stubFor(post(urlEqualTo("/internal/items"))
                     .withRequestBody(equalToJson(expectedRequestBody))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.OK.value())
@@ -76,10 +76,10 @@ class ProductFeignClientTest {
                         "code": "INVALID_PRODUCT_REQUEST",
                         "message": "잘못된 상품 조회 요청입니다",
                         "timestamp": "2026-05-03 19:00:00",
-                        "path": "/internal/variants"
+                        "path": "/internal/items"
                     }
                     """;
-            stubFor(post(urlEqualTo("/internal/variants"))
+            stubFor(post(urlEqualTo("/internal/items"))
                     .withRequestBody(equalToJson(expectedRequestBody))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.CONFLICT.value())
@@ -105,10 +105,10 @@ class ProductFeignClientTest {
                         "code": "INTERNAL_SERVER_ERROR",
                         "message": "알 수 없는 오류가 발생했습니다",
                         "timestamp": "2026-05-03 19:00:00",
-                        "path": "/internal/variants"
+                        "path": "/internal/items"
                     }
                     """;
-            stubFor(post(urlEqualTo("/internal/variants"))
+            stubFor(post(urlEqualTo("/internal/items"))
                     .withRequestBody(equalToJson(expectedRequestBody))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())

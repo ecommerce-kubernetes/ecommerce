@@ -2,7 +2,7 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
+import com.example.order_service.order.api.web.dto.response.OrderSheetResponse;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -15,6 +15,7 @@ import com.example.order_service.order.application.service.ordersheet.dto.comman
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
@@ -72,14 +73,14 @@ public class OrderSheetService {
      * @param command 주문 대상 상품 및 초기 적용 쿠폰 목록
      * @return 생성 후 저장이 완료된 주문서의 정보(주문서 아이디, 만료 시간)
      */
-    public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
+    public OrderSheetResultDeprecate.Create createOrderSheet(OrderSheetCommand.Create command) {
         OrderUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
         OrderProductResult.ProductList products = getOrderedProducts(command.items());
         validator.validate(products, command);
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
         OrderSheet orderSheet = factory.createSheet(command, userProfile, products, appliedCoupons, orderSheetProperties.ttlMinutes());
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
-        return OrderSheetResult.Create.from(save);
+        return OrderSheetResultDeprecate.Create.from(save);
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
@@ -126,11 +127,11 @@ public class OrderSheetService {
      * @param userId  조회 유저 아이디
      * @return 저장된 주문서의 전체 정보(상품, 쿠폰, 배송 정보 등등)
      */
-    public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
+    public OrderSheetResult getOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = getValidateOrderSheet(sheetId, userId);
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+        return null;
     }
 
     /**
@@ -142,7 +143,7 @@ public class OrderSheetService {
      * @param command 수정 배송 정보
      * @return 배송 정보가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResult.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
+    public OrderSheetResultDeprecate.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(),
@@ -151,7 +152,7 @@ public class OrderSheetService {
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     /**
@@ -163,7 +164,7 @@ public class OrderSheetService {
      * @param command 변경 포인트 정보
      * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
+    public OrderSheetResultDeprecate.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
@@ -171,7 +172,7 @@ public class OrderSheetService {
         orderSheet.changeUsedPoints(command.usedPoints(), userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     /**
@@ -184,7 +185,7 @@ public class OrderSheetService {
      * @param command 변경 아이템 쿠폰 정보
      * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
+    public OrderSheetResultDeprecate.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         ItemCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
@@ -193,7 +194,7 @@ public class OrderSheetService {
         orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     private ItemCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
@@ -227,7 +228,7 @@ public class OrderSheetService {
      * @param command 변경 장바구니 쿠폰 정보
      * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
+    public OrderSheetResultDeprecate.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
@@ -239,7 +240,7 @@ public class OrderSheetService {
         orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     private List<OrderCouponCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {

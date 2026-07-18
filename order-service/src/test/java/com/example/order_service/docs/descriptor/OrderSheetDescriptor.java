@@ -3,20 +3,18 @@ package com.example.order_service.docs.descriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import java.util.List;
-
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class OrderSheetDescriptor {
 
     public static FieldDescriptor[] getDirectCreateRequest() {
-        return new FieldDescriptor[] {
-                fieldWithPath("variants[].productVariantId")
+        return new FieldDescriptor[]{
+                fieldWithPath("items[].productVariantId")
                         .type(JsonFieldType.NUMBER)
                         .description("상품 변형 ID(상품 판매 단위 식별자)")
                         .attributes(key("constraint").value("필수")),
-                fieldWithPath("variants[].quantity")
+                fieldWithPath("items[].quantity")
                         .type(JsonFieldType.NUMBER)
                         .description("주문 수량")
                         .attributes(key("constraint").value("필수, 1이상"))
@@ -24,7 +22,7 @@ public class OrderSheetDescriptor {
     }
 
     public static FieldDescriptor[] getCartCreateRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("cartItemIds")
                         .type(JsonFieldType.ARRAY)
                         .description("장바구니 항목 ID 리스트")
@@ -33,7 +31,7 @@ public class OrderSheetDescriptor {
     }
 
     public static FieldDescriptor[] getCreateRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("items[].productVariantId").description("상품 변형 아이디"),
                 fieldWithPath("items[].quantity").description("주문 수량"),
                 fieldWithPath("cartCouponId").description("장바구니 쿠폰 아이디"),
@@ -43,7 +41,7 @@ public class OrderSheetDescriptor {
     }
 
     public static FieldDescriptor[] getShippingAddressRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("receiverName").description("수령인 이름"),
                 fieldWithPath("receiverPhone").description("수령인 전화번호"),
                 fieldWithPath("zipCode").description("우편 번호"),
@@ -53,68 +51,127 @@ public class OrderSheetDescriptor {
     }
 
     public static FieldDescriptor[] getUpdatePointsRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("usedPoints").description("사용 포인트")
         };
     }
 
     public static FieldDescriptor[] getUpdateCouponRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("couponId").description("쿠폰 아이디")
         };
     }
 
-    public static FieldDescriptor[] getCreateResponse() {
-        return new FieldDescriptor[] {
-                fieldWithPath("sheetId").description("주문서 id"),
+    public static FieldDescriptor[] getOrderSheetResult() {
+        return new FieldDescriptor[]{
+                fieldWithPath("orderSheetId")
+                        .type(JsonFieldType.STRING)
+                        .description("주문서 ID(주문서 식별자)"),
+                fieldWithPath("orderer.userId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문자 ID"),
+                fieldWithPath("orderer.userName")
+                        .type(JsonFieldType.STRING)
+                        .description("주문자 이름"),
+                fieldWithPath("orderer.phoneNumber")
+                        .type(JsonFieldType.STRING)
+                        .description("주문자 전화번호"),
+                fieldWithPath("shippingAddress.receiverName")
+                        .type(JsonFieldType.STRING)
+                        .description("수령인 이름"),
+                fieldWithPath("shippingAddress.receiverPhone")
+                        .type(JsonFieldType.STRING)
+                        .description("수령인 전화번호"),
+                fieldWithPath("shippingAddress.zipCode")
+                        .type(JsonFieldType.STRING)
+                        .description("우편 번호"),
+                fieldWithPath("shippingAddress.address")
+                        .type(JsonFieldType.STRING)
+                        .description("주소"),
+                fieldWithPath("shippingAddress.addressDetail")
+                        .type(JsonFieldType.STRING)
+                        .description("상세 주소"),
+                fieldWithPath("items[*].orderSheetItemId")
+                        .type(JsonFieldType.STRING)
+                        .description("주문서 아이템 아이디"),
+                fieldWithPath("items[*].product.productId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 아이디"),
+                fieldWithPath("items[*].product.productVariantId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 변형 아이디"),
+                fieldWithPath("items[*].product.sku")
+                        .type(JsonFieldType.STRING)
+                        .description("SKU"),
+                fieldWithPath("items[*].product.productName")
+                        .type(JsonFieldType.STRING)
+                        .description("상품 이름"),
+                fieldWithPath("items[*].product.thumbnail")
+                        .type(JsonFieldType.STRING)
+                        .description("상품 썸네일"),
+                fieldWithPath("items[*].quantity")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문 수량"),
+                fieldWithPath("items[*].options[*].optionTypeName")
+                        .type(JsonFieldType.STRING)
+                        .description("상품 옵션 타입"),
+                fieldWithPath("items[*].options[*].optionValueName")
+                        .type(JsonFieldType.STRING)
+                        .description("상품 옵션 값"),
+                fieldWithPath("items[*].price.unitOriginalPrice")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 원 가격"),
+                fieldWithPath("items[*].price.unitDiscountedPrice")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 판매 가격"),
+                fieldWithPath("items[*].price.lineTotal")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문 항목 판매가 총액"),
+                fieldWithPath("items[*].price.finalItemAmount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문 항목 최종 금액"),
+                fieldWithPath("items[*].coupon.itemCouponId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 쿠폰 ID"),
+                fieldWithPath("items[*].coupon.name")
+                        .type(JsonFieldType.STRING)
+                        .description("상품 쿠폰 이름"),
+                fieldWithPath("items[*].coupon.appliedDiscountAmount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 쿠폰 할인 금액"),
+                fieldWithPath("cartCoupon.cartCouponId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("장바구니 쿠폰 ID"),
+                fieldWithPath("cartCoupon.name")
+                        .type(JsonFieldType.STRING)
+                        .description("장바구니 쿠폰 이름"),
+                fieldWithPath("cartCoupon.appliedDiscountAmount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("장바구니 쿠폰 할인 금액"),
+                fieldWithPath("paymentSummary.totalOriginalAmount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("총 주문 항목 상품 원 금액"),
+                fieldWithPath("paymentSummary.totalItemDiscount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("총 상품 할인 금액"),
+                fieldWithPath("paymentSummary.totalItemCouponDiscount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("총 상품 쿠폰 할인 금액"),
+                fieldWithPath("paymentSummary.cartCouponDiscount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("장바구니 쿠폰 할인 금액"),
+                fieldWithPath("paymentSummary.usedPoints")
+                        .type(JsonFieldType.NUMBER)
+                        .description("사용 포인트"),
+                fieldWithPath("paymentSummary.totalPaymentAmount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("총 결제 금액"),
                 fieldWithPath("expiresAt").description("주문서 만료 시간")
         };
     }
 
-    public static FieldDescriptor[] getDetailResponse() {
-        return new FieldDescriptor[] {
-                fieldWithPath("sheetId").description("주문서 id"),
-                fieldWithPath("expiresAt").description("주문서 만료 시간"),
-                fieldWithPath("orderer.userId").description("주문자 아이디"),
-                fieldWithPath("orderer.userName").description("주문자 이름"),
-                fieldWithPath("orderer.phoneNumber").description("주문자 전화번호"),
-                fieldWithPath("shippingAddress.receiverName").description("수령인 이름"),
-                fieldWithPath("shippingAddress.receiverPhone").description("수령인 전화번호"),
-                fieldWithPath("shippingAddress.zipCode").description("우편 번호"),
-                fieldWithPath("shippingAddress.address").description("주소"),
-                fieldWithPath("shippingAddress.addressDetail").description("상세 주소"),
-                fieldWithPath("items[*].sheetItemId").description("주문서 아이템 아이디"),
-                fieldWithPath("items[*].productId").description("상품 아이디"),
-                fieldWithPath("items[*].productVariantId").description("상품 변형 아이디"),
-                fieldWithPath("items[*].productName").description("상품 이름"),
-                fieldWithPath("items[*].thumbnail").description("상품 썸네일"),
-                fieldWithPath("items[*].quantity").description("주문 수량"),
-                fieldWithPath("items[*].unitPrice.originalPrice").description("상품 가격"),
-                fieldWithPath("items[*].unitPrice.discountRate").description("상품 할인율"),
-                fieldWithPath("items[*].unitPrice.discountAmount").description("상품 할인금"),
-                fieldWithPath("items[*].unitPrice.discountedPrice").description("상품 판매 가격"),
-                fieldWithPath("items[*].lineTotal").description("상품 총액"),
-                fieldWithPath("items[*].appliedItemCoupon.couponId").description("상품 쿠폰 아이디"),
-                fieldWithPath("items[*].appliedItemCoupon.couponName").description("사용 쿠폰 이름"),
-                fieldWithPath("items[*].appliedItemCoupon.discountAmount").description("상품 쿠폰 할인금"),
-                fieldWithPath("items[*].optionSnapshots[*].optionTypeName").description("상품 옵션 타입"),
-                fieldWithPath("items[*].optionSnapshots[*].optionValueName").description("상품 옵션 값"),
-                fieldWithPath("cartCoupon.couponId").description("장바구니 쿠폰 아이디"),
-                fieldWithPath("cartCoupon.couponName").description("장바구니 쿠폰 이름"),
-                fieldWithPath("cartCoupon.discountAmount").description("장바구니 쿠폰 할인금"),
-                fieldWithPath("point.ownedPoints").description("보유 포인트"),
-                fieldWithPath("point.availablePoints").description("사용 가능 포인트"),
-                fieldWithPath("point.usedPoints").description("사용 포인트"),
-                fieldWithPath("paymentSummary.totalOriginalPrice").description("총 상품 가격"),
-                fieldWithPath("paymentSummary.totalProductDiscountAmount").description("총 상품 할인금"),
-                fieldWithPath("paymentSummary.totalCouponDiscount").description("총 쿠폰 할인금"),
-                fieldWithPath("paymentSummary.usedPoints").description("사용 포인트"),
-                fieldWithPath("paymentSummary.totalPaymentAmount").description("총 결제 가격")
-        };
-    }
-
     public static FieldDescriptor[] getCreateOrderSheetResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("orderSheetId")
                         .type(JsonFieldType.STRING)
                         .description("주문서 ID"),
