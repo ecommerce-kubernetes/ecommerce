@@ -2,7 +2,6 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.api.web.dto.response.OrderSheetResponse;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -10,10 +9,7 @@ import com.example.order_service.order.application.external.dto.command.OrderCou
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
-import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
@@ -23,7 +19,6 @@ import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
-import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
@@ -178,16 +173,8 @@ public class OrderSheetService {
      * @param command 변경 아이템 쿠폰 정보
      * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResultDeprecate.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
-        LocalDateTime currentTime = LocalDateTime.now(clock);
-        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        ItemCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
-        // [NOTE] 상품 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용가능 포인트로 조정됨
-        orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
-        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+    public OrderSheetResult applyItemCoupon(ApplyItemCouponCommand command) {
+        return null;
     }
 
     private ItemCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {

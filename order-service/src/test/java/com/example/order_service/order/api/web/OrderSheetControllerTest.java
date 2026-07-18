@@ -1,14 +1,10 @@
 package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
-import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
-import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
-import com.example.order_service.order.api.web.dto.request.UpdateOrderSheetShippingAddressRequest;
+import com.example.order_service.order.api.web.dto.request.*;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
@@ -397,6 +393,98 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/shipping-address"));
     }
 
+    @Test
+    @DisplayName("상품 쿠폰을 변경한다")
+    @WithCustomMockUser
+    void applyItemCoupon() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        String orderSheetItemId = "orderSheetItemId";
+        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+                .itemCouponId(1L)
+                .build();
+        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        given(orderSheetService.applyItemCoupon(any())).willReturn(result);
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/sheet-items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+    }
+
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 상품 쿠폰을 변경할 수 없다")
+    void applyItemCoupon_auAuthorized() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        String orderSheetItemId = "orderSheetItemId";
+        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+                .itemCouponId(1L)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/sheet-items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/sheet-items/" + orderSheetItemId + "/coupon"));
+    }
+
+    @Test
+    @DisplayName("유저 권한이 아니면 상품 쿠폰을 변경할 수 없다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void applyItemCoupon_forbidden() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        String orderSheetItemId = "orderSheetItemId";
+        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+                .itemCouponId(1L)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/sheet-items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/sheet-items/" + orderSheetItemId + "/coupon"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("상품 쿠폰 적용 요청 검증")
+    @MethodSource("provideInvalidApplyItemCouponRequest")
+    @WithCustomMockUser
+    void applyItemCoupon_validation(String description, ApplyOrderSheetItemCouponRequest request, String expectedField, String expectedMessage) throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        String orderSheetItemId = "orderSheetItemId";
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/sheet-items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/sheet-items/" + orderSheetItemId + "/coupon"));
+    }
+
     @Nested
     @DisplayName("사용 포인트 수정")
     class UpdatePoints {
@@ -505,80 +593,6 @@ class OrderSheetControllerTest {
                             "사용 포인트는 0이상이어야 합니다."
                     )
             );
-        }
-    }
-
-    @Nested
-    @DisplayName("상품 쿠폰 변경")
-    class UpdateItemCoupon {
-
-        @Test
-        @DisplayName("상품 쿠폰을 변경한다")
-        @WithCustomMockUser
-        void updateItemCoupon() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            String sheetItemId = "sheetItemId";
-            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
-                    .couponId(1L)
-                    .build();
-            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
-            given(orderSheetService.updateItemCoupon(any())).willReturn(result);
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
-        }
-
-        @Test
-        @DisplayName("로그인하지 않은 사용자는 상품 쿠폰을 변경할 수 없다")
-        void updateItemCoupon_auAuthorized() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            String sheetItemId = "sheetItemId";
-            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
-                    .couponId(1L)
-                    .build();
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId + "/coupon"));
-        }
-
-        @Test
-        @DisplayName("유저 권한이 아니면 상품 쿠폰을 변경할 수 없다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void updateItemCoupon_forbidden() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            String sheetItemId = "sheetItemId";
-            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
-                    .couponId(1L)
-                    .build();
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId + "/coupon"));
         }
     }
 
@@ -718,7 +732,7 @@ class OrderSheetControllerTest {
         );
     }
 
-    private static Stream<Arguments> provideInvalidCreateCartOrderSheetRequest(){
+    private static Stream<Arguments> provideInvalidCreateCartOrderSheetRequest() {
         return Stream.of(
                 Arguments.of(
                         "장바구니 항목 아이디가 없으면 검증에 실패한다",
@@ -812,6 +826,19 @@ class OrderSheetControllerTest {
                                 .build(),
                         "addressDetail",
                         "상세 주소는 필수입니다."
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidApplyItemCouponRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "상품 쿠폰 아이디가 없으면 검증에 실패한다",
+                        ApplyOrderSheetItemCouponRequest.builder()
+                                .itemCouponId(null)
+                                .build(),
+                        "itemCouponId",
+                        "상품 쿠폰 식별자는 필수값 입니다."
                 )
         );
     }

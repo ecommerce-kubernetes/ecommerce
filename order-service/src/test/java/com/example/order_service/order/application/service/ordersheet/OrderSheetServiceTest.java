@@ -6,7 +6,6 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
@@ -44,7 +43,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -354,7 +352,6 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResultDeprecate.Detail result = orderSheetService.updateItemCoupon(command);
             //then
         }
 
@@ -378,7 +375,6 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResultDeprecate.Detail result = orderSheetService.updateItemCoupon(command);
             //then
 
         }

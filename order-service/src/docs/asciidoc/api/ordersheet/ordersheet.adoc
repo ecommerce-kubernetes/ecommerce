@@ -56,6 +56,22 @@ include::{snippets}/order-sheets/update/shipping-address/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/order-sheets/update/shipping-address/response-fields.adoc[]
 
+[[ordersheet-update-item-coupon]]
+=== 상품 쿠폰 수정
+
+==== HTTP Request
+include::{snippets}/order-sheets/update/item-coupon/http-request.adoc[]
+===== Request Param
+include::{snippets}/order-sheets/update/item-coupon/path-parameters.adoc[]
+===== Request Header
+include::{snippets}/order-sheets/update/item-coupon/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/order-sheets/update/item-coupon/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/order-sheets/update/item-coupon/http-response.adoc[]
+===== Response Fields
+include::{snippets}/order-sheets/update/item-coupon/response-fields.adoc[]
+
 [[ordersheet-update-points]]
 === 사용 포인트 수정
 
@@ -72,21 +88,6 @@ include::{snippets}/order-sheets/update/points/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/order-sheets/update/points/response-fields.adoc[]
 
-[[ordersheet-update-item-coupon]]
-=== 상품 쿠폰 수정
-
-==== HTTP Request
-include::{snippets}/order-sheets/update/item-coupon/http-request.adoc[]
-===== Request Param
-include::{snippets}/order-sheets/update/item-coupon/path-parameters.adoc[]
-===== Request Header
-include::{snippets}/order-sheets/update/item-coupon/request-headers.adoc[]
-===== Request Fields
-include::{snippets}/order-sheets/update/item-coupon/request-fields.adoc[]
-==== HTTP Response
-include::{snippets}/order-sheets/update/item-coupon/http-response.adoc[]
-===== Response Fields
-include::{snippets}/order-sheets/update/item-coupon/response-fields.adoc[]
 
 
 [[ordersheet-update-cart-coupon]]

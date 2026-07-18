@@ -3,11 +3,9 @@ package com.example.order_service.docs.order;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.web.OrderSheetController;
-import com.example.order_service.order.api.web.dto.request.CartOrderSheetCreateRequest;
-import com.example.order_service.order.api.web.dto.request.DirectOrderSheetCreateRequest;
-import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
-import com.example.order_service.order.api.web.dto.request.UpdateOrderSheetShippingAddressRequest;
+import com.example.order_service.order.api.web.dto.request.*;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.ApplyItemCouponCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
@@ -196,6 +194,47 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 ));
     }
 
+    @Test
+    @DisplayName("상품 쿠폰을 변경한다")
+    void updateItemCoupon() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        String orderSheetItemId = "orderSheetItemId";
+        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+                .itemCouponId(1L)
+                .build();
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        OrderSheetResult result = createOrderSheetResult();
+        given(orderSheetService.applyItemCoupon(any(ApplyItemCouponCommand.class)))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/sheet-items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(document(
+                        "order-sheets/update/item-coupon",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(applyItemCouponRequest()),
+                        responseFields(orderSheetResponse()),
+                        pathParameters(
+                                parameterWithName("orderSheetId")
+                                        .description("주문서 ID(주문서 식별자)"),
+                                parameterWithName("orderSheetItemId")
+                                        .description("주문서 상품 ID(주문서 상품 식별자)")
+                        )
+                ));
+    }
+
 
     @Test
     @DisplayName("사용 포인트를 수정한다")
@@ -231,42 +270,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
 
-    @Test
-    @DisplayName("상품 쿠폰을 변경한다")
-    void updateItemCoupon() throws Exception {
-        //given
-        String sheetId = "sheetId";
-        String sheetItemId = "sheetItemId";
-        OrderSheetRequest.UpdateCoupon request = createItemCouponRequest();
-        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        //when
-        //then
-        mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .headers(roleUser)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andDo(document(
-                        "order-sheets/update/item-coupon",
-                        preprocessRequest(
-                                prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                        ),
-                        preprocessResponse(prettyPrint()),
-                        requestHeaders(AUTH_HEADER),
-                        requestFields(getUpdateCouponRequest()),
-                        responseFields(orderSheetResponse()),
-                        pathParameters(
-                                parameterWithName("sheetId")
-                                        .description("주문서 ID(주문서 식별자)"),
-                                parameterWithName("sheetItemId")
-                                        .description("주문서 상품 ID(주문서 상품 식별자)")
-                        )
-                ));
-    }
-
 
     @Test
     @DisplayName("장바구니 쿠폰을 변경한다")
@@ -292,7 +295,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        requestFields(getUpdateCouponRequest()),
+                        requestFields(applyItemCouponRequest()),
                         responseFields(orderSheetResponse()),
                         pathParameters(
                                 parameterWithName("sheetId")
@@ -311,25 +314,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         return OrderSheetRequest.UpdateCoupon.builder()
                 .couponId(1L)
                 .build();
-    }
-
-
-    private OrderSheetRequest.UpdateShippingAddress createOrderSheetRequest() {
-        return OrderSheetRequest.UpdateShippingAddress.builder()
-                .receiverName("수령인")
-                .receiverPhone("010-1234-5678")
-                .zipCode("12345")
-                .address("서울시 테헤란로 123")
-                .addressDetail("123동 1234호")
-                .build();
-    }
-
-    private Orderer createOrderer() {
-        return Orderer.of(1L, "주문자", "010-1234-5678");
-    }
-
-    private ShippingAddress createShippingAddress() {
-        return ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
     }
 
     private OrderSheetResultDeprecate.PaymentSummary createPaymentSummary() {

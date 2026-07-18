@@ -61,9 +61,11 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getUpdateCouponRequest() {
+    public static FieldDescriptor[] applyItemCouponRequest() {
         return new FieldDescriptor[]{
-                fieldWithPath("couponId").description("쿠폰 아이디")
+                fieldWithPath("itemCouponId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("상품 쿠폰 ID")
         };
     }
 
