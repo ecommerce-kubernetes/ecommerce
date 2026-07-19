@@ -32,22 +32,6 @@ public class OrderUserGateway {
     private final UserAdaptor userAdaptor;
     private final OrderUserMapper mapper;
 
-    /**
-     * 유저 도메인에 유저 프로필 정보(유저 기본정보, 유저 배송 정보)를 조회
-     *
-     * @param userId 조회 대상 유저 아이디
-     * @return 유저 기본정보, 배송 정보 결과 반환
-     */
-    @Deprecated
-    public OrderUserResult.Profile getUserProfile(Long userId) {
-        UserClientResponse.Profile profile = fetchUserProfileWithTranslation(userId);
-        return mapper.toResult(profile);
-    }
-
-    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
-        return null;
-    }
-
     public OrdererProfileResult getOrdererProfile(Long userId) {
         UserProfileResponse response = executeGetUserProfile(userId);
         return mapper.toOrdererProfileResult(response);
@@ -65,6 +49,22 @@ public class OrderUserGateway {
         } catch (ExternalCircuitBreakerException e) {
             throw new DefaultGatewayException(UserGatewayErrorCode.USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
+    }
+
+    /**
+     * 유저 도메인에 유저 프로필 정보(유저 기본정보, 유저 배송 정보)를 조회
+     *
+     * @param userId 조회 대상 유저 아이디
+     * @return 유저 기본정보, 배송 정보 결과 반환
+     */
+    @Deprecated
+    public OrderUserResult.Profile getUserProfile(Long userId) {
+        UserClientResponse.Profile profile = fetchUserProfileWithTranslation(userId);
+        return mapper.toResult(profile);
+    }
+
+    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
+        return null;
     }
 
     /**

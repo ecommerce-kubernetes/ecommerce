@@ -2,14 +2,16 @@ package com.example.order_service.order.application.external.mapper;
 
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
 import javax.annotation.processing.Generated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-18T23:19:27+0900",
+    date = "2026-07-19T22:02:36+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -21,6 +23,21 @@ public class OrderUserMapperImpl implements OrderUserMapper {
     public OrderUserMapperImpl(MoneyMapper moneyMapper) {
 
         this.moneyMapper = moneyMapper;
+    }
+
+    @Override
+    public OrdererProfileResult toOrdererProfileResult(UserProfileResponse response) {
+        if ( response == null ) {
+            return null;
+        }
+
+        OrdererProfileResult.OrdererProfileResultBuilder ordererProfileResult = OrdererProfileResult.builder();
+
+        ordererProfileResult.orderer( toOrderer( response ) );
+        ordererProfileResult.availablePoints( moneyMapper.toMoney( response.availablePoints() ) );
+        ordererProfileResult.defaultShippingAddress( toShippingAddress( response.defaultShippingAddress() ) );
+
+        return ordererProfileResult.build();
     }
 
     @Override

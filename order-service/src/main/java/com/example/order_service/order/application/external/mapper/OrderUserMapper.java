@@ -15,6 +15,7 @@ import org.mapstruct.Mapping;
 public interface OrderUserMapper {
 
     @Mapping(source = ".", target = "orderer")
+    @Mapping(source = "availablePoints", target = "availablePoints")
     OrdererProfileResult toOrdererProfileResult(UserProfileResponse response);
 
     default Orderer toOrderer(UserProfileResponse response) {

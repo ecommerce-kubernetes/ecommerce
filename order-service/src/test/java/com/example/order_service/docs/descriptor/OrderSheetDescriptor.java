@@ -65,7 +65,7 @@ public class OrderSheetDescriptor {
     }
 
     public static FieldDescriptor[] applyCartCouponRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("cartCouponId")
                         .type(JsonFieldType.NUMBER)
                         .description("장바구니 쿠폰 ID")
@@ -186,6 +186,12 @@ public class OrderSheetDescriptor {
                 fieldWithPath("paymentSummary.totalPaymentAmount")
                         .type(JsonFieldType.NUMBER)
                         .description("총 결제 금액"),
+                fieldWithPath("point.availablePoints")
+                        .type(JsonFieldType.NUMBER)
+                        .description("사용 가능 포인트"),
+                fieldWithPath("point.maxUsablePoints")
+                        .type(JsonFieldType.NUMBER)
+                        .description("최대 적용 가능 포인트"),
                 fieldWithPath("expiresAt").description("주문서 만료 시간")
         };
     }

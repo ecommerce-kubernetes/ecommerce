@@ -347,6 +347,10 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .cartCouponDiscount(Money.wons(1000L))
                 .totalPaymentAmount(Money.wons(6000L))
                 .build();
+        OrderSheetResult.PointResult pointResult = OrderSheetResult.PointResult.builder()
+                .availablePoints(Money.wons(1000L))
+                .maxUsablePoints(Money.wons(2500L))
+                .build();
         return OrderSheetResult.builder()
                 .orderSheetId("orderSheetId")
                 .orderer(orderer)
@@ -354,6 +358,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .items(List.of(item))
                 .cartCoupon(cartCoupon)
                 .paymentSummary(paymentSummary)
+                .point(pointResult)
                 .expiresAt(LocalDateTime.now())
                 .build();
     }

@@ -7,6 +7,7 @@ public record UserProfileResponse(
         Long userId,
         String userName,
         String phoneNumber,
+        Long availablePoints,
         ShippingAddressResponse defaultShippingAddress
 ) {
 

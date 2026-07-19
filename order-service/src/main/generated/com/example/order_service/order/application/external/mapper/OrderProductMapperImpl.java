@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-18T23:19:26+0900",
+    date = "2026-07-19T21:48:36+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -29,33 +29,33 @@ public class OrderProductMapperImpl implements OrderProductMapper {
     }
 
     @Override
-    public OrderProductResult.ProductList toResult(ProductClientResponse.ProductList productList) {
+    public OrderProductResult toResult(ProductClientResponse.ProductList productList) {
         if ( productList == null ) {
             return null;
         }
 
-        OrderProductResult.ProductList.ProductListBuilder productList1 = OrderProductResult.ProductList.builder();
+        OrderProductResult.OrderProductResultBuilder orderProductResult = OrderProductResult.builder();
 
-        productList1.products( productListToInfoList( productList.products() ) );
+        orderProductResult.products( productListToOrderProductDetailList( productList.products() ) );
 
-        return productList1.build();
+        return orderProductResult.build();
     }
 
     @Override
-    public OrderProductResult.Info toProduct(ProductClientResponse.Product product) {
+    public OrderProductResult.OrderProductDetail toProduct(ProductClientResponse.Product product) {
         if ( product == null ) {
             return null;
         }
 
-        OrderProductResult.Info.InfoBuilder info = OrderProductResult.Info.builder();
+        OrderProductResult.OrderProductDetail.OrderProductDetailBuilder orderProductDetail = OrderProductResult.OrderProductDetail.builder();
 
-        info.productSnapshot( toProductSnapshot( product ) );
-        info.priceSnapshot( toPriceSnapshot( product.unitPrice() ) );
-        info.options( productOptionListToProductOptionSnapshotList( product.options() ) );
-        info.status( toOrderStatus( product.status() ) );
-        info.stock( product.stock() );
+        orderProductDetail.productSnapshot( toProductSnapshot( product ) );
+        orderProductDetail.priceSnapshot( toPriceSnapshot( product.unitPrice() ) );
+        orderProductDetail.options( productOptionListToProductOptionSnapshotList( product.options() ) );
+        orderProductDetail.status( toOrderStatus( product.status() ) );
+        orderProductDetail.stock( product.stock() );
 
-        return info.build();
+        return orderProductDetail.build();
     }
 
     @Override
@@ -105,12 +105,12 @@ public class OrderProductMapperImpl implements OrderProductMapper {
         return productOptionSnapshot.build();
     }
 
-    protected List<OrderProductResult.Info> productListToInfoList(List<ProductClientResponse.Product> list) {
+    protected List<OrderProductResult.OrderProductDetail> productListToOrderProductDetailList(List<ProductClientResponse.Product> list) {
         if ( list == null ) {
             return null;
         }
 
-        List<OrderProductResult.Info> list1 = new ArrayList<OrderProductResult.Info>( list.size() );
+        List<OrderProductResult.OrderProductDetail> list1 = new ArrayList<OrderProductResult.OrderProductDetail>( list.size() );
         for ( ProductClientResponse.Product product : list ) {
             list1.add( toProduct( product ) );
         }

@@ -2,6 +2,7 @@
   "userId": 1,
   "userName": "주문자",
   "phoneNumber": "010-1234-5678",
+  "availablePoints": 1000,
   "defaultShippingAddress": {
     "receiverName": "수령인",
     "receiverPhone": "010-1234-5678",

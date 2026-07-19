@@ -11,6 +11,7 @@ public class OrderUserResult {
     @Builder
     public record Profile(
             Orderer orderer,
+            Money availablePoints,
             ShippingAddress shippingAddress
     ) {
     }

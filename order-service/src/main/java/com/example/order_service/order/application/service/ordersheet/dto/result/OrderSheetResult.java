@@ -15,6 +15,7 @@ public record OrderSheetResult(
         List<OrderSheetItemResult> items,
         CartCouponResult cartCoupon,
         PaymentSummaryResult paymentSummary,
+        PointResult point,
 
         LocalDateTime expiresAt
 
@@ -64,6 +65,13 @@ public record OrderSheetResult(
             Long itemCouponId,
             String name,
             Money appliedDiscountAmount
+    ) {
+    }
+
+    @Builder
+    public record PointResult(
+            Money availablePoints,
+            Money maxUsablePoints
     ) {
     }
 }

@@ -24,8 +24,6 @@ public class QOrder extends EntityPathBase<Order> {
 
     public final com.example.order_service.common.entity.QBaseEntity _super = new com.example.order_service.common.entity.QBaseEntity(this);
 
-    public final com.example.order_service.order.domain.vo.QCartCouponSnapshot cartCoupon;
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
@@ -76,7 +74,6 @@ public class QOrder extends EntityPathBase<Order> {
 
     public QOrder(Class<? extends Order> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.cartCoupon = inits.isInitialized("cartCoupon") ? new com.example.order_service.order.domain.vo.QCartCouponSnapshot(forProperty("cartCoupon")) : null;
         this.orderer = inits.isInitialized("orderer") ? new com.example.order_service.order.domain.vo.QOrderer(forProperty("orderer")) : null;
         this.shippingAddress = inits.isInitialized("shippingAddress") ? new com.example.order_service.order.domain.vo.QShippingAddress(forProperty("shippingAddress")) : null;
     }

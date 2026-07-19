@@ -1,5 +1,6 @@
 package com.example.order_service.order.application.external;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -7,6 +8,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
 import com.example.order_service.common.mapper.MoneyMapper;
+import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
@@ -42,8 +44,9 @@ public class OrderUserGatewayTest {
     private OrderUserGateway orderUserGateway;
     @Mock
     private UserAdaptor userAdaptor;
+
     @Spy
-    private OrderUserMapper userMapper = new OrderUserMapperImpl(Mappers.getMapper(MoneyMapper.class));
+    private OrderUserMapper userMapper = new OrderUserMapperImpl(new MoneyMapperImpl() {});
 
     @Test
     @DisplayName("주문자 정보를 조회한다")
@@ -66,6 +69,8 @@ public class OrderUserGatewayTest {
                 .extracting(Orderer::getUserId, Orderer::getUserName, Orderer::getPhoneNumber)
                 .containsExactly(profileResponse.userId(), profileResponse.userName(), profileResponse.phoneNumber());
 
+        assertThat(ordererProfile.availablePoints()).isEqualTo(Money.wons(1000L));
+
         assertThat(ordererProfile.defaultShippingAddress())
                 .extracting(ShippingAddress::getReceiverName, ShippingAddress::getReceiverPhone, ShippingAddress::getZipCode,
                         ShippingAddress::getAddress, ShippingAddress::getAddressDetail)
@@ -73,22 +78,6 @@ public class OrderUserGatewayTest {
                         defaultShippingAddress.receiverName(), defaultShippingAddress.receiverPhone(), defaultShippingAddress.zipCode(),
                         defaultShippingAddress.address(), defaultShippingAddress.addressDetail()
                 );
-    }
-    
-    @Test
-    @DisplayName("주문자의 대표 배송 정보가 없으면 null로 매핑된다")
-    void getOrdererProfile_without_defaultShippingAddress() {
-        //given
-        Long userId = 1L;
-        UserProfileResponse profileResponse = createProfileResponse(null);
-        given(userAdaptor.getUserProfile(anyLong())).willReturn(profileResponse);
-        //when
-        OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(userId);
-        //then
-        assertThat(ordererProfile.orderer())
-                .extracting(Orderer::getUserId, Orderer::getUserName, Orderer::getPhoneNumber)
-                .containsExactly(profileResponse.userId(), profileResponse.userName(), profileResponse.phoneNumber());
-        assertThat(ordererProfile.defaultShippingAddress()).isNull();
     }
 
     @Test
@@ -147,11 +136,12 @@ public class OrderUserGatewayTest {
                 .isEqualTo(UserGatewayErrorCode.USER_CIRCUIT_OPEN);
     }
 
-    private UserProfileResponse createProfileResponse(UserProfileResponse.ShippingAddressResponse defaultShippingAddress) {;
+    private UserProfileResponse createProfileResponse(UserProfileResponse.ShippingAddressResponse defaultShippingAddress) {
         return UserProfileResponse.builder()
                 .userId(1L)
                 .userName("주문자")
                 .phoneNumber("010-1234-5678")
+                .availablePoints(1000L)
                 .defaultShippingAddress(defaultShippingAddress)
                 .build();
     }

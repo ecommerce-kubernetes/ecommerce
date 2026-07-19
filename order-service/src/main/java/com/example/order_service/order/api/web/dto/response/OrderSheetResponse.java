@@ -19,6 +19,7 @@ public record OrderSheetResponse(
         List<OrderSheetItemResponse> items,
         CartCouponInfo cartCoupon,
         PaymentSummaryInfo paymentSummary,
+        PointInfo point,
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         LocalDateTime expiresAt
@@ -31,6 +32,7 @@ public record OrderSheetResponse(
                 .items(OrderSheetItemResponse.from(result.items()))
                 .cartCoupon(CartCouponInfo.from(result.cartCoupon()))
                 .paymentSummary(PaymentSummaryInfo.from(result.paymentSummary()))
+                .point(PointInfo.from(result.point()))
                 .expiresAt(result.expiresAt())
                 .build();
     }
@@ -51,6 +53,7 @@ public record OrderSheetResponse(
         }
 
     }
+
     @Builder
     public record ShippingAddressInfo(
             String receiverName,
@@ -70,6 +73,7 @@ public record OrderSheetResponse(
         }
 
     }
+
     @Builder
     public record OrderSheetItemResponse(
             String orderSheetItemId,
@@ -94,6 +98,7 @@ public record OrderSheetResponse(
             return items.stream().map(OrderSheetItemResponse::from).toList();
         }
     }
+
     @Builder
     public record CartCouponInfo(
             Long cartCouponId,
@@ -108,6 +113,7 @@ public record OrderSheetResponse(
                     .build();
         }
     }
+
     @Builder
     public record PaymentSummaryInfo(
             Long totalOriginalAmount,
@@ -128,6 +134,7 @@ public record OrderSheetResponse(
                     .build();
         }
     }
+
     @Builder
     public record ProductInfo(
             Long productId,
@@ -148,6 +155,7 @@ public record OrderSheetResponse(
         }
 
     }
+
     @Builder
     public record OptionInfo(
             String optionTypeName,
@@ -160,11 +168,13 @@ public record OrderSheetResponse(
                     .optionValueName(option.getOptionValueName())
                     .build();
         }
+
         public static List<OptionInfo> from(List<ProductOptionSnapshot> options) {
             return options.stream().map(OptionInfo::from).toList();
         }
 
     }
+
     @Builder
     public record ItemPriceInfo(
             Long unitOriginalPrice,
@@ -183,6 +193,7 @@ public record OrderSheetResponse(
         }
 
     }
+
     @Builder
     public record ItemCouponInfo(
             Long itemCouponId,
@@ -197,5 +208,18 @@ public record OrderSheetResponse(
                     .build();
         }
 
+    }
+
+    @Builder
+    public record PointInfo(
+            Long availablePoints,
+            Long maxUsablePoints
+    ) {
+        public static PointInfo from(OrderSheetResult.PointResult point) {
+            return PointInfo.builder()
+                    .availablePoints(point.availablePoints().longValue())
+                    .maxUsablePoints(point.availablePoints().longValue())
+                    .build();
+        }
     }
 }

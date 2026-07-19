@@ -65,6 +65,7 @@ public class UserFeignClientTest {
                 .userId(1L)
                 .userName("주문자")
                 .phoneNumber("010-1234-5678")
+                .availablePoints(1000L)
                 .defaultShippingAddress(shippingInfo)
                 .build();
     }
