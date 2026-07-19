@@ -14,15 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * 주문서(OrderSheet) 도메인 생성 팩토리
- * <p>
- * 주문 커맨드와 외부 도메인 응답 결과를 통해 주문서, 주문상품 도메인과 도메인의 VO를 생성을 담당
- * </p>
- *
- * @author 최민식
- * @since 2026. 05. 22
- */
+@Deprecated
 @Component
 public class OrderSheetFactory {
 

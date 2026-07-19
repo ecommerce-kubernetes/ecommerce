@@ -54,37 +54,51 @@ public class OrderSheetService {
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
         OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
+
         List<Long> orderVariantIds = command.toItemVariantIds();
         OrderProductResult products = orderProductGateway.getProducts(orderVariantIds);
+
         Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
+        List<OrderSheetItem> orderSheetItems = createOrderSheetItems(command, productsMap);
 
-        List<OrderSheetItem> orderSheetItems = command.items().stream().map(orderVariant -> {
-            OrderProductResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
-            if (product == null) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
-            }
-            if (product.status() != OrderProductStatus.ON_SALE) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
-            }
-            if (orderVariant.quantity() > product.stock()) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
-            }
-            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
-                    orderVariant.quantity(), product.options());
-        }).toList();
+        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
 
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        return OrderSheetCreateResult.from(savedOrderSheet);
+    }
+
+    private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<OrderSheetItem> orderSheetItems) {
         OrderSheet orderSheet = OrderSheet.create(ordererProfile.orderer(), orderSheetItems,
                 LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()));
 
         if (ordererProfile.defaultShippingAddress() != null) {
             orderSheet.changeShippingAddress(ordererProfile.defaultShippingAddress());
         }
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        return orderSheet;
+    }
 
-        return OrderSheetCreateResult.builder()
-                .orderSheetId(savedOrderSheet.getId())
-                .expiresAt(savedOrderSheet.getExpiresAt())
-                .build();
+    private List<OrderSheetItem> createOrderSheetItems(CreateDirectOrderSheetCommand command,
+                                                       Map<Long, OrderProductResult.OrderProductDetail> productsMap) {
+        return command.items().stream().map(orderVariant -> {
+            OrderProductResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
+            validateProductIsOrderable(product, orderVariant.quantity());
+            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
+                    orderVariant.quantity(), product.options());
+        }).toList();
+    }
+
+    private void validateProductIsOrderable(OrderProductResult.OrderProductDetail product, int quantity) {
+        if (product == null) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
+        }
+
+        if (product.status() != OrderProductStatus.ON_SALE) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
+        }
+
+        if (quantity > product.stock()) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
+        }
     }
 
     /**

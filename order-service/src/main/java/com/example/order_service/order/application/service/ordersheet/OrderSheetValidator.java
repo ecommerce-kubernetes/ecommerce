@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Optional;
 
+@Deprecated
 @Component
 public class OrderSheetValidator {
     public void validate(OrderProductResult productList, OrderSheetCommand.Create command) {
