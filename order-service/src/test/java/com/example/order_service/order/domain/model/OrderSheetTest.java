@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class OrderSheetTest {
 
     @Test
-    @DisplayName("주문서를 생성하면 주문 항목을 토대로 가격이 계산된다.")
+    @DisplayName("주문서를 생성한다")
     void create() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
@@ -136,7 +136,7 @@ public class OrderSheetTest {
     @DisplayName("주문 항목 상품 쿠폰 적용으로 인해 적용된 포인트가 적용 가능 포인트를 초과하는 경우 적용 가능 포인트를 한도로 적용 포인트가 보정된다.")
     void applyItemCoupon_usedPoints_exceed_availablePoints() {
         //given
-        Money usedPoints = Money.wons(2700L);
+        Money usedPoints = Money.wons(2600L);
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
@@ -240,7 +240,7 @@ public class OrderSheetTest {
     @DisplayName("장바구니 쿠폰 적용으로 인해 적용된 포인트가 적용 가능 포인트를 초과하는 경우 적용 가능 포인트를 한도로 적용 포인트가 보정된다.")
     void applyCartCoupon_usedPoints_exceed_availablePoints(){
         //given
-        Money usedPoints = Money.wons(2700L);
+        Money usedPoints = Money.wons(2600L);
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         OrderSheetItem item = createOrderSheetItem();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
@@ -256,7 +256,7 @@ public class OrderSheetTest {
         //when
         orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
         //then
-        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(2200L));
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(2100L));
     }
 
     @Test
@@ -298,17 +298,98 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("주문서의 최대 적용 가능 포인트를 계산한다.")
     void calculateMaxUsablePoints(){
         //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
         //when
+        Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointPolicy);
         //then
+        assertThat(maxUsablePoints).isEqualTo(Money.wons(2600L));
+    }
+
+    @Test
+    @DisplayName("전체 주문 항목 상품 원 가격 총액을 계산한다.")
+    void calculateTotalOriginalAmount(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+        //when
+        Money totalOriginalAmount = orderSheet.calculateTotalOriginalAmount();
+        //then
+        assertThat(totalOriginalAmount).isEqualTo(Money.wons(30000L));
+    }
+
+    @Test
+    @DisplayName("전체 주문 항목 상품 할인 금액 총액을 계산한다.")
+    void calculateTotalItemDiscount(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+        //when
+        Money totalItemDiscount = orderSheet.calculateTotalItemDiscount();
+        //then
+        assertThat(totalItemDiscount).isEqualTo(Money.wons(3000L));
+    }
+
+    @Test
+    @DisplayName("전체 주문 항목 상품 쿠폰 할인 금액 총액을 계산한다.")
+    void calculateTotalItemCouponDiscount(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+        //when
+        Money totalItemCouponDiscount = orderSheet.calculateTotalItemCouponDiscount();
+        //then
+        assertThat(totalItemCouponDiscount).isEqualTo(Money.wons(1000L));
+    }
+
+    @Test
+    @DisplayName("총 결제 금액을 계산한다.")
+    void calculateTotalPaymentAmount(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+
+        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(5000L));
+
+        orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
+
+        orderSheet.applyPoints(Money.wons(1000L), pointPolicy);
+        //when
+        Money paymentAmount = orderSheet.calculateTotalPaymentAmount();
+        //then
+        assertThat(paymentAmount).isEqualTo(Money.wons(24000L));
     }
 
     private OrderSheetItem createOrderSheetItem() {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
-        return OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+        OrderSheetItem orderSheetItem = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", couponPolicy, 1);
+
+        orderSheetItem.applyItemCoupon(itemCoupon);
+        return orderSheetItem;
     }
 }

@@ -107,7 +107,7 @@ public record OrderSheetResult(
     ) {
         public static ItemPriceResult from(OrderSheetItem orderSheetItem) {
             return ItemPriceResult.builder()
-                    .unitDiscountedPrice(orderSheetItem.getPriceSnapshot().getOriginalPrice())
+                    .unitOriginalPrice(orderSheetItem.getPriceSnapshot().getOriginalPrice())
                     .unitDiscountedPrice(orderSheetItem.getPriceSnapshot().getDiscountedPrice())
                     .lineTotal(orderSheetItem.calculateLineTotal())
                     .finalAmount(orderSheetItem.calculateFinalAmount())

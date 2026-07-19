@@ -97,12 +97,8 @@ public class OrderSheet {
     }
 
     public void applyPoints(Money usedPoints, PointUsagePolicy policy) {
-        Money totalFinalAmount = calculateTotalFinalAmount();
-        Money cartCouponDiscount = calculateCartCouponDiscount();
-        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
-
-        Money availablePoints = policy.calculateAvailablePoints(totalPaymentAmount);
-        if (usedPoints.isGreaterThan(availablePoints)) {
+        Money maxUsablePoints = calculateMaxUsablePoints(policy);
+        if (usedPoints.isGreaterThan(maxUsablePoints)) {
             throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
         }
         this.usedPoints = usedPoints;
@@ -135,14 +131,10 @@ public class OrderSheet {
     }
 
     private void adjustUsedPointsByPolicy(PointUsagePolicy pointPolicy) {
-        Money totalFinalAmount = calculateTotalFinalAmount();
-        Money cartCouponDiscount = calculateCartCouponDiscount();
-        Money totalPaymentAmount = totalFinalAmount.subtract(cartCouponDiscount);
+        Money maxUsablePoints = calculateMaxUsablePoints(pointPolicy);
 
-        Money availablePoints = pointPolicy.calculateAvailablePoints(totalPaymentAmount);
-
-        if (this.usedPoints.isGreaterThan(availablePoints)) {
-            this.usedPoints = availablePoints;
+        if (this.usedPoints.isGreaterThan(maxUsablePoints)) {
+            this.usedPoints = maxUsablePoints;
         }
     }
 
@@ -151,7 +143,35 @@ public class OrderSheet {
     }
 
     public Money calculateMaxUsablePoints(PointUsagePolicy pointPolicy) {
-        return null;
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money cartCouponDiscount = calculateCartCouponDiscount();
+        Money pointApplicableAmount = totalFinalAmount.subtract(cartCouponDiscount);
+        return pointPolicy.calculateAvailablePoints(pointApplicableAmount);
+    }
+
+    public Money calculateTotalOriginalAmount() {
+        return this.items.stream()
+                .map(OrderSheetItem::calculateOriginalLineTotal)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    public Money calculateTotalItemDiscount() {
+        return this.items.stream()
+                .map(OrderSheetItem::calculateProductDiscountLineTotal)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    public Money calculateTotalItemCouponDiscount() {
+        return this.items.stream()
+                .map(OrderSheetItem::calculateCouponDiscount)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    public Money calculateTotalPaymentAmount() {
+        Money totalFinalAmount = calculateTotalFinalAmount();
+        Money cartCouponDiscount = calculateCartCouponDiscount();
+        Money pointApplicableAmount = totalFinalAmount.subtract(cartCouponDiscount);
+        return pointApplicableAmount.subtract(usedPoints);
     }
 
     /**
@@ -224,21 +244,5 @@ public class OrderSheet {
     public boolean hasItemCoupon() {
         return this.items.stream()
                 .anyMatch(OrderSheetItem::hasCoupon);
-    }
-
-    public Money calculateTotalOriginalAmount() {
-        return null;
-    }
-
-    public Money calculateTotalItemDiscount() {
-        return null;
-    }
-
-    public Money calculateTotalItemCouponDiscount() {
-        return null;
-    }
-
-    public Money calculateTotalPaymentAmount() {
-        return null;
     }
 }

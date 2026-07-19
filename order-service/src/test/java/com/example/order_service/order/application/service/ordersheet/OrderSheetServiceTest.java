@@ -265,9 +265,7 @@ public class OrderSheetServiceTest {
 
         assertThat(result.items())
                 .extracting("coupon.appliedDiscountAmount")
-                .containsExactly(
-                        tuple(Money.wons(1000L))
-                );
+                .containsExactly(Money.wons(1000L));
 
         assertThat(result.cartCoupon().appliedDiscountAmount()).isEqualTo(Money.wons(1000L));
 

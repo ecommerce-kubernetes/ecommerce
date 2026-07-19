@@ -113,15 +113,6 @@ public class OrderSheetService {
         return OrderSheetResult.of(orderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
 
-    /**
-     * 사용자 주문서 배송 정보 수정
-     * <p>
-     * 주문서의 배송 정보를 수정하고 수정된 결과를 반환한다
-     * </p>
-     *
-     * @param command 수정 배송 정보
-     * @return 배송 정보가 수정되어 저장이 완료된 주문서의 정보
-     */
     public OrderSheetResult updateShippingAddress(UpdateOrderSheetShippingAddressCommand command) {
         return null;
     }
@@ -153,54 +144,10 @@ public class OrderSheetService {
         return null;
     }
 
-    private ItemCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
-        List<OrderCouponCommand.AppliedCouponItem> appliedItems = createAppliedItemsWithTarget(orderSheet, sheetItemId, newItemCouponId);
-        OrderCouponResult.Calculate calculate =
-                requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCartCouponId(), appliedItems);
-        OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
-        Map<Long, ItemCouponSnapshot> itemCouponMap = calculate.toItemCouponMap();
-        return null;
-    }
 
-    private List<OrderCouponCommand.AppliedCouponItem> createAppliedItemsWithTarget(
-            OrderSheet orderSheet, String targetSheetItemId, Long targetCouponId
-    ) {
-        return orderSheet.getItems().stream()
-                .map(item -> {
-                    Long couponId = item.getId().equals(targetSheetItemId) ? targetCouponId : item.getCouponId();
-                    return OrderCouponCommand.AppliedCouponItem.of(
-                            item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), couponId
-                    );
-                }).toList();
-    }
 
     public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
         return null;
-    }
-
-    private List<OrderCouponCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {
-        return orderSheet.getItems().stream()
-                .map(item -> OrderCouponCommand.AppliedCouponItem.of(
-                        item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), item.getCouponId()
-                )).toList();
-    }
-
-    private OrderCouponResult.Calculate requestCouponCalculation(
-            Long userId, Long cartCouponId, List<OrderCouponCommand.AppliedCouponItem> appliedItems
-    ) {
-        boolean hasAnyItemCoupon = appliedItems.stream().anyMatch(item -> item.itemCouponId() != null);
-        if (cartCouponId == null && !hasAnyItemCoupon) {
-            return OrderCouponResult.Calculate.empty();
-        }
-        OrderCouponCommand.Calculate command = OrderCouponCommand.Calculate.of(userId, cartCouponId, appliedItems);
-        return orderCouponGateway.calculate(command);
-    }
-
-    private OrderSheet getValidateOrderSheet(String sheetId, Long userId) {
-        OrderSheet orderSheet = repository.findById(sheetId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        orderSheet.validateAccess(userId, LocalDateTime.now(clock));
-        return orderSheet;
     }
 
     public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
