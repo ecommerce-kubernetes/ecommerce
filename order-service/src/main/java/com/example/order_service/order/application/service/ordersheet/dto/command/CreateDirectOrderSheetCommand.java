@@ -7,7 +7,7 @@ import java.util.List;
 @Builder
 public record CreateDirectOrderSheetCommand(
         Long userId,
-        List<OrderVariant> variants
+        List<OrderVariant> items
 ) {
     @Builder
     public record OrderVariant (

@@ -7,6 +7,8 @@ import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
@@ -70,6 +72,28 @@ public class OrderSheetServiceTest {
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
+    @Test
+    @DisplayName("주문서 즉시 생성")
+    void createDirectOrderSheet(){
+        //given
+        Long userId = 1L;
+        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
+                .userId(userId)
+                .items(List.of(item))
+                .build();
+
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).minusMinutes(properties.ttlMinutes());
+
+        //when
+        OrderSheetCreateResult result = orderSheetService.createDirectOrderSheet(command);
+        //then
+        assertThat(result.orderSheetId()).isNotNull();
+        assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
+    }
 
     @Nested
     @DisplayName("주문서 조회")

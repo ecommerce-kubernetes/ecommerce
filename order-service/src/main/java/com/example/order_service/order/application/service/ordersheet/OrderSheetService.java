@@ -61,59 +61,6 @@ public class OrderSheetService {
     }
 
     /**
-     * 사용자 주문서 생성
-     * <p>
-     * 주문서를 생성하기 위해 상품, 쿠폰, 유저의 최신 상태를 스냅샷으로 저장
-     * </p>
-     *
-     * @param command 주문 대상 상품 및 초기 적용 쿠폰 목록
-     * @return 생성 후 저장이 완료된 주문서의 정보(주문서 아이디, 만료 시간)
-     */
-    public OrderSheetResultDeprecate.Create createOrderSheet(OrderSheetCommand.Create command) {
-        OrderUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
-        OrderProductResult.ProductList products = getOrderedProducts(command.items());
-        validator.validate(products, command);
-        OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
-        OrderSheet orderSheet = factory.createSheet(command, userProfile, products, appliedCoupons, orderSheetProperties.ttlMinutes());
-        OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
-        return OrderSheetResultDeprecate.Create.from(save);
-    }
-
-    private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
-        List<Long> variantIds = items.stream().map(OrderSheetCommand.OrderItem::productVariantId).toList();
-        return orderProductGateway.getProducts(variantIds);
-    }
-
-    private OrderCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,
-                                                          OrderProductResult.ProductList products) {
-        if (!command.hasCoupons()) {
-            return OrderCouponResult.Calculate.empty();
-        }
-        Map<Long, OrderProductResult.Info> productMap = products.getProductsMap();
-        Map<Long, Long> couponMap = command.toCouponMap();
-        OrderCouponCommand.Calculate couponCommand = mapToCouponCommand(command, productMap, couponMap);
-        return orderCouponGateway.calculate(couponCommand);
-    }
-
-    private OrderCouponCommand.Calculate mapToCouponCommand(OrderSheetCommand.Create command,
-                                                                  Map<Long, OrderProductResult.Info> productMap,
-                                                                  Map<Long, Long> couponMap) {
-        // [WARING] 페이로드 최적화를 위해 쿠폰 적용 상 filter를 걸면 안됨!
-        // 쿠폰 미적용 상품도 페이로드에 포함되어야 장바구니 쿠폰의 '최소 결제 금액', '제외 상품'등의 제약을 검사하고 할인 금액을 계산할 수 있음
-        List<OrderCouponCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
-            OrderProductResult.Info product = productMap.get(item.productVariantId());
-            Long itemCouponId = couponMap.get(item.productVariantId());
-            return OrderCouponCommand.AppliedCouponItem.of(
-                    item.productVariantId(),
-                    product.priceSnapshot().getDiscountedPrice(),
-                    item.quantity(),
-                    itemCouponId
-            );
-        }).toList();
-        return OrderCouponCommand.Calculate.of(command.userId(), command.cartCouponId(), appliedCouponItems);
-    }
-
-    /**
      * 사용자 주문서 조회
      * <p>
      * 주문 정보 및 보유 포인트와 주문에 사용할 수 있는 최대 포인트를 반환
