@@ -8,6 +8,7 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,10 @@ public class OrderUserGateway {
     public OrderUserResult.Profile getUserProfile(Long userId) {
         UserClientResponse.Profile profile = fetchUserProfileWithTranslation(userId);
         return mapper.toResult(profile);
+    }
+
+    public OrdererProfileResult getOrdererProfile(Long userId) {
+        return null;
     }
 
     private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {

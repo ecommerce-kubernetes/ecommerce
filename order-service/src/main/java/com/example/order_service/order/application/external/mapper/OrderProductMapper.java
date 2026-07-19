@@ -15,12 +15,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface OrderProductMapper {
 
-    OrderProductResult.ProductList toResult(ProductClientResponse.ProductList productList);
+    OrderProductResult toResult(ProductClientResponse.ProductList productList);
 
     @Mapping(source = ".", target = "productSnapshot")
     @Mapping(source = "unitPrice", target = "priceSnapshot")
     @Mapping(source = "options", target = "options")
-    OrderProductResult.Info toProduct(ProductClientResponse.Product product);
+    OrderProductResult.OrderProductDetail toProduct(ProductClientResponse.Product product);
 
     ProductSnapshot toProductSnapshot(ProductClientResponse.Product product);
 

@@ -49,7 +49,7 @@ class OrderSheetControllerTest {
     private OrderSheetService orderSheetService;
 
     @Test
-    @DisplayName("즉시 주문서 생성")
+    @DisplayName("바로 구매 주문서 생성")
     @WithCustomMockUser
     void createDirectOrderSheet() throws Exception {
         //given

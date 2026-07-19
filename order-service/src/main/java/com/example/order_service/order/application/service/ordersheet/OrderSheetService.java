@@ -6,18 +6,14 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.external.dto.result.OrderProductResult;
-import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
-import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
-import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
@@ -48,7 +44,7 @@ public class OrderSheetService {
     private final OrderSheetProperties orderSheetProperties;
     private final OrderProductGateway orderProductGateway;
     private final OrderCouponGateway orderCouponGateway;
-    private final OrderUserGateway orderSheetUserGateway;
+    private final OrderUserGateway orderUserGateway;
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetValidator validator;
     private final OrderSheetFactory factory;
@@ -57,7 +53,36 @@ public class OrderSheetService {
 
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
-        return null;
+        OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
+        List<Long> orderVariantIds = command.toItemVariantIds();
+        OrderProductResult products = orderProductGateway.getProducts(orderVariantIds);
+        Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
+
+        List<OrderSheetItem> orderSheetItems = orderVariantIds.stream().map(variantId -> {
+            OrderProductResult.OrderProductDetail product = productsMap.get(variantId);
+            if (product == null) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
+            }
+            if (product.status() != OrderProductStatus.ON_SALE) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
+            }
+            CreateDirectOrderSheetCommand.OrderVariant orderVariant = command.toVariantMap().get(product.productSnapshot().getProductVariantId());
+            if (orderVariant.quantity() > product.stock()) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
+            }
+            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(), orderVariant.quantity(), product.options());
+        }).toList();
+
+        OrderSheet orderSheet = OrderSheet.create(ordererProfile.orderer(), orderSheetItems, LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()));
+        if (ordererProfile.defaultShippingAddress() != null) {
+            orderSheet.changeShippingAddress(ordererProfile.defaultShippingAddress());
+        }
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+
+        return OrderSheetCreateResult.builder()
+                .orderSheetId(savedOrderSheet.getId())
+                .expiresAt(savedOrderSheet.getExpiresAt())
+                .build();
     }
 
     /**
@@ -72,7 +97,7 @@ public class OrderSheetService {
      */
     public OrderSheetResult getOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = getValidateOrderSheet(sheetId, userId);
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        OrderUserResult.UserPoint userPoints = orderUserGateway.getUserPoints(userId);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         return null;
     }

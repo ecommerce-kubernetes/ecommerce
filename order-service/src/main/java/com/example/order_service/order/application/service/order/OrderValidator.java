@@ -42,7 +42,7 @@ public class OrderValidator {
      * @param pointPolicy 포인트 할인 정책
      */
     public void validate(OrderSheet orderSheet,
-                         OrderProductResult.ProductList products,
+                         OrderProductResult products,
                          OrderCouponResult.Calculate coupon,
                          OrderUserResult.UserPoint userPoint,
                          PointUsagePolicy pointPolicy) {
@@ -51,24 +51,8 @@ public class OrderValidator {
         validateUserPoints(orderSheet, userPoint, pointPolicy);
     }
 
-    private void validateOrderProducts(OrderSheet orderSheet, OrderProductResult.ProductList products) {
-        List<OrderSheetItem> items = orderSheet.getItems();
-        Map<Long, OrderProductResult.Info> productsMap = products.getProductsMap();
-        for (OrderSheetItem item : items) {
-            OrderProductResult.Info product = productsMap.get(item.getProductVariantId());
-            if (product == null) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
-            }
-            if (product.status() != OrderProductStatus.ON_SALE) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
-            }
-            if (item.getQuantity() > product.stock()) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
-            }
-            if (!item.getDiscountedPrice().equals(product.priceSnapshot().getDiscountedPrice())) {
-                throw new BusinessException(OrderErrorCode.PRODUCT_PRICE_CHANGE);
-            }
-        }
+    private void validateOrderProducts(OrderSheet orderSheet, OrderProductResult products) {
+
     }
 
     private void validateCoupons(OrderSheet orderSheet, OrderCouponResult.Calculate coupon) {

@@ -5,6 +5,7 @@ import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import lombok.Builder;
 
+@Deprecated
 public class OrderUserResult {
 
     @Builder

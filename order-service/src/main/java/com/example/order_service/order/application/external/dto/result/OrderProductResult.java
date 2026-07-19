@@ -10,20 +10,20 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class OrderProductResult {
-
-    @Builder
-    public record ProductList(
-            List<Info> products
-    ) {
-        public Map<Long, OrderProductResult.Info> getProductsMap() {
-            return products.stream()
-                    .collect(Collectors.toMap(item -> item.productSnapshot.getProductVariantId(), Function.identity()));
-        }
+@Builder
+public record OrderProductResult(
+        List<OrderProductDetail> products
+) {
+    public Map<Long, OrderProductDetail> getProductsMap() {
+        return products.stream()
+                .collect(Collectors.toMap(
+                        item -> item.productSnapshot.getProductVariantId(),
+                        Function.identity()
+                ));
     }
 
     @Builder
-    public record Info(
+    public record OrderProductDetail(
             ProductSnapshot productSnapshot,
             OrderProductStatus status,
             Integer stock,

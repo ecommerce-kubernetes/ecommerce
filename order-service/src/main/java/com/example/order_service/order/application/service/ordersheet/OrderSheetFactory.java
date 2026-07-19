@@ -40,7 +40,7 @@ public class OrderSheetFactory {
      * @return 주문서 애그리거트 루트
      */
     public OrderSheet createSheet(OrderSheetCommand.Create command, OrderUserResult.Profile userResult,
-                                  OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult, long ttlMinute) {
+                                  OrderProductResult productResult, OrderCouponResult.Calculate couponResult, long ttlMinute) {
         String sheetId = generateId();
         Orderer orderer = userResult.orderer();
         ShippingAddress shippingAddress = userResult.shippingAddress();
@@ -49,17 +49,17 @@ public class OrderSheetFactory {
         return OrderSheet.create(orderer, sheetItems, LocalDateTime.now().plusMinutes(ttlMinute));
     }
 
-    private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult) {
-        Map<Long, OrderProductResult.Info> productsMap = productResult.getProductsMap();
+    private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderProductResult productResult, OrderCouponResult.Calculate couponResult) {
+        Map<Long, OrderProductResult.OrderProductDetail> productsMap = productResult.getProductsMap();
         Map<Long, ItemCouponSnapshot> itemCouponMap = couponResult.toItemCouponMap();
         return command.items().stream().map(item -> createItem(item, productsMap, itemCouponMap)).toList();
     }
 
-    private OrderSheetItem createItem(OrderSheetCommand.OrderItem command, Map<Long, OrderProductResult.Info> productsMap,
+    private OrderSheetItem createItem(OrderSheetCommand.OrderItem command, Map<Long, OrderProductResult.OrderProductDetail> productsMap,
                                       Map<Long, ItemCouponSnapshot> itemCouponMap) {
         Long orderedVariantId = command.productVariantId();
         String sheetItemId = generateId();
-        OrderProductResult.Info product = productsMap.get(orderedVariantId);
+        OrderProductResult.OrderProductDetail product = productsMap.get(orderedVariantId);
         ProductSnapshot productSnapshot = product.productSnapshot();
         ProductPriceSnapshot priceSnapshot = product.priceSnapshot();
         List<ProductOptionSnapshot> optionSnapshots = product.options();

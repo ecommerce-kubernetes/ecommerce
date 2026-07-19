@@ -25,7 +25,7 @@ public class OrderSheetFactoryTest {
         //given
         OrderSheetCommand.Create command = createCommand();
         OrderUserResult.Profile userProfile = createUserProfile();
-        OrderProductResult.ProductList productList = createProductList();
+        OrderProductResult productList = createProductList();
         OrderCouponResult.Calculate couponResult = createCouponResult();
         LocalDateTime currentTime = LocalDateTime.now();
         //when
@@ -69,19 +69,19 @@ public class OrderSheetFactoryTest {
                 .build();
     }
 
-    private OrderProductResult.ProductList createProductList() {
+    private OrderProductResult createProductList() {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE",
                 "청바지", "/product/product/jean_1.jpg");
         ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L),
                 10, Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
-        OrderProductResult.Info item = OrderProductResult.Info.builder()
+        OrderProductResult.OrderProductDetail item = OrderProductResult.OrderProductDetail.builder()
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(productPriceSnapshot)
                 .options(List.of(xl, blue))
                 .build();
-        return OrderProductResult.ProductList.builder()
+        return OrderProductResult.builder()
                 .products(List.of(item))
                 .build();
     }

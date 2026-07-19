@@ -36,7 +36,7 @@ public record DirectOrderSheetCreateRequest(
     public CreateDirectOrderSheetCommand toCommand(Long userId) {
         return CreateDirectOrderSheetCommand.builder()
                 .userId(userId)
-                .variants(mapToCommandOrderVariants())
+                .items(mapToCommandOrderVariants())
                 .build();
     }
 

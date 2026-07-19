@@ -47,11 +47,11 @@ public class OrderProductGatewayTest {
             //given
             List<Long> variantIds = List.of(1L, 2L);
             ProductClientResponse.ProductList productResponse = Instancio.create(ProductClientResponse.ProductList.class);
-            OrderProductResult.ProductList productList = Instancio.create(OrderProductResult.ProductList.class);
+            OrderProductResult productList = Instancio.create(OrderProductResult.class);
             given(adaptor.getProducts(any())).willReturn(productResponse);
             given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
-            OrderProductResult.ProductList result = orderProductGateway.getProducts(variantIds);
+            OrderProductResult result = orderProductGateway.getProducts(variantIds);
             //then
             assertThat(result).isEqualTo(productList);
         }

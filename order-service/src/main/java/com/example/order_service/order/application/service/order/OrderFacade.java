@@ -61,17 +61,10 @@ public class OrderFacade {
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
         orderSheet.validateAccess(command.userId(), LocalDateTime.now(clock));
-        OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
-        validator.validate(orderSheet, products, appliedCoupons, userPoints, pointPolicy);
         OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
         return orderCommandService.saveOrder(context);
-    }
-
-    private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
-        List<Long> variantIds = items.stream().map(OrderSheetItem::getProductVariantId).toList();
-        return orderProductGateway.getProducts(variantIds);
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {

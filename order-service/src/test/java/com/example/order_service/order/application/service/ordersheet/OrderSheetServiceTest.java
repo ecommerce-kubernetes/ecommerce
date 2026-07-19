@@ -5,14 +5,12 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
-import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
@@ -26,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -46,6 +45,7 @@ import static org.instancio.Select.field;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
 @Slf4j
@@ -73,8 +73,121 @@ public class OrderSheetServiceTest {
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
     @Test
-    @DisplayName("주문서 즉시 생성")
+    @DisplayName("바로 구매 주문서 생성")
     void createDirectOrderSheet(){
+        //given
+        Long userId = 1L;
+        Long productVariantId = 1L;
+        int quantity = 3;
+        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
+                .productVariantId(productVariantId)
+                .quantity(quantity)
+                .build();
+        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
+                .userId(userId)
+                .items(List.of(item))
+                .build();
+
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+
+        OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
+        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+
+        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
+
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+
+        //when
+        OrderSheetCreateResult result = orderSheetService.createDirectOrderSheet(command);
+        //then
+        ArgumentCaptor<OrderSheet> orderSheetCaptor = ArgumentCaptor.forClass(OrderSheet.class);
+        then(repository).should().save(orderSheetCaptor.capture(), any());
+
+        OrderSheet capturedOrderSheet = orderSheetCaptor.getValue();
+
+        assertThat(result.orderSheetId()).isNotNull();
+        assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
+        assertThat(capturedOrderSheet.getShippingAddress()).isEqualTo(shippingAddress);
+    }
+    
+    @Test
+    @DisplayName("바로 구매 주문서 생성시, 주문자 정보의 대표 배송 정보가 없으면 배송정보가 없는 주문서가 생성된다.")
+    void createDirectOrderSheet_without_default_shippingAddress() {
+        //given
+        Long userId = 1L;
+        Long productVariantId = 1L;
+        int quantity = 3;
+        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
+                .productVariantId(productVariantId)
+                .quantity(quantity)
+                .build();
+        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
+                .userId(userId)
+                .items(List.of(item))
+                .build();
+
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(null);
+
+        OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
+        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+
+        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
+
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        //when
+        OrderSheetCreateResult result = orderSheetService.createDirectOrderSheet(command);
+        //then
+        ArgumentCaptor<OrderSheet> orderSheetCaptor = ArgumentCaptor.forClass(OrderSheet.class);
+        then(repository).should().save(orderSheetCaptor.capture(), any());
+
+        OrderSheet capturedOrderSheet = orderSheetCaptor.getValue();
+
+        assertThat(result.orderSheetId()).isNotNull();
+        assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
+        assertThat(capturedOrderSheet.getShippingAddress()).isNull();
+    }
+
+    @Test
+    @DisplayName("바로 구매 주문서 생성시 주문 상품이 누락된 경우 예외가 발생한다.")
+    void createDirectOrderSheet_missing_product() {
+        //given
+        Long userId = 1L;
+        CreateDirectOrderSheetCommand.OrderVariant item1 = CreateDirectOrderSheetCommand.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CreateDirectOrderSheetCommand.OrderVariant item2 = CreateDirectOrderSheetCommand.OrderVariant.builder()
+                .productVariantId(2L)
+                .quantity(3)
+                .build();
+        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
+                .userId(userId)
+                .items(List.of(item1, item2))
+                .build();
+
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+
+        OrderProductResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
+        OrderProductResult products = OrderProductResult.builder().products(List.of(product1)).build();
+        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("바로 구매 주문서를 생성할때, 주문 상품이 주문 가능한 상태가 아니면 예외가 발생한다.")
+    void createDirectOrderSheet_unOrderable_product() {
         //given
         Long userId = 1L;
         CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
@@ -86,13 +199,70 @@ public class OrderSheetServiceTest {
                 .items(List.of(item))
                 .build();
 
-        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).minusMinutes(properties.ttlMinutes());
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
 
+        OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
+        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
         //when
-        OrderSheetCreateResult result = orderSheetService.createDirectOrderSheet(command);
         //then
-        assertThat(result.orderSheetId()).isNotNull();
-        assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
+        assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
+    }
+
+    @Test
+    @DisplayName("바로 구매 주문서를 생성할때, 주문 상품의 재고가 주문 수량보다 적으면 예외가 발생한다.")
+    void createDirectOrderSheet_product_insufficient_stock() {
+        //given
+        Long userId = 1L;
+        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
+                .userId(userId)
+                .items(List.of(item))
+                .build();
+
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+
+        OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
+        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
+    }
+
+    private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        return OrdererProfileResult.builder()
+                .orderer(orderer)
+                .defaultShippingAddress(shippingAddress)
+                .build();
+    }
+
+    private OrderProductResult.OrderProductDetail createProductDetail(Long variantId, OrderProductStatus status, int stock) {
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, variantId, "SKU", "상품", "/product/product.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        ProductOptionSnapshot option1 = ProductOptionSnapshot.of("옵션1", "옵션 값");
+        ProductOptionSnapshot option2 = ProductOptionSnapshot.of("옵션2", "옵션 값");
+        return OrderProductResult.OrderProductDetail.builder()
+                .productSnapshot(productSnapshot)
+                .status(status)
+                .stock(stock)
+                .priceSnapshot(priceSnapshot)
+                .options(List.of(option1, option2))
+                .build();
     }
 
     @Nested
@@ -103,7 +273,7 @@ public class OrderSheetServiceTest {
         @DisplayName("주문서를 조회한다")
         void getOrderSheet() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
                     .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
                     .create();
@@ -138,7 +308,7 @@ public class OrderSheetServiceTest {
         void getOrderSheet_not_match_ordererId() {
             //given
             Long userId = 999L;
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
@@ -152,7 +322,7 @@ public class OrderSheetServiceTest {
         @DisplayName("주문서가 만료된 경우 예외가 발생한다")
         void getOrderSheet_expired() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
@@ -180,7 +350,7 @@ public class OrderSheetServiceTest {
                     .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::receiverPhone), newPhone)
                     .create();
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
                     .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
                     .create();
@@ -212,7 +382,7 @@ public class OrderSheetServiceTest {
             //given
             String sheetId = "sheetId";
             Long userId = 1L;
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
@@ -230,7 +400,7 @@ public class OrderSheetServiceTest {
             //given
             String sheetId = "sheetId";
             Long userId = 999L;
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
@@ -251,7 +421,7 @@ public class OrderSheetServiceTest {
         void updatePoints() {
             //given
             Money usedPoints = Money.wons(100L);
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
                     .sheetId(orderSheet.getId())
                     .userId(orderSheet.getOrderer().getUserId())
@@ -271,7 +441,7 @@ public class OrderSheetServiceTest {
         @DisplayName("사용 포인트가 주문에 적용할 수 있는 포인트를 초과하면 예외가 발생한다")
         void updatePoints_point_policy_violation() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
                     .sheetId(orderSheet.getId())
                     .userId(orderSheet.getOrderer().getUserId())
@@ -308,7 +478,7 @@ public class OrderSheetServiceTest {
         void updatePoints_no_permission() {
             //given
             Long userId = 999L;
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
                     .sheetId(orderSheet.getId())
                     .userId(userId)
@@ -324,7 +494,7 @@ public class OrderSheetServiceTest {
         @DisplayName("주문서가 만료되었으면 예외가 발생한다")
         void updatePoints_expired() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
                     .sheetId(orderSheet.getId())
@@ -345,7 +515,7 @@ public class OrderSheetServiceTest {
         @DisplayName("상품 쿠폰을 해제한다")
         void updateItemCoupon_clear_coupon() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             String sheetItemId = orderSheet.getItems().get(0).getId();
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getId(),
                     sheetItemId, orderSheet.getOrderer().getUserId(), null);
@@ -365,7 +535,7 @@ public class OrderSheetServiceTest {
         @DisplayName("상품 쿠폰을 수정한다")
         void updateItemCoupon() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             String sheetItemId = orderSheet.getItems().get(0).getId();
             Long targetProductVariantId = orderSheet.getItems().get(0).getProductVariantId();
             Long newCouponId = 10L;
@@ -394,7 +564,7 @@ public class OrderSheetServiceTest {
         @DisplayName("장바구니 쿠폰 해제")
         void updateCartCoupon_clear_coupon() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
                     orderSheet.getOrderer().getUserId(), null);
             OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
@@ -414,7 +584,7 @@ public class OrderSheetServiceTest {
         @DisplayName("장바구니 쿠폰을 수정한다")
         void updateCartCoupon_point_not_used() {
             //given
-            OrderSheet orderSheet = createOrderSheet();
+            OrderSheet orderSheet = createOrderSheetDeprecated();
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
                     orderSheet.getOrderer().getUserId(), newCouponId);
@@ -435,7 +605,8 @@ public class OrderSheetServiceTest {
         }
     }
 
-    private OrderSheet createOrderSheet() {
+    @Deprecated
+    private OrderSheet createOrderSheetDeprecated() {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");

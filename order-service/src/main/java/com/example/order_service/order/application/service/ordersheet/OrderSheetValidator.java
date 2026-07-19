@@ -12,11 +12,11 @@ import java.util.Optional;
 
 @Component
 public class OrderSheetValidator {
-    public void validate(OrderProductResult.ProductList productList, OrderSheetCommand.Create command) {
+    public void validate(OrderProductResult productList, OrderSheetCommand.Create command) {
         Map<Long, Integer> reqItemMap = command.toQuantityMap();
-        Map<Long, OrderProductResult.Info> productsMap = productList.getProductsMap();
+        Map<Long, OrderProductResult.OrderProductDetail> productsMap = productList.getProductsMap();
         reqItemMap.forEach((reqId, reqQuantity) -> {
-            OrderProductResult.Info product = Optional.ofNullable(productsMap.get(reqId))
+            OrderProductResult.OrderProductDetail product = Optional.ofNullable(productsMap.get(reqId))
                     .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND));
             if (product.status() != OrderProductStatus.ON_SALE) {
                 throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);

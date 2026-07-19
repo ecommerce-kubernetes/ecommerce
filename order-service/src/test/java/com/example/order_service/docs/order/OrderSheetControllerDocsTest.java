@@ -42,7 +42,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
     @Test
-    @DisplayName("주문서 즉시 생성")
+    @DisplayName("바로 구매 주문서 생성")
     void createDirectOrderSheet() throws Exception {
         //given
         DirectOrderSheetCreateRequest.OrderVariant variant = DirectOrderSheetCreateRequest.OrderVariant.builder()

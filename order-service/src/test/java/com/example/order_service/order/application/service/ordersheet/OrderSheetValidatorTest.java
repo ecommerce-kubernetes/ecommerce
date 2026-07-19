@@ -42,12 +42,12 @@ class OrderSheetValidatorTest {
                 .items(List.of(item1, item2))
                 .build();
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품 1", "/product/product");
-        OrderProductResult.Info product = Instancio.of(OrderProductResult.Info.class)
+        OrderProductResult.OrderProductDetail product = Instancio.of(OrderProductResult.OrderProductDetail.class)
                 .set(field("productSnapshot"), productSnapshot)
                 .set(field("status"), OrderProductStatus.ON_SALE)
                 .set(field("stock"), 100)
                 .create();
-        OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
+        OrderProductResult productList = OrderProductResult.builder()
                 .products(List.of(product))
                 .build();
         //when
@@ -72,12 +72,12 @@ class OrderSheetValidatorTest {
                 .items(List.of(item))
                 .build();
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품 1", "/product/product");
-        OrderProductResult.Info product = Instancio.of(OrderProductResult.Info.class)
+        OrderProductResult.OrderProductDetail product = Instancio.of(OrderProductResult.OrderProductDetail.class)
                 .set(field("productSnapshot"), productSnapshot)
                 .set(field("status"), OrderProductStatus.STOP_SALE)
                 .set(field("stock"), 100)
                 .create();
-        OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
+        OrderProductResult productList = OrderProductResult.builder()
                 .products(List.of(product))
                 .build();
         //when
@@ -102,12 +102,12 @@ class OrderSheetValidatorTest {
                 .items(List.of(item))
                 .build();
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품 1", "/product/product");
-        OrderProductResult.Info product = Instancio.of(OrderProductResult.Info.class)
+        OrderProductResult.OrderProductDetail product = Instancio.of(OrderProductResult.OrderProductDetail.class)
                 .set(field("productSnapshot"), productSnapshot)
                 .set(field("status"), OrderProductStatus.ON_SALE)
                 .set(field("stock"), 9)
                 .create();
-        OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
+        OrderProductResult productList = OrderProductResult.builder()
                 .products(List.of(product))
                 .build();
         //when

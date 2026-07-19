@@ -32,7 +32,7 @@ public class OrderProductGateway {
     private final ProductAdaptor productAdaptor;
     private final OrderProductMapper mapper;
 
-    public OrderProductResult.ProductList getProducts(List<Long> variantIds) {
+    public OrderProductResult getProducts(List<Long> variantIds) {
         ProductCommand.BulkSearch command = ProductCommand.BulkSearch.from(variantIds);
         ProductClientResponse.ProductList productList = fetchProductsWithTranslation(command);
         return mapper.toResult(productList);
