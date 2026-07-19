@@ -55,17 +55,27 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getUpdatePointsRequest() {
-        return new FieldDescriptor[]{
-                fieldWithPath("usedPoints").description("사용 포인트")
-        };
-    }
-
     public static FieldDescriptor[] applyItemCouponRequest() {
         return new FieldDescriptor[]{
                 fieldWithPath("itemCouponId")
                         .type(JsonFieldType.NUMBER)
                         .description("상품 쿠폰 ID")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
+
+    public static FieldDescriptor[] applyCartCouponRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("cartCouponId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("장바구니 쿠폰 ID")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
+
+    public static FieldDescriptor[] getUpdatePointsRequest() {
+        return new FieldDescriptor[]{
+                fieldWithPath("usedPoints").description("사용 포인트")
         };
     }
 

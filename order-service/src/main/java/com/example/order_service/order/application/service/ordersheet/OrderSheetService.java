@@ -198,29 +198,8 @@ public class OrderSheetService {
                 }).toList();
     }
 
-    /**
-     * 주문서 장바구니 쿠폰 변경
-     * <p>
-     * 주문서 장바구니 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서 가격 정보가 변경됨
-     * 장바구니 쿠폰 변경으로 인해 주문서에 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
-     * </p>
-     *
-     * @param command 변경 장바구니 쿠폰 정보
-     * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
-     */
-    public OrderSheetResultDeprecate.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
-        LocalDateTime currentTime = LocalDateTime.now(clock);
-        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
-        OrderCouponResult.Calculate calculate =
-                requestCouponCalculation(orderSheet.getOrderer().getUserId(), command.couponId(), appliedItems);
-        CartCouponSnapshot newCartCouponSnapshot = calculate.cartCoupon() != null ? calculate.cartCoupon() : CartCouponSnapshot.empty();
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
-        // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
-        orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
-        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+    public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
+        return null;
     }
 
     private List<OrderCouponCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {

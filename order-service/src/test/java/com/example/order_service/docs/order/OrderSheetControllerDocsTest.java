@@ -5,10 +5,7 @@ import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.web.OrderSheetController;
 import com.example.order_service.order.api.web.dto.request.*;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
-import com.example.order_service.order.application.service.ordersheet.dto.command.ApplyItemCouponCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
@@ -209,7 +206,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .willReturn(result);
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{orderSheetId}/sheet-items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser)
                         .content(objectMapper.writeValueAsString(request)))
@@ -231,6 +228,44 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                                         .description("주문서 ID(주문서 식별자)"),
                                 parameterWithName("orderSheetItemId")
                                         .description("주문서 상품 ID(주문서 상품 식별자)")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰을 변경한다")
+    void applyCartCoupon() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        ApplyOrderSheetCartCouponRequest request = ApplyOrderSheetCartCouponRequest.builder()
+                .cartCouponId(2L)
+                .build();
+
+        OrderSheetResult result = createOrderSheetResult();
+        given(orderSheetService.applyCartCoupon(any(ApplyCartCouponCommand.class))).willReturn(result);
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/cart-coupon", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(document(
+                        "order-sheets/update/cart-coupon",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(applyCartCouponRequest()),
+                        responseFields(orderSheetResponse()),
+                        pathParameters(
+                                parameterWithName("orderSheetId")
+                                        .description("주문서 ID(주문서 식별자)")
                         )
                 ));
     }
@@ -270,39 +305,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
 
-
-    @Test
-    @DisplayName("장바구니 쿠폰을 변경한다")
-    void updateCartCoupon() throws Exception {
-        //given
-        String sheetId = "sheetId";
-        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetRequest.UpdateCoupon request = createCartCouponRequest();
-        //when
-        //then
-        mockMvc.perform(patch("/order-sheets/{sheetId}/cart-coupon", sheetId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .headers(roleUser)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andDo(document(
-                        "order-sheets/update/cart-coupon",
-                        preprocessRequest(
-                                prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                        ),
-                        preprocessResponse(prettyPrint()),
-                        requestHeaders(AUTH_HEADER),
-                        requestFields(applyItemCouponRequest()),
-                        responseFields(orderSheetResponse()),
-                        pathParameters(
-                                parameterWithName("sheetId")
-                                        .description("주문서 ID(주문서 식별자)")
-                        )
-                ));
-    }
 
     private OrderSheetRequest.UpdateCoupon createItemCouponRequest() {
         return OrderSheetRequest.UpdateCoupon.builder()

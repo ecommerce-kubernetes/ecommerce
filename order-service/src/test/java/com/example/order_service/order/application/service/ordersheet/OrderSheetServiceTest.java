@@ -401,9 +401,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResultDeprecate.Detail result = orderSheetService.updateCartCoupon(command);
             //then
-            assertThat(result.cartCoupon().getCartCouponId()).isNull();
         }
 
         @Test
@@ -427,9 +425,7 @@ public class OrderSheetServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResultDeprecate.Detail result = orderSheetService.updateCartCoupon(command);
             //then
-            assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(newCouponId);
         }
     }
 
