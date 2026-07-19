@@ -58,22 +58,24 @@ public class OrderSheetService {
         OrderProductResult products = orderProductGateway.getProducts(orderVariantIds);
         Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
 
-        List<OrderSheetItem> orderSheetItems = orderVariantIds.stream().map(variantId -> {
-            OrderProductResult.OrderProductDetail product = productsMap.get(variantId);
+        List<OrderSheetItem> orderSheetItems = command.items().stream().map(orderVariant -> {
+            OrderProductResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
             if (product == null) {
                 throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
             }
             if (product.status() != OrderProductStatus.ON_SALE) {
                 throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
             }
-            CreateDirectOrderSheetCommand.OrderVariant orderVariant = command.toVariantMap().get(product.productSnapshot().getProductVariantId());
             if (orderVariant.quantity() > product.stock()) {
                 throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
             }
-            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(), orderVariant.quantity(), product.options());
+            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
+                    orderVariant.quantity(), product.options());
         }).toList();
 
-        OrderSheet orderSheet = OrderSheet.create(ordererProfile.orderer(), orderSheetItems, LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()));
+        OrderSheet orderSheet = OrderSheet.create(ordererProfile.orderer(), orderSheetItems,
+                LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()));
+
         if (ordererProfile.defaultShippingAddress() != null) {
             orderSheet.changeShippingAddress(ordererProfile.defaultShippingAddress());
         }
