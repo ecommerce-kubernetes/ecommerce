@@ -7,6 +7,7 @@ import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -317,8 +318,81 @@ public class OrderSheetServiceTest {
     @DisplayName("주문서 배송 정보를 변경한다")
     void updateShippingAddress(){
         //given
+        UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
+                .orderSheetId("orderSheetId")
+                .userId(1L)
+                .receiverName("수령자")
+                .receiverPhone("010-9876-5432")
+                .zipCode("12345")
+                .address("서울시 테헤란로 321")
+                .addressDetail("321동 1234호")
+                .build();
+
+        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
+
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
+        //when
+        OrderSheetResult result = orderSheetService.updateShippingAddress(command);
+        //then
+        assertThat(result.shippingAddress())
+                .extracting("receiverName", "receiverPhone", "zipCode", "address", "addressDetail")
+                .containsExactly(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
+
+        assertThat(result.point())
+                .extracting("availablePoints", "maxUsablePoints")
+                .containsExactly(Money.wons(10000L), Money.wons(4300L));
+    }
+
+    @Test
+    @DisplayName("주문서 배송 정보를 변경할때 주문서를 찾을 수 없는 경우 예외가 발생한다.")
+    void updateShippingAddress_notFound_orderSheet(){
+        //given
+        UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
+                .orderSheetId("orderSheetId")
+                .userId(1L)
+                .receiverName("수령자")
+                .receiverPhone("010-9876-5432")
+                .zipCode("12345")
+                .address("서울시 테헤란로 321")
+                .addressDetail("321동 1234호")
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
         //when
         //then
+        assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("주문서 배송 정보를 변경할때 주문서가 만료된 경우 예외가 발생한다")
+    void updateShippingAddress_expired(){
+        //given
+        UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
+                .orderSheetId("orderSheetId")
+                .userId(1L)
+                .receiverName("수령자")
+                .receiverPhone("010-9876-5432")
+                .zipCode("12345")
+                .address("서울시 테헤란로 321")
+                .addressDetail("321동 1234호")
+                .build();
+
+        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
     }
 
     private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
