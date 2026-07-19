@@ -46,8 +46,6 @@ public class OrderSheetService {
     private final OrderCouponGateway orderCouponGateway;
     private final OrderUserGateway orderUserGateway;
     private final PointUsagePolicy pointUsagePolicy;
-    private final OrderSheetValidator validator;
-    private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
     private final Clock clock;
 

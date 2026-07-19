@@ -60,13 +60,9 @@ public class OrderSheetServiceTest {
     @Mock
     private OrderUserGateway orderUserGateway;
     @Mock
-    private OrderSheetValidator validator;
-    @Mock
     private OrderSheetRepository repository;
     @Spy
     private OrderSheetProperties properties = new OrderSheetProperties(30L, BigDecimal.valueOf(0.1));
-    @Spy
-    private OrderSheetFactory factory = new OrderSheetFactory();
     @Spy
     private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(properties);
     @Spy
