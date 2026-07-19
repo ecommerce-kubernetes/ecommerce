@@ -395,10 +395,7 @@ public class OrderSheetServiceTest {
         //given
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "바지 반값 할인 쿠폰", couponPolicy, 1);
-        ItemCouponResult couponResult = ItemCouponResult.builder()
-                .userId(1L)
-                .itemCoupon(itemCoupon)
-                .build();
+        ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
         OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
 
@@ -501,10 +498,7 @@ public class OrderSheetServiceTest {
 
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "바지 반값 할인 쿠폰", couponPolicy, 1);
-        ItemCouponResult couponResult = ItemCouponResult.builder()
-                .userId(1L)
-                .itemCoupon(itemCoupon)
-                .build();
+        ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponGateway.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);

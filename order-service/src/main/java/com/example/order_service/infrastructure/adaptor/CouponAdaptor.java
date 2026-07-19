@@ -4,6 +4,8 @@ import com.example.order_service.infrastructure.client.CouponFeignClient;
 import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
+import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,11 @@ public class CouponAdaptor {
     public CouponClientResponse.Calculate calculate(CouponCommand.Calculate command) {
         CouponClientRequest.Calculate request = CouponClientRequest.Calculate.from(command);
         return client.calculate(request);
+    }
+
+    @CircuitBreaker(name = "couponService", fallbackMethod = "getItemCouponFallback")
+    public ItemCouponResponse getItemCoupon(Long userId, Long itemCouponId) {
+        return null;
     }
 
     private CouponClientResponse.Calculate calculateFallback(CouponCommand.Calculate command, Throwable throwable) throws Throwable {
