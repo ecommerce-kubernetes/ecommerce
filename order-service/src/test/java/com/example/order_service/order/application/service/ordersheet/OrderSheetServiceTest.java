@@ -313,6 +313,14 @@ public class OrderSheetServiceTest {
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
     }
 
+    @Test
+    @DisplayName("주문서 배송 정보를 변경한다")
+    void updateShippingAddress(){
+        //given
+        //when
+        //then
+    }
+
     private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         return OrdererProfileResult.builder()
