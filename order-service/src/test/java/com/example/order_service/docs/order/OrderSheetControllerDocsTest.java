@@ -8,7 +8,6 @@ import com.example.order_service.order.application.service.ordersheet.OrderSheet
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
-import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -273,14 +272,20 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     @Test
     @DisplayName("사용 포인트를 수정한다")
-    void updatePoints() throws Exception {
+    void applyPoints() throws Exception {
         //given
-        String sheetId = "sheetId";
-        OrderSheetRequest.UpdateUsedPoints request = createUpdatePointsOrderSheetRequest();
+        String orderSheetId = "orderSheetId";
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
+                .usedPoints(1000L)
+                .build();
+
+        OrderSheetResult result = createOrderSheetResult();
+        given(orderSheetService.applyPoints(any(ApplyPointCommand.class)))
+                .willReturn(result);
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/points", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser)
                         .content(objectMapper.writeValueAsString(request)))
@@ -295,75 +300,13 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        requestFields(getUpdatePointsRequest()),
+                        requestFields(applyPointRequest()),
                         responseFields(orderSheetResponse()),
                         pathParameters(
-                                parameterWithName("sheetId")
+                                parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
                         )
                 ));
-    }
-
-
-
-    private OrderSheetRequest.UpdateCoupon createItemCouponRequest() {
-        return OrderSheetRequest.UpdateCoupon.builder()
-                .couponId(2L)
-                .build();
-    }
-
-    private OrderSheetRequest.UpdateCoupon createCartCouponRequest() {
-        return OrderSheetRequest.UpdateCoupon.builder()
-                .couponId(1L)
-                .build();
-    }
-
-    private OrderSheetResultDeprecate.PaymentSummary createPaymentSummary() {
-        return OrderSheetResultDeprecate.PaymentSummary.builder()
-                .totalOriginPrice(Money.wons(10000L))
-                .totalProductDiscount(Money.wons(1000L))
-                .totalCouponDiscount(Money.wons(2000L))
-                .usedPoints(Money.wons(1000L))
-                .totalPaymentAmount(Money.wons(6000L))
-                .build();
-    }
-
-    private OrderSheetResultDeprecate.Point createPoint() {
-        return OrderSheetResultDeprecate.Point.builder()
-                .ownedPoints(Money.wons(10000L))
-                .availablePoints(Money.wons(4000L))
-                .usedPoints(Money.wons(1000L))
-                .build();
-    }
-
-    private List<OrderSheetResultDeprecate.OrderItem> createItems() {
-        ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
-        List<ProductOptionSnapshot> productOptionSnapshots = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-        return List.of(
-                OrderSheetResultDeprecate.OrderItem.builder()
-                        .sheetItemId("sheetItemId")
-                        .productId(1L)
-                        .productVariantId(1L)
-                        .productName("청바지")
-                        .thumbnail("/product/product/jean_1.jpg")
-                        .quantity(1)
-                        .productPrice(productPriceSnapshot)
-                        .lineTotal(Money.wons(8000L))
-//                        .appliedItemCoupon(itemCoupon)
-                        .options(productOptionSnapshots)
-                        .build()
-        );
-    }
-
-    private OrderSheetRequest.UpdateUsedPoints createUpdatePointsOrderSheetRequest() {
-        return OrderSheetRequest.UpdateUsedPoints.builder()
-                .usedPoints(1000L)
-                .build();
     }
 
     private OrderSheetResult createOrderSheetResult() {

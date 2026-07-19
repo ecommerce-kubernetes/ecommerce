@@ -3,19 +3,17 @@ package com.example.order_service.order.api.web;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.web.dto.request.*;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
+import com.example.order_service.order.application.service.ordersheet.dto.command.ApplyPointCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
-import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -573,115 +571,92 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/cart-coupon"));
     }
 
-    @Nested
-    @DisplayName("사용 포인트 수정")
-    class UpdatePoints {
+    @Test
+    @DisplayName("사용 포인트를 수정한다")
+    @WithCustomMockUser
+    void applyPoints() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
+                .usedPoints(1000L)
+                .build();
+        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        given(orderSheetService.applyPoints(any(ApplyPointCommand.class))).willReturn(result);
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/points", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+    }
 
-        @Test
-        @DisplayName("사용 포인트를 수정한다")
-        @WithCustomMockUser
-        void updatePoints() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
-                    .usedPoints(1000L)
-                    .build();
-            OrderSheetResultDeprecate.Detail result = Instancio.create(OrderSheetResultDeprecate.Detail.class);
-            given(orderSheetService.updatePoints(any())).willReturn(result);
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
-        }
 
-        @Test
-        @DisplayName("로그인되지 않은 사용자는 사용 포인트를 수정할 수 없다")
-        void updatePoints_unAuthorized() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
-                    .usedPoints(1000L)
-                    .build();
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/points", "sheetId")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
-        }
+    @Test
+    @DisplayName("로그인되지 않은 사용자는 사용 포인트를 수정할 수 없다")
+    void applyPoints_unAuthorized() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
+                .usedPoints(1000L)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/points", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/points"));
+    }
 
-        @Test
-        @DisplayName("유저 권한이 아니라면 포인트를 수정할 수 없다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void updatePoints_forbidden() throws Exception {
-            //given
-            String sheetId = "sheetId";
-            OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
-                    .usedPoints(1000L)
-                    .build();
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/points", "sheetId")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
-        }
+    @Test
+    @DisplayName("유저 권한이 아니라면 포인트를 수정할 수 없다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void applyPoints_forbidden() throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
+                .usedPoints(1000L)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/points", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/points"));
+    }
 
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideInvalidRequest")
-        @DisplayName("사용 포인트 수정 입력 검증 테스트")
-        @WithCustomMockUser
-        void updatePoints_validate(String description, OrderSheetRequest.UpdateUsedPoints req, String expectedField, String expectedMessage) throws Exception {
-            //given
-            String sheetId = "sheetId";
-            //when
-            //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
-                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
-                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
-        }
-
-        private static Stream<Arguments> provideInvalidRequest() {
-            return Stream.of(
-                    Arguments.of(
-                            "포인트가 없으면 검증에 실패한다",
-                            OrderSheetRequest.UpdateUsedPoints.builder()
-                                    .usedPoints(null).build(),
-                            "usedPoints",
-                            "사용 포인트는 필수입니다."
-                    ),
-                    Arguments.of(
-                            "포인트 0가 0 미만이면 검증에 실패한다",
-                            OrderSheetRequest.UpdateUsedPoints.builder()
-                                    .usedPoints(-1L).build(),
-                            "usedPoints",
-                            "사용 포인트는 0이상이어야 합니다."
-                    )
-            );
-        }
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidApplyPointRequest")
+    @DisplayName("사용 포인트 수정 입력 검증 테스트")
+    @WithCustomMockUser
+    void applyPoints_validate(String description, ApplyOrderSheetPointRequest req, String expectedField, String expectedMessage) throws Exception {
+        //given
+        String orderSheetId = "orderSheetId";
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/points", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/points"));
     }
 
     private static Stream<Arguments> provideInvalidCreateDirectOrderSheetRequest() {
@@ -869,6 +844,25 @@ class OrderSheetControllerTest {
                                 .build(),
                         "cartCouponId",
                         "장바구니 쿠폰 식별자는 필수값 입니다."
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidApplyPointRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "포인트가 없으면 검증에 실패한다",
+                        ApplyOrderSheetPointRequest.builder()
+                                .usedPoints(null).build(),
+                        "usedPoints",
+                        "사용 포인트는 필수입니다."
+                ),
+                Arguments.of(
+                        "포인트 0가 0 미만이면 검증에 실패한다",
+                        ApplyOrderSheetPointRequest.builder()
+                                .usedPoints(-1L).build(),
+                        "usedPoints",
+                        "사용 포인트는 0이상이어야 합니다."
                 )
         );
     }

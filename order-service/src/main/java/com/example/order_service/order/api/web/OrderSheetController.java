@@ -4,12 +4,10 @@ import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.order.api.web.dto.request.*;
 import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.api.web.dto.response.OrderSheetResponse;
-import com.example.order_service.order.api.web.dto.response.OrderSheetResponseDeprecate;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
-import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResultDeprecate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,13 +80,13 @@ public class OrderSheetController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{sheetId}/points")
-    public ResponseEntity<OrderSheetResponseDeprecate.Detail> updateUsedPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                               @PathVariable("sheetId") String sheetId,
-                                                                               @RequestBody @Validated OrderSheetRequest.UpdateUsedPoints request) {
-        OrderSheetCommand.UpdatePoints command = request.toCommand(sheetId, userPrincipal.getUserId());
-        OrderSheetResultDeprecate.Detail result = orderSheetService.updatePoints(command);
-        OrderSheetResponseDeprecate.Detail response = OrderSheetResponseDeprecate.Detail.from(result);
+    @PatchMapping("/{orderSheetId}/points")
+    public ResponseEntity<OrderSheetResponse> applyPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                          @PathVariable("orderSheetId") String orderSheetId,
+                                                          @RequestBody @Validated ApplyOrderSheetPointRequest request) {
+        ApplyPointCommand command = request.toCommand(orderSheetId, userPrincipal.getUserId());
+        OrderSheetResult result = orderSheetService.applyPoints(command);
+        OrderSheetResponse response = OrderSheetResponse.from(result);
         return ResponseEntity.ok(response);
     }
 }

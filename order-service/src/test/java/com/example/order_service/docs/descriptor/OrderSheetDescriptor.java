@@ -73,9 +73,12 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getUpdatePointsRequest() {
+    public static FieldDescriptor[] applyPointRequest() {
         return new FieldDescriptor[]{
-                fieldWithPath("usedPoints").description("사용 포인트")
+                fieldWithPath("usedPoints")
+                        .type(JsonFieldType.NUMBER)
+                        .description("사용 포인트")
+                        .attributes(key("constraint").value("필수"))
         };
     }
 

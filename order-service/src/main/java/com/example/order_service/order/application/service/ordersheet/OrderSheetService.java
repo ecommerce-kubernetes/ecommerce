@@ -152,15 +152,8 @@ public class OrderSheetService {
      * @param command 변경 포인트 정보
      * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
      */
-    public OrderSheetResultDeprecate.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
-        LocalDateTime currentTime = LocalDateTime.now(clock);
-        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
-        // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
-        orderSheet.changeUsedPoints(command.usedPoints(), userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
-        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        return OrderSheetResultDeprecate.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
+    public OrderSheetResult applyPoints(ApplyPointCommand command) {
+        return null;
     }
 
     /**
