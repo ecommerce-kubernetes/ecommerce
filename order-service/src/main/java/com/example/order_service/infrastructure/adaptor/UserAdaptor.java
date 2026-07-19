@@ -25,9 +25,9 @@ public class UserAdaptor {
     private final ExternalExceptionTranslator translator;
 
     @Deprecated
-    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileFallback")
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileDeprecatedFallback")
     public UserClientResponse.Profile getUserProfileDeprecated(Long userId) {
-        return client.getUserProfile(userId);
+       return null;
     }
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
@@ -35,11 +35,12 @@ public class UserAdaptor {
         return client.getUserPoints(userId);
     }
 
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileFallback")
     public UserProfileResponse getUserProfile(Long userId){
-        return null;
+        return client.getUserProfile(userId);
     }
 
-    private UserClientResponse.Profile getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {
+    private UserProfileResponse getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
 

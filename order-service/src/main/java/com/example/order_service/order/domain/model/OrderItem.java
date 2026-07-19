@@ -29,11 +29,11 @@ public class OrderItem extends BaseEntity {
             @AttributeOverride(name = "discountAmount", column = @Column(name = "product_discount_amount"))
     })
     private ProductPriceSnapshot productPrice;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "discountAmount", column = @Column(name = "coupon_discount_amount"))
-    })
-    private ItemCouponSnapshot itemCoupon;
+//    @Embedded
+//    @AttributeOverrides({
+//            @AttributeOverride(name = "discountAmount", column = @Column(name = "coupon_discount_amount"))
+//    })
+//    private ItemCouponSnapshot itemCoupon;
     private Integer quantity;
     @Convert(converter = ProductOptionSnapshotConverter.class)
     private List<ProductOptionSnapshot> options;
@@ -43,7 +43,7 @@ public class OrderItem extends BaseEntity {
                       Integer quantity, List<ProductOptionSnapshot> options) {
         this.product = product;
         this.productPrice = productPrice;
-        this.itemCoupon = itemCoupon;
+//        this.itemCoupon = itemCoupon;
         this.quantity = quantity;
         this.options = options;
     }

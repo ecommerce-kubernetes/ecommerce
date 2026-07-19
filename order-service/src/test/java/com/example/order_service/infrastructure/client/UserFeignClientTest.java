@@ -49,7 +49,7 @@ public class UserFeignClientTest {
                             .withBody(mockJsonResponse)));
             UserClientResponse.Profile expected = createExpected();
             //when
-            UserClientResponse.Profile response = client.getUserProfile(userId);
+            UserClientResponse.Profile response = client.getUserProfileDeprecated(userId);
             //then
             assertThat(response)
                     .usingRecursiveComparison()
@@ -76,7 +76,7 @@ public class UserFeignClientTest {
                             .withBody(mockJsonResponse)));
             //when
             //then
-            assertThatThrownBy(() -> client.getUserProfile(userId))
+            assertThatThrownBy(() -> client.getUserProfileDeprecated(userId))
                     .isInstanceOf(ExternalClientException.class)
                     .hasMessage("유저를 찾을 수 없습니다")
                     .extracting("errorCode")
@@ -103,7 +103,7 @@ public class UserFeignClientTest {
                             .withBody(mockJsonResponse)));
             //when
             //then
-            assertThatThrownBy(() -> client.getUserProfile(userId))
+            assertThatThrownBy(() -> client.getUserProfileDeprecated(userId))
                     .isInstanceOf(ExternalServerException.class)
                     .hasMessage("알 수 없는 오류가 발생했습니다")
                     .extracting("errorCode")

@@ -54,7 +54,7 @@ public class OrderResult {
                     .orderName(order.getOrderName())
                     .orderer(order.getOrderer())
                     .shippingAddress(order.getShippingAddress())
-                    .cartCoupon(order.getCartCoupon())
+//                    .cartCoupon(order.getCartCoupon())
                     .items(OrderedItem.from(order.getOrderItems()))
                     .totalOriginalPrice(order.getTotalOriginalPrice())
                     .totalProductDiscountAmount(order.getTotalProductDiscountAmount())
@@ -98,7 +98,7 @@ public class OrderResult {
             return OrderedItem.builder()
                     .product(item.getProduct())
                     .productPrice(item.getProductPrice())
-                    .itemCoupon(item.getItemCoupon())
+//                    .itemCoupon(item.getItemCoupon())
                     .quantity(item.getQuantity())
                     .options(item.getOptions())
                     .build();

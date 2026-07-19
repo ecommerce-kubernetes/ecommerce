@@ -34,8 +34,8 @@ public class Order extends BaseEntity {
     private ShippingAddress shippingAddress;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
-    @Embedded
-    private CartCouponSnapshot cartCoupon;
+//    @Embedded
+//    private CartCouponSnapshot cartCoupon;
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
     private Money totalCouponDiscountAmount;
@@ -52,7 +52,7 @@ public class Order extends BaseEntity {
         this.orderName = orderName;
         this.orderer = orderer;
         this.shippingAddress = shippingAddress;
-        this.cartCoupon = cartCoupon;
+//        this.cartCoupon = cartCoupon;
         this.totalOriginalPrice = totalOriginalPrice;
         this.totalProductDiscountAmount = totalProductDiscountAmount;
         this.totalCouponDiscountAmount = totalCouponDiscountAmount;

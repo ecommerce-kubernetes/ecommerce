@@ -3,6 +3,7 @@ package com.example.order_service.infrastructure.adaptor;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -26,14 +27,13 @@ public class UserAdaptorTest {
 
     @Test
     @DisplayName("유저 프로필을 조회한다")
-    void getUserProfileDeprecated() {
+    void getUserProfile() {
         //given
         Long userId = 1L;
-        UserClientResponse.Profile mockResponse = Instancio.create(UserClientResponse.Profile.class);
-        given(client.getUserProfile(anyLong()))
-                .willReturn(mockResponse);
+        UserProfileResponse mockResponse = Instancio.create(UserProfileResponse.class);
+        given(client.getUserProfile(anyLong())).willReturn(mockResponse);
         //when
-        UserClientResponse.Profile response = userAdaptor.getUserProfileDeprecated(userId);
+        UserProfileResponse response = userAdaptor.getUserProfile(userId);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -42,15 +42,14 @@ public class UserAdaptorTest {
 
     @Test
     @DisplayName("유저 프로필 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
-    void getUserProfile_Deprecated_fallback_delegate_to_translator() throws Throwable {
+    void getUserProfile_fallback_delegate_to_translator() throws Throwable {
         //given
         Long userId = 1L;
         RuntimeException feignException = new RuntimeException("feignClient 예외");
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        given(client.getUserProfile(any())).willThrow(feignException);
-        given(translator.translate(anyString(), any(Throwable.class)))
-                .willReturn(translatedException);
+        given(client.getUserProfile(anyLong())).willThrow(feignException);
+        given(translator.translate(anyString(), any(Throwable.class))).willReturn(translatedException);
         //when
         //then
         assertThatThrownBy(() -> userAdaptor.getUserProfile(userId))

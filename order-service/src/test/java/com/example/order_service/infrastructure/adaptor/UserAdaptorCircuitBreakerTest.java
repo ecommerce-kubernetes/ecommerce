@@ -1,5 +1,6 @@
 package com.example.order_service.infrastructure.adaptor;
 
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.UserFeignClient;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.verify;
         "resilience4j.circuitbreaker.instances.userService.sliding-window-size=3",
         "resilience4j.circuitbreaker.instances.userService.minimum-number-of-calls=3",
         "resilience4j.circuitbreaker.instances.userService.failure-rate-threshold=100",
-        // 서킷 브레이커 카운트 제외
         "resilience4j.circuitbreaker.instances.userService.ignore-exceptions[0]=com.example.order_service.common.exception.external.ExternalClientException"
 })
 public class UserAdaptorCircuitBreakerTest {
@@ -49,21 +49,18 @@ public class UserAdaptorCircuitBreakerTest {
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
-        // 유저 서비스에서 연속으로 에러가 발생
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.getUserProfile(userId))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("USER-SERVICE 통신 장애");
         }
 
-        // 서킷 브레이커가 열림
         assertThatThrownBy(() -> adaptor.getUserProfile(userId))
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("USER-SERVICE 서킷 브레이커 열림")
+                .isInstanceOf(ExternalCircuitBreakerException.class)
+                .hasMessage("USER-SERVICE 서킷 차단")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
-        // 서킷 브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
         verify(client, times(3)).getUserProfile(anyLong());
     }
 
@@ -83,7 +80,6 @@ public class UserAdaptorCircuitBreakerTest {
         assertThatThrownBy(() -> adaptor.getUserProfile(userId))
                 .isInstanceOf(ExternalClientException.class);
 
-        // 반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).getUserProfile(anyLong());
     }
 }
