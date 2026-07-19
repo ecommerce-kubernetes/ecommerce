@@ -2,6 +2,7 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +24,19 @@ public class UserAdaptor {
     private final UserFeignClient client;
     private final ExternalExceptionTranslator translator;
 
+    @Deprecated
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileFallback")
-    public UserClientResponse.Profile getUserProfile(Long userId) {
+    public UserClientResponse.Profile getUserProfileDeprecated(Long userId) {
         return client.getUserProfile(userId);
     }
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
     public UserClientResponse.UserPoints getUserPoints(Long userId) {
         return client.getUserPoints(userId);
+    }
+
+    public UserProfileResponse getUserProfile(Long userId){
+        return null;
     }
 
     private UserClientResponse.Profile getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {

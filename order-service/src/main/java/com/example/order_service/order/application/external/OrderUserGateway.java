@@ -5,8 +5,10 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
@@ -36,26 +38,32 @@ public class OrderUserGateway {
      * @param userId 조회 대상 유저 아이디
      * @return 유저 기본정보, 배송 정보 결과 반환
      */
+    @Deprecated
     public OrderUserResult.Profile getUserProfile(Long userId) {
         UserClientResponse.Profile profile = fetchUserProfileWithTranslation(userId);
         return mapper.toResult(profile);
     }
 
-    public OrdererProfileResult getOrdererProfile(Long userId) {
+    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
         return null;
     }
 
-    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
+    public OrdererProfileResult getOrdererProfile(Long userId) {
+        UserProfileResponse response = executeGetUserProfile(userId);
+        return mapper.toOrdererProfileResult(response);
+    }
+
+    private UserProfileResponse executeGetUserProfile(Long userId) {
         try {
             return userAdaptor.getUserProfile(userId);
         } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(UserGatewayErrorCode.USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(UserGatewayErrorCode.USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(UserGatewayErrorCode.USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(UserGatewayErrorCode.USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 

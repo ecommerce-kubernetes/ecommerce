@@ -26,14 +26,14 @@ public class UserAdaptorTest {
 
     @Test
     @DisplayName("유저 프로필을 조회한다")
-    void getUserProfile() {
+    void getUserProfileDeprecated() {
         //given
         Long userId = 1L;
         UserClientResponse.Profile mockResponse = Instancio.create(UserClientResponse.Profile.class);
         given(client.getUserProfile(anyLong()))
                 .willReturn(mockResponse);
         //when
-        UserClientResponse.Profile response = userAdaptor.getUserProfile(userId);
+        UserClientResponse.Profile response = userAdaptor.getUserProfileDeprecated(userId);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -42,7 +42,7 @@ public class UserAdaptorTest {
 
     @Test
     @DisplayName("유저 프로필 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
-    void getUserProfile_fallback_delegate_to_translator() throws Throwable {
+    void getUserProfile_Deprecated_fallback_delegate_to_translator() throws Throwable {
         //given
         Long userId = 1L;
         RuntimeException feignException = new RuntimeException("feignClient 예외");
