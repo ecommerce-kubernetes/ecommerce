@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface UserFeignClient {
 
     @Deprecated
+    @GetMapping("/deprecate")
     UserClientResponse.Profile getUserProfileDeprecated(@PathVariable("userId") Long userId);
 
     @GetMapping("/internal/users/{userId}/profile")

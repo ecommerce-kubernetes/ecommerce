@@ -2,6 +2,7 @@ package com.example.order_service.infrastructure.dto.response;
 
 import lombok.Builder;
 
+@Deprecated
 public class UserClientResponse {
 
     @Builder
