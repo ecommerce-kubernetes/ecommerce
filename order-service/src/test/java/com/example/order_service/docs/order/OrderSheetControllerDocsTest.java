@@ -321,12 +321,12 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .build();
         ProductOptionSnapshot option1 = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot option2 = ProductOptionSnapshot.of("색상", "BLUE");
-        OrderSheetResult.ItemCouponResult itemCoupon = OrderSheetResult.ItemCouponResult.builder()
+        OrderSheetResult.AppliedItemCouponResult itemCoupon = OrderSheetResult.AppliedItemCouponResult.builder()
                 .itemCouponId(1L)
                 .name("청바지 1000원 할인 쿠폰")
                 .appliedDiscountAmount(Money.wons(1000L))
                 .build();
-        OrderSheetResult.CartCouponResult cartCoupon = OrderSheetResult.CartCouponResult.builder()
+        OrderSheetResult.AppliedCartCouponResult cartCoupon = OrderSheetResult.AppliedCartCouponResult.builder()
                 .cartCouponId(2L)
                 .name("장바구니 1000원 할인")
                 .appliedDiscountAmount(Money.wons(1000L))

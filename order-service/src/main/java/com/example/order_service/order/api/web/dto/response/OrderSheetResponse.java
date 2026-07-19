@@ -105,7 +105,7 @@ public record OrderSheetResponse(
             String name,
             Long appliedDiscountAmount
     ) {
-        public static CartCouponInfo from(OrderSheetResult.CartCouponResult cartCoupon) {
+        public static CartCouponInfo from(OrderSheetResult.AppliedCartCouponResult cartCoupon) {
             return CartCouponInfo.builder()
                     .cartCouponId(cartCoupon.cartCouponId())
                     .name(cartCoupon.name())
@@ -200,7 +200,7 @@ public record OrderSheetResponse(
             String name,
             Long appliedDiscountAmount
     ) {
-        public static ItemCouponInfo from(OrderSheetResult.ItemCouponResult itemCoupon) {
+        public static ItemCouponInfo from(OrderSheetResult.AppliedItemCouponResult itemCoupon) {
             return ItemCouponInfo.builder()
                     .itemCouponId(itemCoupon.itemCouponId())
                     .name(itemCoupon.name())

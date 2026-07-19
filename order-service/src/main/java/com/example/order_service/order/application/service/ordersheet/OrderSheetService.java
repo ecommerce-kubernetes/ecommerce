@@ -132,6 +132,29 @@ public class OrderSheetService {
         return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
 
+    public OrderSheetResult applyItemCoupon(ApplyItemCouponCommand command) {
+        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
+
+        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+        }
+
+        ItemCouponResult itemCouponResult = orderCouponGateway.getItemCoupon(command.userId(), command.itemCouponId());
+
+        orderSheet.applyItemCoupon(command.orderSheetItemId(), itemCouponResult.itemCoupon(), pointUsagePolicy);
+
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+
+        OrdererPointResult ordererPoints = orderUserGateway.getOrdererPoints(command.userId());
+        Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
+        return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
+    }
+
+    public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
+        return null;
+    }
+
     /**
      * 주문서 사용 포인트 변경
      * <p>
@@ -142,26 +165,6 @@ public class OrderSheetService {
      * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
      */
     public OrderSheetResult applyPoints(ApplyPointCommand command) {
-        return null;
-    }
-
-    /**
-     * 주문서 상품 쿠폰 변경
-     * <p>
-     * 주문서 상품 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서의 가격 정보가 변경됨
-     * 쿠폰 변경으로 인해 주문서 적용 포인트가 사용 가능 포인트를 초과하는 경우 사용 가능 포인트로 주문서 적용 포인트가 조정됨
-     * </p>
-     *
-     * @param command 변경 아이템 쿠폰 정보
-     * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
-     */
-    public OrderSheetResult applyItemCoupon(ApplyItemCouponCommand command) {
-        return null;
-    }
-
-
-
-    public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
         return null;
     }
 

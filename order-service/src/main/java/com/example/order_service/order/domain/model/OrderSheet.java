@@ -79,7 +79,7 @@ public class OrderSheet {
 
     public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon, PointUsagePolicy pointPolicy) {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND));
         item.applyItemCoupon(itemCoupon);
 
         adjustUsedPointsByPolicy(pointPolicy);
@@ -190,23 +190,6 @@ public class OrderSheet {
         if (this.isExpired(currentTime)) {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
-    }
-
-    /**
-     * 주문서의 주문 상품을 반환
-     * <p>
-     * 주문서의 주문 상품중 파라미터의 상품 아이디와 동일한 주문 상품을 반환
-     * </p>
-     *
-     * @param sheetItemId 주문 상품 아이디
-     * @return 주문 상품
-     * @throws BusinessException 비지니스 예외
-     */
-    public OrderSheetItem getItem(String sheetItemId) {
-        return this.items.stream()
-                .filter(item -> item.getId().equals(sheetItemId))
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
     }
 
     /**

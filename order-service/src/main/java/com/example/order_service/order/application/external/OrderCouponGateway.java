@@ -10,6 +10,7 @@ import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -43,6 +44,10 @@ public class OrderCouponGateway {
         CouponCommand.Calculate couponCommand = mapper.toCommand(command);
         CouponClientResponse.Calculate response = fetchCouponWithTranslation(couponCommand);
         return mapper.toResult(response);
+    }
+
+    public ItemCouponResult getItemCoupon(Long userId, Long itemCouponId) {
+        return null;
     }
 
     private CouponClientResponse.Calculate fetchCouponWithTranslation(CouponCommand.Calculate command) {

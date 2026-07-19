@@ -6,17 +6,15 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.*;
+import com.example.order_service.order.application.service.ordersheet.dto.command.ApplyItemCouponCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
-import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
-import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
+import com.example.order_service.order.domain.policy.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
-import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
-import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -278,7 +276,6 @@ public class OrderSheetServiceTest {
                         Money.wons(1000L), Money.wons(1000L), Money.wons(42000L)
                 );
 
-
         assertThat(result.point())
                 .extracting("availablePoints", "maxUsablePoints")
                 .containsExactly(Money.wons(10000L), Money.wons(4300L));
@@ -318,8 +315,10 @@ public class OrderSheetServiceTest {
     @DisplayName("주문서 배송 정보를 변경한다")
     void updateShippingAddress(){
         //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
         UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(orderSheet.getId())
                 .userId(1L)
                 .receiverName("수령자")
                 .receiverPhone("010-9876-5432")
@@ -327,11 +326,7 @@ public class OrderSheetServiceTest {
                 .address("서울시 테헤란로 321")
                 .addressDetail("321동 1234호")
                 .build();
-
         OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
-
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
@@ -374,8 +369,10 @@ public class OrderSheetServiceTest {
     @DisplayName("주문서 배송 정보를 변경할때 주문서가 만료된 경우 예외가 발생한다")
     void updateShippingAddress_expired(){
         //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
         UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(orderSheet.getId())
                 .userId(1L)
                 .receiverName("수령자")
                 .receiverPhone("010-9876-5432")
@@ -383,9 +380,6 @@ public class OrderSheetServiceTest {
                 .address("서울시 테헤란로 321")
                 .addressDetail("321동 1234호")
                 .build();
-
-        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
@@ -393,6 +387,133 @@ public class OrderSheetServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰을 적용한다.")
+    void applyItemCoupon() {
+        //given
+        CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "바지 반값 할인 쿠폰", couponPolicy, 1);
+        ItemCouponResult couponResult = ItemCouponResult.builder()
+                .userId(1L)
+                .itemCoupon(itemCoupon)
+                .build();
+
+        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
+
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
+
+        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
+                .userId(1L)
+                .itemCouponId(1L)
+                .orderSheetId(orderSheet.getId())
+                .orderSheetItemId(orderSheetItem.getId())
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderCouponGateway.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
+        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
+        //when
+        OrderSheetResult result = orderSheetService.applyItemCoupon(command);
+        //then
+        assertThat(result.items())
+                .extracting("coupon.appliedDiscountAmount")
+                .containsExactly(Money.wons(4500L));
+
+        assertThat(result.items())
+                .extracting( "price.finalAmount")
+                .containsExactly(Money.wons(40500L));
+
+        assertThat(result.paymentSummary())
+                .extracting("totalOriginalAmount", "totalItemDiscount", "totalItemCouponDiscount",
+                        "cartCouponDiscount", "usedPoints", "totalPaymentAmount")
+                .containsExactly(
+                        Money.wons(50000L), Money.wons(5000L), Money.wons(4500L),
+                        Money.wons(1000L), Money.wons(1000L), Money.wons(38500L)
+                );
+
+        assertThat(result.point())
+                .extracting("availablePoints", "maxUsablePoints")
+                .containsExactly(Money.wons(10000L), Money.wons(3950L));
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰 적용 시, 주문서를 찾을 수 없으면 예외가 발생한다")
+    void applyItemCoupon_notFound_orderSheet() {
+        //given
+        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
+                .userId(1L)
+                .itemCouponId(1L)
+                .orderSheetId("unknownSheetId")
+                .orderSheetItemId("orderSheetItemId")
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
+    void applyItemCoupon_expired_orderSheet(){
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
+
+        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
+                .userId(1L)
+                .itemCouponId(1L)
+                .orderSheetId(orderSheet.getId())
+                .orderSheetItemId(orderSheetItem.getId())
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰 적용시 주문 항목을 찾을 수 없는 경우 예외가 발생한다.")
+    void applyItemCoupon_notFound_orderSheetItem(){
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+
+        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
+                .userId(1L)
+                .itemCouponId(1L)
+                .orderSheetId(orderSheet.getId())
+                .orderSheetItemId("unknownOrderSheetItemId")
+                .build();
+
+        CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "바지 반값 할인 쿠폰", couponPolicy, 1);
+        ItemCouponResult couponResult = ItemCouponResult.builder()
+                .userId(1L)
+                .itemCoupon(itemCoupon)
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderCouponGateway.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND);
     }
 
     private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
@@ -415,84 +536,6 @@ public class OrderSheetServiceTest {
                 .priceSnapshot(priceSnapshot)
                 .options(List.of(option1, option2))
                 .build();
-    }
-
-    @Nested
-    @DisplayName("배송 정보 수정")
-    class UpdateShippingAddress {
-
-        @Test
-        @DisplayName("배송 정보를 수정한다")
-        void updateShippingAddress() {
-            //given
-            String sheetId = "sheetId";
-            Long userId = 1L;
-            String newPhone = "010-9876-5432";
-            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::receiverPhone), newPhone)
-                    .create();
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
-                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
-                    .create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPoints(any())).willReturn(point);
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-        }
-
-        @Test
-        @DisplayName("주문서를 찾을 수 없으면 예외가 발생한다")
-        void updateShippingAddress_notFound() {
-            //given
-            String sheetId = "sheetId";
-            Long userId = 1L;
-            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
-                    .create();
-            given(repository.findById(any())).willReturn(Optional.empty());
-            //when
-            //then
-
-        }
-
-        @Test
-        @DisplayName("주문서가 만료되었으면 예외가 발생한다")
-        void updateShippingAddress_expired() {
-            //given
-            String sheetId = "sheetId";
-            Long userId = 1L;
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
-            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
-                    .create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-
-        }
-
-        @Test
-        @DisplayName("주문자가 아니면 예외가 발생한다")
-        void updateShippingAddress_no_permission() {
-            //given
-            String sheetId = "sheetId";
-            Long userId = 999L;
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
-                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
-                    .create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-
-        }
     }
 
     @Nested
@@ -591,55 +634,6 @@ public class OrderSheetServiceTest {
     }
 
     @Nested
-    @DisplayName("상품 쿠폰 수정")
-    class UpdateItemCoupon {
-
-        @Test
-        @DisplayName("상품 쿠폰을 해제한다")
-        void updateItemCoupon_clear_coupon() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            String sheetItemId = orderSheet.getItems().get(0).getId();
-            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getId(),
-                    sheetItemId, orderSheet.getOrderer().getUserId(), null);
-            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
-                    .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
-                    .create();
-            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(coupon);
-            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-            //then
-        }
-
-        @Test
-        @DisplayName("상품 쿠폰을 수정한다")
-        void updateItemCoupon() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            String sheetItemId = orderSheet.getItems().get(0).getId();
-            Long targetProductVariantId = orderSheet.getItems().get(0).getProductVariantId();
-            Long newCouponId = 10L;
-            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getId(),
-                    sheetItemId, orderSheet.getOrderer().getUserId(), newCouponId);
-            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
-                    .generate(field(OrderCouponResult.Calculate::itemCoupons), gen -> gen.collection().size(1))
-                    .set(field(OrderCouponResult.ItemCoupon::productVariantId), targetProductVariantId)
-                    .create();
-            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(coupon);
-            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-            //then
-
-        }
-    }
-
-    @Nested
     @DisplayName("장바구니 쿠폰 변경")
     class UpdateCartCoupon {
 
@@ -694,8 +688,6 @@ public class OrderSheetServiceTest {
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
         ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
-//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
         List<ProductOptionSnapshot> options = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "BLUE")

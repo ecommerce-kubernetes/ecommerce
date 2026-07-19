@@ -170,7 +170,7 @@ public class OrderSheetTest {
         assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon, pointPolicy))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_ITEM_NOT_FOUND);
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND);
     }
 
     @Test

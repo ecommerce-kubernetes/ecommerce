@@ -15,12 +15,11 @@ public record OrderSheetResult(
         Orderer orderer,
         ShippingAddress shippingAddress,
         List<OrderSheetItemResult> items,
-        CartCouponResult cartCoupon,
+        AppliedCartCouponResult cartCoupon,
         PaymentSummaryResult paymentSummary,
         PointResult point,
 
         LocalDateTime expiresAt
-
 ) {
 
     public static OrderSheetResult of(OrderSheet orderSheet, Money availablePoints, Money maxUsablePoints) {
@@ -29,7 +28,7 @@ public record OrderSheetResult(
                 .orderer(orderSheet.getOrderer())
                 .shippingAddress(orderSheet.getShippingAddress())
                 .items(OrderSheetItemResult.from(orderSheet.getItems()))
-                .cartCoupon(CartCouponResult.from(orderSheet))
+                .cartCoupon(AppliedCartCouponResult.from(orderSheet))
                 .paymentSummary(PaymentSummaryResult.from(orderSheet))
                 .point(PointResult.of(availablePoints, maxUsablePoints))
                 .expiresAt(orderSheet.getExpiresAt())
@@ -43,7 +42,7 @@ public record OrderSheetResult(
             ProductSnapshot product,
             List<ProductOptionSnapshot> options,
             ItemPriceResult price,
-            ItemCouponResult coupon
+            AppliedItemCouponResult coupon
     ) {
         public static OrderSheetItemResult from(OrderSheetItem orderSheetItem) {
             return OrderSheetItemResult.builder()
@@ -52,7 +51,7 @@ public record OrderSheetResult(
                     .product(orderSheetItem.getProductSnapshot())
                     .options(orderSheetItem.getOptionSnapshots())
                     .price(ItemPriceResult.from(orderSheetItem))
-                    .coupon(ItemCouponResult.from(orderSheetItem))
+                    .coupon(AppliedItemCouponResult.from(orderSheetItem))
                     .build();
         }
 
@@ -62,13 +61,13 @@ public record OrderSheetResult(
     }
 
     @Builder
-    public record CartCouponResult(
+    public record AppliedCartCouponResult(
             Long cartCouponId,
             String name,
             Money appliedDiscountAmount
     ) {
-        public static CartCouponResult from(OrderSheet orderSheet) {
-            return CartCouponResult.builder()
+        public static AppliedCartCouponResult from(OrderSheet orderSheet) {
+            return AppliedCartCouponResult.builder()
                     .cartCouponId(orderSheet.getCartCoupon().getCartCouponId())
                     .name(orderSheet.getCartCoupon().getName())
                     .appliedDiscountAmount(orderSheet.calculateCartCouponDiscount())
@@ -116,13 +115,13 @@ public record OrderSheetResult(
     }
 
     @Builder
-    public record ItemCouponResult(
+    public record AppliedItemCouponResult(
             Long itemCouponId,
             String name,
             Money appliedDiscountAmount
     ) {
-        public static ItemCouponResult from(OrderSheetItem orderSheetItem) {
-            return ItemCouponResult.builder()
+        public static AppliedItemCouponResult from(OrderSheetItem orderSheetItem) {
+            return AppliedItemCouponResult.builder()
                     .itemCouponId(orderSheetItem.getItemCouponSnapshot().getItemCouponId())
                     .name(orderSheetItem.getItemCouponSnapshot().getName())
                     .appliedDiscountAmount(orderSheetItem.calculateCouponDiscount())
