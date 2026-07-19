@@ -66,7 +66,7 @@ public class OrderSheetServiceTest {
     @Spy
     private OrderSheetProperties properties = new OrderSheetProperties(30L, BigDecimal.valueOf(0.1));
     @Spy
-    private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(properties);
+    private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 

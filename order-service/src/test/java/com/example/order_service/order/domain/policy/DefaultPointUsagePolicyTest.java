@@ -17,8 +17,7 @@ class DefaultPointUsagePolicyTest {
         //given
         BigDecimal limitRate = BigDecimal.valueOf(0.1);
         Money baseAmount = Money.wons(10000L);
-        OrderSheetProperties properties = new OrderSheetProperties(10, limitRate);
-        DefaultPointUsagePolicy policy = new DefaultPointUsagePolicy(properties);
+        DefaultPointUsagePolicy policy = new DefaultPointUsagePolicy(limitRate);
         //when
         Money result = policy.calculateAvailablePoints(baseAmount);
         //then

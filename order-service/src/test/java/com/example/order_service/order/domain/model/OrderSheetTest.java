@@ -124,8 +124,7 @@ public class OrderSheetTest {
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", policy, 1);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointPolicy);
         //then
@@ -142,8 +141,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         orderSheet.applyPoints(usedPoints, pointPolicy);
 
         CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
@@ -166,8 +164,7 @@ public class OrderSheetTest {
         CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", couponPolicy, 1);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         //then
         assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon, pointPolicy))
@@ -188,8 +185,7 @@ public class OrderSheetTest {
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(5000L));
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
         //then
@@ -205,8 +201,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         //then
         assertThatThrownBy(() -> orderSheet.applyCartCoupon(null, pointPolicy))
@@ -226,8 +221,7 @@ public class OrderSheetTest {
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(50000L));
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         //then
         assertThatThrownBy(() -> orderSheet.applyCartCoupon(cartCoupon, pointPolicy))
@@ -246,8 +240,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
 
         orderSheet.applyPoints(usedPoints, pointPolicy);
 
@@ -269,8 +262,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         orderSheet.applyPoints(usedPoints, pointPolicy);
         //then
@@ -287,8 +279,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         //then
         assertThatThrownBy(() -> orderSheet.applyPoints(usedPoints, pointPolicy))
@@ -306,8 +297,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        DefaultPointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointPolicy);
         //then
@@ -365,8 +355,7 @@ public class OrderSheetTest {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
 
-        OrderSheetProperties properties = new OrderSheetProperties(30, BigDecimal.valueOf(0.1));
-        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(properties);
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, Money.wons(5000L));

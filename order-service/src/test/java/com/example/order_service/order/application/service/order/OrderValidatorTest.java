@@ -25,8 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class OrderValidatorTest {
 
     private final OrderValidator orderValidator = new OrderValidator();
-    private final OrderSheetProperties properties = new OrderSheetProperties(30L, BigDecimal.valueOf(0.1));
-    private final PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(properties);
+    private final PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
 
     @Test
     @DisplayName("주문 상품 결과에 누락된 상품이 있으면 예외가 발생한다")

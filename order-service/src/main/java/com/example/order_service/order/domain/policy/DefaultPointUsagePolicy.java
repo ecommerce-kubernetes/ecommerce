@@ -10,11 +10,10 @@ import java.math.BigDecimal;
 @Component
 @RequiredArgsConstructor
 public class DefaultPointUsagePolicy implements PointUsagePolicy {
-    private final OrderSheetProperties properties;
+    private final BigDecimal limitRate;
 
     @Override
     public Money calculateAvailablePoints(Money baseAmount) {
-        BigDecimal limitRate = properties.pointLimitRate();
         return baseAmount.multiple(limitRate);
     }
 }
