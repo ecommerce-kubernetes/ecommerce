@@ -165,16 +165,6 @@ public class OrderValidatorTest {
     void validateOrderItemCoupon() {
         OrderSheet orderSheet = createOrderSheet();
         OrderProductResult productResult = createValidProductList(orderSheet);
-//        List<OrderCouponResult.ItemCoupon> invalidItemCoupons = orderSheet.getItems().stream()
-//                .map(item -> {
-//                    ItemCouponSnapshot itemCoupon = item.getItemCouponSnapshot().getItemCouponId() == null ?
-//                            ItemCouponSnapshot.empty() : ItemCouponSnapshot.of(item.getCouponId(), item.getItemCouponSnapshot().getName(),
-//                            item.getItemCouponSnapshot().getDiscountAmount().add(Money.wons(1000L)));
-//                    return OrderCouponResult.ItemCoupon.builder()
-//                            .productVariantId(item.getProductVariantId())
-//                            .itemCoupon(itemCoupon)
-//                            .build();
-//                }).toList();
         OrderCouponResult.Calculate couponResult = OrderCouponResult.Calculate.builder()
                 .cartCoupon(orderSheet.getCartCoupon())
 //                .itemCoupons(invalidItemCoupons)
@@ -193,7 +183,6 @@ public class OrderValidatorTest {
     void validateOrderPoints() {
         //given
         OrderSheet orderSheet = createOrderSheet();
-        orderSheet.changeUsedPoints(Money.wons(1000L), Money.wons(10000L), pointUsagePolicy);
         OrderProductResult productList = createValidProductList(orderSheet);
         OrderCouponResult.Calculate calculate = createValidCouponResult(orderSheet);
         OrderUserResult.UserPoint pointResult = OrderUserResult.UserPoint.builder()

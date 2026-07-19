@@ -99,21 +99,18 @@ public class OrderSheetService {
         }
     }
 
-    /**
-     * 사용자 주문서 조회
-     * <p>
-     * 주문 정보 및 보유 포인트와 주문에 사용할 수 있는 최대 포인트를 반환
-     * </p>
-     *
-     * @param sheetId 조회 주문서 아이디
-     * @param userId  조회 유저 아이디
-     * @return 저장된 주문서의 전체 정보(상품, 쿠폰, 배송 정보 등등)
-     */
-    public OrderSheetResult getOrderSheet(String sheetId, Long userId) {
-        OrderSheet orderSheet = getValidateOrderSheet(sheetId, userId);
-        OrderUserResult.UserPoint userPoints = orderUserGateway.getUserPoints(userId);
-        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        return null;
+    public OrderSheetResult getOrderSheet(String orderSheetId, Long userId) {
+        OrderSheet orderSheet = repository.findByIdAndOrdererId(orderSheetId, userId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
+
+        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+        }
+
+        OrdererPointResult ordererPoints = orderUserGateway.getOrdererPoints(userId);
+        Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
+
+        return OrderSheetResult.of(orderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
 
     /**

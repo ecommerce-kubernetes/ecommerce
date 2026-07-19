@@ -10,6 +10,7 @@ import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
 import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -49,6 +50,10 @@ public class OrderUserGateway {
         } catch (ExternalCircuitBreakerException e) {
             throw new DefaultGatewayException(UserGatewayErrorCode.USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
+    }
+
+    public OrdererPointResult getOrdererPoints(Long userId) {
+        return null;
     }
 
     /**

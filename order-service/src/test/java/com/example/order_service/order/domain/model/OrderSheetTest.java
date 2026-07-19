@@ -297,6 +297,14 @@ public class OrderSheetTest {
                 .isEqualTo(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
     }
 
+    @Test
+    @DisplayName("")
+    void calculateMaxUsablePoints(){
+        //given
+        //when
+        //then
+    }
+
     private OrderSheetItem createOrderSheetItem() {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));

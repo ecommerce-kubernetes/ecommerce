@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -126,7 +125,7 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private Money calculateCartCouponDiscount() {
+    public Money calculateCartCouponDiscount() {
         if (this.cartCoupon == null) {
             return Money.ZERO;
         }
@@ -147,6 +146,14 @@ public class OrderSheet {
         }
     }
 
+    public boolean isExpired(LocalDateTime currentTime) {
+        return currentTime.isAfter(this.expiresAt);
+    }
+
+    public Money calculateMaxUsablePoints(PointUsagePolicy pointPolicy) {
+        return null;
+    }
+
     /**
      * 주문 접근 확인
      * <p>
@@ -161,46 +168,8 @@ public class OrderSheet {
             throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
         if (this.isExpired(currentTime)) {
-            throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
-    }
-
-    /**
-     * 주문서 만료 확인
-     * <p>
-     * 현재 주문서의 만료 여부를 반환
-     * </p>
-     *
-     * @return 주문서 만료 여부
-     */
-    public boolean isExpired(LocalDateTime currentTime) {
-        return currentTime.isAfter(this.expiresAt);
-    }
-
-    /**
-     * 주문서의 남은 만료 시간 반환
-     * <p>
-     * 현재 주문서의 만료 까지 남은 시간을 반환
-     * </p>
-     *
-     * @return 만료까지 남은 시간
-     */
-    public Duration getRemainingTtl(LocalDateTime currentTime) {
-        return Duration.between(currentTime, this.expiresAt);
-    }
-
-    /**
-     * 적용 포인트 수정
-     * <p>
-     * 주문서의 적용 포인트를 파라미터 포인트로 적용한다
-     * </p>
-     *
-     * @param usedPoints  적용 포인트
-     * @param ownedPoints 보유중인 포인트
-     * @param policy      포인트 할인 정책
-     * @throws BusinessException 비지니스 예외
-     */
-    public void changeUsedPoints(Money usedPoints, Money ownedPoints, PointUsagePolicy policy) {
     }
 
     /**
@@ -218,50 +187,6 @@ public class OrderSheet {
                 .filter(item -> item.getId().equals(sheetItemId))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
-    }
-
-    /**
-     * 사용 가능한 포인트를 반환
-     * <p>
-     * 주문에 사용할 수 있는 최대 포인트를 반환한다
-     * </p>
-     *
-     * @param ownedPoints 보유 포인트
-     * @param pointPolicy 포인트 정책
-     * @return 사용할 수 있는 최대 포인트
-     */
-    public Money calcAvailablePoints(Money ownedPoints, PointUsagePolicy pointPolicy) {
-        return null;
-    }
-
-    /**
-     * 상품 쿠폰을 변경한다
-     * <p>
-     * 상품에 적용된 상품 쿠폰을 새로운 상품 쿠폰으로 변경한다
-     * 상품 쿠폰을 변경하여 주문서에 적용된 포인트가 적용 가능 최대 포인트를 초과하는 경우 적용 가능 최대 포인트로 조정된다
-     * </p>
-     *
-     * @param sheetItemId       주문 상품 아이디
-     * @param newCouponSnapshot 새 쿠폰 정보
-     * @param ownedPoints       보유 포인트
-     * @param pointPolicy       포인트 정책
-     */
-    public void changeItemCoupon(String sheetItemId, ItemCouponSnapshot newCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
-    }
-
-    /**
-     * 장바구니 쿠폰을 변경한다
-     * <p>
-     * 주문서에 적용된 장바구니 쿠폰을 새로운 장바구니 쿠폰으로 변경한다
-     * 장바구니 쿠폰을 변경하여 주문서에 적용된 포인트가 적용 가능 최대 포인트를 초과하는 경우 적용 가능 최대 포인트로 조정된다
-     * </p>
-     *
-     * @param newCartCouponSnapshot 새 장바구니 쿠폰 정보
-     * @param ownedPoints           보유 포인트
-     * @param pointPolicy           포인트 정책
-     */
-    public void changeCartCoupon(CartCouponSnapshot newCartCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
-
     }
 
     /**
@@ -299,5 +224,21 @@ public class OrderSheet {
     public boolean hasItemCoupon() {
         return this.items.stream()
                 .anyMatch(OrderSheetItem::hasCoupon);
+    }
+
+    public Money calculateTotalOriginalAmount() {
+        return null;
+    }
+
+    public Money calculateTotalItemDiscount() {
+        return null;
+    }
+
+    public Money calculateTotalItemCouponDiscount() {
+        return null;
+    }
+
+    public Money calculateTotalPaymentAmount() {
+        return null;
     }
 }

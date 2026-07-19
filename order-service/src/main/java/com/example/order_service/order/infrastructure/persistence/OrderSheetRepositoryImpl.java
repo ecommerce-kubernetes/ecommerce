@@ -47,6 +47,11 @@ public class OrderSheetRepositoryImpl implements OrderSheetRepository {
         }
     }
 
+    @Override
+    public Optional<OrderSheet> findByIdAndOrdererId(String orderSheetId, Long ordererId) {
+        return Optional.empty();
+    }
+
     private OrderSheetRedisEntity stringToEntity(String str) {
         try {
             return objectMapper.readValue(str, OrderSheetRedisEntity.class);

@@ -9,10 +9,12 @@ import com.example.order_service.order.application.external.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
@@ -39,8 +41,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.instancio.Select.field;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -239,6 +240,81 @@ public class OrderSheetServiceTest {
                 .isEqualTo(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
     }
 
+    @Test
+    @DisplayName("주문서를 조회한다")
+    void getOrderSheet() {
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+
+        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        //when
+        OrderSheetResult result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
+        //then
+        assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
+        assertThat(result.orderer()).isEqualTo(orderSheet.getOrderer());
+        assertThat(result.shippingAddress()).isEqualTo(orderSheet.getShippingAddress());
+
+        assertThat(result.items())
+                .extracting("price.lineTotal", "price.finalAmount")
+                .containsExactly(
+                        tuple(Money.wons(45000L), Money.wons(44000L))
+                );
+
+        assertThat(result.items())
+                .extracting("coupon.appliedDiscountAmount")
+                .containsExactly(
+                        tuple(Money.wons(1000L))
+                );
+
+        assertThat(result.cartCoupon().appliedDiscountAmount()).isEqualTo(Money.wons(1000L));
+
+        assertThat(result.paymentSummary())
+                .extracting("totalOriginalAmount", "totalItemDiscount", "totalItemCouponDiscount",
+                        "cartCouponDiscount", "usedPoints", "totalPaymentAmount")
+                .containsExactly(
+                        Money.wons(50000L), Money.wons(5000L), Money.wons(1000L),
+                        Money.wons(1000L), Money.wons(1000L), Money.wons(42000L)
+                );
+
+
+        assertThat(result.point())
+                .extracting("availablePoints", "maxUsablePoints")
+                .containsExactly(Money.wons(10000L), Money.wons(4300L));
+    }
+
+    @Test
+    @DisplayName("주문서를 찾을 수 없는 경우 예외가 발생한다")
+    void getOrderSheet_notFound() {
+        //given
+        String orderSheetId = "notFound";
+        Long userId = 1L;
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheetId, userId))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("주문서가 만료된 경우 예외가 발생한다")
+    void getOrderSheet_expired() {
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId()))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
+    }
+
     private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         return OrdererProfileResult.builder()
@@ -259,75 +335,6 @@ public class OrderSheetServiceTest {
                 .priceSnapshot(priceSnapshot)
                 .options(List.of(option1, option2))
                 .build();
-    }
-
-    @Nested
-    @DisplayName("주문서 조회")
-    class GetOrderSheet {
-
-        @Test
-        @DisplayName("주문서를 조회한다")
-        void getOrderSheet() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
-                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
-                    .create();
-            Money expectedAvailablePoints = orderSheet.calcAvailablePoints(point.ownedPoints(), pointUsagePolicy);
-            given(repository.findById(anyString())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
-            //when
-            OrderSheetResult result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
-            //then
-            assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
-            assertThat(result.orderer().getUserId()).isEqualTo(orderSheet.getOrderer().getUserId());
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(expectedAvailablePoints);
-        }
-
-        @Test
-        @DisplayName("주문서를 찾을 수 없는 경우 예외가 발생한다")
-        void getOrderSheet_notFound() {
-            //given
-            String sheetId = "notFound";
-            Long userId = 1L;
-            given(repository.findById(any())).willReturn(Optional.empty());
-            //when
-            //then
-            assertThatThrownBy(() -> orderSheetService.getOrderSheet(sheetId, userId))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("주문자가 아닌 경우 예외가 발생한다")
-        void getOrderSheet_not_match_ordererId() {
-            //given
-            Long userId = 999L;
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-            assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getId(), userId))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_ACCESS_DENIED);
-        }
-
-        @Test
-        @DisplayName("주문서가 만료된 경우 예외가 발생한다")
-        void getOrderSheet_expired() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-            assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId()))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_EXPIRED);
-        }
     }
 
     @Nested
@@ -615,5 +622,30 @@ public class OrderSheetServiceTest {
         );
         OrderSheetItem sheetItem = OrderSheetItem.create( product, price, 1, options);
         return OrderSheet.create(orderer, List.of(sheetItem),LocalDateTime.now(clock).plusMinutes(30));
+    }
+
+    private OrderSheet createOrderSheet(LocalDateTime expiresAt) {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        List<ProductOptionSnapshot> options = List.of(
+                ProductOptionSnapshot.of("사이즈", "XL"),
+                ProductOptionSnapshot.of("색상", "BLUE")
+        );
+
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
+
+        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt);
+
+        orderSheet.changeShippingAddress(shippingAddress);
+        orderSheet.applyItemCoupon(orderSheetItem.getId(), itemCoupon, pointUsagePolicy);
+        orderSheet.applyCartCoupon(cartCoupon, pointUsagePolicy);
+
+        orderSheet.applyPoints(Money.wons(1000L), pointUsagePolicy);
+        return orderSheet;
     }
 }
