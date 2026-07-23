@@ -1,5 +1,6 @@
 package com.example.order_service.infrastructure.adaptor;
 
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.verify;
         "resilience4j.circuitbreaker.instances.productService.sliding-window-size=3",
         "resilience4j.circuitbreaker.instances.productService.minimum-number-of-calls=3",
         "resilience4j.circuitbreaker.instances.productService.failure-rate-threshold=100",
-        // 서킷 브레이커 카운트 제외
         "resilience4j.circuitbreaker.instances.productService.ignore-exceptions[0]=com.example.order_service.common.exception.external.ExternalClientException"
 })
 public class ProductAdaptorCircuitBreakerTest {
@@ -47,26 +47,22 @@ public class ProductAdaptorCircuitBreakerTest {
     void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
         ProductCommand.BulkSearch command = Instancio.create(ProductCommand.BulkSearch.class);
-        // 타임 아웃 에러가 발생한다고 가정
         given(client.getProducts(any()))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
-        // 상품 서비스 에러
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.getProducts(command))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("PRODUCT-SERVICE 통신 장애");
         }
 
-        //서킷브레이커 open
         assertThatThrownBy(() -> adaptor.getProducts(command))
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("PRODUCT-SERVICE 서킷 브레이커 열림")
+                .isInstanceOf(ExternalCircuitBreakerException.class)
+                .hasMessage("PRODUCT-SERVICE 서킷 차단")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
-        //서킷브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
         verify(client, times(3)).getProducts(any());
     }
     
@@ -86,7 +82,6 @@ public class ProductAdaptorCircuitBreakerTest {
         assertThatThrownBy(() -> adaptor.getProducts(command))
                 .isInstanceOf(ExternalClientException.class);
 
-        //반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).getProducts(any());
     }
 }
