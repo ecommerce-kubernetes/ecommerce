@@ -8,10 +8,6 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
-    ORDER_COUPON_CLIENT_ERROR(HttpStatus.CONFLICT, "ORDER_COUPON_CLIENT_ERROR", "주문중 에러가 발생했습니다"),
-    ORDER_COUPON_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORDER_COUPON_SERVER_ERROR", "주문중 에러가 발생했습니다"),
-    ORDER_COUPON_UNAVAILABLE_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_COUPON_UNAVAILABLE_SERVER_ERROR", "주문중 일시적 에러가 발생했습니다 잠시후 다시 시도해주세요"),
-    ORDER_COUPON_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_COUPON_CIRCUIT_OPEN", "주문중 일시적인 에러가 발생했습니다 잠시후 다시 시도해주세요"),
 
     ORDER_USER_CLIENT_ERROR(HttpStatus.CONFLICT, "ORDER_USER_CLIENT_ERROR", "주문중 에러가 발생했습니다"),
     ORDER_USER_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORDER_USER_SERVER_ERROR", "주문중 에러가 발생했습니다"),

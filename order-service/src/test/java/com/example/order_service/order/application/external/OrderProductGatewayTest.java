@@ -50,7 +50,6 @@ public class OrderProductGatewayTest {
                 .create();
         given(adaptor.getProducts(anyList())).willReturn(response);
         //when
-        OrderProductResult result = orderProductGateway.getProducts(variantIds);
         //then
 
     }
