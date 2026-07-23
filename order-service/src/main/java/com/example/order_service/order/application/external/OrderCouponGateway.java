@@ -9,6 +9,7 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.result.CartCouponResult;
 import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -73,6 +74,10 @@ public class OrderCouponGateway {
 
     @Deprecated
     public OrderCouponResult.Calculate calculate(OrderCouponCommand.Calculate command) {
+        return null;
+    }
+
+    public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {
         return null;
     }
 }

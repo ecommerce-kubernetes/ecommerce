@@ -151,7 +151,22 @@ public class OrderSheetService {
     }
 
     public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
-        return null;
+        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
+
+        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+        }
+
+        CartCouponResult cartCouponResult = orderCouponGateway.getCartCoupon(command.userId(), command.cartCouponId());
+
+        orderSheet.applyCartCoupon(cartCouponResult.cartCoupon(), pointUsagePolicy);
+
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+
+        OrdererPointResult ordererPoints = orderUserGateway.getOrdererPoints(command.userId());
+        Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
+        return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
 
     /**

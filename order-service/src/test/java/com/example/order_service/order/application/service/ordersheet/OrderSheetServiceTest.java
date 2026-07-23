@@ -6,10 +6,7 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.*;
-import com.example.order_service.order.application.service.ordersheet.dto.command.ApplyItemCouponCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.model.OrderSheet;
@@ -394,7 +391,7 @@ public class OrderSheetServiceTest {
     void applyItemCoupon() {
         //given
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "바지 반값 할인 쿠폰", couponPolicy, 1);
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
         ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
         OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
@@ -405,7 +402,7 @@ public class OrderSheetServiceTest {
 
         ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
                 .userId(1L)
-                .itemCouponId(1L)
+                .itemCouponId(10L)
                 .orderSheetId(orderSheet.getId())
                 .orderSheetItemId(orderSheetItem.getId())
                 .build();
@@ -444,7 +441,7 @@ public class OrderSheetServiceTest {
         //given
         ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
                 .userId(1L)
-                .itemCouponId(1L)
+                .itemCouponId(10L)
                 .orderSheetId("unknownSheetId")
                 .orderSheetItemId("orderSheetItemId")
                 .build();
@@ -468,7 +465,7 @@ public class OrderSheetServiceTest {
 
         ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
                 .userId(1L)
-                .itemCouponId(1L)
+                .itemCouponId(10L)
                 .orderSheetId(orderSheet.getId())
                 .orderSheetItemId(orderSheetItem.getId())
                 .build();
@@ -491,13 +488,13 @@ public class OrderSheetServiceTest {
 
         ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
                 .userId(1L)
-                .itemCouponId(1L)
+                .itemCouponId(10L)
                 .orderSheetId(orderSheet.getId())
                 .orderSheetItemId("unknownOrderSheetItemId")
                 .build();
 
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "바지 반값 할인 쿠폰", couponPolicy, 1);
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
         ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
@@ -508,6 +505,89 @@ public class OrderSheetServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰을 적용한다")
+    void applyCartCoupon() {
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+
+        ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
+                .userId(1L)
+                .cartCouponId(20L)
+                .orderSheetId(orderSheet.getId())
+                .build();
+
+        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
+
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(20L, "장바구니 5% 할인 쿠폰", new RateCouponDiscountPolicy(5, Money.wons(50000L)), Money.wons(30000L));
+        CartCouponResult cartCouponResult = CartCouponResult.builder().cartCoupon(cartCoupon).build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderCouponGateway.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
+        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        //when
+        OrderSheetResult result = orderSheetService.applyCartCoupon(command);
+        //then
+        assertThat(result.cartCoupon())
+                .extracting("cartCouponId", "appliedDiscountAmount")
+                .containsExactly(
+                        20L, Money.wons(2200L)
+                );
+
+        assertThat(result.paymentSummary())
+                .extracting("cartCouponDiscount", "usedPoints", "totalPaymentAmount")
+                .containsExactly(
+                        Money.wons(2200L), Money.wons(1000L), Money.wons(40800L)
+                );
+
+        assertThat(result.point())
+                .extracting("availablePoints", "maxUsablePoints")
+                .containsExactly(Money.wons(10000L), Money.wons(4180L));
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 쿠폰 적용 시, 주문서를 찾을 수 없으면 예외가 발생한다")
+    void applyCartCoupon_notFound_orderSheet() {
+        //given
+        ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
+                .userId(1L)
+                .cartCouponId(20L)
+                .orderSheetId("unknownSheetId")
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyCartCoupon(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
+    void applyCartCoupon_expired_orderSheet(){
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+
+        ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
+                .userId(1L)
+                .cartCouponId(20L)
+                .orderSheetId(orderSheet.getId())
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyCartCoupon(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
     }
 
     private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
