@@ -3,6 +3,7 @@ package com.example.order_service.infrastructure.client;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
@@ -124,44 +125,40 @@ public class UserFeignClientTest {
                 .isEqualTo("INTERNAL_SERVER_ERROR");
     }
 
-    @Nested
-    @DisplayName("포인트 잔액 조회")
-    class GetUserPoints {
-
-        @Test
-        @DisplayName("사용자의 포인트 잔액을 조회한다")
-        void getUserPoints() {
-            //given
-            Long userId = 1L;
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("사용자의 포인트 잔액을 조회한다")
+    void getUserPoints() {
+        //given
+        Long userId = 1L;
+        String mockJsonResponse = """
                     {
                         "userId": 1,
-                        "ownedPoints": 10000
+                        "availablePoints": 10000
                     }
                     """;
-            UserClientResponse.UserPoints expected = UserClientResponse.UserPoints.builder()
-                    .userId(1L)
-                    .ownedPoints(10000L)
-                    .build();
-            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.OK.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            UserClientResponse.UserPoints response = client.getUserPoints(userId);
-            //then
-            assertThat(response)
-                    .usingRecursiveComparison()
-                    .isEqualTo(expected);
-        }
+        UserPointsResponse expected = UserPointsResponse.builder()
+                .userId(1L)
+                .availablePoints(10000L)
+                .build();
+        stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(mockJsonResponse)));
+        //when
+        UserPointsResponse response = client.getUserPoints(userId);
+        //then
+        assertThat(response)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+    }
 
-        @Test
-        @DisplayName("사용자 포인트 잔액 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
-        void getUserPoints_thrown_client_error_response() {
-            //given
-            Long userId = 1L;
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("사용자 포인트 잔액 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
+    void getUserPoints_thrown_client_error_response() {
+        //given
+        Long userId = 1L;
+        String mockJsonResponse = """
                     {
                         "code": "NOT_FOUND_USER",
                         "message": "유저를 찾을 수 없습니다",
@@ -169,26 +166,26 @@ public class UserFeignClientTest {
                         "path": "/internal/users/1/points"
                     }
                     """;
-            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.NOT_FOUND.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.getUserPoints(userId))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("유저를 찾을 수 없습니다")
-                    .extracting("errorCode")
-                    .isEqualTo("NOT_FOUND_USER");
-        }
+        stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(mockJsonResponse)));
+        //when
+        //then
+        assertThatThrownBy(() -> client.getUserPoints(userId))
+                .isInstanceOf(ExternalClientException.class)
+                .hasMessage("유저를 찾을 수 없습니다")
+                .extracting("errorCode")
+                .isEqualTo("NOT_FOUND_USER");
+    }
 
-        @Test
-        @DisplayName("사용자 포인트 잔액 조회시 서버 에러 응답이 반환되면 예외가 발생한다")
-        void getUserPoints_thrown_server_error_response() {
-            //given
-            Long userId = 1L;
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("사용자 포인트 잔액 조회시 서버 에러 응답이 반환되면 예외가 발생한다")
+    void getUserPoints_thrown_server_error_response() {
+        //given
+        Long userId = 1L;
+        String mockJsonResponse = """
                     {
                         "code": "INTERNAL_SERVER_ERROR",
                         "message": "알 수 없는 에러가 발생했습니다",
@@ -196,18 +193,17 @@ public class UserFeignClientTest {
                         "path": "/internal/users/1/points"
                     }
                     """;
-            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.NOT_FOUND.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.getUserPoints(userId))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("알 수 없는 에러가 발생했습니다")
-                    .extracting("errorCode")
-                    .isEqualTo("INTERNAL_SERVER_ERROR");
-        }
+        stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(mockJsonResponse)));
+        //when
+        //then
+        assertThatThrownBy(() -> client.getUserPoints(userId))
+                .isInstanceOf(ExternalClientException.class)
+                .hasMessage("알 수 없는 에러가 발생했습니다")
+                .extracting("errorCode")
+                .isEqualTo("INTERNAL_SERVER_ERROR");
     }
 }

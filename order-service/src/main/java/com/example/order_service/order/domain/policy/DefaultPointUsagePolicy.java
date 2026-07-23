@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-@Component
 @RequiredArgsConstructor
 public class DefaultPointUsagePolicy implements PointUsagePolicy {
     private final BigDecimal limitRate;

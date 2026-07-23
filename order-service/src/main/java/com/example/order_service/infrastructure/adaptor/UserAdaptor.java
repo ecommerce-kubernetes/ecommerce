@@ -2,6 +2,7 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
@@ -24,27 +25,33 @@ public class UserAdaptor {
     private final UserFeignClient client;
     private final ExternalExceptionTranslator translator;
 
-    @Deprecated
-    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileDeprecatedFallback")
-    public UserClientResponse.Profile getUserProfileDeprecated(Long userId) {
-       return null;
-    }
-
-    @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
-    public UserClientResponse.UserPoints getUserPoints(Long userId) {
-        return client.getUserPoints(userId);
-    }
-
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileFallback")
     public UserProfileResponse getUserProfile(Long userId){
         return client.getUserProfile(userId);
+    }
+
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
+    public UserPointsResponse getUserPoints(Long userId) {
+        return client.getUserPoints(userId);
     }
 
     private UserProfileResponse getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
 
-    private UserClientResponse.UserPoints getUserPointsFallback(Long userId, Throwable throwable) throws Throwable {
+    private UserPointsResponse getUserPointsFallback(Long userId, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
+    }
+
+    @Deprecated
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileDeprecatedFallback")
+    public UserClientResponse.Profile getUserProfileDeprecated(Long userId) {
+        return null;
+    }
+
+    @Deprecated
+    @CircuitBreaker(name = "userService")
+    public UserClientResponse.UserPoints getUserPointsDeprecated(Long userId) {
+        return null;
     }
 }

@@ -3,6 +3,7 @@ package com.example.order_service.infrastructure.adaptor;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.instancio.Instancio;
@@ -61,10 +62,10 @@ public class UserAdaptorTest {
     void getUserPoints(){
         //given
         Long userId = 1L;
-        UserClientResponse.UserPoints mockResponse = Instancio.create(UserClientResponse.UserPoints.class);
-        given(client.getUserPoints(any())).willReturn(mockResponse);
+        UserPointsResponse mockResponse = Instancio.create(UserPointsResponse.class);
+        given(client.getUserPoints(anyLong())).willReturn(mockResponse);
         //when
-        UserClientResponse.UserPoints response = userAdaptor.getUserPoints(userId);
+        UserPointsResponse response = userAdaptor.getUserPoints(userId);
         //then
         assertThat(response).usingRecursiveComparison()
                 .isEqualTo(mockResponse);

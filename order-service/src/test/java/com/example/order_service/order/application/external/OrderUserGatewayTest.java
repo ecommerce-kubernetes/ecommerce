@@ -7,7 +7,6 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
-import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -146,6 +144,15 @@ public class OrderUserGatewayTest {
                 .build();
     }
 
+    @Test
+    @DisplayName("주문자 보유 포인트를 조회한다")
+    void getOrdererPoints() {
+        //given
+
+        //when
+        //then
+    }
+
     @Nested
     @DisplayName("유저 포인트 잔액 조회")
     class GetUserPoints {
@@ -157,7 +164,7 @@ public class OrderUserGatewayTest {
             Long userId = 1L;
             UserClientResponse.UserPoints response = Instancio.create(UserClientResponse.UserPoints.class);
             OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
-            given(userAdaptor.getUserPoints(anyLong())).willReturn(response);
+            given(userAdaptor.getUserPointsDeprecated(anyLong())).willReturn(response);
             given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
             //when
             OrderUserResult.UserPoint result = orderUserGateway.getUserPoints(userId);
@@ -173,7 +180,7 @@ public class OrderUserGatewayTest {
             String message = "유저를 찾을 수 없습니다";
             Long userId = 1L;
             willThrow(new ExternalClientException(code, message))
-                    .given(userAdaptor).getUserPoints(anyLong());
+                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
@@ -191,7 +198,7 @@ public class OrderUserGatewayTest {
             String message = "알 수 없는 오류가 발생했습니다";
             Long userId = 1L;
             willThrow(new ExternalServerException(code, message))
-                    .given(userAdaptor).getUserPoints(anyLong());
+                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
@@ -209,7 +216,7 @@ public class OrderUserGatewayTest {
             String message = "유저 서비스 통신 장애";
             Long userId = 1L;
             willThrow(new ExternalSystemUnavailableException(code, message))
-                    .given(userAdaptor).getUserPoints(anyLong());
+                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
@@ -227,7 +234,7 @@ public class OrderUserGatewayTest {
             String message = "유저 서비스 서킷 열림";
             Long userId = 1L;
             willThrow(new ExternalCircuitBreakerException(code, message))
-                    .given(userAdaptor).getUserPoints(anyLong());
+                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))

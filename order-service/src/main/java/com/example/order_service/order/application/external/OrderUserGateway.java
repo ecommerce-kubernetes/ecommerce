@@ -114,7 +114,7 @@ public class OrderUserGateway {
 
     private UserClientResponse.UserPoints fetchUserPointsWithTranslation(Long userId) {
         try {
-            return userAdaptor.getUserPoints(userId);
+            return userAdaptor.getUserPointsDeprecated(userId);
         } catch (ExternalClientException e) {
             throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
