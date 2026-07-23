@@ -9,10 +9,11 @@ public record ProductResponse(
         List<ProductDetail> products
 ) {
 
+    @Builder
     public record ProductDetail(
             Long productId,
             Long productVariantId,
-            ProductStatus status,
+            String status,
             Integer stock,
             String sku,
             String productName,
@@ -21,10 +22,6 @@ public record ProductResponse(
             List<ProductOption> options
 
     ){}
-
-    public enum ProductStatus {
-        PREPARING, ON_SALE, STOP_SALE, DELETED
-    }
 
     @Builder
     public record UnitPrice (

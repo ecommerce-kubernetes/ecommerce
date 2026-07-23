@@ -2,6 +2,7 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
+import com.example.order_service.infrastructure.dto.request.ProductBulkSearchRequest;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
@@ -28,18 +29,22 @@ public class ProductAdaptor {
     private final ProductFeignClient client;
     private final ExternalExceptionTranslator translator;
 
-    public ProductResponse getProducts(List<Long> productVariantIds) {
-        return null;
-    }
-
-    @Deprecated
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
-    public ProductClientResponse.ProductList getProductsDeprecated(ProductCommand.BulkSearch command) {
-        ProductClientRequest.BulkSearch request = ProductClientRequest.BulkSearch.from(command.variantIds());
+    public ProductResponse getProducts(List<Long> productVariantIds) {
+        ProductBulkSearchRequest request = ProductBulkSearchRequest.builder()
+                .productVariantId(productVariantIds)
+                .build();
         return client.getProducts(request);
     }
 
-    private ProductClientResponse.ProductList getProductsFallback(ProductCommand.BulkSearch command, Throwable throwable) throws Throwable {
+    private ProductResponse getProductsFallback(List<Long> productVariantId, Throwable throwable) throws Throwable {
         throw translator.translate("PRODUCT-SERVICE", throwable);
+    }
+
+    @Deprecated
+    @CircuitBreaker(name = "productService")
+    public ProductClientResponse.ProductList getProductsDeprecated(ProductCommand.BulkSearch command) {
+        ProductClientRequest.BulkSearch request = ProductClientRequest.BulkSearch.from(command.variantIds());
+        return client.getProducts(request);
     }
 }
