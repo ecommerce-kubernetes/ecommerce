@@ -8,7 +8,10 @@ import com.example.order_service.order.application.service.ordersheet.OrderSheet
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.vo.Orderer;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+import com.example.order_service.order.domain.vo.ProductSnapshot;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

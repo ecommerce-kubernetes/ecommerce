@@ -2,9 +2,7 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
-import com.example.order_service.infrastructure.dto.command.CouponCommand;
-import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
-import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -28,14 +26,13 @@ public class CouponAdaptorTest {
 
     @Test
     @DisplayName("쿠폰 서비스에 쿠폰 할인 정보를 조회한다")
-    void calculate(){
+    void getItemCoupon(){
         //given
-        CouponCommand.Calculate command = Instancio.create(CouponCommand.Calculate.class);
-        CouponClientResponse.Calculate mockResponse = Instancio.create(CouponClientResponse.Calculate.class);
-        given(client.calculate(any(CouponClientRequest.Calculate.class)))
+        ItemCouponResponse mockResponse = Instancio.create(ItemCouponResponse.class);
+        given(client.getItemCoupon(anyLong(), anyLong()))
                 .willReturn(mockResponse);
         //when
-        CouponClientResponse.Calculate response = couponAdaptor.calculate(command);
+        ItemCouponResponse response = couponAdaptor.getItemCoupon(anyLong(), anyLong());
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -44,22 +41,20 @@ public class CouponAdaptorTest {
 
     @Test
     @DisplayName("쿠폰 서비스 조회에서 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
-    void calculate_fallback_delegate_to_translator() throws Throwable {
+    void getItemCoupon_fallback_delegate_to_translator() throws Throwable {
         //given
-        CouponCommand.Calculate command = Instancio.create(CouponCommand.Calculate.class);
-        //발생한 예외
         RuntimeException feignException = new RuntimeException("feignClient 예외");
-        //변환된 예외
+
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        // feignClient 가 예외를 던짐
-        willThrow(feignException).given(client).calculate(any(CouponClientRequest.Calculate.class));
-        // translator가 예외를 변환
+
+        given(couponAdaptor.getItemCoupon(anyLong(), anyLong())).willThrow(feignException);
+
         given(translator.translate(anyString(), any(Throwable.class)))
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> couponAdaptor.calculate(command))
+        assertThatThrownBy(() -> couponAdaptor.getItemCoupon(1L, 1L))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

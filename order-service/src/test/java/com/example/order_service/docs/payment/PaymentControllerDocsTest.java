@@ -10,7 +10,6 @@ import com.example.order_service.payment.domain.model.PaymentMethod;
 import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

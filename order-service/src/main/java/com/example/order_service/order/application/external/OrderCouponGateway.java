@@ -1,11 +1,11 @@
 package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;

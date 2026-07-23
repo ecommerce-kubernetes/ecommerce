@@ -2,7 +2,10 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
+import com.example.order_service.order.domain.vo.ProductSnapshot;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -1,7 +1,6 @@
 package com.example.order_service.order.domain.policy;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

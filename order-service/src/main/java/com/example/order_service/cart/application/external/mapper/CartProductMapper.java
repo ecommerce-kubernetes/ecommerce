@@ -5,9 +5,7 @@ import com.example.order_service.cart.application.external.dto.CartProductListRe
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.common.mapper.MoneyMapper;
-
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

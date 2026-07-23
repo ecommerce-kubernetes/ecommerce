@@ -2,7 +2,6 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.UserFeignClient;
-import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.support.annotation.IsolatedTest;

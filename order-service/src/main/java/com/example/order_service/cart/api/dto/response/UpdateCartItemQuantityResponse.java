@@ -1,9 +1,7 @@
 package com.example.order_service.cart.api.dto.response;
 
-import com.example.order_service.cart.application.dto.result.*;
+import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
 import lombok.Builder;
-
-import java.util.List;
 
 @Builder
 public record UpdateCartItemQuantityResponse(

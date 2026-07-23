@@ -1,7 +1,6 @@
 package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.infrastructure.config.DefaultFeignConfig;
-import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import org.springframework.cloud.openfeign.FeignClient;
