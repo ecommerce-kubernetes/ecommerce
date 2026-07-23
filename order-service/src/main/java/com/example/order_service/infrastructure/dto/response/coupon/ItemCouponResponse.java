@@ -8,7 +8,7 @@ public record ItemCouponResponse(
         Long itemCouponId,
         String name,
         Integer applyQuantityLimit,
-        CouponDiscountType discountType,
+        String discountType,
         Long discountAmount,
         Integer discountRate,
         Long maxDiscountAmount

@@ -9,13 +9,11 @@ import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
-import com.example.order_service.infrastructure.dto.response.coupon.CouponDiscountType;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.result.CartCouponResult;
 import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
-import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +43,7 @@ public class OrderCouponGatewayTest {
 
         ItemCouponResponse response = ItemCouponResponse.builder()
                 .userId(userId)
-                .discountType(CouponDiscountType.FIXED)
+                .discountType("FIXED")
                 .itemCouponId(itemCouponId)
                 .name("청바지 1000원 할인")
                 .applyQuantityLimit(1)
@@ -77,7 +75,7 @@ public class OrderCouponGatewayTest {
                 .itemCouponId(itemCouponId)
                 .name("청바지 10% 할인")
                 .applyQuantityLimit(1)
-                .discountType(CouponDiscountType.RATE)
+                .discountType("RATE")
                 .discountAmount(null)
                 .discountRate(10)
                 .maxDiscountAmount(50000L)
@@ -171,7 +169,7 @@ public class OrderCouponGatewayTest {
                 .cartCouponId(cartCouponId)
                 .name("장바구니 1000원 할인 쿠폰")
                 .minimumPaymentAmount(50000L)
-                .discountType(CouponDiscountType.FIXED)
+                .discountType("FIXED")
                 .discountAmount(1000L)
                 .build();
 
@@ -201,7 +199,7 @@ public class OrderCouponGatewayTest {
                 .cartCouponId(cartCouponId)
                 .name("장바구니 5% 할인 쿠폰")
                 .minimumPaymentAmount(50000L)
-                .discountType(CouponDiscountType.RATE)
+                .discountType("RATE")
                 .discountRate(5)
                 .maxDiscountAmount(10000L)
                 .build();

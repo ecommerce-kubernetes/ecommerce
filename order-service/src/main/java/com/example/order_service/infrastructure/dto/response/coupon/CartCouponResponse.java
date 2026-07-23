@@ -8,7 +8,7 @@ public record CartCouponResponse(
         Long cartCouponId,
         String name,
         Long minimumPaymentAmount,
-        CouponDiscountType discountType,
+        String discountType,
         Long discountAmount,
         Integer discountRate,
         Long maxDiscountAmount

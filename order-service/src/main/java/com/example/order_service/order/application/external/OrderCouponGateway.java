@@ -51,8 +51,9 @@ public class OrderCouponGateway {
 
     private ItemCouponResult mapItemCouponResult(ItemCouponResponse response) {
         CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
-            case FIXED -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
-            case RATE -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
+            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
+            case "RATE" -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
+            default -> throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
         };
 
         ItemCouponSnapshot itemCouponSnapshot = ItemCouponSnapshot.of(
@@ -78,8 +79,9 @@ public class OrderCouponGateway {
 
     private CartCouponResult mapToCartCouponResult(CartCouponResponse response) {
         CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
-            case FIXED -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
-            case RATE -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
+            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
+            case "RATE" -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
+            default -> throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
         };
 
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(response.cartCouponId(),
