@@ -3,6 +3,7 @@ package com.example.order_service.infrastructure.client;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.CouponDiscountType;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +52,7 @@ public class CouponFeignClientTest {
         //then
         assertThat(response.userId()).isEqualTo(userId);
         assertThat(response.applyQuantityLimit()).isEqualTo(3);
-        assertThat(response.discountType()).isEqualTo(ItemCouponResponse.DiscountType.FIXED);
+        assertThat(response.discountType()).isEqualTo(CouponDiscountType.FIXED);
         assertThat(response.discountAmount()).isEqualTo(1000L);
     }
 
@@ -72,7 +73,7 @@ public class CouponFeignClientTest {
         //then
         assertThat(response.userId()).isEqualTo(userId);
         assertThat(response.applyQuantityLimit()).isEqualTo(1);
-        assertThat(response.discountType()).isEqualTo(ItemCouponResponse.DiscountType.RATE);
+        assertThat(response.discountType()).isEqualTo(CouponDiscountType.RATE);
         assertThat(response.discountRate()).isEqualTo(10);
         assertThat(response.maxDiscountAmount()).isEqualTo(50000L);
     }
@@ -153,7 +154,7 @@ public class CouponFeignClientTest {
         assertThat(response.cartCouponId()).isEqualTo(1);
         assertThat(response.name()).isEqualTo("장바구니 1000원 할인 쿠폰");
         assertThat(response.minimumPaymentAmount()).isEqualTo(50000L);
-        assertThat(response.discountType()).isEqualTo(CartCouponResponse.DiscountType.FIXED);
+        assertThat(response.discountType()).isEqualTo(CouponDiscountType.FIXED);
         assertThat(response.discountAmount()).isEqualTo(1000L);
     }
 
@@ -177,7 +178,7 @@ public class CouponFeignClientTest {
         assertThat(response.cartCouponId()).isEqualTo(1);
         assertThat(response.name()).isEqualTo("장바구니 5% 할인 쿠폰");
         assertThat(response.minimumPaymentAmount()).isEqualTo(50000L);
-        assertThat(response.discountType()).isEqualTo(CartCouponResponse.DiscountType.RATE);
+        assertThat(response.discountType()).isEqualTo(CouponDiscountType.RATE);
         assertThat(response.discountRate()).isEqualTo(5);
         assertThat(response.maxDiscountAmount()).isEqualTo(10000L);
     }

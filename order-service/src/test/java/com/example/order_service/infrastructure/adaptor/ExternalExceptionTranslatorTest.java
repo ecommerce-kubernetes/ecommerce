@@ -1,5 +1,6 @@
 package com.example.order_service.infrastructure.adaptor;
 
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -25,8 +26,8 @@ public class ExternalExceptionTranslatorTest {
         Throwable result = translator.translate("SERVICE", circuitException);
         //then
         assertThat(result)
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("SERVICE 서킷 브레이커 열림")
+                .isInstanceOf(ExternalCircuitBreakerException.class)
+                .hasMessage("SERVICE 서킷 차단")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
     }

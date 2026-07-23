@@ -9,13 +9,10 @@ CartCouponResponse(
         Long cartCouponId,
         String name,
         Long minimumPaymentAmount,
-        DiscountType discountType,
+        CouponDiscountType discountType,
         Long discountAmount,
         Integer discountRate,
         Long maxDiscountAmount
 
 ) {
-    public enum DiscountType {
-        FIXED, RATE
-    }
 }

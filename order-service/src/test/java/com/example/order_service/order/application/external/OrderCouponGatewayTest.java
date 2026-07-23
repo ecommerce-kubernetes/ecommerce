@@ -8,6 +8,7 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.CouponDiscountType;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.result.CartCouponResult;
 import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
@@ -43,7 +44,7 @@ public class OrderCouponGatewayTest {
 
         ItemCouponResponse response = ItemCouponResponse.builder()
                 .userId(userId)
-                .discountType(ItemCouponResponse.DiscountType.FIXED)
+                .discountType(CouponDiscountType.FIXED)
                 .itemCouponId(itemCouponId)
                 .name("청바지 1000원 할인")
                 .applyQuantityLimit(1)
@@ -75,7 +76,7 @@ public class OrderCouponGatewayTest {
                 .itemCouponId(itemCouponId)
                 .name("청바지 10% 할인")
                 .applyQuantityLimit(1)
-                .discountType(ItemCouponResponse.DiscountType.RATE)
+                .discountType(CouponDiscountType.RATE)
                 .discountAmount(null)
                 .discountRate(10)
                 .maxDiscountAmount(50000L)
@@ -169,7 +170,7 @@ public class OrderCouponGatewayTest {
                 .cartCouponId(cartCouponId)
                 .name("장바구니 1000원 할인 쿠폰")
                 .minimumPaymentAmount(50000L)
-                .discountType(CartCouponResponse.DiscountType.FIXED)
+                .discountType(CouponDiscountType.FIXED)
                 .discountAmount(1000L)
                 .build();
 
@@ -199,7 +200,7 @@ public class OrderCouponGatewayTest {
                 .cartCouponId(cartCouponId)
                 .name("장바구니 5% 할인 쿠폰")
                 .minimumPaymentAmount(50000L)
-                .discountType(CartCouponResponse.DiscountType.RATE)
+                .discountType(CouponDiscountType.RATE)
                 .discountRate(5)
                 .maxDiscountAmount(10000L)
                 .build();

@@ -8,12 +8,9 @@ public record ItemCouponResponse(
         Long itemCouponId,
         String name,
         Integer applyQuantityLimit,
-        DiscountType discountType,
+        CouponDiscountType discountType,
         Long discountAmount,
         Integer discountRate,
         Long maxDiscountAmount
 ) {
-    public enum DiscountType {
-        FIXED, RATE
-    }
 }

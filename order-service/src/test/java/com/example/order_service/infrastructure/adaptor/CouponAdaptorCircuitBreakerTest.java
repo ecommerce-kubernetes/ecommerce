@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
         "resilience4j.circuitbreaker.instances.couponService.sliding-window-size=3",
         "resilience4j.circuitbreaker.instances.couponService.minimum-number-of-calls=3",
         "resilience4j.circuitbreaker.instances.couponService.failure-rate-threshold=100",
-        // 서킷 브레이커 카운트 제외
         "resilience4j.circuitbreaker.instances.couponService.ignore-exceptions[0]=com.example.order_service.common.exception.external.ExternalClientException"
 })
 public class CouponAdaptorCircuitBreakerTest {
@@ -64,7 +63,6 @@ public class CouponAdaptorCircuitBreakerTest {
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
-        //서킷 브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
         verify(client, times(3)).calculate(any(CouponClientRequest.Calculate.class));
     }
 
