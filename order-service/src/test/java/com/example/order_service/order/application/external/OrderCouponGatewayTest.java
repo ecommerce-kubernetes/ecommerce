@@ -1,12 +1,15 @@
 package com.example.order_service.order.application.external;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
+import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
+import com.example.order_service.order.application.external.dto.result.CartCouponResult;
 import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
@@ -148,6 +151,129 @@ public class OrderCouponGatewayTest {
         //when
         //then
         assertThatThrownBy(() -> orderCouponGateway.getItemCoupon(1L, 1L))
+                .isInstanceOf(DefaultGatewayException.class)
+                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .extracting("errorCode", "externalErrorCode")
+                .containsExactly(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, code);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰을 조회한다 (정액 할인 쿠폰)")
+    void getCartCoupon_fixed() {
+        //given
+        Long userId = 1L;
+        Long cartCouponId = 20L;
+
+        CartCouponResponse response = CartCouponResponse.builder()
+                .userId(userId)
+                .cartCouponId(cartCouponId)
+                .name("장바구니 1000원 할인 쿠폰")
+                .minimumPaymentAmount(50000L)
+                .discountType(CartCouponResponse.DiscountType.FIXED)
+                .discountAmount(1000L)
+                .build();
+
+        given(adaptor.getCartCoupon(anyLong(), anyLong()))
+                .willReturn(response);
+
+        //when
+        CartCouponResult result = orderCouponGateway.getCartCoupon(userId, cartCouponId);
+        //then
+        assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(20L);
+        assertThat(result.cartCoupon().getName()).isEqualTo("장바구니 1000원 할인 쿠폰");
+        assertThat(result.cartCoupon().getMinimumPaymentAmount()).isEqualTo(Money.wons(50000L));
+
+        assertThat(result.cartCoupon().getDiscountPolicy())
+                .isExactlyInstanceOf(FixedCouponDiscountPolicy.class);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰을 조회한다 (정률 할인 쿠폰)")
+    void getCartCoupon_rate() {
+        //given
+        Long userId = 1L;
+        Long cartCouponId = 20L;
+
+        CartCouponResponse response = CartCouponResponse.builder()
+                .userId(userId)
+                .cartCouponId(cartCouponId)
+                .name("장바구니 5% 할인 쿠폰")
+                .minimumPaymentAmount(50000L)
+                .discountType(CartCouponResponse.DiscountType.RATE)
+                .discountRate(5)
+                .maxDiscountAmount(10000L)
+                .build();
+
+        given(adaptor.getCartCoupon(anyLong(), anyLong())).willReturn(response);
+        //when
+        CartCouponResult result = orderCouponGateway.getCartCoupon(userId, cartCouponId);
+        //then
+        assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(20L);
+        assertThat(result.cartCoupon().getName()).isEqualTo("장바구니 5% 할인 쿠폰");
+        assertThat(result.cartCoupon().getMinimumPaymentAmount()).isEqualTo(Money.wons(50000L));
+
+        assertThat(result.cartCoupon().getDiscountPolicy())
+                .isExactlyInstanceOf(RateCouponDiscountPolicy.class);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
+    void getCartCoupon_ExternalServerException(){
+        //given
+        String code = "INTERNAL_SERVER_ERROR";
+        String message = "처리중 오류가 발생했습니다";
+        given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalServerException(code, message));
+        //when
+        //then
+        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+                .isInstanceOf(DefaultGatewayException.class)
+                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .extracting("errorCode", "externalErrorCode")
+                .containsExactly(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, code);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 예외가 발생한다")
+    void getCartCoupon_ExternalClientException(){
+        //given
+        String code = "COUPON_EXPIRED";
+        String message = "쿠폰이 만료되었습니다";
+        given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalClientException(code, message));
+        //when
+        //then
+        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+                .isInstanceOf(DefaultGatewayException.class)
+                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .extracting("errorCode", "externalErrorCode")
+                .containsExactly(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, code);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 조회중 쿠폰 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
+    void getCartCoupon_ExternalCircuitBreakerException(){
+        //given
+        String code = "COUPON_CIRCUIT_OPEN";
+        String message = "쿠폰 서비스 서킷 브레이커 열림";
+        given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalCircuitBreakerException(code, message));
+        //when
+        //then
+        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+                .isInstanceOf(DefaultGatewayException.class)
+                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .extracting("errorCode", "externalErrorCode")
+                .containsExactly(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, code);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰 조회중 쿠폰 서비스에서 통신 불가 오류가 발생한 경우 예외가 발생한다")
+    void getCartCoupon_ExternalUnavailableServerException() {
+        //given
+        String code = "SERVICE_UNAVAILABLE";
+        String message = "쿠폰 서비스 통신 장애";
+        given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalSystemUnavailableException(code, message));
+        //when
+        //then
+        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")

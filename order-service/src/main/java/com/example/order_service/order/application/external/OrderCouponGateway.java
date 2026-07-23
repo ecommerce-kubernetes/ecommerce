@@ -7,6 +7,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
+import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.CartCouponResult;
@@ -15,6 +16,7 @@ import com.example.order_service.order.application.external.dto.result.OrderCoup
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
+import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -72,12 +74,43 @@ public class OrderCouponGateway {
                 .build();
     }
 
-    @Deprecated
-    public OrderCouponResult.Calculate calculate(OrderCouponCommand.Calculate command) {
-        return null;
+    public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {
+        CartCouponResponse response = executeGetCartCoupon(userId, cartCouponId);
+        return mapToCartCouponResult(response);
     }
 
-    public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {
+    private CartCouponResponse executeGetCartCoupon(Long userId, Long cartCouponId) {
+        try {
+            return couponAdaptor.getCartCoupon(userId, cartCouponId);
+        } catch (ExternalClientException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalServerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+        } catch (ExternalSystemUnavailableException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        }
+    }
+
+    private CartCouponResult mapToCartCouponResult(CartCouponResponse response) {
+        CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
+            case FIXED -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
+            case RATE -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
+        };
+
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(response.cartCouponId(),
+                response.name(),
+                discountPolicy,
+                Money.wons(response.minimumPaymentAmount()));
+
+        return CartCouponResult.builder()
+                .cartCoupon(cartCoupon)
+                .build();
+    }
+
+    @Deprecated
+    public OrderCouponResult.Calculate calculate(OrderCouponCommand.Calculate command) {
         return null;
     }
 }

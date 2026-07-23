@@ -4,6 +4,7 @@ import com.example.order_service.infrastructure.client.CouponFeignClient;
 import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,6 @@ public class CouponAdaptor {
     private final CouponFeignClient client;
     private final ExternalExceptionTranslator translator;
 
-
     @CircuitBreaker(name = "couponService", fallbackMethod = "getItemCouponFallback")
     public ItemCouponResponse getItemCoupon(Long userId, Long itemCouponId) {
         return client.getItemCoupon(userId, itemCouponId);
@@ -34,6 +34,10 @@ public class CouponAdaptor {
 
     private ItemCouponResponse getItemCouponFallback(Long userId, Long itemCouponId, Throwable throwable) throws Throwable {
         throw translator.translate("COUPON-SERVICE", throwable);
+    }
+
+    public CartCouponResponse getCartCoupon(Long userId, Long cartCouponId) {
+        return null;
     }
 
     @Deprecated
