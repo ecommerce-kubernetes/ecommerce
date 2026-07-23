@@ -1,22 +1,17 @@
 package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.external.*;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
-import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
-import com.example.order_service.common.exception.external.ExternalClientException;
-import com.example.order_service.common.exception.external.ExternalServerException;
-import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
-import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
 import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
-import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
-import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +29,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderUserGateway {
     private final UserAdaptor userAdaptor;
-    private final OrderUserMapper mapper;
 
     public OrdererProfileResult getOrdererProfile(Long userId) {
         UserProfileResponse response = executeGetUserProfile(userId);
@@ -82,47 +76,30 @@ public class OrderUserGateway {
     }
 
     public OrdererPointResult getOrdererPoints(Long userId) {
-        return null;
-    }
-
-    /**
-     * 유저 도메인에 유저 프로필 정보(유저 기본정보, 유저 배송 정보)를 조회
-     *
-     * @param userId 조회 대상 유저 아이디
-     * @return 유저 기본정보, 배송 정보 결과 반환
-     */
-    @Deprecated
-    public OrderUserResult.Profile getUserProfile(Long userId) {
-        UserClientResponse.Profile profile = fetchUserProfileWithTranslation(userId);
-        return mapper.toResult(profile);
-    }
-
-    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
-        return null;
-    }
-
-    /**
-     * 유저 도메인에 유저 포인트 정보(포인트 잔액, 적용 가능 포인트)를 조회
-     *
-     * @param userId      조회 대상 유저 아이디
-     * @return 포인트 잔액, 적용 가능 포인트
-     */
-    public OrderUserResult.UserPoint getUserPoints(Long userId) {
-        UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId);
-        return mapper.toResult(userPoints);
-    }
-
-    private UserClientResponse.UserPoints fetchUserPointsWithTranslation(Long userId) {
         try {
-            return userAdaptor.getUserPointsDeprecated(userId);
-        } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            UserPointsResponse response = executeGetUserPoints(userId);
+            return mapToOrdererPointsResult(response);
+        } catch (ExternalSystemException e) {
+            return OrdererPointResult.builder()
+                    .userId(userId)
+                    .availablePoints(Money.ZERO)
+                    .build();
         }
+    }
+
+    private UserPointsResponse executeGetUserPoints(Long userId) {
+        return userAdaptor.getUserPoints(userId);
+    }
+
+    private OrdererPointResult mapToOrdererPointsResult(UserPointsResponse response) {
+        return OrdererPointResult.builder()
+                .userId(response.userId())
+                .availablePoints(Money.wons(response.availablePoints()))
+                .build();
+    }
+
+    @Deprecated
+    public OrderUserResult.UserPoint getUserPoints(Long userId) {
+        return null;
     }
 }

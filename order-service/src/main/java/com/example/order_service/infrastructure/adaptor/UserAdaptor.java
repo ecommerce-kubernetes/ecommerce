@@ -42,16 +42,4 @@ public class UserAdaptor {
     private UserPointsResponse getUserPointsFallback(Long userId, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
-
-    @Deprecated
-    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileDeprecatedFallback")
-    public UserClientResponse.Profile getUserProfileDeprecated(Long userId) {
-        return null;
-    }
-
-    @Deprecated
-    @CircuitBreaker(name = "userService")
-    public UserClientResponse.UserPoints getUserPointsDeprecated(Long userId) {
-        return null;
-    }
 }

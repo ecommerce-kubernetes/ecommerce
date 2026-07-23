@@ -7,30 +7,23 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
-import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
-import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
-import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
 import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
-import com.example.order_service.order.application.external.mapper.OrderUserMapper;
-import com.example.order_service.order.application.external.mapper.OrderUserMapperImpl;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
-import com.example.order_service.order.exception.OrderErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -42,9 +35,6 @@ public class OrderUserGatewayTest {
     private OrderUserGateway orderUserGateway;
     @Mock
     private UserAdaptor userAdaptor;
-
-    @Spy
-    private OrderUserMapper userMapper = new OrderUserMapperImpl(new MoneyMapperImpl() {});
 
     @Test
     @DisplayName("주문자 정보를 조회한다")
@@ -145,103 +135,33 @@ public class OrderUserGatewayTest {
     }
 
     @Test
-    @DisplayName("주문자 보유 포인트를 조회한다")
-    void getOrdererPoints() {
+    @DisplayName("사용자의 포인트 잔액을 조회한다")
+    void getOrdererPoints(){
         //given
-
+        Long userId = 1L;
+        UserPointsResponse response = Instancio.create(UserPointsResponse.class);
+        given(userAdaptor.getUserPoints(anyLong())).willReturn(response);
         //when
+        OrdererPointResult result = orderUserGateway.getOrdererPoints(userId);
         //then
+        assertThat(result.userId()).isEqualTo(response.userId());
+        assertThat(result.availablePoints()).isEqualTo(Money.wons(response.availablePoints()));
     }
 
-    @Nested
-    @DisplayName("유저 포인트 잔액 조회")
-    class GetUserPoints {
 
-        @Test
-        @DisplayName("사용자의 포인트 잔액을 조회한다")
-        void getUserPoints(){
-            //given
-            Long userId = 1L;
-            UserClientResponse.UserPoints response = Instancio.create(UserClientResponse.UserPoints.class);
-            OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
-            given(userAdaptor.getUserPointsDeprecated(anyLong())).willReturn(response);
-            given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
-            //when
-            OrderUserResult.UserPoint result = orderUserGateway.getUserPoints(userId);
-            //then
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        @DisplayName("유저 포인트 잔액 조회중 클라이언트 오류가 발생한 경우 비지니스 예외가 발생한다")
-        void getUserPoints_ExternalClientException(){
-            //given
-            String code = "NOT_FOUND_USER";
-            String message = "유저를 찾을 수 없습니다";
-            Long userId = 1L;
-            willThrow(new ExternalClientException(code, message))
-                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(DefaultGatewayException.class)
-                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                    .extracting("errorCode", "externalErrorCode")
-                    .containsExactly(OrderErrorCode.ORDER_USER_CLIENT_ERROR, code);
-        }
-
-        @Test
-        @DisplayName("유저 포인트 잔액 조회중 서버 오류가 발생한 경우 비지니스 예외로 변환된다")
-        void getUserPoints_ExternalServerException() {
-            //given
-            String code = "INTERNAL_SERVER_ERROR";
-            String message = "알 수 없는 오류가 발생했습니다";
-            Long userId = 1L;
-            willThrow(new ExternalServerException(code, message))
-                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(DefaultGatewayException.class)
-                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                    .extracting("errorCode", "externalErrorCode")
-                    .containsExactly(OrderErrorCode.ORDER_USER_SERVER_ERROR, code);
-        }
-
-        @Test
-        @DisplayName("유저 포인트 잔액 조회중 서버 오류가 발생한 경우 비지니스 예외로 변환된다")
-        void getUserPoints_ExternalUnavailableServerException() {
-            //given
-            String code = "SERVICE_UNAVAILABLE";
-            String message = "유저 서비스 통신 장애";
-            Long userId = 1L;
-            willThrow(new ExternalSystemUnavailableException(code, message))
-                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(DefaultGatewayException.class)
-                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                    .extracting("errorCode", "externalErrorCode")
-                    .containsExactly(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, code);
-        }
-
-        @Test
-        @DisplayName("유저 포인트 잔액 조회중 유저 서킷이 열린 경우 예외가 발생한다")
-        void getUserPoints_ExternalCircuitException() {
-            //given
-            String code = "CIRCUIT_OPEN";
-            String message = "유저 서비스 서킷 열림";
-            Long userId = 1L;
-            willThrow(new ExternalCircuitBreakerException(code, message))
-                    .given(userAdaptor).getUserPointsDeprecated(anyLong());
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(DefaultGatewayException.class)
-                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                    .extracting("errorCode", "externalErrorCode")
-                    .containsExactly(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, code);
-        }
+    @Test
+    @DisplayName("유저 포인트 잔액 조회중 외부 시스템 예외가 발생한 경우 가용 포인트는 0원으로 매핑되어 반환된다")
+    void getOrdererPoints_ExternalSystemException(){
+        //given
+        String code = "NOT_FOUND_USER";
+        String message = "유저를 찾을 수 없습니다";
+        Long userId = 1L;
+        willThrow(new ExternalClientException(code, message))
+                .given(userAdaptor).getUserPoints(anyLong());
+        //when
+        OrdererPointResult result = orderUserGateway.getOrdererPoints(userId);
+        //then
+        assertThat(result.userId()).isEqualTo(userId);
+        assertThat(result.availablePoints()).isEqualTo(Money.ZERO);
     }
 }
