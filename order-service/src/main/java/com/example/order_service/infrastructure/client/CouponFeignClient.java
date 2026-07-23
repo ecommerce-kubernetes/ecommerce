@@ -3,6 +3,7 @@ package com.example.order_service.infrastructure.client;
 import com.example.order_service.infrastructure.config.DefaultFeignConfig;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,4 +21,6 @@ public interface CouponFeignClient {
     @Deprecated
     @PostMapping("/internal/coupons/calculate")
     CouponClientResponse.Calculate calculate(@RequestBody CouponClientRequest.Calculate request);
+
+    CartCouponResponse getCartCoupon(Long userId, Long cartCouponId);
 }

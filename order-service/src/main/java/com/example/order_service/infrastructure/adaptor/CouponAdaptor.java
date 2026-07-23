@@ -36,8 +36,13 @@ public class CouponAdaptor {
         throw translator.translate("COUPON-SERVICE", throwable);
     }
 
+    @CircuitBreaker(name = "couponService", fallbackMethod = "getCartCouponFallback")
     public CartCouponResponse getCartCoupon(Long userId, Long cartCouponId) {
-        return null;
+        return client.getCartCoupon(userId, cartCouponId);
+    }
+
+    private CartCouponResponse getCartCouponFallback(Long userId, Long cartCouponId, Throwable throwable) throws Throwable {
+        throw translator.translate("COUPON-SERVICE", throwable);
     }
 
     @Deprecated

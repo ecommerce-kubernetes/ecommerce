@@ -22,6 +22,8 @@ import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.function.Supplier;
+
 /**
  * 주문 쿠폰 도메인 통신을 담당하는 Gateway 서비스
  * <p>
@@ -43,17 +45,7 @@ public class OrderCouponGateway {
     }
 
     private ItemCouponResponse executeGetItemCoupon(Long userId, Long itemCouponId) {
-        try {
-            return couponAdaptor.getItemCoupon(userId, itemCouponId);
-        } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
-        } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        }
+        return executeWithExceptionTranslation(() -> couponAdaptor.getItemCoupon(userId, itemCouponId));
     }
 
     private ItemCouponResult mapItemCouponResult(ItemCouponResponse response) {
@@ -80,17 +72,7 @@ public class OrderCouponGateway {
     }
 
     private CartCouponResponse executeGetCartCoupon(Long userId, Long cartCouponId) {
-        try {
-            return couponAdaptor.getCartCoupon(userId, cartCouponId);
-        } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
-        } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        }
+        return executeWithExceptionTranslation(() -> couponAdaptor.getCartCoupon(userId, cartCouponId));
     }
 
     private CartCouponResult mapToCartCouponResult(CartCouponResponse response) {
@@ -107,6 +89,20 @@ public class OrderCouponGateway {
         return CartCouponResult.builder()
                 .cartCoupon(cartCoupon)
                 .build();
+    }
+
+    private <T> T executeWithExceptionTranslation(Supplier<T> apiCall) {
+        try {
+            return apiCall.get();
+        } catch (ExternalClientException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalServerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+        } catch (ExternalSystemUnavailableException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        }
     }
 
     @Deprecated
