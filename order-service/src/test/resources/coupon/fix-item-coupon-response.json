@@ -1,0 +1,8 @@
+{
+  "userId": 1,
+  "itemCouponId": 1,
+  "name": "1000원 할인 쿠폰",
+  "applyQuantityLimit": 3,
+  "discountType": "FIXED",
+  "discountAmount": 1000
+}

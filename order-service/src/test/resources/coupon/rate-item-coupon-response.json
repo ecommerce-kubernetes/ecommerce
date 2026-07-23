@@ -1,0 +1,9 @@
+{
+  "userId": 1,
+  "itemCouponId": 1,
+  "name": "10% 할인 쿠폰",
+  "applyQuantityLimit": 1,
+  "discountType": "RATE",
+  "discountRate": 10,
+  "maxDiscountAmount": 50000
+}

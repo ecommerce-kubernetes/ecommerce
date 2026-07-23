@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "coupon-service", contextId = "couponClient", configuration = DefaultFeignConfig.class)
 public interface CouponFeignClient {
 
-    @Deprecated
-    @PostMapping("/internal/coupons/calculate")
-    CouponClientResponse.Calculate calculate(@RequestBody CouponClientRequest.Calculate request);
-
     @GetMapping("/internal/users/{userId}/item-coupons/{itemCouponId}")
     ItemCouponResponse getItemCoupon(@PathVariable("userId") Long userId,
                                      @PathVariable("itemCouponId") Long itemCouponId);
+
+    @Deprecated
+    @PostMapping("/internal/coupons/calculate")
+    CouponClientResponse.Calculate calculate(@RequestBody CouponClientRequest.Calculate request);
 }

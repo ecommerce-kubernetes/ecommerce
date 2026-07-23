@@ -91,7 +91,7 @@ public class OrderCouponGatewayTest {
     }
 
     @Test
-    @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
+    @DisplayName("상품 쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
     void getItemCoupon_ExternalServerException(){
         //given
         String code = "INTERNAL_SERVER_ERROR";
@@ -123,7 +123,7 @@ public class OrderCouponGatewayTest {
     }
 
     @Test
-    @DisplayName("쿠폰 조회중 쿠폰 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
+    @DisplayName("상품 쿠폰 조회중 쿠폰 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
     void getItemCoupon_ExternalCircuitBreakerException(){
         //given
         String code = "COUPON_CIRCUIT_OPEN";
@@ -139,7 +139,7 @@ public class OrderCouponGatewayTest {
     }
 
     @Test
-    @DisplayName("쿠폰 조회중 쿠폰 서비스에서 통신 불가 오류가 발생한 경우 예외가 발생한다")
+    @DisplayName("상품 쿠폰 조회중 쿠폰 서비스에서 통신 불가 오류가 발생한 경우 예외가 발생한다")
     void getItemCoupon_ExternalUnavailableServerException() {
         //given
         String code = "SERVICE_UNAVAILABLE";
