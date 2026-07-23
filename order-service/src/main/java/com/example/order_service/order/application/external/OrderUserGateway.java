@@ -1,5 +1,6 @@
 package com.example.order_service.order.application.external;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -13,6 +14,8 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
 import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
+import com.example.order_service.order.domain.vo.Orderer;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +38,33 @@ public class OrderUserGateway {
 
     public OrdererProfileResult getOrdererProfile(Long userId) {
         UserProfileResponse response = executeGetUserProfile(userId);
-        return mapper.toOrdererProfileResult(response);
+        return mapToOrdererProfileResult(response);
+    }
+
+    private OrdererProfileResult mapToOrdererProfileResult(UserProfileResponse response) {
+        Orderer orderer = Orderer.of(response.userId(), response.userName(), response.phoneNumber());
+        ShippingAddress shippingAddress = mapToShippingAddress(response.defaultShippingAddress());
+        Money availablePoints = mapToAvailablePoints(response.availablePoints());
+        return OrdererProfileResult.builder()
+                .orderer(orderer)
+                .availablePoints(availablePoints)
+                .defaultShippingAddress(shippingAddress)
+                .build();
+    }
+
+    private ShippingAddress mapToShippingAddress(UserProfileResponse.ShippingAddressResponse response) {
+        if (response == null) {
+            return null;
+        }
+        return ShippingAddress.of(response.receiverName(), response.receiverPhone(), response.zipCode(), response.address(),
+                response.addressDetail());
+    }
+
+    private Money mapToAvailablePoints(Long availablePoints) {
+        if (availablePoints == null) {
+            return Money.ZERO;
+        }
+        return Money.wons(availablePoints);
     }
 
     private UserProfileResponse executeGetUserProfile(Long userId) {
