@@ -52,7 +52,7 @@ public class OrderSheetService {
         OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
 
         List<Long> orderVariantIds = command.toItemVariantIds();
-        OrderProductResult products = orderProductGateway.getProductsDeprected(orderVariantIds);
+        OrderProductResult products = orderProductGateway.getProducts(orderVariantIds);
 
         Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
         List<OrderSheetItem> orderSheetItems = createOrderSheetItems(command, productsMap);

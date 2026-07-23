@@ -88,7 +88,7 @@ public class OrderSheetServiceTest {
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
 
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
@@ -128,7 +128,7 @@ public class OrderSheetServiceTest {
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
 
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
@@ -169,7 +169,7 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product1)).build();
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -198,7 +198,7 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -227,7 +227,7 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
+        given(orderProductGateway.getProducts(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -702,55 +702,6 @@ public class OrderSheetServiceTest {
                     .usedPoints(Money.wons(2000L))
                     .build();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-        }
-    }
-
-    @Nested
-    @DisplayName("장바구니 쿠폰 변경")
-    class UpdateCartCoupon {
-
-        @Test
-        @DisplayName("장바구니 쿠폰 해제")
-        void updateCartCoupon_clear_coupon() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
-                    orderSheet.getOrderer().getUserId(), null);
-            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
-                    .set(field(OrderCouponResult.Calculate::cartCoupon), null)
-                    .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
-                    .create();
-            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(coupon);
-            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-            //then
-        }
-
-        @Test
-        @DisplayName("장바구니 쿠폰을 수정한다")
-        void updateCartCoupon_point_not_used() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            Long newCouponId = 10L;
-            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
-                    orderSheet.getOrderer().getUserId(), newCouponId);
-            CartCouponSnapshot cartCoupon = Instancio.of(CartCouponSnapshot.class)
-                    .set(field(CartCouponSnapshot::getCartCouponId), newCouponId)
-                    .create();
-            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
-                    .set(field(OrderCouponResult.Calculate::cartCoupon), cartCoupon)
-                    .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
-                    .create();
-            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(coupon);
-            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
-            when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             //then
         }
