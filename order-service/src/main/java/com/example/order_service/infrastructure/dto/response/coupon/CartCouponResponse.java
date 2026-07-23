@@ -3,7 +3,8 @@ package com.example.order_service.infrastructure.dto.response.coupon;
 import lombok.Builder;
 
 @Builder
-public record CartCouponResponse(
+public record
+CartCouponResponse(
         Long userId,
         Long cartCouponId,
         String name,

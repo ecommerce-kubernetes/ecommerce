@@ -18,9 +18,11 @@ public interface CouponFeignClient {
     ItemCouponResponse getItemCoupon(@PathVariable("userId") Long userId,
                                      @PathVariable("itemCouponId") Long itemCouponId);
 
+    @GetMapping("/internal/users/{userId}/cart-coupons/{cartCouponId}")
+    CartCouponResponse getCartCoupon(@PathVariable("userId") Long userId,
+                                     @PathVariable("cartCouponId") Long cartCouponId);
+
     @Deprecated
     @PostMapping("/internal/coupons/calculate")
     CouponClientResponse.Calculate calculate(@RequestBody CouponClientRequest.Calculate request);
-
-    CartCouponResponse getCartCoupon(Long userId, Long cartCouponId);
 }

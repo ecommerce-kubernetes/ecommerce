@@ -1,0 +1,8 @@
+{
+  "userId": 1,
+  "cartCouponId": 1,
+  "name": "장바구니 1000원 할인 쿠폰",
+  "minimumPaymentAmount": 50000,
+  "discountType": "FIXED",
+  "discountAmount": 1000
+}

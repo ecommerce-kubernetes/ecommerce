@@ -1,0 +1,9 @@
+{
+  "userId" : 1,
+  "cartCouponId" : 1,
+  "name": "장바구니 5% 할인 쿠폰",
+  "minimumPaymentAmount": 50000,
+  "discountType" : "RATE",
+  "discountRate" : 5,
+  "maxDiscountAmount": 10000
+}
