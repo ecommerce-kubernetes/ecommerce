@@ -5,7 +5,6 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
-import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -14,7 +13,6 @@ import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
-import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
@@ -121,6 +119,7 @@ public class OrderSheetService {
         if (orderSheet.isExpired(LocalDateTime.now(clock))) {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
+
         ShippingAddress shippingAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(),
                 command.zipCode(), command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(shippingAddress);
