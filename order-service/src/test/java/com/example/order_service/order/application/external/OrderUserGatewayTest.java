@@ -148,7 +148,6 @@ public class OrderUserGatewayTest {
         assertThat(result.availablePoints()).isEqualTo(Money.wons(response.availablePoints()));
     }
 
-
     @Test
     @DisplayName("유저 포인트 잔액 조회중 외부 시스템 예외가 발생한 경우 가용 포인트는 0원으로 매핑되어 반환된다")
     void getOrdererPoints_ExternalSystemException(){

@@ -8,6 +8,7 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
+import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -32,7 +33,8 @@ public class OrderProductGateway {
     private final ProductAdaptor productAdaptor;
     private final OrderProductMapper mapper;
 
-    public OrderProductResult getProducts(List<Long> variantIds) {
+    @Deprecated
+    public OrderProductResult getProductsDeprected(List<Long> variantIds) {
         ProductCommand.BulkSearch command = ProductCommand.BulkSearch.from(variantIds);
         ProductClientResponse.ProductList productList = fetchProductsWithTranslation(command);
         return mapper.toResult(productList);
@@ -40,7 +42,7 @@ public class OrderProductGateway {
 
     private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.BulkSearch command) {
         try {
-            return productAdaptor.getProducts(command);
+            return productAdaptor.getProductsDeprecated(command);
         } catch (ExternalClientException e) {
             throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {

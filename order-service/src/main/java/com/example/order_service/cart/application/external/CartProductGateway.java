@@ -32,7 +32,7 @@ public class CartProductGateway {
 
     private ProductClientResponse.ProductList executeGetProducts(ProductCommand.BulkSearch command) {
         try {
-            return productAdaptor.getProducts(command);
+            return productAdaptor.getProductsDeprecated(command);
         } catch (ExternalClientException e) {
             throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {

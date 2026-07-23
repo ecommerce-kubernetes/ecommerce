@@ -40,7 +40,7 @@ public class ProductAdaptorTest {
             ProductClientResponse.ProductList response = Instancio.create(ProductClientResponse.ProductList.class);
             given(client.getProducts(any())).willReturn(response);
             //when
-            ProductClientResponse.ProductList products = productAdaptor.getProducts(command);
+            ProductClientResponse.ProductList products = productAdaptor.getProductsDeprecated(command);
             //then
             assertThat(products).isNotNull();
         }
@@ -57,7 +57,7 @@ public class ProductAdaptorTest {
             given(translator.translate(anyString(), any(Throwable.class))).willReturn(translatedException);
             //when
             //then
-            assertThatThrownBy(() -> productAdaptor.getProducts(command)).isInstanceOf(ExternalSystemUnavailableException.class);
+            assertThatThrownBy(() -> productAdaptor.getProductsDeprecated(command)).isInstanceOf(ExternalSystemUnavailableException.class);
         }
     }
 }

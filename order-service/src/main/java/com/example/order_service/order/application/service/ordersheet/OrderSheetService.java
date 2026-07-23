@@ -48,12 +48,11 @@ public class OrderSheetService {
     private final OrderSheetRepository repository;
     private final Clock clock;
 
-
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
         OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
 
         List<Long> orderVariantIds = command.toItemVariantIds();
-        OrderProductResult products = orderProductGateway.getProducts(orderVariantIds);
+        OrderProductResult products = orderProductGateway.getProductsDeprected(orderVariantIds);
 
         Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
         List<OrderSheetItem> orderSheetItems = createOrderSheetItems(command, productsMap);

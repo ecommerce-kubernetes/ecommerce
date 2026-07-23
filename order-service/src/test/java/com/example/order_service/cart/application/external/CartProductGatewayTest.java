@@ -48,7 +48,7 @@ class CartProductGatewayTest {
             List<Long> variantIds = List.of(1L, 2L);
             ProductClientResponse.ProductList productResponse = Instancio.create(ProductClientResponse.ProductList.class);
             CartProductListResult productList = Instancio.create(CartProductListResult.class);
-            given(adaptor.getProducts(any())).willReturn(productResponse);
+            given(adaptor.getProductsDeprecated(any())).willReturn(productResponse);
             given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
             CartProductListResult result = cartProductGateway.getProducts(variantIds);
@@ -64,7 +64,7 @@ class CartProductGatewayTest {
             String message = "알 수 없는 에러가 발생했습니다";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalServerException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
             assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
@@ -83,7 +83,7 @@ class CartProductGatewayTest {
             String message = "잘못된 상품 조회 요청입니다";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalClientException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
             assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
@@ -101,7 +101,7 @@ class CartProductGatewayTest {
             String message = "상품 서비스 통신 장애";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalSystemUnavailableException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
             assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
@@ -119,7 +119,7 @@ class CartProductGatewayTest {
             String message = "상품 서비스 서킷 오픈";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalCircuitBreakerException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
             assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))

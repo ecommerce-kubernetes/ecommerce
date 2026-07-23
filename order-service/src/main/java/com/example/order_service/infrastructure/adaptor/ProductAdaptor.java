@@ -4,10 +4,13 @@ import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
+import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 상품 도메인과의 통신을 담당하는 Adaptor
@@ -25,13 +28,13 @@ public class ProductAdaptor {
     private final ProductFeignClient client;
     private final ExternalExceptionTranslator translator;
 
-    /**
-     * 상품 정보 목록을 조회
-     * @param command 상품 조회 command
-     * @return 상품 목록 정보
-     */
+    public ProductResponse getProducts(List<Long> productVariantIds) {
+        return null;
+    }
+
+    @Deprecated
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
-    public ProductClientResponse.ProductList getProducts(ProductCommand.BulkSearch command) {
+    public ProductClientResponse.ProductList getProductsDeprecated(ProductCommand.BulkSearch command) {
         ProductClientRequest.BulkSearch request = ProductClientRequest.BulkSearch.from(command.variantIds());
         return client.getProducts(request);
     }

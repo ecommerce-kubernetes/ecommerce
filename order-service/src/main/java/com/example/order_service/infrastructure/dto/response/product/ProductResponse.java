@@ -1,34 +1,33 @@
-package com.example.order_service.infrastructure.dto.response;
+package com.example.order_service.infrastructure.dto.response.product;
 
 import lombok.Builder;
 
 import java.util.List;
 
-@Deprecated
-public class ProductClientResponse {
+@Builder
+public record ProductResponse(
+        List<ProductDetail> products
+) {
 
-    @Builder
-    public record ProductList(
-            List<Product> products
-    ) {
-    }
-
-    @Builder
-    public record Product(
+    public record ProductDetail(
             Long productId,
             Long productVariantId,
-            String status,
+            ProductStatus status,
             Integer stock,
             String sku,
             String productName,
             String thumbnail,
             UnitPrice unitPrice,
             List<ProductOption> options
-    ) {
+
+    ){}
+
+    public enum ProductStatus {
+        PREPARING, ON_SALE, STOP_SALE, DELETED
     }
 
     @Builder
-    public record UnitPrice(
+    public record UnitPrice (
             Long originalPrice,
             Integer discountRate,
             Long discountAmount,

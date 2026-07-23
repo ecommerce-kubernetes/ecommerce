@@ -88,7 +88,7 @@ public class OrderSheetServiceTest {
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
 
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
@@ -128,7 +128,7 @@ public class OrderSheetServiceTest {
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
 
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
@@ -169,7 +169,7 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product1)).build();
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -198,7 +198,7 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -227,7 +227,7 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
         given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderProductGateway.getProductsDeprected(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))

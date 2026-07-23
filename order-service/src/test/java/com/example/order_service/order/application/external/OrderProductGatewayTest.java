@@ -7,6 +7,7 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
+import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -23,7 +24,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
@@ -37,6 +40,21 @@ public class OrderProductGatewayTest {
     @Mock
     private OrderProductMapper productMapper;
 
+    @Test
+    @DisplayName("상품을 조회한다")
+    void getProducts(){
+        //given
+        List<Long> variantIds = List.of(1L, 2L);
+        ProductResponse response = Instancio.of(ProductResponse.class)
+                .generate(field(ProductResponse::products), gen -> gen.collection().size(2))
+                .create();
+        given(adaptor.getProducts(anyList())).willReturn(response);
+        //when
+        OrderProductResult result = orderProductGateway.getProducts(variantIds);
+        //then
+
+    }
+
     @Nested
     @DisplayName("상품 조회")
     class GetProducts {
@@ -48,10 +66,10 @@ public class OrderProductGatewayTest {
             List<Long> variantIds = List.of(1L, 2L);
             ProductClientResponse.ProductList productResponse = Instancio.create(ProductClientResponse.ProductList.class);
             OrderProductResult productList = Instancio.create(OrderProductResult.class);
-            given(adaptor.getProducts(any())).willReturn(productResponse);
+            given(adaptor.getProductsDeprecated(any())).willReturn(productResponse);
             given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
-            OrderProductResult result = orderProductGateway.getProducts(variantIds);
+            OrderProductResult result = orderProductGateway.getProductsDeprected(variantIds);
             //then
             assertThat(result).isEqualTo(productList);
         }
@@ -64,10 +82,10 @@ public class OrderProductGatewayTest {
             String message = "알 수 없는 에러가 발생했습니다";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalServerException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProductsDeprected(variantIds))
                     .isInstanceOf(DefaultGatewayException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
@@ -82,10 +100,10 @@ public class OrderProductGatewayTest {
             String message = "잘못된 상품 조회 요청입니다";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalClientException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProductsDeprected(variantIds))
                     .isInstanceOf(DefaultGatewayException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
@@ -100,10 +118,10 @@ public class OrderProductGatewayTest {
             String message = "상품 서비스 통신 장애";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalSystemUnavailableException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProductsDeprected(variantIds))
                     .isInstanceOf(DefaultGatewayException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
@@ -118,10 +136,10 @@ public class OrderProductGatewayTest {
             String message = "상품 서비스 서킷 오픈";
             List<Long> variantIds = List.of(1L, 2L);
             willThrow(new ExternalCircuitBreakerException(code, message))
-                    .given(adaptor).getProducts(any());
+                    .given(adaptor).getProductsDeprecated(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProductsDeprected(variantIds))
                     .isInstanceOf(DefaultGatewayException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")

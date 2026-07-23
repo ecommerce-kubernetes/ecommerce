@@ -52,12 +52,12 @@ public class ProductAdaptorCircuitBreakerTest {
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getProducts(command))
+            assertThatThrownBy(() -> adaptor.getProductsDeprecated(command))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("PRODUCT-SERVICE 통신 장애");
         }
 
-        assertThatThrownBy(() -> adaptor.getProducts(command))
+        assertThatThrownBy(() -> adaptor.getProductsDeprecated(command))
                 .isInstanceOf(ExternalCircuitBreakerException.class)
                 .hasMessage("PRODUCT-SERVICE 서킷 차단")
                 .extracting("errorCode")
@@ -76,10 +76,10 @@ public class ProductAdaptorCircuitBreakerTest {
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getProducts(command))
+            assertThatThrownBy(() -> adaptor.getProductsDeprecated(command))
                     .isInstanceOf(ExternalClientException.class);
         }
-        assertThatThrownBy(() -> adaptor.getProducts(command))
+        assertThatThrownBy(() -> adaptor.getProductsDeprecated(command))
                 .isInstanceOf(ExternalClientException.class);
 
         verify(client, times(4)).getProducts(any());
