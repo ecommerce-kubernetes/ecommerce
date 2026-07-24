@@ -66,8 +66,80 @@ public class OrderSheetServiceTest {
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
     @Test
+    @DisplayName("장바구니 주문서 생성")
+    void createCartOrderSheet() {
+        //given
+        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
+                .userId(1L)
+                .cartItemIds(List.of(1L))
+                .build();
+
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+
+        //when
+        OrderSheetCreateResult result = orderSheetService.createCartOrderSheet(command);
+        //then
+        ArgumentCaptor<OrderSheet> orderSheetCaptor = ArgumentCaptor.forClass(OrderSheet.class);
+        then(repository).should().save(orderSheetCaptor.capture(), any());
+
+        OrderSheet capturedOrderSheet = orderSheetCaptor.getValue();
+
+        assertThat(result.orderSheetId()).isNotNull();
+        assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
+        assertThat(capturedOrderSheet.getShippingAddress()).isEqualTo(shippingAddress);
+        assertThat(result.orderSheetId()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("장바구니 주문서 생성시, 주문자 정보의 대표 배송 정보가 없으면 배송정보가 없는 주문서가 생성된다.")
+    void createCartOrderSheet_without_default_shippingAddress() {
+        //given
+        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
+                .userId(1L)
+                .cartItemIds(List.of(1L))
+                .build();
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        //when
+        OrderSheetCreateResult result = orderSheetService.createCartOrderSheet(command);
+        //then
+        ArgumentCaptor<OrderSheet> orderSheetCaptor = ArgumentCaptor.forClass(OrderSheet.class);
+        then(repository).should().save(orderSheetCaptor.capture(), any());
+
+        OrderSheet capturedOrderSheet = orderSheetCaptor.getValue();
+
+        assertThat(result.orderSheetId()).isNotNull();
+        assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
+        assertThat(capturedOrderSheet.getShippingAddress()).isNull();
+    }
+
+    @Test
+    @DisplayName("장바구니 주문서 생성시, 상품 정보가 누락되면 예외가 발생한다.")
+    void createCartOrderSheet_missing_product() {
+        //given
+        //when
+        //then
+    }
+
+    @Test
+    @DisplayName("장바구니 주문서 생성시, 주문 상품이 주문 가능한 상태가 아니면 예외가 발생한다")
+    void createCartOrderSheet_unOrderable_product() {
+        //given
+        //when
+        //then
+    }
+
+    @Test
+    @DisplayName("장바구니 주문서 생성시, 주문 상품의 재고가 주문 수량보다 적으면 예외가 발생한다.")
+    void createCartOrderSheet_product_stock_insufficient() {
+        //given
+        //when
+        //then
+    }
+
+    @Test
     @DisplayName("바로 구매 주문서 생성")
-    void createDirectOrderSheet(){
+    void createDirectOrderSheet() {
         //given
         Long userId = 1L;
         Long productVariantId = 1L;
@@ -106,7 +178,7 @@ public class OrderSheetServiceTest {
         assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
         assertThat(capturedOrderSheet.getShippingAddress()).isEqualTo(shippingAddress);
     }
-    
+
     @Test
     @DisplayName("바로 구매 주문서 생성시, 주문자 정보의 대표 배송 정보가 없으면 배송정보가 없는 주문서가 생성된다.")
     void createDirectOrderSheet_without_default_shippingAddress() {
@@ -315,7 +387,7 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("주문서 배송 정보를 변경한다")
-    void updateShippingAddress(){
+    void updateShippingAddress() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
         OrderSheet orderSheet = createOrderSheet(expiresAt);
@@ -346,7 +418,7 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("주문서 배송 정보를 변경할때 주문서를 찾을 수 없는 경우 예외가 발생한다.")
-    void updateShippingAddress_notFound_orderSheet(){
+    void updateShippingAddress_notFound_orderSheet() {
         //given
         UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
                 .orderSheetId("orderSheetId")
@@ -369,7 +441,7 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("주문서 배송 정보를 변경할때 주문서가 만료된 경우 예외가 발생한다")
-    void updateShippingAddress_expired(){
+    void updateShippingAddress_expired() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
         OrderSheet orderSheet = createOrderSheet(expiresAt);
@@ -424,7 +496,7 @@ public class OrderSheetServiceTest {
                 .containsExactly(Money.wons(4500L));
 
         assertThat(result.items())
-                .extracting( "price.finalAmount")
+                .extracting("price.finalAmount")
                 .containsExactly(Money.wons(40500L));
 
         assertThat(result.paymentSummary())
@@ -462,7 +534,7 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
-    void applyItemCoupon_expired_orderSheet(){
+    void applyItemCoupon_expired_orderSheet() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
         OrderSheet orderSheet = createOrderSheet(expiresAt);
@@ -486,7 +558,7 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰 적용시 주문 항목을 찾을 수 없는 경우 예외가 발생한다.")
-    void applyItemCoupon_notFound_orderSheetItem(){
+    void applyItemCoupon_notFound_orderSheetItem() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
         OrderSheet orderSheet = createOrderSheet(expiresAt);
@@ -575,7 +647,7 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("장바구니 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
-    void applyCartCoupon_expired_orderSheet(){
+    void applyCartCoupon_expired_orderSheet() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
         OrderSheet orderSheet = createOrderSheet(expiresAt);

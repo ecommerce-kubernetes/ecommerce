@@ -218,7 +218,7 @@ public record OrderSheetResponse(
         public static PointInfo from(OrderSheetResult.PointResult point) {
             return PointInfo.builder()
                     .availablePoints(point.availablePoints().longValue())
-                    .maxUsablePoints(point.availablePoints().longValue())
+                    .maxUsablePoints(point.maxUsablePoints().longValue())
                     .build();
         }
     }
