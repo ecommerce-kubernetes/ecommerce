@@ -1,7 +1,6 @@
 package com.example.order_service.cart.application.facade;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartErrorCode;
@@ -33,12 +32,12 @@ class CartItemValidatorTest {
                 .set(field("items"), List.of(item1, item2))
                 .create();
 
-        CartProductResult product1 = Instancio.of(CartProductResult.class)
+        CartProductResult.CartProductDetail product1 = Instancio.of(CartProductResult.CartProductDetail.class)
                 .set(field("productVariantId"), item1.productVariantId())
                 .set(field("status"), CartProductStatus.ON_SALE)
                 .set(field("stock"), item1.quantity() + 100)
                 .create();
-        CartProductListResult productData = Instancio.of(CartProductListResult.class)
+        CartProductResult productData = Instancio.of(CartProductResult.class)
                 .set(field("products"), List.of(product1))
                 .create();
         //when
@@ -63,19 +62,19 @@ class CartItemValidatorTest {
                 .set(field("items"), List.of(item1, item2))
                 .create();
 
-        CartProductResult product1 = Instancio.of(CartProductResult.class)
+        CartProductResult.CartProductDetail product1 = Instancio.of(CartProductResult.CartProductDetail.class)
                 .set(field("productVariantId"), item1.productVariantId())
                 .set(field("status"), CartProductStatus.ON_SALE)
                 .set(field("stock"), item1.quantity() + 100)
                 .create();
 
-        CartProductResult product2 = Instancio.of(CartProductResult.class)
+        CartProductResult.CartProductDetail product2 = Instancio.of(CartProductResult.CartProductDetail.class)
                 .set(field("productVariantId"), item2.productVariantId())
                 .set(field("status"), CartProductStatus.STOP_SALE)
                 .set(field("stock"), item2.quantity() + 100)
                 .create();
 
-        CartProductListResult productData = Instancio.of(CartProductListResult.class)
+        CartProductResult productData = Instancio.of(CartProductResult.class)
                 .set(field("products"), List.of(product1, product2))
                 .create();
         //when

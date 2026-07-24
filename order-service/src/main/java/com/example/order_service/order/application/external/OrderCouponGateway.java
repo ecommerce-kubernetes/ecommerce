@@ -19,7 +19,6 @@ import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
-import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

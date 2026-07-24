@@ -7,6 +7,7 @@ import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.support.annotation.IsolatedTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -141,7 +142,7 @@ class CartQueryServiceTest {
             assertThat(getCartItem)
                     .extracting(CartItemData::productVariantId, CartItemData::quantity)
                     .containsExactly(
-                            cartItem.getId(), cartItem.getQuantity()
+                            cartItem.getProductVariantId(), cartItem.getQuantity()
                     );
         }
 

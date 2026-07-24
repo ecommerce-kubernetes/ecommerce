@@ -2,14 +2,11 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
-import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.request.ProductBulkSearchRequest;
-import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

@@ -7,15 +7,10 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
-import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
-import com.example.order_service.order.application.external.mapper.OrderProductMapper;
-import com.example.order_service.order.exception.OrderErrorCode;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +21,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
@@ -39,8 +33,6 @@ public class OrderProductGatewayTest {
     private OrderProductGateway orderProductGateway;
     @Mock
     private ProductAdaptor adaptor;
-    @Mock
-    private OrderProductMapper productMapper;
 
     @Test
     @DisplayName("상품을 조회한다")

@@ -18,7 +18,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @IsolatedTest
 @AutoConfigureWireMock(port = 0)

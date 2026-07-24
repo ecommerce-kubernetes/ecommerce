@@ -8,16 +8,12 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
-import com.example.order_service.infrastructure.dto.command.ProductCommand;
-import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
-import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
-import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderProductGateway {
     private final ProductAdaptor productAdaptor;
-    private final OrderProductMapper mapper;
 
     public OrderProductResult getProducts(List<Long> productVariantIds) {
         ProductResponse response = executeGetProducts(productVariantIds);
@@ -68,27 +63,6 @@ public class OrderProductGateway {
 
     private List<ProductOptionSnapshot> mapToOptions(List<ProductResponse.ProductOption> options) {
         return options.stream().map(option -> ProductOptionSnapshot.of(option.optionTypeName(), option.optionValueName())).toList();
-    }
-
-    @Deprecated
-    public OrderProductResult getProductsDeprected(List<Long> variantIds) {
-        ProductCommand.BulkSearch command = ProductCommand.BulkSearch.from(variantIds);
-        ProductClientResponse.ProductList productList = fetchProductsWithTranslation(command);
-        return mapper.toResult(productList);
-    }
-
-    private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.BulkSearch command) {
-        try {
-            return productAdaptor.getProductsDeprecated(command);
-        } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
-        }
     }
 
     private ProductResponse executeGetProducts(List<Long> productVariantIds) {

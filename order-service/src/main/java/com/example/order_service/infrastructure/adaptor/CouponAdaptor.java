@@ -1,9 +1,6 @@
 package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.infrastructure.client.CouponFeignClient;
-import com.example.order_service.infrastructure.dto.command.CouponCommand;
-import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
-import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -43,12 +40,5 @@ public class CouponAdaptor {
 
     private CartCouponResponse getCartCouponFallback(Long userId, Long cartCouponId, Throwable throwable) throws Throwable {
         throw translator.translate("COUPON-SERVICE", throwable);
-    }
-
-    @Deprecated
-    @CircuitBreaker(name = "couponService")
-    public CouponClientResponse.Calculate calculate(CouponCommand.Calculate command) {
-        CouponClientRequest.Calculate request = CouponClientRequest.Calculate.from(command);
-        return client.calculate(request);
     }
 }

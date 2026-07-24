@@ -4,11 +4,8 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
-import com.example.order_service.infrastructure.dto.command.CouponCommand;
-import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +14,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;

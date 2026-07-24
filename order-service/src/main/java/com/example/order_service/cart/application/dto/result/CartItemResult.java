@@ -21,7 +21,7 @@ public record CartItemResult(
         List<CartItemOption> options
 ) {
 
-    public static CartItemResult from(CartItemData data, CartProductResult product, CartItemAvailability status) {
+    public static CartItemResult from(CartItemData data, CartProductResult.CartProductDetail product, CartItemAvailability status) {
         return CartItemResult.builder()
                 .cartItemId(data.cartItemId())
                 .status(status)

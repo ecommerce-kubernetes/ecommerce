@@ -11,7 +11,7 @@ public record CartItemPrice(
         Money discountAmount,
         Money discountedPrice
 ) {
-    public static CartItemPrice from(CartProductResult result) {
+    public static CartItemPrice from(CartProductResult.CartProductDetail result) {
         return CartItemPrice.builder()
                 .originalPrice(result.originalPrice())
                 .discountRate(result.discountRate())

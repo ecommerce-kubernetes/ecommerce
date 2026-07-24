@@ -6,7 +6,6 @@ import com.example.order_service.cart.application.dto.command.UpdateCartItemQuan
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.external.CartProductGateway;
-import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
@@ -53,11 +52,11 @@ public class CartFacadeTest {
         void addItems() {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
-            CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+            CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
             CartItemData cartItemData = createCartItemData(1L, 3);
 
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
-            doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductListResult.class));
+            doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
             doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
             given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
             //when
@@ -83,10 +82,10 @@ public class CartFacadeTest {
         void addItems_CartItemValidator_thrown_BusinessException() {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
-            CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+            CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             willThrow(new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE))
-                    .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductListResult.class));
+                    .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
             //when
             //then
             assertThatThrownBy(() -> cartFacade.addItems(addCommand))
@@ -122,7 +121,7 @@ public class CartFacadeTest {
             int quantity = 2;
             CartItemData cartItemData = createCartItemData(productVariantId, quantity);
 
-            CartProductListResult productData = Instancio.of(CartProductListResult.class)
+            CartProductResult productData = Instancio.of(CartProductResult.class)
                     .set(field("products"), Collections.emptyList())
                     .create();
 
@@ -148,17 +147,17 @@ public class CartFacadeTest {
             CartItemData item1 = createCartItemData(1L, 3);
             CartItemData item2 = createCartItemData(2L, 3);
 
-            CartProductResult product1 = Instancio.of(CartProductResult.class)
+            CartProductResult.CartProductDetail product1 = Instancio.of(CartProductResult.CartProductDetail.class)
                     .set(field("productVariantId"), item1.productVariantId())
                     .set(field("status"), CartProductStatus.ON_SALE)
                     .create();
 
-            CartProductResult product2 = Instancio.of(CartProductResult.class)
+            CartProductResult.CartProductDetail product2 = Instancio.of(CartProductResult.CartProductDetail.class)
                     .set(field("productVariantId"), item2.productVariantId())
                     .set(field("status"), CartProductStatus.STOP_SALE)
                     .create();
 
-            CartProductListResult productData = Instancio.of(CartProductListResult.class)
+            CartProductResult productData = Instancio.of(CartProductResult.class)
                     .set(field("products"), List.of(product1, product2))
                     .create();
 
@@ -188,7 +187,7 @@ public class CartFacadeTest {
             Long userId = 1L;
             Long cartItemId = 1L;
             CartItemData cartItemData = createCartItemData(1L, 3);
-            CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+            CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
             given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             //when
@@ -208,7 +207,7 @@ public class CartFacadeTest {
             Long userId = 1L;
             Long cartItemId = 1L;
             CartItemData cartItemData = createCartItemData(1L, 3);
-            CartProductListResult productData = CartProductListResult.builder().products(Collections.emptyList()).build();
+            CartProductResult productData = CartProductResult.builder().products(Collections.emptyList()).build();
             given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             //when
@@ -228,7 +227,7 @@ public class CartFacadeTest {
             Long userId = 1L;
             Long cartItemId = 1L;
             CartItemData cartItemData = createCartItemData(1L, 3);
-            CartProductListResult productData = createProductList(1L, CartProductStatus.STOP_SALE);
+            CartProductResult productData = createProductList(1L, CartProductStatus.STOP_SALE);
             given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             //when
@@ -340,12 +339,12 @@ public class CartFacadeTest {
                 .create();
     }
 
-    private CartProductListResult createProductList(Long productVariantId, CartProductStatus status) {
-        CartProductResult product = Instancio.of(CartProductResult.class)
+    private CartProductResult createProductList(Long productVariantId, CartProductStatus status) {
+        CartProductResult.CartProductDetail product = Instancio.of(CartProductResult.CartProductDetail.class)
                 .set(field("productVariantId"), productVariantId)
                 .set(field("status"), status)
                 .create();
-        return Instancio.of(CartProductListResult.class)
+        return Instancio.of(CartProductResult.class)
                 .set(field("products"), List.of(product))
                 .create();
     }
