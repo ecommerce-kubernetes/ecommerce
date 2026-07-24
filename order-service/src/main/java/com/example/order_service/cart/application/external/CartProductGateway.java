@@ -58,12 +58,16 @@ public class CartProductGateway {
     }
 
     private CartProductStatus mapToProductStatus(String productStatus) {
-        return switch (productStatus){
+        return switch (productStatus) {
             case "ON_SALE" -> CartProductStatus.ON_SALE;
             case "STOP_SALE" -> CartProductStatus.STOP_SALE;
             case "DELETED" -> CartProductStatus.DELETED;
             case "PREPARING" -> CartProductStatus.PREPARING;
-            default -> throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, "UNSUPPORTED_STATUS", "처리할 수 없는 상품 상태입니다");
+            case null, default -> throw new DefaultGatewayException(
+                    ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR,
+                    "UNSUPPORTED_STATUS",
+                    "처리할 수 없는 상품 상태입니다"
+            );
         };
     }
 
