@@ -8,19 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
-
-    ORDER_USER_CLIENT_ERROR(HttpStatus.CONFLICT, "ORDER_USER_CLIENT_ERROR", "주문중 에러가 발생했습니다"),
-    ORDER_USER_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORDER_USER_SERVER_ERROR", "주문중 에러가 발생했습니다"),
-    ORDER_USER_UNAVAILABLE_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_USER_UNAVAILABLE_SERVER_ERROR", "주문중 일시적 에러가 발생했습니다 잠시후 다시 시도해주세요"),
-    ORDER_USER_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_USER_CIRCUIT_OPEN", "주문중 일시적 에러가 발생했습니다 잠시후 다시 시도해주세요"),
-
-    ORDER_PRODUCT_CLIENT_ERROR(HttpStatus.CONFLICT, "ORDER_PRODUCT_CLIENT_ERROR", "주문중 에러가 발생했습니다"),
-    ORDER_PRODUCT_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORDER_PRODUCT_SERVER_ERROR", "주문중 에러가 발생했습니다"),
-    ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR", "주문중 일시적 에러가 발생했습니다 잠시후 다시 시도해주세요"),
-    ORDER_PRODUCT_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_PRODUCT_CIRCUIT_OPEN", "주문중 일시적인 에러가 발생했습니다 잠시후 다시 시도해주세요"),
-
     INVALID_ITEM_QUANTITY(HttpStatus.CONFLICT, "INVALID_ITEM_QUANTITY", "항목 수량이 유효하지 않습니다."),
-
     ORDER_ITEMS_DUPLICATE(HttpStatus.BAD_REQUEST, "ORDER_ITEMS_DUPLICATE", "중복된 상품 아이디가 존재합니다"),
     ORDER_ITEMS_REQUIRED(HttpStatus.CONFLICT, "ORDER_ITEMS_REQUIRED", "주문 상품은 최소 한개 이상이여야 합니다"),
     ORDER_COUPON_ITEM_NOT_IN_ITEMS(HttpStatus.BAD_REQUEST, "ORDER_COUPON_ITEM_NOT_IN_ITEMS", "쿠폰 적용 대상 상품이 주문 상품에 존재하지 않습니다"),

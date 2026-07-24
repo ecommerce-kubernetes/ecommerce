@@ -15,16 +15,6 @@ import com.example.order_service.order.domain.vo.ShippingAddress;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * 주문 유저 도메인 통신을 담당하는 Gateway 서비스
- * <p>
- * 유저 도메인의 응답을 서비스 레이어의 Result로 매핑하여 반환
- * 유저 도메인 통신중 발생하는 예외를 비지니스 예외로 변환
- * </p>
- *
- * @author 최민식
- * @since 2026. 05. 22
- */
 @Service
 @RequiredArgsConstructor
 public class OrderUserGateway {

@@ -92,12 +92,7 @@ public class OrderSheetService {
     }
 
     public OrderSheetResult getOrderSheet(String orderSheetId, Long userId) {
-        OrderSheet orderSheet = repository.findByIdAndOrdererId(orderSheetId, userId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
-
-        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
+        OrderSheet orderSheet = getValidOrderSheet(orderSheetId, userId);
 
         OrdererPointResult ordererPoints = orderUserGateway.getOrdererPoints(userId);
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
@@ -106,12 +101,7 @@ public class OrderSheetService {
     }
 
     public OrderSheetResult updateShippingAddress(UpdateOrderSheetShippingAddressCommand command) {
-        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
-
-        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
+        OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
         ShippingAddress shippingAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(),
                 command.zipCode(), command.address(), command.addressDetail());
@@ -125,12 +115,7 @@ public class OrderSheetService {
     }
 
     public OrderSheetResult applyItemCoupon(ApplyItemCouponCommand command) {
-        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
-
-        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
+        OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
         ItemCouponResult itemCouponResult = orderCouponGateway.getItemCoupon(command.userId(), command.itemCouponId());
 
@@ -144,12 +129,7 @@ public class OrderSheetService {
     }
 
     public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
-        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
-
-        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
+        OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
         CartCouponResult cartCouponResult = orderCouponGateway.getCartCoupon(command.userId(), command.cartCouponId());
 
@@ -163,12 +143,7 @@ public class OrderSheetService {
     }
 
     public OrderSheetResult applyPoints(ApplyPointCommand command) {
-        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
-
-        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
+        OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
         OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
         Money usedPoints = Money.wons(command.usedPoints());
@@ -182,5 +157,15 @@ public class OrderSheetService {
 
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
         return OrderSheetResult.of(savedOrderSheet, ordererProfile.availablePoints(), maxUsablePoints);
+    }
+
+    private OrderSheet getValidOrderSheet(String orderSheetId, Long userId) {
+        OrderSheet orderSheet = repository.findByIdAndOrdererId(orderSheetId, userId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
+
+        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+        }
+        return orderSheet;
     }
 }
