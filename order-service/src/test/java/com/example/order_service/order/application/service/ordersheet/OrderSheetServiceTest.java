@@ -81,8 +81,9 @@ public class OrderSheetServiceTest {
                 .items(List.of(item))
                 .build();
 
+        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
         OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
@@ -122,7 +123,8 @@ public class OrderSheetServiceTest {
                 .items(List.of(item))
                 .build();
 
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(null);
+        Money availablePoints = Money.wons(10000L);
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(null, availablePoints);
 
         OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
@@ -163,8 +165,9 @@ public class OrderSheetServiceTest {
                 .items(List.of(item1, item2))
                 .build();
 
+        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
         OrderProductResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product1)).build();
@@ -192,8 +195,9 @@ public class OrderSheetServiceTest {
                 .items(List.of(item))
                 .build();
 
+        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
@@ -221,8 +225,9 @@ public class OrderSheetServiceTest {
                 .items(List.of(item))
                 .build();
 
+        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress);
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
@@ -590,10 +595,109 @@ public class OrderSheetServiceTest {
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
     }
 
-    private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress) {
+    @Test
+    @DisplayName("포인트를 적용한다.")
+    void applyPoints() {
+        //given
+        Long userId = 1L;
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        ApplyPointCommand command = ApplyPointCommand.builder()
+                .orderSheetId(orderSheet.getId())
+                .userId(userId)
+                .usedPoints(2000L)
+                .build();
+
+        Money availablePoints = Money.wons(10000L);
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderUserGateway.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
+        //when
+        OrderSheetResult result = orderSheetService.applyPoints(command);
+        //then
+        assertThat(result.paymentSummary())
+                .extracting("usedPoints", "totalPaymentAmount")
+                .containsExactly(Money.wons(2000L), Money.wons(41000L));
+    }
+
+    @Test
+    @DisplayName("포인트를 적용할 때, 주문서를 찾을 수 없으면 예외가 발생한다")
+    void applyPoints_orderSheet_notFound() {
+        //given
+        Long userId = 1L;
+        ApplyPointCommand command = ApplyPointCommand.builder()
+                .orderSheetId("unknown")
+                .userId(userId)
+                .usedPoints(1000L)
+                .build();
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyPoints(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
+    }
+
+
+    @Test
+    @DisplayName("포인트를 적용할 때, 주문서가 만료되었으면 예외가 발생한다")
+    void applyPoints_orderSheet_expired() {
+        //given
+        Long userId = 1L;
+        LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+
+        ApplyPointCommand command = ApplyPointCommand.builder()
+                .userId(userId)
+                .orderSheetId(orderSheet.getId())
+                .usedPoints(2000L)
+                .build();
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyPoints(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
+    }
+
+    @Test
+    @DisplayName("사용할 포인트가 사용가능 포인트를 초과하면 예외가 발생한다.")
+    void applyPoints_usedPoints_exceed_availablePoints() {
+        //given
+        Long userId = 1L;
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
+        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        ApplyPointCommand command = ApplyPointCommand.builder()
+                .orderSheetId(orderSheet.getId())
+                .userId(userId)
+                .usedPoints(2000L)
+                .build();
+
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        Money availablePoints = Money.wons(1000L);
+        OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
+
+        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(orderUserGateway.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.applyPoints(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+    }
+
+
+    private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress, Money availablePoints) {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         return OrdererProfileResult.builder()
                 .orderer(orderer)
+                .availablePoints(availablePoints)
                 .defaultShippingAddress(shippingAddress)
                 .build();
     }
@@ -610,115 +714,6 @@ public class OrderSheetServiceTest {
                 .priceSnapshot(priceSnapshot)
                 .options(List.of(option1, option2))
                 .build();
-    }
-
-    @Nested
-    @DisplayName("사용 포인트 수정")
-    class UpdatePoints {
-
-        @Test
-        @DisplayName("사용 포인트를 수정한다")
-        void updatePoints() {
-            //given
-            Money usedPoints = Money.wons(100L);
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getId())
-                    .userId(orderSheet.getOrderer().getUserId())
-                    .usedPoints(usedPoints)
-                    .build();
-            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
-                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
-                    .create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
-            when(repository.save(any(), any())).then(returnsFirstArg());
-            //when
-            //then
-        }
-
-        @Test
-        @DisplayName("사용 포인트가 주문에 적용할 수 있는 포인트를 초과하면 예외가 발생한다")
-        void updatePoints_point_policy_violation() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getId())
-                    .userId(orderSheet.getOrderer().getUserId())
-                    .usedPoints(Money.wons(5000L))
-                    .build();
-            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
-                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
-                    .create();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
-            //when
-            //then
-
-        }
-
-        @Test
-        @DisplayName("주문서를 찾을 수 없으면 예외가 발생한다")
-        void updatePoints_notFound() {
-            //given
-            String sheetId = "sheetId";
-            Long userId = 1L;
-            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(sheetId)
-                    .userId(userId)
-                    .usedPoints(Money.wons(2000L))
-                    .build();
-            given(repository.findById(any())).willReturn(Optional.empty());
-            //when
-            //then
-        }
-
-        @Test
-        @DisplayName("주문자가 아니면 예외가 발생한다")
-        void updatePoints_no_permission() {
-            //given
-            Long userId = 999L;
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getId())
-                    .userId(userId)
-                    .usedPoints(Money.wons(2000L))
-                    .build();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-
-        }
-
-        @Test
-        @DisplayName("주문서가 만료되었으면 예외가 발생한다")
-        void updatePoints_expired() {
-            //given
-            OrderSheet orderSheet = createOrderSheetDeprecated();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
-            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getId())
-                    .userId(orderSheet.getOrderer().getUserId())
-                    .usedPoints(Money.wons(2000L))
-                    .build();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            //when
-            //then
-        }
-    }
-
-    @Deprecated
-    private OrderSheet createOrderSheetDeprecated() {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-        OrderSheetItem sheetItem = OrderSheetItem.create( product, price, 1, options);
-        return OrderSheet.create(orderer, List.of(sheetItem),LocalDateTime.now(clock).plusMinutes(30));
     }
 
     private OrderSheet createOrderSheet(LocalDateTime expiresAt) {

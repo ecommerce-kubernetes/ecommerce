@@ -26,16 +26,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
- * <p>
- * 사용자의 최종 주문 전 까지의 주문서 상태를 관리
- * 외부 MSA 도메인과의 네트워크 통신을 통해 주문서를 관리
- * </p>
- *
- * @author 최민식
- * @since 2026. 05. 21
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -47,6 +37,10 @@ public class OrderSheetService {
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetRepository repository;
     private final Clock clock;
+
+    public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
+        return null;
+    }
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
         OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
@@ -168,20 +162,25 @@ public class OrderSheetService {
         return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
 
-    /**
-     * 주문서 사용 포인트 변경
-     * <p>
-     * 주문서의 사용 포인트를 반영하고 주문서의 가격 정보를 적용 포인트에 맞추어 변경됨
-     * </p>
-     *
-     * @param command 변경 포인트 정보
-     * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
-     */
     public OrderSheetResult applyPoints(ApplyPointCommand command) {
-        return null;
-    }
+        OrderSheet orderSheet = repository.findByIdAndOrdererId(command.orderSheetId(), command.userId())
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
 
-    public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
-        return null;
+        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+        }
+
+        OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(command.userId());
+        Money usedPoints = Money.wons(command.usedPoints());
+
+        if (ordererProfile.availablePoints().isLessThan(usedPoints)) {
+            throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+        }
+
+        orderSheet.applyPoints(usedPoints, pointUsagePolicy);
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+
+        Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
+        return OrderSheetResult.of(savedOrderSheet, ordererProfile.availablePoints(), maxUsablePoints);
     }
 }
