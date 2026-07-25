@@ -4,10 +4,9 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.application.dto.param.CartItemsContext;
+import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.port.CartProductPort;
-import com.example.order_service.cart.infrastructure.adaptor.CartProductAdaptor;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
@@ -56,7 +55,7 @@ public class CartFacadeTest {
 
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
         doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
-        doNothing().when(cartCommandService).addCartItems(any(CartItemsContext.class));
+        doNothing().when(cartCommandService).addCartItems(any(CreateCartItemsContext.class));
         given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
         //when
         AddCartItemsResult result = cartFacade.addItems(addCommand);
@@ -261,8 +260,8 @@ public class CartFacadeTest {
             Long cartItemId = 1L;
             int quantity = 3;
             UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
-            willThrow(new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY))
-                    .given(cartCommandService).updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class));
+//            willThrow(new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY))
+//                    .given(cartCommandService).updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class));
             //when
             //then
             assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))

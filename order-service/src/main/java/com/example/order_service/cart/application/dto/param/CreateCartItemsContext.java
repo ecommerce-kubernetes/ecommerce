@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record CartItemsContext(
+public record CreateCartItemsContext(
         Long userId,
         List<Item> items
 ) {

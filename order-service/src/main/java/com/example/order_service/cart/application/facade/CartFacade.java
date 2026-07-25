@@ -4,7 +4,7 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.application.dto.param.CartItemsContext;
+import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
@@ -33,24 +33,24 @@ public class CartFacade {
 
         cartItemValidator.validate(command, productData);
 
-        CartItemsContext context = mapToCartItemContext(command, productData);
+        CreateCartItemsContext context = mapToCartItemContext(command, productData);
         cartCommandService.addCartItems(context);
 
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(command.userId(), variantIds);
         return AddCartItemsResult.from(cartItems);
     }
 
-    private CartItemsContext mapToCartItemContext(AddCartItemsCommand command, CartProductResult products) {
+    private CreateCartItemsContext mapToCartItemContext(AddCartItemsCommand command, CartProductResult products) {
         Map<Long, CartProductResult.CartProductDetail> productsMap = products.toMap();
-        List<CartItemsContext.Item> items = command.items().stream().map(item -> {
+        List<CreateCartItemsContext.Item> items = command.items().stream().map(item -> {
             CartProductResult.CartProductDetail product = productsMap.get(item.productVariantId());
-            return CartItemsContext.Item.builder()
+            return CreateCartItemsContext.Item.builder()
                     .productVariantId(product.productVariantId())
                     .quantity(item.quantity())
                     .maxLimit(product.stock())
                     .build();
         }).toList();
-        return CartItemsContext.builder()
+        return CreateCartItemsContext.builder()
                 .userId(command.userId())
                 .items(items)
                 .build();
@@ -111,7 +111,7 @@ public class CartFacade {
     }
 
     public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
-        cartCommandService.updateCartItemQuantity(command);
+//        cartCommandService.updateCartItemQuantity(command);
 
         CartItemData cartItem = cartQueryService.getCartItem(command.userId(), command.cartItemId());
 

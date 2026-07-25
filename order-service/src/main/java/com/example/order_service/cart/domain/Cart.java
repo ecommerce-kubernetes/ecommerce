@@ -65,10 +65,10 @@ public class Cart extends BaseEntity {
                 .findFirst();
     }
 
-    public void updateItemQuantity(Long cartItemId, Integer quantity) {
+    public void updateItemQuantity(Long cartItemId, Integer quantity, int maxLimit) {
         CartItem cartItem = findItemByCartItemId(cartItemId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
-        cartItem.updateQuantity(quantity, 100);
+        cartItem.updateQuantity(quantity, maxLimit);
     }
 
     public void deleteItem(Long cartItemId) {

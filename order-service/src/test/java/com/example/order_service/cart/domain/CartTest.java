@@ -94,7 +94,7 @@ public class CartTest {
         ReflectionTestUtils.setField(cartItem, "id", cartItemId);
         cart.getCartItems().add(cartItem);
         //when
-        cart.updateItemQuantity(cartItemId, 5);
+        cart.updateItemQuantity(cartItemId, 5, 100);
         //then
         CartItem item = cart.findItemByCartItemId(cartItemId).orElseThrow();
         assertThat(item.getQuantity()).isEqualTo(5);
@@ -107,7 +107,7 @@ public class CartTest {
         Cart cart = Cart.create(1L);
         //when
         //then
-        assertThatThrownBy(() -> cart.updateItemQuantity(999L, 3))
+        assertThatThrownBy(() -> cart.updateItemQuantity(999L, 3, 100))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);

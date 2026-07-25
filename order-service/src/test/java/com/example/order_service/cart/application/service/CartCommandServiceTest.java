@@ -1,8 +1,8 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
-import com.example.order_service.cart.application.dto.param.CartItemsContext;
+import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
+import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
@@ -34,12 +34,12 @@ class CartCommandServiceTest {
     void addCartItems_not_exist_cart(){
         //given
         Long userId = 1L;
-        CartItemsContext.Item item = CartItemsContext.Item.builder()
+        CreateCartItemsContext.Item item = CreateCartItemsContext.Item.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
-        CartItemsContext command = CartItemsContext.builder()
+        CreateCartItemsContext command = CreateCartItemsContext.builder()
                 .userId(userId)
                 .items(List.of(item))
                 .build();
@@ -62,12 +62,12 @@ class CartCommandServiceTest {
     void addCartItems_exist_cart(){
         //given
         Long userId = 1L;
-        CartItemsContext.Item item = CartItemsContext.Item.builder()
+        CreateCartItemsContext.Item item = CreateCartItemsContext.Item.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
-        CartItemsContext command = CartItemsContext.builder()
+        CreateCartItemsContext command = CreateCartItemsContext.builder()
                 .userId(userId)
                 .items(List.of(item))
                 .build();
@@ -84,49 +84,47 @@ class CartCommandServiceTest {
                 );
     }
 
-    @Nested
-    @DisplayName("장바구니 항목 수량 변경")
-    class UpdateCartItemQuantity {
+    @Test
+    @DisplayName("장바구니 항목 수량을 변경한다")
+    void updateCartItemQuantity(){
+        //given
+        Long userId = 1L;
+        Cart cart = Cart.create(userId);
+        cart.addItem(1L, 3, 100);
+        cartRepository.save(cart);
 
-        @Test
-        @DisplayName("장바구니 항목 수량을 변경한다")
-        void updateCartItemQuantity(){
-            //given
-            Long userId = 1L;
-            Cart cart = Cart.create(userId);
-            cart.addItem(1L, 3, 100);
-            cartRepository.save(cart);
+        CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
 
-            CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
-            UpdateCartItemQuantityCommand command = UpdateCartItemQuantityCommand.builder()
-                    .userId(userId)
-                    .cartItemId(item.getId())
-                    .quantity(2)
-                    .build();
-            //when
-            cartCommandService.updateCartItemQuantity(command);
-            //then
-            Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
-            CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
-            assertThat(findItem.getQuantity()).isEqualTo(2);
-        }
+        UpdateCartItemContext context = UpdateCartItemContext.builder()
+                .userId(userId)
+                .cartItemId(item.getId())
+                .quantity(2)
+                .maxLimit(100)
+                .build();
+        //when
+        cartCommandService.updateCartItemQuantity(context);
+        //then
+        Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
+        CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
+        assertThat(findItem.getQuantity()).isEqualTo(2);
+    }
 
-        @Test
-        @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
-        void updateCartItemQuantity_notFound_cart(){
-            //given
-            UpdateCartItemQuantityCommand command = UpdateCartItemQuantityCommand.builder()
-                    .userId(1L)
-                    .cartItemId(1L)
-                    .quantity(3)
-                    .build();
-            //when
-            //then
-            assertThatThrownBy(() -> cartCommandService.updateCartItemQuantity(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_NOT_FOUND);
-        }
+    @Test
+    @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
+    void updateCartItemQuantity_notFound_cart(){
+        //given
+        UpdateCartItemContext context = UpdateCartItemContext.builder()
+                .userId(1L)
+                .cartItemId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> cartCommandService.updateCartItemQuantity(context))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.CART_NOT_FOUND);
     }
 
     @Nested
