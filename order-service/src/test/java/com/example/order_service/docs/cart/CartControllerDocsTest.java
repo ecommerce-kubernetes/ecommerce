@@ -258,8 +258,6 @@ public class CartControllerDocsTest extends RestDocSupport {
     private AddCartItemsResult createAddCartItemsResult() {
         AddCartItemsResult.AddedItemResult item = AddCartItemsResult.AddedItemResult.builder()
                 .cartItemId(1L)
-                .productVariantId(1L)
-                .quantity(2)
                 .build();
         return AddCartItemsResult.builder()
                 .items(List.of(item))

@@ -12,16 +12,12 @@ public record AddCartItemsResult(
 
     @Builder
     public record AddedItemResult(
-            Long cartItemId,
-            Long productVariantId,
-            int quantity
+            Long cartItemId
     ) {
 
         public static AddedItemResult from(CartItemData data) {
             return AddedItemResult.builder()
                     .cartItemId(data.cartItemId())
-                    .productVariantId(data.productVariantId())
-                    .quantity(data.quantity())
                     .build();
         }
 

@@ -24,13 +24,7 @@ public class CartDescriptor {
         return new FieldDescriptor[]{
                 fieldWithPath("items[].cartItemId")
                         .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 ID(장바구니 항목 식별자)"),
-                fieldWithPath("items[].productVariantId")
-                        .type(JsonFieldType.NUMBER)
-                        .description("상품 변형 ID(상품 판매 단위 식별자)"),
-                fieldWithPath("items[].quantity")
-                        .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 수량")
+                        .description("장바구니 항목 ID(장바구니 항목 식별자)")
         };
     }
 
@@ -75,10 +69,10 @@ public class CartDescriptor {
                         .type(JsonFieldType.NUMBER)
                         .description("장바구니 항목 총액 (상품 판매 금액 * 항목 수량)"),
 
-                fieldWithPath("items[].optionSnapshots[].optionTypeName")
+                fieldWithPath("items[].options[].optionTypeName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 이름 (예: 사이즈)"),
-                fieldWithPath("items[].optionSnapshots[].optionValueName")
+                fieldWithPath("items[].options[].optionValueName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 값 (예: XL)"),
 
@@ -129,10 +123,10 @@ public class CartDescriptor {
                         .type(JsonFieldType.NUMBER)
                         .description("장바구니 항목 총액 (상품 판매 금액 * 항목 수량)"),
 
-                fieldWithPath("optionSnapshots[].optionTypeName")
+                fieldWithPath("options[].optionTypeName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 이름 (예: 사이즈)"),
-                fieldWithPath("optionSnapshots[].optionValueName")
+                fieldWithPath("options[].optionValueName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 값 (예: XL)")
         };

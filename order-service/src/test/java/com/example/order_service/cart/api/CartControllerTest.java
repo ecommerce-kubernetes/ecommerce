@@ -77,8 +77,7 @@ class CartControllerTest {
                     .andDo(print())
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.items").isNotEmpty())
-                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.cartItemId()))
-                    .andExpect(jsonPath("$.items[0].productVariantId").value(item.productVariantId()));
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.cartItemId()));
         }
 
         @Test

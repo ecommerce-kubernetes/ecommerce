@@ -31,9 +31,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderSheetService {
     private final OrderSheetProperties orderSheetProperties;
-    private final OrderProductPort orderProductAdaptor;
-    private final OrderCouponPort orderCouponAdaptor;
-    private final OrderUserPort orderUserAdaptor;
+    private final OrderProductPort orderProductPort;
+    private final OrderCouponPort orderCouponPort;
+    private final OrderUserPort orderUserPort;
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetRepository repository;
     private final Clock clock;
@@ -43,10 +43,10 @@ public class OrderSheetService {
     }
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
-        OrdererProfileResult ordererProfile = orderUserAdaptor.getOrdererProfile(command.userId());
+        OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
 
         List<Long> orderVariantIds = command.toItemVariantIds();
-        OrderProductResult products = orderProductAdaptor.getProducts(orderVariantIds);
+        OrderProductResult products = orderProductPort.getProducts(orderVariantIds);
 
         Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
         List<OrderSheetItem> orderSheetItems = createOrderSheetItems(command, productsMap);
@@ -94,7 +94,7 @@ public class OrderSheetService {
     public OrderSheetResult getOrderSheet(String orderSheetId, Long userId) {
         OrderSheet orderSheet = getValidOrderSheet(orderSheetId, userId);
 
-        OrdererPointResult ordererPoints = orderUserAdaptor.getOrdererPoints(userId);
+        OrdererPointResult ordererPoints = orderUserPort.getOrdererPoints(userId);
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
 
         return OrderSheetResult.of(orderSheet, ordererPoints.availablePoints(), maxUsablePoints);
@@ -109,7 +109,7 @@ public class OrderSheetService {
 
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
 
-        OrdererPointResult ordererPoints = orderUserAdaptor.getOrdererPoints(command.userId());
+        OrdererPointResult ordererPoints = orderUserPort.getOrdererPoints(command.userId());
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
         return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
@@ -117,13 +117,13 @@ public class OrderSheetService {
     public OrderSheetResult applyItemCoupon(ApplyItemCouponCommand command) {
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
-        ItemCouponResult itemCouponResult = orderCouponAdaptor.getItemCoupon(command.userId(), command.itemCouponId());
+        ItemCouponResult itemCouponResult = orderCouponPort.getItemCoupon(command.userId(), command.itemCouponId());
 
         orderSheet.applyItemCoupon(command.orderSheetItemId(), itemCouponResult.itemCoupon(), pointUsagePolicy);
 
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
 
-        OrdererPointResult ordererPoints = orderUserAdaptor.getOrdererPoints(command.userId());
+        OrdererPointResult ordererPoints = orderUserPort.getOrdererPoints(command.userId());
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
         return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
@@ -131,13 +131,13 @@ public class OrderSheetService {
     public OrderSheetResult applyCartCoupon(ApplyCartCouponCommand command) {
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
-        CartCouponResult cartCouponResult = orderCouponAdaptor.getCartCoupon(command.userId(), command.cartCouponId());
+        CartCouponResult cartCouponResult = orderCouponPort.getCartCoupon(command.userId(), command.cartCouponId());
 
         orderSheet.applyCartCoupon(cartCouponResult.cartCoupon(), pointUsagePolicy);
 
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
 
-        OrdererPointResult ordererPoints = orderUserAdaptor.getOrdererPoints(command.userId());
+        OrdererPointResult ordererPoints = orderUserPort.getOrdererPoints(command.userId());
         Money maxUsablePoints = orderSheet.calculateMaxUsablePoints(pointUsagePolicy);
         return OrderSheetResult.of(savedOrderSheet, ordererPoints.availablePoints(), maxUsablePoints);
     }
@@ -145,7 +145,7 @@ public class OrderSheetService {
     public OrderSheetResult applyPoints(ApplyPointCommand command) {
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
-        OrdererProfileResult ordererProfile = orderUserAdaptor.getOrdererProfile(command.userId());
+        OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
         Money usedPoints = Money.wons(command.usedPoints());
 
         if (ordererProfile.availablePoints().isLessThan(usedPoints)) {
