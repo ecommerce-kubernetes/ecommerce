@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -33,10 +35,10 @@ public class CartCommandService {
         cart.updateItemQuantity(context.cartItemId(), context.quantity(), context.maxLimit());
     }
 
-    public void deleteCartItems(DeleteCartItemsCommand command) {
-        Cart cart = cartRepository.findByUserId(command.userId())
+    public void deleteCartItems(Long userId, List<Long> cartItemIds) {
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
-        for(Long cartItemId: command.cartItemIds()) {
+        for(Long cartItemId: cartItemIds) {
             cart.deleteItem(cartItemId);
         }
     }

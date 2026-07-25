@@ -298,7 +298,7 @@ public class CartFacadeTest {
             //given
             Long cartItemId = 1L;
             DeleteCartItemsCommand command = createDeleteCommand(cartItemId);
-            doNothing().when(cartCommandService).deleteCartItems(any(DeleteCartItemsCommand.class));
+            doNothing().when(cartCommandService).deleteCartItems(anyLong(), anyList());
             //when
             //then
             assertThatCode(() -> cartFacade.deleteCartItems(command))
@@ -312,7 +312,7 @@ public class CartFacadeTest {
             Long cartItemId = 1L;
             DeleteCartItemsCommand command = createDeleteCommand(cartItemId);
             willThrow(new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND))
-                    .given(cartCommandService).deleteCartItems(any(DeleteCartItemsCommand.class));
+                    .given(cartCommandService).deleteCartItems(anyLong(), anyList());
             //when
             //then
             assertThatThrownBy(() -> cartFacade.deleteCartItems(command))

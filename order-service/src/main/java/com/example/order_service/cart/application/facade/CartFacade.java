@@ -148,6 +148,6 @@ public class CartFacade {
     }
 
     public void deleteCartItems(DeleteCartItemsCommand command) {
-        cartCommandService.deleteCartItems(command);
+        cartCommandService.deleteCartItems(command.userId(), command.cartItemIds());
     }
 }

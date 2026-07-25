@@ -1,6 +1,5 @@
 package com.example.order_service.cart.application.service;
 
-import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
@@ -9,7 +8,6 @@ import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.support.annotation.IsolatedTest;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -144,9 +142,8 @@ class CartCommandServiceTest {
 
             CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
             CartItem item2 = cart.findItemByProductVariantId(2L).orElseThrow();
-            DeleteCartItemsCommand command = DeleteCartItemsCommand.of(userId, List.of(item1.getId(), item2.getId()));
             //when
-            cartCommandService.deleteCartItems(command);
+            cartCommandService.deleteCartItems(userId, List.of(item1.getId(), item2.getId()));
             //then
             Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
             assertThat(findCart.getCartItems()).isEmpty();
@@ -156,10 +153,9 @@ class CartCommandServiceTest {
         @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
         void deleteCartItems_notFound_cart(){
             //given
-            DeleteCartItemsCommand command = Instancio.create(DeleteCartItemsCommand.class);
             //when
             //then
-            assertThatThrownBy(() -> cartCommandService.deleteCartItems(command))
+            assertThatThrownBy(() -> cartCommandService.deleteCartItems(1L, List.of(1L, 2L)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.CART_NOT_FOUND);
