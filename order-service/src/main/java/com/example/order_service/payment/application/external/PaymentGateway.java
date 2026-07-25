@@ -3,7 +3,7 @@ package com.example.order_service.payment.application.external;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.infrastructure.adaptor.TossAdaptor;
+import com.example.order_service.infrastructure.gateway.TossGateway;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
@@ -19,27 +19,27 @@ import java.util.function.Supplier;
 @Service
 @RequiredArgsConstructor
 public class PaymentGateway {
-    private final TossAdaptor tossAdaptor;
+    private final TossGateway tossGateway;
     private final PgMapper pgMapper;
     private final PgErrorTranslator errorTranslator;
 
     public PGPaymentResult.Approval confirm(PGPaymentCommand.Confirm command) {
         TossClientResponse.Confirm confirm = executeExternalCall(() ->
-                tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue()));
+                tossGateway.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue()));
         return pgMapper.toResult(confirm);
     }
 
     public PGPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
         TossClientResponse.Cancel cancel = executeExternalCall(() -> {
             Long cancelAmount = command.amount() == null ? null : command.amount().longValue();
-            return tossAdaptor.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
+            return tossGateway.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
         });
         return pgMapper.toResult(cancel);
     }
 
     public PGPaymentResult.Inquiry inquire(String paymentKey) {
         TossClientResponse.Inquiry inquiry = executeExternalCall(() ->
-                tossAdaptor.inquirePayment(paymentKey));
+                tossGateway.inquirePayment(paymentKey));
         return pgMapper.toResult(inquiry);
     }
 

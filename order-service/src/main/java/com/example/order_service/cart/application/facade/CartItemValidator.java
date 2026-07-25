@@ -1,8 +1,8 @@
 package com.example.order_service.cart.application.facade;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.external.dto.CartProductResult;
-import com.example.order_service.cart.application.external.dto.CartProductStatus;
+import com.example.order_service.cart.application.port.dto.CartProductResult;
+import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.TossFeignClient;
@@ -20,9 +20,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 @IsolatedTest
-public class TossAdaptorTest {
+public class TossGatewayTest {
     @Autowired
-    private TossAdaptor tossAdaptor;
+    private TossGateway tossGateway;
     @MockitoBean
     private TossFeignClient client;
     @MockitoBean
@@ -40,7 +40,7 @@ public class TossAdaptorTest {
             given(client.confirmPayment(any(TossClientRequest.Confirm.class)))
                     .willReturn(mockResponse);
             //when
-            TossClientResponse.Confirm response = tossAdaptor.confirmPayment("orderNo", "paymentKey", 10000L);
+            TossClientResponse.Confirm response = tossGateway.confirmPayment("orderNo", "paymentKey", 10000L);
             //then
             assertThat(response)
                     .usingRecursiveComparison()
@@ -64,7 +64,7 @@ public class TossAdaptorTest {
                     .willReturn(translatedException);
             //when
             //then
-            assertThatThrownBy(() -> tossAdaptor.confirmPayment(orderId, paymentKey, totalAmount))
+            assertThatThrownBy(() -> tossGateway.confirmPayment(orderId, paymentKey, totalAmount))
                     .isInstanceOf(ExternalSystemUnavailableException.class);
         }
     }
@@ -81,7 +81,7 @@ public class TossAdaptorTest {
             given(client.cancelPayment(anyString(), any(TossClientRequest.Cancel.class)))
                     .willReturn(mockResponse);
             //when
-            TossClientResponse.Cancel response = tossAdaptor.cancelPayment("paymentKey", "환불요청", 10000L);
+            TossClientResponse.Cancel response = tossGateway.cancelPayment("paymentKey", "환불요청", 10000L);
             //then
             assertThat(response)
                     .usingRecursiveComparison()
@@ -105,7 +105,7 @@ public class TossAdaptorTest {
                     .willReturn(translatedException);
             //when
             //then
-            assertThatThrownBy(() -> tossAdaptor.cancelPayment(paymentKey, cancelReason, cancelAmount))
+            assertThatThrownBy(() -> tossGateway.cancelPayment(paymentKey, cancelReason, cancelAmount))
                     .isInstanceOf(ExternalSystemUnavailableException.class);
         }
     }
@@ -122,7 +122,7 @@ public class TossAdaptorTest {
             TossClientResponse.Inquiry mockResponse = Instancio.create(TossClientResponse.Inquiry.class);
             given(client.inquirePayment(anyString())).willReturn(mockResponse);
             //when
-            TossClientResponse.Inquiry response = tossAdaptor.inquirePayment(paymentKey);
+            TossClientResponse.Inquiry response = tossGateway.inquirePayment(paymentKey);
 
             //then
             assertThat(response)
@@ -143,7 +143,7 @@ public class TossAdaptorTest {
                     .willReturn(translatedException);
             //when
             //then
-            assertThatThrownBy(() -> tossAdaptor.inquirePayment(paymentKey))
+            assertThatThrownBy(() -> tossGateway.inquirePayment(paymentKey))
                     .isInstanceOf(ExternalSystemUnavailableException.class);
         }
     }

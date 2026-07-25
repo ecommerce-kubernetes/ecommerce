@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
@@ -17,9 +17,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 
 @IsolatedTest
-public class CouponAdaptorTest {
+public class CouponGatewayTest {
     @Autowired
-    private CouponAdaptor couponAdaptor;
+    private CouponGateway couponGateway;
     @MockitoBean
     private CouponFeignClient client;
     @MockitoBean
@@ -33,7 +33,7 @@ public class CouponAdaptorTest {
         given(client.getItemCoupon(anyLong(), anyLong()))
                 .willReturn(mockResponse);
         //when
-        ItemCouponResponse response = couponAdaptor.getItemCoupon(anyLong(), anyLong());
+        ItemCouponResponse response = couponGateway.getItemCoupon(anyLong(), anyLong());
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -49,13 +49,13 @@ public class CouponAdaptorTest {
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
 
-        given(couponAdaptor.getItemCoupon(anyLong(), anyLong())).willThrow(feignException);
+        given(couponGateway.getItemCoupon(anyLong(), anyLong())).willThrow(feignException);
 
         given(translator.translate(anyString(), any(Throwable.class)))
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> couponAdaptor.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> couponGateway.getItemCoupon(1L, 1L))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 
@@ -67,7 +67,7 @@ public class CouponAdaptorTest {
         given(client.getCartCoupon(anyLong(), anyLong()))
                 .willReturn(mockResponse);
         //when
-        CartCouponResponse response = couponAdaptor.getCartCoupon(1L, 1L);
+        CartCouponResponse response = couponGateway.getCartCoupon(1L, 1L);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -83,13 +83,13 @@ public class CouponAdaptorTest {
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
 
-        given(couponAdaptor.getCartCoupon(anyLong(), anyLong())).willThrow(feignException);
+        given(couponGateway.getCartCoupon(anyLong(), anyLong())).willThrow(feignException);
 
         given(translator.translate(anyString(), any(Throwable.class)))
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> couponAdaptor.getCartCoupon(1L, 1L))
+        assertThatThrownBy(() -> couponGateway.getCartCoupon(1L, 1L))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

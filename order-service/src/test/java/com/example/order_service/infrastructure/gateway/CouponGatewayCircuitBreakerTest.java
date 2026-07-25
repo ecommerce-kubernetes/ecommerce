@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -26,10 +26,10 @@ import static org.mockito.Mockito.verify;
         "resilience4j.circuitbreaker.instances.couponService.failure-rate-threshold=100",
         "resilience4j.circuitbreaker.instances.couponService.ignore-exceptions[0]=com.example.order_service.common.exception.external.ExternalClientException"
 })
-public class CouponAdaptorCircuitBreakerTest {
+public class CouponGatewayCircuitBreakerTest {
 
     @Autowired
-    private CouponAdaptor adaptor;
+    private CouponGateway adaptor;
     @MockitoBean
     private CouponFeignClient client;
     @Autowired

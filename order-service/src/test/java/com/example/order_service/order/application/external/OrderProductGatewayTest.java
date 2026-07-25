@@ -6,7 +6,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
-import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
@@ -32,7 +32,7 @@ public class OrderProductGatewayTest {
     @InjectMocks
     private OrderProductGateway orderProductGateway;
     @Mock
-    private ProductAdaptor adaptor;
+    private ProductGateway adaptor;
 
     @Test
     @DisplayName("상품을 조회한다")

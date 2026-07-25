@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;

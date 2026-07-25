@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.UserFeignClient;
@@ -17,9 +17,9 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @IsolatedTest
-public class UserAdaptorTest {
+public class UserGatewayTest {
     @Autowired
-    private UserAdaptor userAdaptor;
+    private UserGateway userGateway;
     @MockitoBean
     private UserFeignClient client;
     @MockitoBean
@@ -33,7 +33,7 @@ public class UserAdaptorTest {
         UserProfileResponse mockResponse = Instancio.create(UserProfileResponse.class);
         given(client.getUserProfile(anyLong())).willReturn(mockResponse);
         //when
-        UserProfileResponse response = userAdaptor.getUserProfile(userId);
+        UserProfileResponse response = userGateway.getUserProfile(userId);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -52,7 +52,7 @@ public class UserAdaptorTest {
         given(translator.translate(anyString(), any(Throwable.class))).willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> userAdaptor.getUserProfile(userId))
+        assertThatThrownBy(() -> userGateway.getUserProfile(userId))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 
@@ -64,7 +64,7 @@ public class UserAdaptorTest {
         UserPointsResponse mockResponse = Instancio.create(UserPointsResponse.class);
         given(client.getUserPoints(anyLong())).willReturn(mockResponse);
         //when
-        UserPointsResponse response = userAdaptor.getUserPoints(userId);
+        UserPointsResponse response = userGateway.getUserPoints(userId);
         //then
         assertThat(response).usingRecursiveComparison()
                 .isEqualTo(mockResponse);
@@ -83,7 +83,7 @@ public class UserAdaptorTest {
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> userAdaptor.getUserPoints(userId))
+        assertThatThrownBy(() -> userGateway.getUserPoints(userId))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

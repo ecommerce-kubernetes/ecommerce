@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.external.dto;
+package com.example.order_service.cart.application.port.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

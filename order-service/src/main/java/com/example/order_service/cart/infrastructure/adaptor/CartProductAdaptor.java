@@ -1,7 +1,8 @@
-package com.example.order_service.cart.application.external;
+package com.example.order_service.cart.infrastructure.adaptor;
 
-import com.example.order_service.cart.application.external.dto.CartProductResult;
-import com.example.order_service.cart.application.external.dto.CartProductStatus;
+import com.example.order_service.cart.application.port.CartProductPort;
+import com.example.order_service.cart.application.port.dto.CartProductResult;
+import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -9,7 +10,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
-import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +21,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CartProductGateway {
-    private final ProductAdaptor productAdaptor;
+public class CartProductAdaptor implements CartProductPort {
+    private final ProductGateway productGateway;
 
-    public CartProductResult getProducts(List<Long> variantIds) {
-        ProductResponse response = executeGetProducts(variantIds);
+    @Override
+    public CartProductResult getProducts(List<Long> productVariantIds) {
+        ProductResponse response = executeGetProducts(productVariantIds);
         return mapToCartProductResult(response);
     }
 
@@ -73,7 +75,7 @@ public class CartProductGateway {
 
     private ProductResponse executeGetProducts(List<Long> productVariantIds) {
         try {
-            return productAdaptor.getProducts(productVariantIds);
+            return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
             throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {

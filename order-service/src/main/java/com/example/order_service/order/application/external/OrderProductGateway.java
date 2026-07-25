@@ -7,7 +7,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
-import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
@@ -22,7 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class OrderProductGateway {
-    private final ProductAdaptor productAdaptor;
+    private final ProductGateway productGateway;
 
     public OrderProductResult getProducts(List<Long> productVariantIds) {
         ProductResponse response = executeGetProducts(productVariantIds);
@@ -71,7 +71,7 @@ public class OrderProductGateway {
 
     private ProductResponse executeGetProducts(List<Long> productVariantIds) {
         try {
-            return productAdaptor.getProducts(productVariantIds);
+            return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
             throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {

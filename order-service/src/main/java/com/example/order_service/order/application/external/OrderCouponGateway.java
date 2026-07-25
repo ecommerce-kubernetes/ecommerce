@@ -7,7 +7,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
-import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
+import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 @Service
 @RequiredArgsConstructor
 public class OrderCouponGateway {
-    private final CouponAdaptor couponAdaptor;
+    private final CouponGateway couponGateway;
 
     public ItemCouponResult getItemCoupon(Long userId, Long itemCouponId) {
         ItemCouponResponse response = executeGetItemCoupon(userId, itemCouponId);
@@ -45,7 +45,7 @@ public class OrderCouponGateway {
     }
 
     private ItemCouponResponse executeGetItemCoupon(Long userId, Long itemCouponId) {
-        return executeWithExceptionTranslation(() -> couponAdaptor.getItemCoupon(userId, itemCouponId));
+        return executeWithExceptionTranslation(() -> couponGateway.getItemCoupon(userId, itemCouponId));
     }
 
     private ItemCouponResult mapItemCouponResult(ItemCouponResponse response) {
@@ -73,7 +73,7 @@ public class OrderCouponGateway {
     }
 
     private CartCouponResponse executeGetCartCoupon(Long userId, Long cartCouponId) {
-        return executeWithExceptionTranslation(() -> couponAdaptor.getCartCoupon(userId, cartCouponId));
+        return executeWithExceptionTranslation(() -> couponGateway.getCartCoupon(userId, cartCouponId));
     }
 
     private CartCouponResult mapToCartCouponResult(CartCouponResponse response) {

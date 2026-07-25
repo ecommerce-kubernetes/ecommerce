@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.infrastructure.client.TossFeignClient;
 import com.example.order_service.infrastructure.dto.request.TossClientRequest;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TossAdaptor {
+public class TossGateway {
     private final TossFeignClient client;
     private final ExternalExceptionTranslator translator;
 

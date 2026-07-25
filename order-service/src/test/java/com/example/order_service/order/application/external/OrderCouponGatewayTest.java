@@ -7,7 +7,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
-import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
+import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.external.dto.result.CartCouponResult;
@@ -32,7 +32,7 @@ public class OrderCouponGatewayTest {
     @InjectMocks
     private OrderCouponGateway orderCouponGateway;
     @Mock
-    private CouponAdaptor adaptor;
+    private CouponGateway adaptor;
 
     @Test
     @DisplayName("상품 쿠폰을 조회한다. (정액 할인 쿠폰)")

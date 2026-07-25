@@ -1,6 +1,6 @@
 package com.example.order_service.cart.application.dto.result;
 
-import com.example.order_service.cart.application.external.dto.CartProductResult;
+import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 

@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserAdaptor {
+public class UserGateway {
     private final UserFeignClient client;
     private final ExternalExceptionTranslator translator;
 

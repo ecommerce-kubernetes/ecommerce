@@ -4,7 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.*;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
-import com.example.order_service.infrastructure.adaptor.UserAdaptor;
+import com.example.order_service.infrastructure.gateway.UserGateway;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class OrderUserGateway {
-    private final UserAdaptor userAdaptor;
+    private final UserGateway userGateway;
 
     public OrdererProfileResult getOrdererProfile(Long userId) {
         UserProfileResponse response = executeGetUserProfile(userId);
@@ -53,7 +53,7 @@ public class OrderUserGateway {
 
     private UserProfileResponse executeGetUserProfile(Long userId) {
         try {
-            return userAdaptor.getUserProfile(userId);
+            return userGateway.getUserProfile(userId);
         } catch (ExternalClientException e) {
             throw new DefaultGatewayException(UserGatewayErrorCode.USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
@@ -78,7 +78,7 @@ public class OrderUserGateway {
     }
 
     private UserPointsResponse executeGetUserPoints(Long userId) {
-        return userAdaptor.getUserPoints(userId);
+        return userGateway.getUserPoints(userId);
     }
 
     private OrdererPointResult mapToOrdererPointsResult(UserPointsResponse response) {

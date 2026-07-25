@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.infrastructure.client.CouponFeignClient;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
@@ -8,19 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/**
- * 쿠폰 도메인과의 통신을 담당하는 Adaptor
- * <p>
- * 쿠폰 도메인 서비스 FeignClient 호출, 쿠폰 도메인 서비스에 에러 발생시 서킷 브레이커를 통해 예외 전파를 관리
- * </p>
- *
- * @author 최민식
- * @since 2026. 06. 16
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CouponAdaptor {
+public class CouponGateway {
     private final CouponFeignClient client;
     private final ExternalExceptionTranslator translator;
 

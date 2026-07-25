@@ -1,7 +1,7 @@
-package com.example.order_service.cart.application.external;
+package com.example.order_service.cart.infrastructure.adaptor;
 
-import com.example.order_service.cart.application.external.dto.CartProductResult;
-import com.example.order_service.cart.application.external.dto.CartProductStatus;
+import com.example.order_service.cart.application.port.dto.CartProductResult;
+import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -9,7 +9,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
-import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,12 +27,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
-class CartProductGatewayTest {
+class CartProductAdaptorTest {
 
     @InjectMocks
-    private CartProductGateway cartProductGateway;
+    private CartProductAdaptor cartProductAdaptor;
     @Mock
-    private ProductAdaptor adaptor;
+    private ProductGateway adaptor;
 
     @Test
     @DisplayName("상품을 조회한다")
@@ -63,7 +63,7 @@ class CartProductGatewayTest {
         ProductResponse response = ProductResponse.builder().products(List.of(detail)).build();
         given(adaptor.getProducts(anyList())).willReturn(response);
         //when
-        CartProductResult result = cartProductGateway.getProducts(variantIds);
+        CartProductResult result = cartProductAdaptor.getProducts(variantIds);
         //then
         assertThat(result.products()).hasSize(1);
         CartProductResult.CartProductDetail mappedProduct = result.products().stream().findFirst().orElseThrow();
@@ -85,7 +85,7 @@ class CartProductGatewayTest {
                 .given(adaptor).getProducts(anyList());
         //when
         //then
-        assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -104,7 +104,7 @@ class CartProductGatewayTest {
                 .given(adaptor).getProducts(anyList());
         //when
         //then
-        assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -122,7 +122,7 @@ class CartProductGatewayTest {
                 .given(adaptor).getProducts(anyList());
         //when
         //then
-        assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -140,7 +140,7 @@ class CartProductGatewayTest {
                 .given(adaptor).getProducts(anyList());
         //when
         //then
-        assertThatThrownBy(() -> cartProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")

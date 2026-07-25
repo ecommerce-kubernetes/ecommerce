@@ -1,4 +1,4 @@
-package com.example.order_service.infrastructure.adaptor;
+package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.request.ProductBulkSearchRequest;
@@ -13,7 +13,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductAdaptor {
+public class ProductGateway {
     private final ProductFeignClient client;
     private final ExternalExceptionTranslator translator;
 

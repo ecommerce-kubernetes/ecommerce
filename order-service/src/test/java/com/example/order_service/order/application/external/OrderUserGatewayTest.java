@@ -7,7 +7,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
-import com.example.order_service.infrastructure.adaptor.UserAdaptor;
+import com.example.order_service.infrastructure.gateway.UserGateway;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
@@ -34,7 +34,7 @@ public class OrderUserGatewayTest {
     @InjectMocks
     private OrderUserGateway orderUserGateway;
     @Mock
-    private UserAdaptor userAdaptor;
+    private UserGateway userGateway;
 
     @Test
     @DisplayName("주문자 정보를 조회한다")
@@ -49,7 +49,7 @@ public class OrderUserGatewayTest {
                 .addressDetail("123동 1234호")
                 .build();
         UserProfileResponse profileResponse = createProfileResponse(defaultShippingAddress);
-        given(userAdaptor.getUserProfile(anyLong())).willReturn(profileResponse);
+        given(userGateway.getUserProfile(anyLong())).willReturn(profileResponse);
         //when
         OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(userId);
         //then
@@ -73,7 +73,7 @@ public class OrderUserGatewayTest {
     void getOrdererProfile_throw_client_error() {
         //given
         Long userId = 1L;
-        given(userAdaptor.getUserProfile(anyLong())).willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다."));
+        given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다."));
         //when
         //then
         assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
@@ -87,7 +87,7 @@ public class OrderUserGatewayTest {
     void getOrdererProfile_throw_server_error() {
         //given
         Long userId = 1L;
-        given(userAdaptor.getUserProfile(anyLong())).willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다."));
+        given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다."));
         //when
         //then
         assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
@@ -101,7 +101,7 @@ public class OrderUserGatewayTest {
     void getOrdererProfile_throw_unavailable_server_error() {
         //given
         Long userId = 1L;
-        given(userAdaptor.getUserProfile(anyLong())).willThrow(new ExternalSystemUnavailableException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다."));
+        given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalSystemUnavailableException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다."));
         //when
         //then
         assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
@@ -115,7 +115,7 @@ public class OrderUserGatewayTest {
     void getOrdererProfile_throw_circuit_error() {
         //given
         Long userId = 1L;
-        given(userAdaptor.getUserProfile(anyLong())).willThrow(new ExternalCircuitBreakerException("USER_SERVICE_CIRCUIT_OPEN", "통신이 불안정하여 서킷 브레이커가 열렸습니다."));
+        given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalCircuitBreakerException("USER_SERVICE_CIRCUIT_OPEN", "통신이 불안정하여 서킷 브레이커가 열렸습니다."));
         //when
         //then
         assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
@@ -140,7 +140,7 @@ public class OrderUserGatewayTest {
         //given
         Long userId = 1L;
         UserPointsResponse response = Instancio.create(UserPointsResponse.class);
-        given(userAdaptor.getUserPoints(anyLong())).willReturn(response);
+        given(userGateway.getUserPoints(anyLong())).willReturn(response);
         //when
         OrdererPointResult result = orderUserGateway.getOrdererPoints(userId);
         //then
@@ -156,7 +156,7 @@ public class OrderUserGatewayTest {
         String message = "유저를 찾을 수 없습니다";
         Long userId = 1L;
         willThrow(new ExternalClientException(code, message))
-                .given(userAdaptor).getUserPoints(anyLong());
+                .given(userGateway).getUserPoints(anyLong());
         //when
         OrdererPointResult result = orderUserGateway.getOrdererPoints(userId);
         //then
