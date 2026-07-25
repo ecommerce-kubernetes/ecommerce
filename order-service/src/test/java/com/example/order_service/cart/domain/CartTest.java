@@ -41,7 +41,7 @@ public class CartTest {
         Long productVariantId = 1L;
         int quantity = 3;
         //when
-        cart.addItem(productVariantId, quantity);
+        cart.addItem(productVariantId, quantity, 100);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
         assertThat(cart.getCartItems())
@@ -57,9 +57,9 @@ public class CartTest {
         //given
         Cart cart = Cart.create(1L);
         Long productVariantId = 1L;
-        cart.addItem(productVariantId, 3);
+        cart.addItem(productVariantId, 3, 100);
         //when
-        cart.addItem(productVariantId, 2);
+        cart.addItem(productVariantId, 2, 100);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
         CartItem findItem = cart.findItemByProductVariantId(productVariantId).orElseThrow();
@@ -74,11 +74,11 @@ public class CartTest {
         //given
         Cart cart = Cart.create(1L);
         for (long i = 0; i < 20L; i++) {
-            cart.addItem(i, 3);
+            cart.addItem(i, 3, 100);
         }
         //when
         //then
-        assertThatThrownBy(() -> cart.addItem(999L, 3))
+        assertThatThrownBy(() -> cart.addItem(999L, 3, 100))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);

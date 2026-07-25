@@ -21,7 +21,7 @@ public class CartCommandService {
         Cart cart = cartRepository.findByUserId(command.userId())
                 .orElseGet(() -> Cart.create(command.userId()));
         for (AddCartItemsCommand.Item item: command.items()) {
-            cart.addItem(item.productVariantId(), item.quantity());
+            cart.addItem(item.productVariantId(), item.quantity(), 100);
         }
         cartRepository.save(cart);
     }

@@ -36,8 +36,8 @@ class CartQueryServiceTest {
             //given
             Long userId = 1L;
             Cart cart = Cart.create(userId);
-            cart.addItem(1L, 2);
-            cart.addItem(2L, 3);
+            cart.addItem(1L, 2, 100);
+            cart.addItem(2L, 3, 100);
             cartRepository.save(cart);
             //when
             List<CartItemData> cartItems = cartQueryService.findCartItems(userId);
@@ -77,8 +77,8 @@ class CartQueryServiceTest {
             //given
             Long userId = 1L;
             Cart cart = Cart.create(userId);
-            cart.addItem(1L, 3);
-            cart.addItem(2L, 2);
+            cart.addItem(1L, 3, 100);
+            cart.addItem(2L, 2, 100);
             cartRepository.save(cart);
             //when
             List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(userId, List.of(1L));
@@ -97,7 +97,7 @@ class CartQueryServiceTest {
             //given
             Long userId = 1L;
             Cart cart = Cart.create(userId);
-            cart.addItem(1L, 3);
+            cart.addItem(1L, 3, 100);
             cartRepository.save(cart);
             //when
             List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(userId, List.of(1L, 2L));
@@ -132,7 +132,7 @@ class CartQueryServiceTest {
             //given
             Long userId = 1L;
             Cart cart = Cart.create(userId);
-            cart.addItem(1L, 3);
+            cart.addItem(1L, 3, 100);
             cartRepository.save(cart);
             CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
             //when

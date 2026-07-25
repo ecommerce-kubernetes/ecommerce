@@ -105,7 +105,7 @@ class CartCommandServiceTest {
                     .build();
 
             Cart cart = Cart.create(userId);
-            cart.addItem(productVariantId, existQuantity);
+            cart.addItem(productVariantId, existQuantity, 100);
             cartRepository.save(cart);
             //when
             cartCommandService.addCartItems(command);
@@ -130,7 +130,7 @@ class CartCommandServiceTest {
             //given
             Long userId = 1L;
             Cart cart = Cart.create(userId);
-            cart.addItem(1L, 3);
+            cart.addItem(1L, 3, 100);
             cartRepository.save(cart);
 
             CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
@@ -176,8 +176,8 @@ class CartCommandServiceTest {
             Long userId = 1L;
 
             Cart cart = Cart.create(userId);
-            cart.addItem(1L, 3);
-            cart.addItem(2L, 3);
+            cart.addItem(1L, 3, 100);
+            cart.addItem(2L, 3, 100);
             cartRepository.save(cart);
 
             CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
