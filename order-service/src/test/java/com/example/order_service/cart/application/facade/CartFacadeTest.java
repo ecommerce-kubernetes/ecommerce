@@ -70,12 +70,6 @@ public class CartFacadeTest {
             assertThat(result.items())
                     .allSatisfy(item ->
                             assertThat(item.cartItemId()).isNotNull());
-
-            assertThat(result.items())
-                    .extracting("productVariantId", "quantity")
-                    .containsExactly(
-                            tuple(1L, 3)
-                    );
         }
 
         @Test
@@ -260,8 +254,7 @@ public class CartFacadeTest {
             //when
             UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
             //then
-            assertThat(result.productVariantId()).isEqualTo(productVariantId);
-            assertThat(result.quantity()).isEqualTo(quantity);
+            assertThat(result.cartItemId()).isNotNull();
         }
 
         @Test

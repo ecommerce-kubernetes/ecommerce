@@ -267,8 +267,6 @@ public class CartControllerDocsTest extends RestDocSupport {
     private UpdateCartItemQuantityResult createUpdateCartItemQuantityResult() {
         return UpdateCartItemQuantityResult.builder()
                 .cartItemId(1L)
-                .productVariantId(1L)
-                .quantity(3)
                 .build();
     }
 }

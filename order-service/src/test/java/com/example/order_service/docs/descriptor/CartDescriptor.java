@@ -145,13 +145,7 @@ public class CartDescriptor {
         return new FieldDescriptor[] {
                 fieldWithPath("cartItemId")
                         .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 ID(장바구니 항목 식별자)"),
-                fieldWithPath("productVariantId")
-                        .type(JsonFieldType.NUMBER)
-                        .description("상품 변형 ID(상품 판매 단위 식별자)"),
-                fieldWithPath("quantity")
-                        .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 수량")
+                        .description("장바구니 항목 ID(장바구니 항목 식별자)")
         };
     }
 }

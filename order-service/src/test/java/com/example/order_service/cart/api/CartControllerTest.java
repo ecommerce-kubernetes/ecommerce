@@ -388,9 +388,7 @@ class CartControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("cartItemId").value(result.cartItemId()))
-                    .andExpect(jsonPath("productVariantId").value(result.productVariantId()))
-                    .andExpect(jsonPath("quantity").value(result.quantity()));
+                    .andExpect(jsonPath("cartItemId").value(result.cartItemId()));
         }
 
         @Test

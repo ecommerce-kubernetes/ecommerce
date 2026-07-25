@@ -5,16 +5,12 @@ import lombok.Builder;
 
 @Builder
 public record UpdateCartItemQuantityResponse(
-        Long cartItemId,
-        Long productVariantId,
-        Integer quantity
+        Long cartItemId
 ) {
 
     public static UpdateCartItemQuantityResponse from(UpdateCartItemQuantityResult result) {
         return UpdateCartItemQuantityResponse.builder()
                 .cartItemId(result.cartItemId())
-                .productVariantId(result.productVariantId())
-                .quantity(result.quantity())
                 .build();
     }
 }
