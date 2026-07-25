@@ -34,7 +34,11 @@ public class CartFacade {
         List<Long> variantIds = command.toProductVariantIds();
         CartProductResult productData = cartProductPort.getProducts(variantIds);
 
-        cartItemValidator.validate(command, productData);
+        Map<Long, CartProductResult.CartProductDetail> productDataMap = productData.toMap();
+        List<CartProductResult.CartProductDetail> targetProducts = command.items().stream()
+                .map(item -> productDataMap.get(item.productVariantId()))
+                .toList();
+        cartItemValidator.validatePurchasable(targetProducts);
 
         CreateCartItemsContext context = CreateCartItemsContext.of(command, productData);
         cartCommandService.addCartItems(context);
@@ -104,14 +108,7 @@ public class CartFacade {
         Map<Long, CartProductResult.CartProductDetail> productsMap = products.toMap();
 
         CartProductResult.CartProductDetail product = productsMap.get(cartItem.productVariantId());
-
-        if (product == null) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
-        }
-
-        if (product.status() != CartProductStatus.ON_SALE) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
-        }
+        cartItemValidator.validatePurchasable(product);
 
         UpdateCartItemContext context = UpdateCartItemContext.of(cartItem, command, products);
 

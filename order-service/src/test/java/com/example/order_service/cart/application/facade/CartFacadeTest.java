@@ -54,7 +54,7 @@ public class CartFacadeTest {
         CartItemData cartItemData = createCartItemData(1L, 3);
 
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
-        doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
+        doNothing().when(validator).validatePurchasable(anyList());
         doNothing().when(cartCommandService).addCartItems(any(CreateCartItemsContext.class));
         given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
         //when
@@ -69,150 +69,140 @@ public class CartFacadeTest {
                         assertThat(item.cartItemId()).isNotNull());
     }
 
-    @Nested
-    @DisplayName("장바구니 조회")
-    class GetCartDetails {
-
-        @Test
-        @DisplayName("장바구니가 빈 경우 상품을 조회하지 않고 빈 결과를 반환한다")
-        void getCartDetails_empty_cart() {
-            //given
-            Long userId = 1L;
-            given(cartQueryService.findCartItems(anyLong())).willReturn(Collections.emptyList());
-            //when
-            CartResult result = cartFacade.getCartDetails(userId);
-            //then
-            assertThat(result.items()).isEmpty();
-            verify(cartProductPort, never()).getProducts(any());
-        }
-
-        @Test
-        @DisplayName("장바구니 조회 시 상품 정보가 없는 항목도 함께 반환한다")
-        void getCartDetails_missing_productData() {
-            //given
-            Long userId = 1L;
-            Long productVariantId = 1L;
-            int quantity = 2;
-            CartItemData cartItemData = createCartItemData(productVariantId, quantity);
-
-            CartProductResult productData = Instancio.of(CartProductResult.class)
-                    .set(field("products"), Collections.emptyList())
-                    .create();
-
-            given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(cartItemData));
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            //when
-            CartResult result = cartFacade.getCartDetails(userId);
-            //then
-            assertThat(result.items()).hasSize(1);
-
-            assertThat(result.items())
-                    .extracting("productVariantId", "status", "quantity")
-                    .containsExactlyInAnyOrder(
-                            tuple(productVariantId, CartItemAvailability.NOT_FOR_SALE, quantity)
-                    );
-        }
-
-        @Test
-        @DisplayName("장바구니 항목 상품 정보를 반환한다")
-        void getCartDetails() {
-            //given
-            Long userId = 1L;
-            CartItemData item1 = createCartItemData(1L, 3);
-            CartItemData item2 = createCartItemData(2L, 3);
-
-            CartProductResult.CartProductDetail product1 = Instancio.of(CartProductResult.CartProductDetail.class)
-                    .set(field("productVariantId"), item1.productVariantId())
-                    .set(field("status"), CartProductStatus.ON_SALE)
-                    .create();
-
-            CartProductResult.CartProductDetail product2 = Instancio.of(CartProductResult.CartProductDetail.class)
-                    .set(field("productVariantId"), item2.productVariantId())
-                    .set(field("status"), CartProductStatus.STOP_SALE)
-                    .create();
-
-            CartProductResult productData = Instancio.of(CartProductResult.class)
-                    .set(field("products"), List.of(product1, product2))
-                    .create();
-
-            given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(item1, item2));
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            //when
-            CartResult result = cartFacade.getCartDetails(userId);
-            //then
-            assertThat(result.items()).hasSize(2);
-            assertThat(result.items())
-                    .extracting("productVariantId", "status", "quantity")
-                    .containsExactlyInAnyOrder(
-                            tuple(1L, CartItemAvailability.AVAILABLE, 3),
-                            tuple(2L, CartItemAvailability.NOT_FOR_SALE, 3)
-                    );
-        }
+    @Test
+    @DisplayName("장바구니가 빈 경우 상품을 조회하지 않고 빈 결과를 반환한다")
+    void getCartDetails_empty_cart() {
+        //given
+        Long userId = 1L;
+        given(cartQueryService.findCartItems(anyLong())).willReturn(Collections.emptyList());
+        //when
+        CartResult result = cartFacade.getCartDetails(userId);
+        //then
+        assertThat(result.items()).isEmpty();
+        verify(cartProductPort, never()).getProducts(any());
     }
 
-    @Nested
-    @DisplayName("장바구니 항목 정보 조회")
-    class GetCatItemDetails {
+    @Test
+    @DisplayName("장바구니 조회 시 상품 정보가 없는 항목도 함께 반환한다")
+    void getCartDetails_missing_productData() {
+        //given
+        Long userId = 1L;
+        Long productVariantId = 1L;
+        int quantity = 2;
+        CartItemData cartItemData = createCartItemData(productVariantId, quantity);
 
-        @Test
-        @DisplayName("장바구니 항목 정보를 조회한다")
-        void getCartItemDetails() {
-            //given
-            Long userId = 1L;
-            Long cartItemId = 1L;
-            CartItemData cartItemData = createCartItemData(1L, 3);
-            CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
-            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            //when
-            CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
-            //then
-            assertThat(result)
-                    .extracting("cartItemId", "status", "quantity")
-                    .containsExactly(
-                            cartItemData.cartItemId(), CartItemAvailability.AVAILABLE, 3
-                    );
-        }
+        CartProductResult productData = Instancio.of(CartProductResult.class)
+                .set(field("products"), Collections.emptyList())
+                .create();
 
-        @Test
-        @DisplayName("장바구니 항목의 상품 정보가 누락된 경우 구매불가 상태의 기본 정보를 반환한다")
-        void getCartItemDetails_missing_product() {
-            //given
-            Long userId = 1L;
-            Long cartItemId = 1L;
-            CartItemData cartItemData = createCartItemData(1L, 3);
-            CartProductResult productData = CartProductResult.builder().products(Collections.emptyList()).build();
-            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            //when
-            CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
-            //then
-            assertThat(result)
-                    .extracting("cartItemId", "status", "quantity")
-                    .containsExactly(
-                            cartItemData.cartItemId(), CartItemAvailability.NOT_FOR_SALE, 3
-                    );
-        }
+        given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(cartItemData));
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        //when
+        CartResult result = cartFacade.getCartDetails(userId);
+        //then
+        assertThat(result.items()).hasSize(1);
 
-        @Test
-        @DisplayName("장바구니 항목이 판매 불가인 경우 판매 불가 상태를 반환한다")
-        void getCartItemDetails_item_not_availability() {
-            //given
-            Long userId = 1L;
-            Long cartItemId = 1L;
-            CartItemData cartItemData = createCartItemData(1L, 3);
-            CartProductResult productData = createProductList(1L, CartProductStatus.STOP_SALE);
-            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            //when
-            CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
-            //then
-            assertThat(result)
-                    .extracting("cartItemId", "status", "quantity")
-                    .containsExactly(
-                            cartItemData.cartItemId(), CartItemAvailability.NOT_FOR_SALE, 3
-                    );
-        }
+        assertThat(result.items())
+                .extracting("productVariantId", "status", "quantity")
+                .containsExactlyInAnyOrder(
+                        tuple(productVariantId, CartItemAvailability.NOT_FOR_SALE, quantity)
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 항목 상품 정보를 반환한다")
+    void getCartDetails() {
+        //given
+        Long userId = 1L;
+        CartItemData item1 = createCartItemData(1L, 3);
+        CartItemData item2 = createCartItemData(2L, 3);
+
+        CartProductResult.CartProductDetail product1 = Instancio.of(CartProductResult.CartProductDetail.class)
+                .set(field("productVariantId"), item1.productVariantId())
+                .set(field("status"), CartProductStatus.ON_SALE)
+                .create();
+
+        CartProductResult.CartProductDetail product2 = Instancio.of(CartProductResult.CartProductDetail.class)
+                .set(field("productVariantId"), item2.productVariantId())
+                .set(field("status"), CartProductStatus.STOP_SALE)
+                .create();
+
+        CartProductResult productData = Instancio.of(CartProductResult.class)
+                .set(field("products"), List.of(product1, product2))
+                .create();
+
+        given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(item1, item2));
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        //when
+        CartResult result = cartFacade.getCartDetails(userId);
+        //then
+        assertThat(result.items()).hasSize(2);
+        assertThat(result.items())
+                .extracting("productVariantId", "status", "quantity")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, CartItemAvailability.AVAILABLE, 3),
+                        tuple(2L, CartItemAvailability.NOT_FOR_SALE, 3)
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 항목 정보를 조회한다")
+    void getCartItemDetails() {
+        //given
+        Long userId = 1L;
+        Long cartItemId = 1L;
+        CartItemData cartItemData = createCartItemData(1L, 3);
+        CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        //when
+        CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
+        //then
+        assertThat(result)
+                .extracting("cartItemId", "status", "quantity")
+                .containsExactly(
+                        cartItemData.cartItemId(), CartItemAvailability.AVAILABLE, 3
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 항목의 상품 정보가 누락된 경우 구매불가 상태의 기본 정보를 반환한다")
+    void getCartItemDetails_missing_product() {
+        //given
+        Long userId = 1L;
+        Long cartItemId = 1L;
+        CartItemData cartItemData = createCartItemData(1L, 3);
+        CartProductResult productData = CartProductResult.builder().products(Collections.emptyList()).build();
+        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        //when
+        CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
+        //then
+        assertThat(result)
+                .extracting("cartItemId", "status", "quantity")
+                .containsExactly(
+                        cartItemData.cartItemId(), CartItemAvailability.NOT_FOR_SALE, 3
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 항목이 판매 불가인 경우 판매 불가 상태를 반환한다")
+    void getCartItemDetails_item_not_availability() {
+        //given
+        Long userId = 1L;
+        Long cartItemId = 1L;
+        CartItemData cartItemData = createCartItemData(1L, 3);
+        CartProductResult productData = createProductList(1L, CartProductStatus.STOP_SALE);
+        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        //when
+        CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
+        //then
+        assertThat(result)
+                .extracting("cartItemId", "status", "quantity")
+                .containsExactly(
+                        cartItemData.cartItemId(), CartItemAvailability.NOT_FOR_SALE, 3
+                );
     }
 
     @Test
@@ -231,61 +221,12 @@ public class CartFacadeTest {
         given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
 
+        doNothing().when(validator).validatePurchasable(any(CartProductResult.CartProductDetail.class));
         doNothing().when(cartCommandService).updateCartItemQuantity(any());
         //when
         UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
         //then
         assertThat(result.cartItemId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("장바구니 항목의 수량을 변경할 때 장바구니 항목의 상품을 찾을 수 없는 경우 예외가 발생한다")
-    void updateCartItemQuantity_product_not_found(){
-        //given
-        Long cartItemId = 1L;
-        Long productVariantId = 1L;
-        int quantity = 3;
-
-        UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
-        CartItemData cartItemData = createCartItemData(productVariantId, quantity);
-
-        CartProductResult productData = CartProductResult.builder()
-                .products(Collections.emptyList())
-                .build();
-
-        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-        given(cartProductPort.getProducts(anyList())).willReturn(productData);
-
-        //when
-        //then
-        assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.PRODUCT_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("장바구니 항목의 상품 상태가 판매할 수 없는 경우 예외가 발생한다")
-    void updateCartItemQuantity_not_on_sale(){
-        //given
-        Long cartItemId = 1L;
-        Long productVariantId = 1L;
-        int quantity = 3;
-
-        UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
-        CartItemData cartItemData = createCartItemData(productVariantId, quantity);
-
-        CartProductResult productData = createProductList(productVariantId, CartProductStatus.STOP_SALE);
-
-        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-        given(cartProductPort.getProducts(anyList())).willReturn(productData);
-
-        //when
-        //then
-        assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
     }
 
     @Nested
