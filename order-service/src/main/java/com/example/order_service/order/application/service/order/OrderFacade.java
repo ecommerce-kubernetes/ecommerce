@@ -1,12 +1,12 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.external.OrderCouponGateway;
-import com.example.order_service.order.application.external.OrderProductGateway;
-import com.example.order_service.order.application.external.OrderUserGateway;
-import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.infrastructure.adaptor.OrderCouponAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.OrderProductAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.OrderUserAdaptor;
+import com.example.order_service.order.application.port.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.port.dto.result.OrderUserResult;
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
@@ -40,9 +40,9 @@ public class OrderFacade {
     private final OrderValidator validator;
     private final OrderMapper orderMapper;
     private final PointUsagePolicy pointPolicy;
-    private final OrderUserGateway orderUserGateway;
-    private final OrderProductGateway orderProductGateway;
-    private final OrderCouponGateway orderCouponGateway;
+    private final OrderUserAdaptor orderUserAdaptor;
+    private final OrderProductAdaptor orderProductAdaptor;
+    private final OrderCouponAdaptor orderCouponAdaptor;
     private final OrderSheetRepository orderSheetRepository;
     private final OrderCommandService orderCommandService;
     private final Clock clock;
@@ -81,12 +81,12 @@ public class OrderFacade {
                 .of(orderSheet.getOrderer().getUserId(),
                         orderSheet.getCartCoupon().getCartCouponId(),
                         itemCouponCommand);
-        return orderCouponGateway.calculate(command);
+        return orderCouponAdaptor.calculate(command);
     }
 
     private OrderUserResult.UserPoint getUserPoints(OrderSheet orderSheet) {
         Long userId = orderSheet.getOrderer().getUserId();
-        return orderUserGateway.getUserPoints(userId);
+        return orderUserAdaptor.getUserPoints(userId);
     }
 
     private OrderSheet findOrderSheetById(String sheetId) {

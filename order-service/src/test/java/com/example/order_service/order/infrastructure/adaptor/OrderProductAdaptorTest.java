@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -8,8 +8,8 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
-import com.example.order_service.order.application.external.dto.result.OrderProductResult;
-import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
+import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,10 +27,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderProductGatewayTest {
+public class OrderProductAdaptorTest {
 
     @InjectMocks
-    private OrderProductGateway orderProductGateway;
+    private OrderProductAdaptor orderProductAdaptor;
     @Mock
     private ProductGateway adaptor;
 
@@ -64,7 +64,7 @@ public class OrderProductGatewayTest {
         ProductResponse response = ProductResponse.builder().products(List.of(detail)).build();
         given(adaptor.getProducts(anyList())).willReturn(response);
         //when
-        OrderProductResult result = orderProductGateway.getProducts(variantIds);
+        OrderProductResult result = orderProductAdaptor.getProducts(variantIds);
         //then
         assertThat(result.products()).hasSize(1);
         OrderProductResult.OrderProductDetail mappedProduct = result.products().stream().findFirst().orElseThrow();
@@ -85,7 +85,7 @@ public class OrderProductGatewayTest {
                 .given(adaptor).getProducts(any());
         //when
         //then
-        assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -103,7 +103,7 @@ public class OrderProductGatewayTest {
                 .given(adaptor).getProducts(any());
         //when
         //then
-        assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -121,7 +121,7 @@ public class OrderProductGatewayTest {
                 .given(adaptor).getProducts(any());
         //when
         //then
-        assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -139,7 +139,7 @@ public class OrderProductGatewayTest {
                 .given(adaptor).getProducts(any());
         //when
         //then
-        assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")

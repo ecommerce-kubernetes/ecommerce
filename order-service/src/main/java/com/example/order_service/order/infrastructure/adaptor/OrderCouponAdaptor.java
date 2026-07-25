@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
@@ -10,10 +10,11 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
-import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.external.dto.result.CartCouponResult;
-import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
-import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.port.OrderCouponPort;
+import com.example.order_service.order.application.port.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.port.dto.result.CartCouponResult;
+import com.example.order_service.order.application.port.dto.result.ItemCouponResult;
+import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
@@ -24,21 +25,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.function.Supplier;
 
-/**
- * 주문 쿠폰 도메인 통신을 담당하는 Gateway 서비스
- * <p>
- * 쿠폰 도메인의 응답을 서비스 레이어의 Result 로 매핑하여 반환
- * 쿠폰 도메인 통신중 발생하는 예외를 비지니스 예외로 변환
- * </p>
- *
- * @author 최민식
- * @since 2026. 05. 22
- */
 @Service
 @RequiredArgsConstructor
-public class OrderCouponGateway {
+public class OrderCouponAdaptor implements OrderCouponPort {
     private final CouponGateway couponGateway;
 
+    @Override
     public ItemCouponResult getItemCoupon(Long userId, Long itemCouponId) {
         ItemCouponResponse response = executeGetItemCoupon(userId, itemCouponId);
         return mapItemCouponResult(response);
@@ -67,6 +59,7 @@ public class OrderCouponGateway {
                 .build();
     }
 
+    @Override
     public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {
         CartCouponResponse response = executeGetCartCoupon(userId, cartCouponId);
         return mapToCartCouponResult(response);

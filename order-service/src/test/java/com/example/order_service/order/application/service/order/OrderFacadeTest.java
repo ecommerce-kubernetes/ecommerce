@@ -2,12 +2,12 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.external.OrderCouponGateway;
-import com.example.order_service.order.application.external.OrderProductGateway;
-import com.example.order_service.order.application.external.OrderUserGateway;
-import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.external.dto.result.OrderProductResult;
-import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.infrastructure.adaptor.OrderCouponAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.OrderProductAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.OrderUserAdaptor;
+import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderUserResult;
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
@@ -54,11 +54,11 @@ public class OrderFacadeTest {
     @Mock
     private OrderMapper orderMapper;
     @Mock
-    private OrderProductGateway orderProductGateway;
+    private OrderProductAdaptor orderProductAdaptor;
     @Mock
-    private OrderCouponGateway orderCouponGateway;
+    private OrderCouponAdaptor orderCouponAdaptor;
     @Mock
-    private OrderUserGateway orderUserGateway;
+    private OrderUserAdaptor orderUserAdaptor;
     @Mock
     private OrderValidator orderValidator;
     @Mock
@@ -87,20 +87,20 @@ public class OrderFacadeTest {
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
 
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
-            given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
-            given(orderCouponGateway.calculate(any())).willReturn(couponResult);
+            given(orderUserAdaptor.getUserPoints(anyLong())).willReturn(userPoint);
+            given(orderProductAdaptor.getProducts(anyList())).willReturn(productResult);
+            given(orderCouponAdaptor.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
             given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderFacade.initialOrder(command);
             //then
             assertThat(result).isEqualTo(expectedResult);
-            then(orderProductGateway).should().getProducts(anyList());
-            then(orderCouponGateway).should().calculate(any());
+            then(orderProductAdaptor).should().getProducts(anyList());
+            then(orderCouponAdaptor).should().calculate(any());
             then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
-            then(orderUserGateway).should().getUserPoints(anyLong());
+            then(orderUserAdaptor).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
         }
 
@@ -118,19 +118,19 @@ public class OrderFacadeTest {
             OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
-            given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
+            given(orderUserAdaptor.getUserPoints(anyLong())).willReturn(userPoint);
+            given(orderProductAdaptor.getProducts(anyList())).willReturn(productResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
             given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderFacade.initialOrder(command);
             //then
             assertThat(result).isEqualTo(expectedResult);
-            then(orderProductGateway).should().getProducts(anyList());
-            then(orderCouponGateway).shouldHaveNoInteractions();
+            then(orderProductAdaptor).should().getProducts(anyList());
+            then(orderCouponAdaptor).shouldHaveNoInteractions();
             then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
-            then(orderUserGateway).should().getUserPoints(anyLong());
+            then(orderUserAdaptor).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
         }
 

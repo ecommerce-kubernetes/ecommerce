@@ -2,10 +2,10 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.external.OrderCouponGateway;
-import com.example.order_service.order.application.external.OrderProductGateway;
-import com.example.order_service.order.application.external.OrderUserGateway;
-import com.example.order_service.order.application.external.dto.result.*;
+import com.example.order_service.order.application.port.OrderCouponPort;
+import com.example.order_service.order.application.port.OrderProductPort;
+import com.example.order_service.order.application.port.OrderUserPort;
+import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
@@ -17,9 +17,7 @@ import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,7 +25,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -39,7 +36,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.instancio.Select.field;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -51,11 +47,11 @@ public class OrderSheetServiceTest {
     @InjectMocks
     private OrderSheetService orderSheetService;
     @Mock
-    private OrderProductGateway orderProductGateway;
+    private OrderProductPort orderProductPort;
     @Mock
-    private OrderCouponGateway orderCouponGateway;
+    private OrderCouponPort orderCouponPort;
     @Mock
-    private OrderUserGateway orderUserGateway;
+    private OrderUserPort orderUserPort;
     @Mock
     private OrderSheetRepository repository;
     @Spy
@@ -160,8 +156,8 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
 
-        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
@@ -201,8 +197,8 @@ public class OrderSheetServiceTest {
         OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
 
-        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
@@ -243,8 +239,8 @@ public class OrderSheetServiceTest {
 
         OrderProductResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product1)).build();
-        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -273,8 +269,8 @@ public class OrderSheetServiceTest {
 
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
-        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -303,8 +299,8 @@ public class OrderSheetServiceTest {
 
         OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
         OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
-        given(orderUserGateway.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductGateway.getProducts(anyList())).willReturn(products);
+        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
@@ -322,7 +318,7 @@ public class OrderSheetServiceTest {
 
         OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         //when
         OrderSheetResult result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
         //then
@@ -402,7 +398,7 @@ public class OrderSheetServiceTest {
                 .build();
         OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
         OrderSheetResult result = orderSheetService.updateShippingAddress(command);
@@ -485,8 +481,8 @@ public class OrderSheetServiceTest {
                 .build();
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderCouponGateway.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
-        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
+        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
         OrderSheetResult result = orderSheetService.applyItemCoupon(command);
@@ -575,7 +571,7 @@ public class OrderSheetServiceTest {
         ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderCouponGateway.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
+        given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
@@ -603,9 +599,9 @@ public class OrderSheetServiceTest {
         CartCouponResult cartCouponResult = CartCouponResult.builder().cartCoupon(cartCoupon).build();
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderCouponGateway.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
+        given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
-        given(orderUserGateway.getOrdererPoints(anyLong())).willReturn(pointResult);
+        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         //when
         OrderSheetResult result = orderSheetService.applyCartCoupon(command);
         //then
@@ -684,7 +680,7 @@ public class OrderSheetServiceTest {
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderUserGateway.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
         OrderSheetResult result = orderSheetService.applyPoints(command);
@@ -755,7 +751,7 @@ public class OrderSheetServiceTest {
         OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderUserGateway.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyPoints(command))

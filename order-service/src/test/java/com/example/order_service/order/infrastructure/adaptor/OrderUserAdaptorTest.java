@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
@@ -10,8 +10,8 @@ import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
 import com.example.order_service.infrastructure.gateway.UserGateway;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
-import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
-import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
+import com.example.order_service.order.application.port.dto.result.OrdererPointResult;
+import com.example.order_service.order.application.port.dto.result.OrdererProfileResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import org.instancio.Instancio;
@@ -29,10 +29,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderUserGatewayTest {
+public class OrderUserAdaptorTest {
 
     @InjectMocks
-    private OrderUserGateway orderUserGateway;
+    private OrderUserAdaptor orderUserAdaptor;
     @Mock
     private UserGateway userGateway;
 
@@ -51,7 +51,7 @@ public class OrderUserGatewayTest {
         UserProfileResponse profileResponse = createProfileResponse(defaultShippingAddress);
         given(userGateway.getUserProfile(anyLong())).willReturn(profileResponse);
         //when
-        OrdererProfileResult ordererProfile = orderUserGateway.getOrdererProfile(userId);
+        OrdererProfileResult ordererProfile = orderUserAdaptor.getOrdererProfile(userId);
         //then
         assertThat(ordererProfile.orderer())
                 .extracting(Orderer::getUserId, Orderer::getUserName, Orderer::getPhoneNumber)
@@ -76,7 +76,7 @@ public class OrderUserGatewayTest {
         given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다."));
         //when
         //then
-        assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
+        assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultGatewayException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_CLIENT_ERROR);
@@ -90,7 +90,7 @@ public class OrderUserGatewayTest {
         given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다."));
         //when
         //then
-        assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
+        assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultGatewayException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_SERVER_ERROR);
@@ -104,7 +104,7 @@ public class OrderUserGatewayTest {
         given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalSystemUnavailableException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다."));
         //when
         //then
-        assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
+        assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultGatewayException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_UNAVAILABLE_SERVER_ERROR);
@@ -118,7 +118,7 @@ public class OrderUserGatewayTest {
         given(userGateway.getUserProfile(anyLong())).willThrow(new ExternalCircuitBreakerException("USER_SERVICE_CIRCUIT_OPEN", "통신이 불안정하여 서킷 브레이커가 열렸습니다."));
         //when
         //then
-        assertThatThrownBy(() -> orderUserGateway.getOrdererProfile(userId))
+        assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultGatewayException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_CIRCUIT_OPEN);
@@ -142,7 +142,7 @@ public class OrderUserGatewayTest {
         UserPointsResponse response = Instancio.create(UserPointsResponse.class);
         given(userGateway.getUserPoints(anyLong())).willReturn(response);
         //when
-        OrdererPointResult result = orderUserGateway.getOrdererPoints(userId);
+        OrdererPointResult result = orderUserAdaptor.getOrdererPoints(userId);
         //then
         assertThat(result.userId()).isEqualTo(response.userId());
         assertThat(result.availablePoints()).isEqualTo(Money.wons(response.availablePoints()));
@@ -158,7 +158,7 @@ public class OrderUserGatewayTest {
         willThrow(new ExternalClientException(code, message))
                 .given(userGateway).getUserPoints(anyLong());
         //when
-        OrdererPointResult result = orderUserGateway.getOrdererPoints(userId);
+        OrdererPointResult result = orderUserAdaptor.getOrdererPoints(userId);
         //then
         assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.availablePoints()).isEqualTo(Money.ZERO);

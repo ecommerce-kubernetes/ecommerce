@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external.dto.command;
+package com.example.order_service.order.application.port.dto.command;
 
 import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;

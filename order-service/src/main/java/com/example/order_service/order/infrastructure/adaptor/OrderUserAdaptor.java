@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.*;
@@ -7,9 +7,10 @@ import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
 import com.example.order_service.infrastructure.gateway.UserGateway;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
-import com.example.order_service.order.application.external.dto.result.OrderUserResult;
-import com.example.order_service.order.application.external.dto.result.OrdererPointResult;
-import com.example.order_service.order.application.external.dto.result.OrdererProfileResult;
+import com.example.order_service.order.application.port.OrderUserPort;
+import com.example.order_service.order.application.port.dto.result.OrderUserResult;
+import com.example.order_service.order.application.port.dto.result.OrdererPointResult;
+import com.example.order_service.order.application.port.dto.result.OrdererProfileResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class OrderUserGateway {
+public class OrderUserAdaptor implements OrderUserPort {
     private final UserGateway userGateway;
 
+    @Override
     public OrdererProfileResult getOrdererProfile(Long userId) {
         UserProfileResponse response = executeGetUserProfile(userId);
         return mapToOrdererProfileResult(response);
@@ -65,6 +67,7 @@ public class OrderUserGateway {
         }
     }
 
+    @Override
     public OrdererPointResult getOrdererPoints(Long userId) {
         try {
             UserPointsResponse response = executeGetUserPoints(userId);

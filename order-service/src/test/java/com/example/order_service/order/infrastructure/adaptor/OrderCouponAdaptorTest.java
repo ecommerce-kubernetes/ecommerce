@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
@@ -10,8 +10,8 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
-import com.example.order_service.order.application.external.dto.result.CartCouponResult;
-import com.example.order_service.order.application.external.dto.result.ItemCouponResult;
+import com.example.order_service.order.application.port.dto.result.CartCouponResult;
+import com.example.order_service.order.application.port.dto.result.ItemCouponResult;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import org.junit.jupiter.api.DisplayName;
@@ -27,10 +27,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderCouponGatewayTest {
+public class OrderCouponAdaptorTest {
 
     @InjectMocks
-    private OrderCouponGateway orderCouponGateway;
+    private OrderCouponAdaptor orderCouponAdaptor;
     @Mock
     private CouponGateway adaptor;
 
@@ -53,7 +53,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getItemCoupon(anyLong(), anyLong())).willReturn(response);
 
         //when
-        ItemCouponResult result = orderCouponGateway.getItemCoupon(userId, itemCouponId);
+        ItemCouponResult result = orderCouponAdaptor.getItemCoupon(userId, itemCouponId);
         //then
         assertThat(result.itemCoupon())
                 .extracting("itemCouponId", "name", "applyQuantityLimit")
@@ -83,7 +83,7 @@ public class OrderCouponGatewayTest {
 
         given(adaptor.getItemCoupon(anyLong(), anyLong())).willReturn(response);
         //when
-        ItemCouponResult result = orderCouponGateway.getItemCoupon(userId, itemCouponId);
+        ItemCouponResult result = orderCouponAdaptor.getItemCoupon(userId, itemCouponId);
         //then
         assertThat(result.itemCoupon())
                 .extracting("itemCouponId", "name", "applyQuantityLimit")
@@ -102,7 +102,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalServerException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -118,7 +118,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalClientException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -134,7 +134,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalCircuitBreakerException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -150,7 +150,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalSystemUnavailableException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -177,7 +177,7 @@ public class OrderCouponGatewayTest {
                 .willReturn(response);
 
         //when
-        CartCouponResult result = orderCouponGateway.getCartCoupon(userId, cartCouponId);
+        CartCouponResult result = orderCouponAdaptor.getCartCoupon(userId, cartCouponId);
         //then
         assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(20L);
         assertThat(result.cartCoupon().getName()).isEqualTo("장바구니 1000원 할인 쿠폰");
@@ -206,7 +206,7 @@ public class OrderCouponGatewayTest {
 
         given(adaptor.getCartCoupon(anyLong(), anyLong())).willReturn(response);
         //when
-        CartCouponResult result = orderCouponGateway.getCartCoupon(userId, cartCouponId);
+        CartCouponResult result = orderCouponAdaptor.getCartCoupon(userId, cartCouponId);
         //then
         assertThat(result.cartCoupon().getCartCouponId()).isEqualTo(20L);
         assertThat(result.cartCoupon().getName()).isEqualTo("장바구니 5% 할인 쿠폰");
@@ -225,7 +225,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalServerException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getCartCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -241,7 +241,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalClientException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getCartCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -257,7 +257,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalCircuitBreakerException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getCartCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
@@ -273,7 +273,7 @@ public class OrderCouponGatewayTest {
         given(adaptor.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalSystemUnavailableException(code, message));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponGateway.getCartCoupon(1L, 1L))
+        assertThatThrownBy(() -> orderCouponAdaptor.getCartCoupon(1L, 1L))
                 .isInstanceOf(DefaultGatewayException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")

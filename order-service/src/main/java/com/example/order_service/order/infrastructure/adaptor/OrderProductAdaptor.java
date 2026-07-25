@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.external;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
@@ -9,8 +9,9 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
-import com.example.order_service.order.application.external.dto.result.OrderProductResult;
-import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
+import com.example.order_service.order.application.port.OrderProductPort;
+import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -21,9 +22,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OrderProductGateway {
+public class OrderProductAdaptor implements OrderProductPort {
     private final ProductGateway productGateway;
 
+    @Override
     public OrderProductResult getProducts(List<Long> productVariantIds) {
         ProductResponse response = executeGetProducts(productVariantIds);
         return mapToOrderProductResult(response);
