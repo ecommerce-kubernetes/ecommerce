@@ -48,7 +48,7 @@ public class Cart extends BaseEntity {
             return;
         }
 
-        CartItem cartItem = CartItem.create(productVariantId, quantity);
+        CartItem cartItem = CartItem.create(productVariantId, quantity, 100);
         this.cartItems.add(cartItem);
         cartItem.setCart(this);
     }

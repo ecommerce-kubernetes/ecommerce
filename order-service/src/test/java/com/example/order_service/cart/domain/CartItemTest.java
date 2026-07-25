@@ -3,11 +3,9 @@ package com.example.order_service.cart.domain;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 public class CartItemTest {
 
@@ -16,7 +14,7 @@ public class CartItemTest {
     void create(){
         //given
         //when
-        CartItem item = CartItem.create(1L, 3);
+        CartItem item = CartItem.create(1L, 3, 100);
         //then
         assertThat(item)
                 .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
@@ -29,7 +27,7 @@ public class CartItemTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> CartItem.create(null, 3))
+        assertThatThrownBy(() -> CartItem.create(null, 3, 100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
     }
@@ -40,17 +38,29 @@ public class CartItemTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> CartItem.create(1L, 0))
+        assertThatThrownBy(() -> CartItem.create(1L, 0, 100))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
     }
 
     @Test
+    @DisplayName("수량이 최대 한계치를 초과하면 예외가 발생한다")
+    void create_quantity_exceed_maxLimit(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> CartItem.create(1L, 100, 50))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
+    }
+
+    @Test
     @DisplayName("수량을 추가한다")
     void addQuantity(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3);
+        CartItem cartItem = CartItem.create(1L, 3, 100);
         //when
         cartItem.addQuantity(2, 10);
         //then
@@ -61,7 +71,7 @@ public class CartItemTest {
     @DisplayName("수량이 최대 한계치를 초과하면 예외가 발생한다")
     void addQuantity_quantity_exceed_maxLimit(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3);
+        CartItem cartItem = CartItem.create(1L, 3, 100);
         //when
         //then
         assertThatThrownBy(() -> cartItem.addQuantity(10, 10))
@@ -74,7 +84,7 @@ public class CartItemTest {
     @DisplayName("장바구니 상품의 수량을 변경한다")
     void updateQuantity(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3);
+        CartItem cartItem = CartItem.create(1L, 3, 100);
         //when
         cartItem.updateQuantity(5);
         //then
@@ -85,7 +95,7 @@ public class CartItemTest {
     @DisplayName("상품 수량을 1 미만으로 변경할 수 없다")
     void updateQuantityWhenQuantityLessThan1(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3);
+        CartItem cartItem = CartItem.create(1L, 3, 100);
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(0))
