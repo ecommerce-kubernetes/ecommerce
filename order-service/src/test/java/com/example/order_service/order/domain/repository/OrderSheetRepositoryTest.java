@@ -1,6 +1,7 @@
 package com.example.order_service.order.domain.repository;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.vo.*;

@@ -1,4 +1,4 @@
-package com.example.order_service.order.infrastructure.persistence;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import lombok.Builder;
 import lombok.Getter;

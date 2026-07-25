@@ -1,4 +1,4 @@
-package com.example.order_service.order.infrastructure.persistence;
+package com.example.order_service.order.infrastructure.adaptor;
 
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.order.domain.model.OrderSheet;

@@ -13,7 +13,7 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
-import com.example.order_service.order.domain.repository.OrderSheetRepository;
+import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

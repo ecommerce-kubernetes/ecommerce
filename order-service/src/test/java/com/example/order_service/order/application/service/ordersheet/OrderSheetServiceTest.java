@@ -12,7 +12,7 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.*;
-import com.example.order_service.order.domain.repository.OrderSheetRepository;
+import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;

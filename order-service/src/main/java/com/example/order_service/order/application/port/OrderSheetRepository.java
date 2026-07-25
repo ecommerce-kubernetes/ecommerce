@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.repository;
+package com.example.order_service.order.application.port;
 
 import com.example.order_service.order.domain.model.OrderSheet;
 
