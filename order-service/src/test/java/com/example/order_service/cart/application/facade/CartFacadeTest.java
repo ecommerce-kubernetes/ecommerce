@@ -69,23 +69,6 @@ public class CartFacadeTest {
                         assertThat(item.cartItemId()).isNotNull());
     }
 
-    @Test
-    @DisplayName("상품 검증중 예외가 발생하면 예외를 전파한다")
-    void addItems_CartItemValidator_thrown_BusinessException() {
-        //given
-        AddCartItemsCommand addCommand = createAddCommand(1L, 3);
-        CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
-        given(cartProductPort.getProducts(anyList())).willReturn(productData);
-        willThrow(new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE))
-                .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
-        //when
-        //then
-        assertThatThrownBy(() -> cartFacade.addItems(addCommand))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
-    }
-
     @Nested
     @DisplayName("장바구니 조회")
     class GetCartDetails {
@@ -232,43 +215,77 @@ public class CartFacadeTest {
         }
     }
 
-    @Nested
-    @DisplayName("장바구니 항목 수량 변경")
-    class UpdateCartItemQuantity {
+    @Test
+    @DisplayName("장바구니 항목의 수량을 변경한다")
+    void updateCartItemQuantity() {
+        //given
+        Long cartItemId = 1L;
+        Long productVariantId = 1L;
+        int quantity = 3;
 
-        @Test
-        @DisplayName("장바구니 항목의 수량을 변경한다")
-        void updateCartItemQuantity() {
-            //given
-            Long cartItemId = 1L;
-            Long productVariantId = 1L;
-            int quantity = 3;
-            UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
-            CartItemData cartItemData = createCartItemData(productVariantId, quantity);
-            doNothing().when(cartCommandService).updateCartItemQuantity(any());
-            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            //when
-            UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
-            //then
-            assertThat(result.cartItemId()).isNotNull();
-        }
+        UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
+        CartItemData cartItemData = createCartItemData(productVariantId, quantity);
 
-        @Test
-        @DisplayName("수량 변경중 예외가 발생하면 예외를 전파한다")
-        void updateCartItemQuantity_commandService_thrown_exception() {
-            //given
-            Long cartItemId = 1L;
-            int quantity = 3;
-            UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
-//            willThrow(new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY))
-//                    .given(cartCommandService).updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class));
-            //when
-            //then
-            assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
-        }
+        CartProductResult productData = createProductList(productVariantId, CartProductStatus.ON_SALE);
+
+        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+
+        doNothing().when(cartCommandService).updateCartItemQuantity(any());
+        //when
+        UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
+        //then
+        assertThat(result.cartItemId()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("장바구니 항목의 수량을 변경할 때 장바구니 항목의 상품을 찾을 수 없는 경우 예외가 발생한다")
+    void updateCartItemQuantity_product_not_found(){
+        //given
+        Long cartItemId = 1L;
+        Long productVariantId = 1L;
+        int quantity = 3;
+
+        UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
+        CartItemData cartItemData = createCartItemData(productVariantId, quantity);
+
+        CartProductResult productData = CartProductResult.builder()
+                .products(Collections.emptyList())
+                .build();
+
+        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+
+        //when
+        //then
+        assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.PRODUCT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("장바구니 항목의 상품 상태가 판매할 수 없는 경우 예외가 발생한다")
+    void updateCartItemQuantity_not_on_sale(){
+        //given
+        Long cartItemId = 1L;
+        Long productVariantId = 1L;
+        int quantity = 3;
+
+        UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
+        CartItemData cartItemData = createCartItemData(productVariantId, quantity);
+
+        CartProductResult productData = createProductList(productVariantId, CartProductStatus.STOP_SALE);
+
+        given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+
+        //when
+        //then
+        assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
     }
 
     @Nested

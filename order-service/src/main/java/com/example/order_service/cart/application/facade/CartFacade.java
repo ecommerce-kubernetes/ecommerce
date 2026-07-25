@@ -5,12 +5,15 @@ import com.example.order_service.cart.application.dto.command.DeleteCartItemsCom
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
+import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
+import com.example.order_service.cart.exception.CartErrorCode;
+import com.example.order_service.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -111,11 +114,37 @@ public class CartFacade {
     }
 
     public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
-//        cartCommandService.updateCartItemQuantity(command);
-
         CartItemData cartItem = cartQueryService.getCartItem(command.userId(), command.cartItemId());
 
+        CartProductResult products = cartProductPort.getProducts(List.of(cartItem.productVariantId()));
+        Map<Long, CartProductResult.CartProductDetail> productsMap = products.toMap();
+
+        CartProductResult.CartProductDetail product = productsMap.get(cartItem.productVariantId());
+
+        if (product == null) {
+            throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        if (product.status() != CartProductStatus.ON_SALE) {
+            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
+        }
+
+        UpdateCartItemContext context = mapToUpdateCartItemContext(cartItem, command, products);
+
+        cartCommandService.updateCartItemQuantity(context);
+
         return UpdateCartItemQuantityResult.from(cartItem);
+    }
+
+    private UpdateCartItemContext mapToUpdateCartItemContext(CartItemData cartItem, UpdateCartItemQuantityCommand command, CartProductResult products) {
+        Map<Long, CartProductResult.CartProductDetail> map = products.toMap();
+        CartProductResult.CartProductDetail product = map.get(cartItem.productVariantId());
+        return UpdateCartItemContext.builder()
+                .userId(command.userId())
+                .cartItemId(cartItem.cartItemId())
+                .quantity(command.quantity())
+                .maxLimit(product.stock())
+                .build();
     }
 
     public void deleteCartItems(DeleteCartItemsCommand command) {
