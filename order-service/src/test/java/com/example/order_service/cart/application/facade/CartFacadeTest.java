@@ -4,6 +4,7 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.application.dto.param.CartItemsContext;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.infrastructure.adaptor.CartProductAdaptor;
@@ -44,50 +45,46 @@ public class CartFacadeTest {
     @Mock
     private CartItemValidator validator;
 
-    @Nested
-    @DisplayName("장바구니 추가")
-    class AddItems {
 
-        @Test
-        @DisplayName("장바구니에 상품을 추가한 뒤 추가된 장바구니 상품 정보를 조회하여 반환한다")
-        void addItems() {
-            //given
-            AddCartItemsCommand addCommand = createAddCommand(1L, 3);
-            CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
-            CartItemData cartItemData = createCartItemData(1L, 3);
+    @Test
+    @DisplayName("장바구니에 상품을 추가한 뒤 추가된 장바구니 상품 정보를 조회하여 반환한다")
+    void addItems() {
+        //given
+        AddCartItemsCommand addCommand = createAddCommand(1L, 3);
+        CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+        CartItemData cartItemData = createCartItemData(1L, 3);
 
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
-//            doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
-            given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
-            //when
-            AddCartItemsResult result = cartFacade.addItems(addCommand);
-            //then
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
+        doNothing().when(cartCommandService).addCartItems(any(CartItemsContext.class));
+        given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
+        //when
+        AddCartItemsResult result = cartFacade.addItems(addCommand);
+        //then
 
-            assertThat(result.items())
-                    .hasSize(1);
+        assertThat(result.items())
+                .hasSize(1);
 
-            assertThat(result.items())
-                    .allSatisfy(item ->
-                            assertThat(item.cartItemId()).isNotNull());
-        }
+        assertThat(result.items())
+                .allSatisfy(item ->
+                        assertThat(item.cartItemId()).isNotNull());
+    }
 
-        @Test
-        @DisplayName("상품 검증중 예외가 발생하면 예외를 전파한다")
-        void addItems_CartItemValidator_thrown_BusinessException() {
-            //given
-            AddCartItemsCommand addCommand = createAddCommand(1L, 3);
-            CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
-            given(cartProductPort.getProducts(anyList())).willReturn(productData);
-            willThrow(new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE))
-                    .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
-            //when
-            //then
-            assertThatThrownBy(() -> cartFacade.addItems(addCommand))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
-        }
+    @Test
+    @DisplayName("상품 검증중 예외가 발생하면 예외를 전파한다")
+    void addItems_CartItemValidator_thrown_BusinessException() {
+        //given
+        AddCartItemsCommand addCommand = createAddCommand(1L, 3);
+        CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+        given(cartProductPort.getProducts(anyList())).willReturn(productData);
+        willThrow(new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE))
+                .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
+        //when
+        //then
+        assertThatThrownBy(() -> cartFacade.addItems(addCommand))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
     }
 
     @Nested

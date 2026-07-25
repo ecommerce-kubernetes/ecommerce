@@ -2,7 +2,7 @@ package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
-import com.example.order_service.cart.application.dto.param.CartItemContext;
+import com.example.order_service.cart.application.dto.param.CartItemsContext;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
@@ -34,12 +34,12 @@ class CartCommandServiceTest {
     void addCartItems_not_exist_cart(){
         //given
         Long userId = 1L;
-        CartItemContext.Item item = CartItemContext.Item.builder()
+        CartItemsContext.Item item = CartItemsContext.Item.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
-        CartItemContext command = CartItemContext.builder()
+        CartItemsContext command = CartItemsContext.builder()
                 .userId(userId)
                 .items(List.of(item))
                 .build();
@@ -62,12 +62,12 @@ class CartCommandServiceTest {
     void addCartItems_exist_cart(){
         //given
         Long userId = 1L;
-        CartItemContext.Item item = CartItemContext.Item.builder()
+        CartItemsContext.Item item = CartItemsContext.Item.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
-        CartItemContext command = CartItemContext.builder()
+        CartItemsContext command = CartItemsContext.builder()
                 .userId(userId)
                 .items(List.of(item))
                 .build();

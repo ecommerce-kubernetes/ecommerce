@@ -4,9 +4,9 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.application.dto.param.CartItemsContext;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.port.CartProductPort;
-import com.example.order_service.cart.infrastructure.adaptor.CartProductAdaptor;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
@@ -33,10 +33,27 @@ public class CartFacade {
 
         cartItemValidator.validate(command, productData);
 
-//        cartCommandService.addCartItems(command);
+        CartItemsContext context = mapToCartItemContext(command, productData);
+        cartCommandService.addCartItems(context);
 
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(command.userId(), variantIds);
         return AddCartItemsResult.from(cartItems);
+    }
+
+    private CartItemsContext mapToCartItemContext(AddCartItemsCommand command, CartProductResult products) {
+        Map<Long, CartProductResult.CartProductDetail> productsMap = products.toMap();
+        List<CartItemsContext.Item> items = command.items().stream().map(item -> {
+            CartProductResult.CartProductDetail product = productsMap.get(item.productVariantId());
+            return CartItemsContext.Item.builder()
+                    .productVariantId(product.productVariantId())
+                    .quantity(item.quantity())
+                    .maxLimit(product.stock())
+                    .build();
+        }).toList();
+        return CartItemsContext.builder()
+                .userId(command.userId())
+                .items(items)
+                .build();
     }
 
     public CartResult getCartDetails(Long userId) {
