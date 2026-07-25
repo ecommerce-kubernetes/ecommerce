@@ -58,7 +58,7 @@ public class CartFacadeTest {
 
             given(cartProductPort.getProducts(anyList())).willReturn(productData);
             doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
-            doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
+//            doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
             given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
             //when
             AddCartItemsResult result = cartFacade.addItems(addCommand);

@@ -33,7 +33,7 @@ public class CartFacade {
 
         cartItemValidator.validate(command, productData);
 
-        cartCommandService.addCartItems(command);
+//        cartCommandService.addCartItems(command);
 
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(command.userId(), variantIds);
         return AddCartItemsResult.from(cartItems);

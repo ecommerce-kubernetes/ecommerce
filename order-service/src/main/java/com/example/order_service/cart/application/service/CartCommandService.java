@@ -1,8 +1,8 @@
 package com.example.order_service.cart.application.service;
 
-import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
+import com.example.order_service.cart.application.dto.param.CartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.exception.CartErrorCode;
@@ -17,11 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class CartCommandService {
     private final CartRepository cartRepository;
 
-    public void addCartItems(AddCartItemsCommand command) {
-        Cart cart = cartRepository.findByUserId(command.userId())
-                .orElseGet(() -> Cart.create(command.userId()));
-        for (AddCartItemsCommand.Item item: command.items()) {
-            cart.addItem(item.productVariantId(), item.quantity(), 100);
+    public void addCartItems(CartItemContext context) {
+        Cart cart = cartRepository.findByUserId(context.userId())
+                .orElseGet(() -> Cart.create(context.userId()));
+        for (CartItemContext.Item item: context.items()) {
+            cart.addItem(item.productVariantId(), item.quantity(), item.maxLimit());
         }
         cartRepository.save(cart);
     }
