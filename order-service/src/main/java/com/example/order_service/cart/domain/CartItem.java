@@ -51,10 +51,15 @@ public class CartItem {
         this.quantity = this.quantity + quantity;
     }
 
-    public void updateQuantity(int quantity) {
+    public void updateQuantity(int quantity, int maxLimit) {
         if (quantity <= 0) {
             throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
+
+        if (maxLimit < quantity) {
+            throw new BusinessException(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
+        }
+
         this.quantity = quantity;
     }
 

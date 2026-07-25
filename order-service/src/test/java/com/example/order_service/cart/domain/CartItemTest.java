@@ -81,26 +81,39 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("장바구니 상품의 수량을 변경한다")
+    @DisplayName("장바구니 항목의 수량을 변경한다")
     void updateQuantity(){
         //given
         CartItem cartItem = CartItem.create(1L, 3, 100);
         //when
-        cartItem.updateQuantity(5);
+        cartItem.updateQuantity(5, 100);
         //then
         assertThat(cartItem.getQuantity()).isEqualTo(5);
     }
 
     @Test
-    @DisplayName("상품 수량을 1 미만으로 변경할 수 없다")
+    @DisplayName("항목 수량을 수정할때 상품 수량을 1 미만으로 변경할 수 없다")
     void updateQuantityWhenQuantityLessThan1(){
         //given
         CartItem cartItem = CartItem.create(1L, 3, 100);
         //when
         //then
-        assertThatThrownBy(() -> cartItem.updateQuantity(0))
+        assertThatThrownBy(() -> cartItem.updateQuantity(0, 100))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
+    }
+
+    @Test
+    @DisplayName("항목 수량을 수정할때 최대 한계치를 초과할 수 없다.")
+    void updateQuantity_quantity_exceed_maxLimit(){
+        //given
+        CartItem cartItem = CartItem.create(1L, 3, 100);
+        //when
+        //then
+        assertThatThrownBy(() -> cartItem.updateQuantity(50, 10))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
     }
 }
