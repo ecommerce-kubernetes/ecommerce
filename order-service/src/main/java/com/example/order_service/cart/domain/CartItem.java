@@ -39,7 +39,10 @@ public class CartItem {
         return new CartItem(productVariantId, quantity);
     }
 
-    public void addQuantity(int quantity) {
+    public void addQuantity(int quantity, int maxLimit) {
+        if (maxLimit < this.quantity + quantity) {
+            throw new BusinessException(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
+        }
         this.quantity = this.quantity + quantity;
     }
 

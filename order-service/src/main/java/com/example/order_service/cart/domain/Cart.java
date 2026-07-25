@@ -44,7 +44,7 @@ public class Cart extends BaseEntity {
         Optional<CartItem> existing = findItemByProductVariantId(productVariantId);
 
         if (existing.isPresent()) {
-            existing.get().addQuantity(quantity);
+            existing.get().addQuantity(quantity, 100);
             return;
         }
 
