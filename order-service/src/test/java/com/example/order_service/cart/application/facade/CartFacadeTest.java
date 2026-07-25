@@ -5,6 +5,7 @@ import com.example.order_service.cart.application.dto.command.DeleteCartItemsCom
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.*;
+import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.infrastructure.adaptor.CartProductAdaptor;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
@@ -35,7 +36,7 @@ public class CartFacadeTest {
     @InjectMocks
     private CartFacade cartFacade;
     @Mock
-    private CartProductAdaptor cartProductAdaptor;
+    private CartProductPort cartProductPort;
     @Mock
     private CartCommandService cartCommandService;
     @Mock
@@ -55,7 +56,7 @@ public class CartFacadeTest {
             CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
             CartItemData cartItemData = createCartItemData(1L, 3);
 
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
             doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
             given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
@@ -83,7 +84,7 @@ public class CartFacadeTest {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
             CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             willThrow(new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE))
                     .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductResult.class));
             //when
@@ -109,7 +110,7 @@ public class CartFacadeTest {
             CartResult result = cartFacade.getCartDetails(userId);
             //then
             assertThat(result.items()).isEmpty();
-            verify(cartProductAdaptor, never()).getProducts(any());
+            verify(cartProductPort, never()).getProducts(any());
         }
 
         @Test
@@ -126,7 +127,7 @@ public class CartFacadeTest {
                     .create();
 
             given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(cartItemData));
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             //when
             CartResult result = cartFacade.getCartDetails(userId);
             //then
@@ -162,7 +163,7 @@ public class CartFacadeTest {
                     .create();
 
             given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(item1, item2));
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             //when
             CartResult result = cartFacade.getCartDetails(userId);
             //then
@@ -189,7 +190,7 @@ public class CartFacadeTest {
             CartItemData cartItemData = createCartItemData(1L, 3);
             CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE);
             given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             //when
             CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
             //then
@@ -209,7 +210,7 @@ public class CartFacadeTest {
             CartItemData cartItemData = createCartItemData(1L, 3);
             CartProductResult productData = CartProductResult.builder().products(Collections.emptyList()).build();
             given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             //when
             CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
             //then
@@ -229,7 +230,7 @@ public class CartFacadeTest {
             CartItemData cartItemData = createCartItemData(1L, 3);
             CartProductResult productData = createProductList(1L, CartProductStatus.STOP_SALE);
             given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
-            given(cartProductAdaptor.getProducts(anyList())).willReturn(productData);
+            given(cartProductPort.getProducts(anyList())).willReturn(productData);
             //when
             CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
             //then

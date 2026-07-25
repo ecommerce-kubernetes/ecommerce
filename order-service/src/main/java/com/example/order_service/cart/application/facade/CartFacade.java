@@ -5,6 +5,7 @@ import com.example.order_service.cart.application.dto.command.DeleteCartItemsCom
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.*;
+import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.infrastructure.adaptor.CartProductAdaptor;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
@@ -22,13 +23,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CartFacade {
     private final CartCommandService cartCommandService;
+    private final CartProductPort cartProductPort;
     private final CartQueryService cartQueryService;
-    private final CartProductAdaptor cartProductAdaptor;
     private final CartItemValidator cartItemValidator;
 
     public AddCartItemsResult addItems(AddCartItemsCommand command) {
         List<Long> variantIds = command.toProductVariantIds();
-        CartProductResult productData = cartProductAdaptor.getProducts(variantIds);
+        CartProductResult productData = cartProductPort.getProducts(variantIds);
 
         cartItemValidator.validate(command, productData);
 
@@ -46,7 +47,7 @@ public class CartFacade {
         }
 
         List<Long> variantIds = cartItems.stream().map(CartItemData::productVariantId).toList();
-        CartProductResult productData = cartProductAdaptor.getProducts(variantIds);
+        CartProductResult productData = cartProductPort.getProducts(variantIds);
 
         return createCartResult(productData, cartItems);
     }
@@ -54,7 +55,7 @@ public class CartFacade {
     public CartItemResult getCartItemDetails(Long userId, Long cartItemId) {
         CartItemData cartItem = cartQueryService.getCartItem(userId, cartItemId);
 
-        CartProductResult productData = cartProductAdaptor.getProducts(List.of(cartItem.productVariantId()));
+        CartProductResult productData = cartProductPort.getProducts(List.of(cartItem.productVariantId()));
 
         Map<Long, CartProductResult.CartProductDetail> productMap = productData.toMap();
         CartProductResult.CartProductDetail product = productMap.get(cartItem.productVariantId());
