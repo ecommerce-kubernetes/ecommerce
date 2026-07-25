@@ -1,4 +1,4 @@
-package com.example.order_service.cart.domain.model;
+package com.example.order_service.cart.domain;
 
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;

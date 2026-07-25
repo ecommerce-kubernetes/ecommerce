@@ -1,6 +1,6 @@
 package com.example.order_service.cart.application.dto.data;
 
-import com.example.order_service.cart.domain.model.CartItem;
+import com.example.order_service.cart.domain.CartItem;
 import lombok.Builder;
 
 @Builder
