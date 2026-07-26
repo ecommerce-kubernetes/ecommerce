@@ -8,8 +8,8 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
-import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
 import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
+import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
