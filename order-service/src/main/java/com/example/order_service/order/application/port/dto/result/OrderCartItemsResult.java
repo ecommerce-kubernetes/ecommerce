@@ -16,4 +16,8 @@ public record OrderCartItemsResult(
             int quantity
     ) {
     }
+
+    public List<Long> toProductVariantIds() {
+        return items.stream().map(Item::productVariantId).toList();
+    }
 }

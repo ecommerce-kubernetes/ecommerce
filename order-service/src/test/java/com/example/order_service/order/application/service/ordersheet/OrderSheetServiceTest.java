@@ -2,10 +2,7 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.port.OrderCouponPort;
-import com.example.order_service.order.application.port.OrderProductPort;
-import com.example.order_service.order.application.port.OrderSheetRepository;
-import com.example.order_service.order.application.port.OrderUserPort;
+import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -31,6 +28,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +50,8 @@ public class OrderSheetServiceTest {
     @Mock
     private OrderUserPort orderUserPort;
     @Mock
+    private OrderCartPort orderCartPort;
+    @Mock
     private OrderSheetRepository repository;
     @Spy
     private OrderSheetProperties properties = new OrderSheetProperties(30L, BigDecimal.valueOf(0.1));
@@ -69,9 +69,22 @@ public class OrderSheetServiceTest {
                 .cartItemIds(List.of(1L))
                 .build();
 
-        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
+        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
+        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+
+        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
         OrderSheetCreateResult result = orderSheetService.createCartOrderSheet(command);
         //then
@@ -94,7 +107,22 @@ public class OrderSheetServiceTest {
                 .userId(1L)
                 .cartItemIds(List.of(1L))
                 .build();
+
+        Money availablePoints = Money.wons(10000L);
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(null, availablePoints);
+
+        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
+        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+
+        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
+
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
+        given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
         OrderSheetCreateResult result = orderSheetService.createCartOrderSheet(command);
         //then
@@ -109,27 +137,118 @@ public class OrderSheetServiceTest {
     }
 
     @Test
+    @DisplayName("장바구니 주문서 생성시, 장바구니 항목이 누락되면 예외가 발생한다.")
+    void createCartOrderSheet_missing_cartItem() {
+        //given
+        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
+                .userId(1L)
+                .cartItemIds(List.of(1L, 2L))
+                .build();
+
+        Money availablePoints = Money.wons(10000L);
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
+
+        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
+        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.CART_ITEM_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("장바구니 주문서 생성시, 상품 정보가 누락되면 예외가 발생한다.")
     void createCartOrderSheet_missing_product() {
         //given
+        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
+                .userId(1L)
+                .cartItemIds(List.of(1L))
+                .build();
+
+        Money availablePoints = Money.wons(10000L);
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
+
+        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
+        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+
+        OrderProductsResult products = OrderProductsResult.builder().products(Collections.emptyList()).build();
+
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
         //then
+        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
     }
 
     @Test
     @DisplayName("장바구니 주문서 생성시, 주문 상품이 주문 가능한 상태가 아니면 예외가 발생한다")
     void createCartOrderSheet_unOrderable_product() {
         //given
+        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
+                .userId(1L)
+                .cartItemIds(List.of(1L))
+                .build();
+
+        Money availablePoints = Money.wons(10000L);
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
+
+        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
+        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+
+        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
         //then
+        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
     }
 
     @Test
     @DisplayName("장바구니 주문서 생성시, 주문 상품의 재고가 주문 수량보다 적으면 예외가 발생한다.")
     void createCartOrderSheet_product_stock_insufficient() {
         //given
+        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
+                .userId(1L)
+                .cartItemIds(List.of(1L))
+                .build();
+
+        Money availablePoints = Money.wons(10000L);
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
+
+        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 15);
+        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+
+        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 10);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
+        given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
         //then
+        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
     }
 
     @Test
@@ -780,6 +899,14 @@ public class OrderSheetServiceTest {
                 .stock(stock)
                 .priceSnapshot(priceSnapshot)
                 .options(List.of(option1, option2))
+                .build();
+    }
+
+    private OrderCartItemsResult.Item createCartItem(Long cartItemId, Long variantId, int quantity) {
+        return OrderCartItemsResult.Item.builder()
+                .cartItemId(cartItemId)
+                .productVariantId(variantId)
+                .quantity(quantity)
                 .build();
     }
 

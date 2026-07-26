@@ -2,10 +2,7 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.port.OrderCouponPort;
-import com.example.order_service.order.application.port.OrderProductPort;
-import com.example.order_service.order.application.port.OrderSheetRepository;
-import com.example.order_service.order.application.port.OrderUserPort;
+import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
@@ -34,12 +31,38 @@ public class OrderSheetService {
     private final OrderProductPort orderProductPort;
     private final OrderCouponPort orderCouponPort;
     private final OrderUserPort orderUserPort;
+    private final OrderCartPort orderCartPort;
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetRepository repository;
     private final Clock clock;
 
     public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
-        return null;
+        OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
+
+        OrderCartItemsResult cartItems = orderCartPort.getCartItems(command.userId(), command.cartItemIds());
+
+        validateMissingCartItems(command, cartItems);
+
+        List<Long> orderVariantIds = cartItems.toProductVariantIds();
+        OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
+
+        Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
+        List<OrderSheetItem> orderSheetItems = createOrderSheetItems(cartItems, productsMap);
+
+        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
+
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        return OrderSheetCreateResult.from(savedOrderSheet);
+    }
+
+    private void validateMissingCartItems(CreateCartOrderSheetCommand command, OrderCartItemsResult cartItems) {
+        List<Long> requestCartItemIds = command.cartItemIds();
+        for (Long requestCartItemId : requestCartItemIds) {
+            List<Long> findCartItemIds = cartItems.items().stream().map(OrderCartItemsResult.Item::cartItemId).toList();
+            if (!findCartItemIds.contains(requestCartItemId)){
+                throw new BusinessException(OrderErrorCode.CART_ITEM_NOT_FOUND);
+            }
+        }
     }
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
@@ -74,6 +97,16 @@ public class OrderSheetService {
             validateProductIsOrderable(product, orderVariant.quantity());
             return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
                     orderVariant.quantity(), product.options());
+        }).toList();
+    }
+
+    private List<OrderSheetItem> createOrderSheetItems(OrderCartItemsResult cartItems,
+                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+        return cartItems.items().stream().map(cartItem -> {
+            OrderProductsResult.OrderProductDetail product = productsMap.get(cartItem.productVariantId());
+            validateProductIsOrderable(product, cartItem.quantity());
+            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
+                    cartItem.quantity(), product.options());
         }).toList();
     }
 
