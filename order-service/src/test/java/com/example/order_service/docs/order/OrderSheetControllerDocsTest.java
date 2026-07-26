@@ -8,6 +8,7 @@ import com.example.order_service.order.application.service.ordersheet.OrderSheet
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -78,7 +79,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(OrderSheetDescriptor.directCreateRequest()),
-                        responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
+                        responseFields(OrderSheetDescriptor.createOrderSheetResponse())
                 ));
     }
 
@@ -113,7 +114,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(OrderSheetDescriptor.cartCreateRequest()),
-                        responseFields(OrderSheetDescriptor.getCreateOrderSheetResponse())
+                        responseFields(OrderSheetDescriptor.createOrderSheetResponse())
                 ));
     }
 
@@ -163,7 +164,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .addressDetail("123동 1234호")
                 .build();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult result = createOrderSheetResult();
+        OrderSheetUpdateResult result = createOrderSheetUpdateResult();
         given(orderSheetService.updateShippingAddress(any(UpdateOrderSheetShippingAddressCommand.class)))
                 .willReturn(result);
 
@@ -185,7 +186,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(shippingAddressRequest()),
-                        responseFields(orderSheetResponse()),
+                        responseFields(updateOrderSheetResponse()),
                         pathParameters(
                                 parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -203,7 +204,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .itemCouponId(1L)
                 .build();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        OrderSheetResult result = createOrderSheetResult();
+        OrderSheetUpdateResult result = createOrderSheetUpdateResult();
         given(orderSheetService.applyItemCoupon(any(ApplyItemCouponCommand.class)))
                 .willReturn(result);
         //when
@@ -224,7 +225,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(applyItemCouponRequest()),
-                        responseFields(orderSheetResponse()),
+                        responseFields(updateOrderSheetResponse()),
                         pathParameters(
                                 parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)"),
@@ -244,7 +245,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .cartCouponId(2L)
                 .build();
 
-        OrderSheetResult result = createOrderSheetResult();
+        OrderSheetUpdateResult result = createOrderSheetUpdateResult();
         given(orderSheetService.applyCartCoupon(any(ApplyCartCouponCommand.class))).willReturn(result);
         //when
         //then
@@ -264,7 +265,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(applyCartCouponRequest()),
-                        responseFields(orderSheetResponse()),
+                        responseFields(updateOrderSheetResponse()),
                         pathParameters(
                                 parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -283,7 +284,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .usedPoints(1000L)
                 .build();
 
-        OrderSheetResult result = createOrderSheetResult();
+        OrderSheetUpdateResult result = createOrderSheetUpdateResult();
         given(orderSheetService.applyPoints(any(ApplyPointCommand.class)))
                 .willReturn(result);
         //when
@@ -304,7 +305,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(applyPointRequest()),
-                        responseFields(orderSheetResponse()),
+                        responseFields(updateOrderSheetResponse()),
                         pathParameters(
                                 parameterWithName("orderSheetId")
                                         .description("주문서 ID(주문서 식별자)")
@@ -368,6 +369,13 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     private OrderSheetCreateResult createOrderSheetCreateResult() {
         return OrderSheetCreateResult.builder()
+                .orderSheetId("orderSheetId")
+                .expiresAt(LocalDateTime.now())
+                .build();
+    }
+
+    private OrderSheetUpdateResult createOrderSheetUpdateResult() {
+        return OrderSheetUpdateResult.builder()
                 .orderSheetId("orderSheetId")
                 .expiresAt(LocalDateTime.now())
                 .build();

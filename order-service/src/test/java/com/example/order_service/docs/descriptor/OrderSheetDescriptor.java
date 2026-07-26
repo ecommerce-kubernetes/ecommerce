@@ -196,7 +196,18 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getCreateOrderSheetResponse() {
+    public static FieldDescriptor[] createOrderSheetResponse() {
+        return new FieldDescriptor[]{
+                fieldWithPath("orderSheetId")
+                        .type(JsonFieldType.STRING)
+                        .description("주문서 ID"),
+                fieldWithPath("expiresAt")
+                        .type(JsonFieldType.STRING)
+                        .description("주문서 만료 시간")
+        };
+    }
+
+    public static FieldDescriptor[] updateOrderSheetResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("orderSheetId")
                         .type(JsonFieldType.STRING)

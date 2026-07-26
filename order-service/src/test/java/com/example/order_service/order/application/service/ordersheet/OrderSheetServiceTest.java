@@ -7,6 +7,7 @@ import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.*;
@@ -514,20 +515,19 @@ public class OrderSheetServiceTest {
                 .address("서울시 테헤란로 321")
                 .addressDetail("321동 1234호")
                 .build();
-        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
+
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
-        OrderSheetResult result = orderSheetService.updateShippingAddress(command);
+        OrderSheetUpdateResult result = orderSheetService.updateShippingAddress(command);
         //then
-        assertThat(result.shippingAddress())
+        assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
+        assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
+        assertThat(orderSheet.getShippingAddress())
                 .extracting("receiverName", "receiverPhone", "zipCode", "address", "addressDetail")
-                .containsExactly(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
-
-        assertThat(result.point())
-                .extracting("availablePoints", "maxUsablePoints")
-                .containsExactly(Money.wons(10000L), Money.wons(4300L));
+                .containsExactly(
+                        command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail()
+                );
     }
 
     @Test
@@ -585,8 +585,6 @@ public class OrderSheetServiceTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
         ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
-        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
-
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
         OrderSheet orderSheet = createOrderSheet(expiresAt);
         OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
@@ -600,30 +598,23 @@ public class OrderSheetServiceTest {
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
-        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
-        OrderSheetResult result = orderSheetService.applyItemCoupon(command);
+        OrderSheetUpdateResult result = orderSheetService.applyItemCoupon(command);
         //then
-        assertThat(result.items())
-                .extracting("coupon.appliedDiscountAmount")
-                .containsExactly(Money.wons(4500L));
+        assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
+        assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
 
-        assertThat(result.items())
-                .extracting("price.finalAmount")
-                .containsExactly(Money.wons(40500L));
+        assertThat(orderSheetItem)
+                .extracting("itemCouponSnapshot.itemCouponId")
+                .isEqualTo(10L);
 
-        assertThat(result.paymentSummary())
-                .extracting("totalOriginalAmount", "totalItemDiscount", "totalItemCouponDiscount",
-                        "cartCouponDiscount", "usedPoints", "totalPaymentAmount")
-                .containsExactly(
-                        Money.wons(50000L), Money.wons(5000L), Money.wons(4500L),
-                        Money.wons(1000L), Money.wons(1000L), Money.wons(38500L)
-                );
+        assertThat(orderSheetItem.calculateFinalAmount()).isEqualTo(Money.wons(40500L));
 
-        assertThat(result.point())
-                .extracting("availablePoints", "maxUsablePoints")
-                .containsExactly(Money.wons(10000L), Money.wons(3950L));
+        assertThat(orderSheet.calculateTotalItemCouponDiscount()).isEqualTo(Money.wons(4500L));
+        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(38500L));
+
+        assertThat(orderSheet.calculateMaxUsablePoints(pointUsagePolicy)).isEqualTo(Money.wons(3950L));
     }
 
     @Test
@@ -711,33 +702,24 @@ public class OrderSheetServiceTest {
                 .orderSheetId(orderSheet.getId())
                 .build();
 
-        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
-
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(20L, "장바구니 5% 할인 쿠폰", new RateCouponDiscountPolicy(5, Money.wons(50000L)), Money.wons(30000L));
         CartCouponResult cartCouponResult = CartCouponResult.builder().cartCoupon(cartCoupon).build();
 
         given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
-        given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         //when
-        OrderSheetResult result = orderSheetService.applyCartCoupon(command);
+        OrderSheetUpdateResult result = orderSheetService.applyCartCoupon(command);
         //then
-        assertThat(result.cartCoupon())
-                .extracting("cartCouponId", "appliedDiscountAmount")
-                .containsExactly(
-                        20L, Money.wons(2200L)
-                );
+        assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
+        assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
 
-        assertThat(result.paymentSummary())
-                .extracting("cartCouponDiscount", "usedPoints", "totalPaymentAmount")
-                .containsExactly(
-                        Money.wons(2200L), Money.wons(1000L), Money.wons(40800L)
-                );
+        assertThat(orderSheet.getCartCoupon().getCartCouponId()).isEqualTo(20L);
 
-        assertThat(result.point())
-                .extracting("availablePoints", "maxUsablePoints")
-                .containsExactly(Money.wons(10000L), Money.wons(4180L));
+        assertThat(orderSheet.calculateCartCouponDiscount()).isEqualTo(Money.wons(2200L));
+        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(40800L));
+
+        assertThat(orderSheet.calculateMaxUsablePoints(pointUsagePolicy)).isEqualTo(Money.wons(4180L));
     }
 
     @Test
@@ -801,11 +783,13 @@ public class OrderSheetServiceTest {
         given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
-        OrderSheetResult result = orderSheetService.applyPoints(command);
+        OrderSheetUpdateResult result = orderSheetService.applyPoints(command);
         //then
-        assertThat(result.paymentSummary())
-                .extracting("usedPoints", "totalPaymentAmount")
-                .containsExactly(Money.wons(2000L), Money.wons(41000L));
+        assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
+        assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
+
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(2000L));
+        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(41000L));
     }
 
     @Test

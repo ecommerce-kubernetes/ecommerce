@@ -4,10 +4,12 @@ import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.order.api.web.dto.request.*;
 import com.example.order_service.order.api.web.dto.response.OrderSheetCreateResponse;
 import com.example.order_service.order.api.web.dto.response.OrderSheetResponse;
+import com.example.order_service.order.api.web.dto.response.OrderSheetUpdateResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,43 +52,43 @@ public class OrderSheetController {
     }
 
     @PatchMapping("/{orderSheetId}/shipping-address")
-    public ResponseEntity<OrderSheetResponse> updateShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                    @PathVariable("orderSheetId") String orderSheetId,
-                                                                    @RequestBody @Validated UpdateOrderSheetShippingAddressRequest request) {
+    public ResponseEntity<OrderSheetUpdateResponse> updateShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                          @PathVariable("orderSheetId") String orderSheetId,
+                                                                          @RequestBody @Validated UpdateOrderSheetShippingAddressRequest request) {
         UpdateOrderSheetShippingAddressCommand command = request.toCommand(orderSheetId, userPrincipal.getUserId());
-        OrderSheetResult result = orderSheetService.updateShippingAddress(command);
-        OrderSheetResponse response = OrderSheetResponse.from(result);
+        OrderSheetUpdateResult result = orderSheetService.updateShippingAddress(command);
+        OrderSheetUpdateResponse response = OrderSheetUpdateResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{orderSheetId}/items/{orderSheetItemId}/coupon")
-    public ResponseEntity<OrderSheetResponse> applyItemCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<OrderSheetUpdateResponse> applyItemCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                               @PathVariable("orderSheetId") String orderSheetId,
                                                               @PathVariable("orderSheetItemId") String orderSheetItemId,
                                                               @RequestBody @Validated ApplyOrderSheetItemCouponRequest request) {
         ApplyItemCouponCommand command = request.toCommand(userPrincipal.getUserId(), orderSheetId, orderSheetItemId);
-        OrderSheetResult result = orderSheetService.applyItemCoupon(command);
-        OrderSheetResponse response = OrderSheetResponse.from(result);
+        OrderSheetUpdateResult result = orderSheetService.applyItemCoupon(command);
+        OrderSheetUpdateResponse response = OrderSheetUpdateResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{orderSheetId}/cart-coupon")
-    public ResponseEntity<OrderSheetResponse> applyCartCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<OrderSheetUpdateResponse> applyCartCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                               @PathVariable("orderSheetId") String orderSheetId,
                                                               @RequestBody @Validated ApplyOrderSheetCartCouponRequest request) {
         ApplyCartCouponCommand command = request.toCommand(orderSheetId, userPrincipal.getUserId());
-        OrderSheetResult result = orderSheetService.applyCartCoupon(command);
-        OrderSheetResponse response = OrderSheetResponse.from(result);
+        OrderSheetUpdateResult result = orderSheetService.applyCartCoupon(command);
+        OrderSheetUpdateResponse response = OrderSheetUpdateResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{orderSheetId}/points")
-    public ResponseEntity<OrderSheetResponse> applyPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<OrderSheetUpdateResponse> applyPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                           @PathVariable("orderSheetId") String orderSheetId,
                                                           @RequestBody @Validated ApplyOrderSheetPointRequest request) {
         ApplyPointCommand command = request.toCommand(orderSheetId, userPrincipal.getUserId());
-        OrderSheetResult result = orderSheetService.applyPoints(command);
-        OrderSheetResponse response = OrderSheetResponse.from(result);
+        OrderSheetUpdateResult result = orderSheetService.applyPoints(command);
+        OrderSheetUpdateResponse response = OrderSheetUpdateResponse.from(result);
         return ResponseEntity.ok(response);
     }
 }

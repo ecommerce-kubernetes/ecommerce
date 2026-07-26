@@ -9,6 +9,7 @@ import com.example.order_service.order.application.service.ordersheet.dto.comman
 import com.example.order_service.order.application.service.ordersheet.dto.command.UpdateOrderSheetShippingAddressCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -305,7 +306,11 @@ class OrderSheetControllerTest {
                 .address("서울시 테헤란로 123")
                 .addressDetail("123동 1234호")
                 .build();
-        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        OrderSheetUpdateResult result = Instancio.create(OrderSheetUpdateResult.class);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expectedExpiresAt = result.expiresAt().format(formatter);
+
         given(orderSheetService.updateShippingAddress(any(UpdateOrderSheetShippingAddressCommand.class)))
                 .willReturn(result);
         //when
@@ -315,11 +320,7 @@ class OrderSheetControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+                .andExpect(jsonPath("$.expiresAt").value(expectedExpiresAt));
     }
 
     @Test
@@ -402,7 +403,11 @@ class OrderSheetControllerTest {
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
                 .build();
-        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        OrderSheetUpdateResult result = Instancio.create(OrderSheetUpdateResult.class);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expectedExpiresAt = result.expiresAt().format(formatter);
+
         given(orderSheetService.applyItemCoupon(any())).willReturn(result);
         //when
         //then
@@ -411,11 +416,7 @@ class OrderSheetControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+                .andExpect(jsonPath("$.expiresAt").value(expectedExpiresAt));
     }
 
 
@@ -493,7 +494,11 @@ class OrderSheetControllerTest {
         ApplyOrderSheetCartCouponRequest request = ApplyOrderSheetCartCouponRequest.builder()
                 .cartCouponId(1L)
                 .build();
-        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        OrderSheetUpdateResult result = Instancio.create(OrderSheetUpdateResult.class);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expectedExpiresAt = result.expiresAt().format(formatter);
+
         given(orderSheetService.applyCartCoupon(any())).willReturn(result);
         //when
         //then
@@ -502,11 +507,7 @@ class OrderSheetControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+                .andExpect(jsonPath("$.expiresAt").value(expectedExpiresAt));
     }
 
     @Test
@@ -580,7 +581,11 @@ class OrderSheetControllerTest {
         ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
                 .usedPoints(1000L)
                 .build();
-        OrderSheetResult result = Instancio.create(OrderSheetResult.class);
+        OrderSheetUpdateResult result = Instancio.create(OrderSheetUpdateResult.class);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expectedExpiresAt = result.expiresAt().format(formatter);
+
         given(orderSheetService.applyPoints(any(ApplyPointCommand.class))).willReturn(result);
         //when
         //then
@@ -589,11 +594,7 @@ class OrderSheetControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderSheetId").value(result.orderSheetId()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items.length()").value(result.items().size()))
-                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
-                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+                .andExpect(jsonPath("$.expiresAt").value(expectedExpiresAt));
     }
 
 
