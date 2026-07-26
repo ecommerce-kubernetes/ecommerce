@@ -13,6 +13,7 @@ import com.example.order_service.order.application.port.dto.result.OrdererPointR
 import com.example.order_service.order.application.port.dto.result.OrdererProfileResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.infrastructure.adaptor.mapper.OrderUserPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,37 +21,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderUserAdaptor implements OrderUserPort {
     private final UserGateway userGateway;
+    private final OrderUserPortMapper orderUserPortMapper;
 
     @Override
     public OrdererProfileResult getOrdererProfile(Long userId) {
         UserProfileResponse response = executeGetUserProfile(userId);
-        return mapToOrdererProfileResult(response);
-    }
-
-    private OrdererProfileResult mapToOrdererProfileResult(UserProfileResponse response) {
-        Orderer orderer = Orderer.of(response.userId(), response.userName(), response.phoneNumber());
-        ShippingAddress shippingAddress = mapToShippingAddress(response.defaultShippingAddress());
-        Money availablePoints = mapToAvailablePoints(response.availablePoints());
-        return OrdererProfileResult.builder()
-                .orderer(orderer)
-                .availablePoints(availablePoints)
-                .defaultShippingAddress(shippingAddress)
-                .build();
-    }
-
-    private ShippingAddress mapToShippingAddress(UserProfileResponse.ShippingAddressResponse response) {
-        if (response == null) {
-            return null;
-        }
-        return ShippingAddress.of(response.receiverName(), response.receiverPhone(), response.zipCode(), response.address(),
-                response.addressDetail());
-    }
-
-    private Money mapToAvailablePoints(Long availablePoints) {
-        if (availablePoints == null) {
-            return Money.ZERO;
-        }
-        return Money.wons(availablePoints);
+        return orderUserPortMapper.mapToOrdererProfileResult(response);
     }
 
     private UserProfileResponse executeGetUserProfile(Long userId) {
@@ -71,7 +47,7 @@ public class OrderUserAdaptor implements OrderUserPort {
     public OrdererPointResult getOrdererPoints(Long userId) {
         try {
             UserPointsResponse response = executeGetUserPoints(userId);
-            return mapToOrdererPointsResult(response);
+            return orderUserPortMapper.mapToOrdererPointResult(response);
         } catch (ExternalSystemException e) {
             return OrdererPointResult.builder()
                     .userId(userId)
@@ -82,13 +58,6 @@ public class OrderUserAdaptor implements OrderUserPort {
 
     private UserPointsResponse executeGetUserPoints(Long userId) {
         return userGateway.getUserPoints(userId);
-    }
-
-    private OrdererPointResult mapToOrdererPointsResult(UserPointsResponse response) {
-        return OrdererPointResult.builder()
-                .userId(response.userId())
-                .availablePoints(Money.wons(response.availablePoints()))
-                .build();
     }
 
     @Deprecated

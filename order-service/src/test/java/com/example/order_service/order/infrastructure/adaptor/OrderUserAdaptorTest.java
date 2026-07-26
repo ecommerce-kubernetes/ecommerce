@@ -14,12 +14,14 @@ import com.example.order_service.order.application.port.dto.result.OrdererPointR
 import com.example.order_service.order.application.port.dto.result.OrdererProfileResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.infrastructure.adaptor.mapper.OrderUserPortMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +37,8 @@ public class OrderUserAdaptorTest {
     private OrderUserAdaptor orderUserAdaptor;
     @Mock
     private UserGateway userGateway;
+    @Spy
+    private OrderUserPortMapper orderUserPortMapper;
 
     @Test
     @DisplayName("주문자 정보를 조회한다")
