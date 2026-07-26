@@ -7,8 +7,8 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
-import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.order.application.port.OrderProductPort;
 import com.example.order_service.order.application.port.dto.result.OrderProductResult;
 import com.example.order_service.order.application.port.dto.result.OrderProductStatus;

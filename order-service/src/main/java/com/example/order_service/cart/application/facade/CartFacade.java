@@ -13,8 +13,6 @@ import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
-import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

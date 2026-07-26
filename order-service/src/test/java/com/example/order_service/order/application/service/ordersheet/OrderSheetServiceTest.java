@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.OrderProductPort;
+import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.application.port.OrderUserPort;
 import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
@@ -12,7 +13,6 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.*;
-import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;

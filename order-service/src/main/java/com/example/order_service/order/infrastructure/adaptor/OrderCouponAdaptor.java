@@ -7,9 +7,9 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
-import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
+import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.port.dto.result.CartCouponResult;

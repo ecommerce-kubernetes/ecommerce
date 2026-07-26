@@ -1,7 +1,5 @@
 package com.example.order_service.cart.application.service;
 
-import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;

@@ -2,17 +2,15 @@ package com.example.order_service.cart.infrastructure.adaptor;
 
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
-import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapper;
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
-import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

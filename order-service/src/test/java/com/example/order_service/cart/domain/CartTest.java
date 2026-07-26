@@ -3,7 +3,6 @@ package com.example.order_service.cart.domain;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 

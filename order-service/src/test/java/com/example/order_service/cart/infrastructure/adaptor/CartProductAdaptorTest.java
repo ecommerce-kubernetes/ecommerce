@@ -13,8 +13,8 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.common.mapper.MoneyMapperImpl;
-import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
+import com.example.order_service.infrastructure.gateway.ProductGateway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
