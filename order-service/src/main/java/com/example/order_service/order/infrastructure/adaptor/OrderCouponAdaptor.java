@@ -20,6 +20,7 @@ import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
+import com.example.order_service.order.infrastructure.adaptor.mapper.OrderCouponPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,61 +30,26 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class OrderCouponAdaptor implements OrderCouponPort {
     private final CouponGateway couponGateway;
+    private final OrderCouponPortMapper orderCouponPortMapper;
 
     @Override
     public ItemCouponResult getItemCoupon(Long userId, Long itemCouponId) {
         ItemCouponResponse response = executeGetItemCoupon(userId, itemCouponId);
-        return mapItemCouponResult(response);
+        return orderCouponPortMapper.mapToItemCouponResult(response);
     }
 
     private ItemCouponResponse executeGetItemCoupon(Long userId, Long itemCouponId) {
         return executeWithExceptionTranslation(() -> couponGateway.getItemCoupon(userId, itemCouponId));
     }
 
-    private ItemCouponResult mapItemCouponResult(ItemCouponResponse response) {
-        CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
-            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
-            case "RATE" -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
-            default -> throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
-        };
-
-        ItemCouponSnapshot itemCouponSnapshot = ItemCouponSnapshot.of(
-                response.itemCouponId(),
-                response.name(),
-                discountPolicy,
-                response.applyQuantityLimit()
-        );
-
-        return ItemCouponResult.builder()
-                .itemCoupon(itemCouponSnapshot)
-                .build();
-    }
-
     @Override
     public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {
         CartCouponResponse response = executeGetCartCoupon(userId, cartCouponId);
-        return mapToCartCouponResult(response);
+        return orderCouponPortMapper.mapToCartcouponResult(response);
     }
 
     private CartCouponResponse executeGetCartCoupon(Long userId, Long cartCouponId) {
         return executeWithExceptionTranslation(() -> couponGateway.getCartCoupon(userId, cartCouponId));
-    }
-
-    private CartCouponResult mapToCartCouponResult(CartCouponResponse response) {
-        CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
-            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
-            case "RATE" -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
-            default -> throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
-        };
-
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(response.cartCouponId(),
-                response.name(),
-                discountPolicy,
-                Money.wons(response.minimumPaymentAmount()));
-
-        return CartCouponResult.builder()
-                .cartCoupon(cartCoupon)
-                .build();
     }
 
     private <T> T executeWithExceptionTranslation(Supplier<T> apiCall) {
