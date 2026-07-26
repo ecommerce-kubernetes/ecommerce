@@ -11,7 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Builder
-public record OrderProductResult(
+public record OrderProductsResult(
         List<OrderProductDetail> products
 ) {
     public Map<Long, OrderProductDetail> getProductsMap() {

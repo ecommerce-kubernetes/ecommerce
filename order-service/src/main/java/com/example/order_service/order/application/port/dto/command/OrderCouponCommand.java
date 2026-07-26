@@ -5,6 +5,7 @@ import lombok.Builder;
 
 import java.util.List;
 
+@Deprecated
 public class OrderCouponCommand {
 
     @Builder

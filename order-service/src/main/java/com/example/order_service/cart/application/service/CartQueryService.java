@@ -36,6 +36,10 @@ public class CartQueryService {
                 .orElse(Collections.emptyList());
     }
 
+    public List<CartItemData> findCartItemsByCartItemIds(Long userId, List<Long> cartItemIds) {
+        return null;
+    }
+
     public CartItemData getCartItem(Long userId, Long cartItemId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));

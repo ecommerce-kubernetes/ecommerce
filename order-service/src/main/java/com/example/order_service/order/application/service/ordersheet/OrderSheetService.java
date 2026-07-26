@@ -46,9 +46,9 @@ public class OrderSheetService {
         OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
 
         List<Long> orderVariantIds = command.toItemVariantIds();
-        OrderProductResult products = orderProductPort.getProducts(orderVariantIds);
+        OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
 
-        Map<Long, OrderProductResult.OrderProductDetail> productsMap = products.getProductsMap();
+        Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
         List<OrderSheetItem> orderSheetItems = createOrderSheetItems(command, productsMap);
 
         OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
@@ -68,16 +68,16 @@ public class OrderSheetService {
     }
 
     private List<OrderSheetItem> createOrderSheetItems(CreateDirectOrderSheetCommand command,
-                                                       Map<Long, OrderProductResult.OrderProductDetail> productsMap) {
+                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         return command.items().stream().map(orderVariant -> {
-            OrderProductResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
+            OrderProductsResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
             validateProductIsOrderable(product, orderVariant.quantity());
             return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
                     orderVariant.quantity(), product.options());
         }).toList();
     }
 
-    private void validateProductIsOrderable(OrderProductResult.OrderProductDetail product, int quantity) {
+    private void validateProductIsOrderable(OrderProductsResult.OrderProductDetail product, int quantity) {
         if (product == null) {
             throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
         }

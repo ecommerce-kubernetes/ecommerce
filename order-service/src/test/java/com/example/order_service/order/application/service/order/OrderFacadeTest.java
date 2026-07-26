@@ -5,7 +5,7 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
 import com.example.order_service.order.application.port.dto.result.OrderUserResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
@@ -81,7 +81,7 @@ public class OrderFacadeTest {
                     .userId(1L)
                     .build();
             OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
-            OrderProductResult productResult = Instancio.create(OrderProductResult.class);
+            OrderProductsResult productResult = Instancio.create(OrderProductsResult.class);
             OrderCouponResult.Calculate couponResult = Instancio.create(OrderCouponResult.Calculate.class);
             OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
@@ -98,7 +98,7 @@ public class OrderFacadeTest {
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductAdaptor).should().getProducts(anyList());
             then(orderCouponAdaptor).should().calculate(any());
-            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.class),
+            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductsResult.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
             then(orderUserAdaptor).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
@@ -114,7 +114,7 @@ public class OrderFacadeTest {
                     .userId(1L)
                     .build();
             OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
-            OrderProductResult productResult = Instancio.create(OrderProductResult.class);
+            OrderProductsResult productResult = Instancio.create(OrderProductsResult.class);
             OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
@@ -128,7 +128,7 @@ public class OrderFacadeTest {
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductAdaptor).should().getProducts(anyList());
             then(orderCouponAdaptor).shouldHaveNoInteractions();
-            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.class),
+            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductsResult.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
             then(orderUserAdaptor).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());

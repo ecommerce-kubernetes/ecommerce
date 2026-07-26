@@ -8,7 +8,7 @@ import com.example.order_service.common.exception.gateway.DefaultGatewayExceptio
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
-import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
 import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,10 +64,10 @@ public class OrderProductAdaptorTest {
         ProductResponse response = ProductResponse.builder().products(List.of(detail)).build();
         given(adaptor.getProducts(anyList())).willReturn(response);
         //when
-        OrderProductResult result = orderProductAdaptor.getProducts(variantIds);
+        OrderProductsResult result = orderProductAdaptor.getProducts(variantIds);
         //then
         assertThat(result.products()).hasSize(1);
-        OrderProductResult.OrderProductDetail mappedProduct = result.products().stream().findFirst().orElseThrow();
+        OrderProductsResult.OrderProductDetail mappedProduct = result.products().stream().findFirst().orElseThrow();
         assertThat(mappedProduct.status()).isEqualTo(OrderProductStatus.ON_SALE);
         assertThat(mappedProduct.productSnapshot().getProductId()).isEqualTo(1L);
         assertThat(mappedProduct.priceSnapshot().getDiscountRate()).isEqualTo(10);

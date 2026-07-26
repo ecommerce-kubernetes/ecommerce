@@ -3,7 +3,7 @@ package com.example.order_service.order.application.service.order;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
 import com.example.order_service.order.application.port.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -40,7 +40,7 @@ public class OrderValidator {
      * @param pointPolicy 포인트 할인 정책
      */
     public void validate(OrderSheet orderSheet,
-                         OrderProductResult products,
+                         OrderProductsResult products,
                          OrderCouponResult.Calculate coupon,
                          OrderUserResult.UserPoint userPoint,
                          PointUsagePolicy pointPolicy) {
@@ -49,7 +49,7 @@ public class OrderValidator {
         validateUserPoints(orderSheet, userPoint, pointPolicy);
     }
 
-    private void validateOrderProducts(OrderSheet orderSheet, OrderProductResult products) {
+    private void validateOrderProducts(OrderSheet orderSheet, OrderProductsResult products) {
 
     }
 

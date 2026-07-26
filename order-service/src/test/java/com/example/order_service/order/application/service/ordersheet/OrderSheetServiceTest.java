@@ -152,8 +152,8 @@ public class OrderSheetServiceTest {
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
-        OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
-        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+        OrderProductsResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
 
         given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
@@ -193,8 +193,8 @@ public class OrderSheetServiceTest {
         Money availablePoints = Money.wons(10000L);
         OrdererProfileResult ordererProfile = createOrdererProfileResult(null, availablePoints);
 
-        OrderProductResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
-        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+        OrderProductsResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
 
         given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
@@ -236,8 +236,8 @@ public class OrderSheetServiceTest {
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
-        OrderProductResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
-        OrderProductResult products = OrderProductResult.builder().products(List.of(product1)).build();
+        OrderProductsResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product1)).build();
         given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
@@ -266,8 +266,8 @@ public class OrderSheetServiceTest {
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
-        OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
-        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
         given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
@@ -296,8 +296,8 @@ public class OrderSheetServiceTest {
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
 
-        OrderProductResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
-        OrderProductResult products = OrderProductResult.builder().products(List.of(product)).build();
+        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
+        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
         given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
         //when
@@ -769,12 +769,12 @@ public class OrderSheetServiceTest {
                 .build();
     }
 
-    private OrderProductResult.OrderProductDetail createProductDetail(Long variantId, OrderProductStatus status, int stock) {
+    private OrderProductsResult.OrderProductDetail createProductDetail(Long variantId, OrderProductStatus status, int stock) {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, variantId, "SKU", "상품", "/product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot option1 = ProductOptionSnapshot.of("옵션1", "옵션 값");
         ProductOptionSnapshot option2 = ProductOptionSnapshot.of("옵션2", "옵션 값");
-        return OrderProductResult.OrderProductDetail.builder()
+        return OrderProductsResult.OrderProductDetail.builder()
                 .productSnapshot(productSnapshot)
                 .status(status)
                 .stock(stock)

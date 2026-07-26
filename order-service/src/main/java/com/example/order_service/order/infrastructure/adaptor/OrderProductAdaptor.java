@@ -10,7 +10,7 @@ import com.example.order_service.common.exception.gateway.ProductGatewayErrorCod
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.order.application.port.OrderProductPort;
-import com.example.order_service.order.application.port.dto.result.OrderProductResult;
+import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
 import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
@@ -26,24 +26,24 @@ public class OrderProductAdaptor implements OrderProductPort {
     private final ProductGateway productGateway;
 
     @Override
-    public OrderProductResult getProducts(List<Long> productVariantIds) {
+    public OrderProductsResult getProducts(List<Long> productVariantIds) {
         ProductResponse response = executeGetProducts(productVariantIds);
         return mapToOrderProductResult(response);
     }
 
-    private OrderProductResult mapToOrderProductResult(ProductResponse response) {
-        List<OrderProductResult.OrderProductDetail> orderProductDetails = mapToOrderProductDetail(response.products());
-        return OrderProductResult.builder()
+    private OrderProductsResult mapToOrderProductResult(ProductResponse response) {
+        List<OrderProductsResult.OrderProductDetail> orderProductDetails = mapToOrderProductDetail(response.products());
+        return OrderProductsResult.builder()
                 .products(orderProductDetails)
                 .build();
     }
 
-    private List<OrderProductResult.OrderProductDetail> mapToOrderProductDetail(List<ProductResponse.ProductDetail> products) {
+    private List<OrderProductsResult.OrderProductDetail> mapToOrderProductDetail(List<ProductResponse.ProductDetail> products) {
         return products.stream().map(product -> {
             ProductSnapshot productSnapshot = ProductSnapshot.of(product.productId(), product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
             ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(product.unitPrice().originalPrice()),
                     product.unitPrice().discountRate(), Money.wons(product.unitPrice().discountAmount()), Money.wons(product.unitPrice().discountedPrice()));
-            return OrderProductResult.OrderProductDetail.builder()
+            return OrderProductsResult.OrderProductDetail.builder()
                     .productSnapshot(productSnapshot)
                     .status(mapToProductStatus(product.status()))
                     .stock(product.stock())
