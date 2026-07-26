@@ -37,7 +37,12 @@ public class CartQueryService {
     }
 
     public List<CartItemData> findCartItemsByCartItemIds(Long userId, List<Long> cartItemIds) {
-        return null;
+        return cartRepository.findByUserId(userId)
+                .map(cart -> cartItemIds.stream()
+                        .flatMap(id -> cart.findItemByCartItemId(id).stream())
+                        .map(CartItemData::from)
+                        .toList())
+                .orElse(Collections.emptyList());
     }
 
     public CartItemData getCartItem(Long userId, Long cartItemId) {
