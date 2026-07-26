@@ -6,6 +6,7 @@ import com.example.order_service.cart.application.dto.command.UpdateCartItemQuan
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.result.*;
+import com.example.order_service.cart.application.facade.mapper.CartMapper;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
@@ -18,8 +19,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -43,6 +46,8 @@ public class CartFacadeTest {
     private CartQueryService cartQueryService;
     @Mock
     private CartItemValidator validator;
+    @Spy
+    private CartMapper cartMapper = Mappers.getMapper(CartMapper.class);
 
 
     @Test

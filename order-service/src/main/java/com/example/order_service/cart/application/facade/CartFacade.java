@@ -7,6 +7,7 @@ import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
 import com.example.order_service.cart.application.dto.result.*;
+import com.example.order_service.cart.application.facade.mapper.CartMapper;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
@@ -29,6 +30,7 @@ public class CartFacade {
     private final CartProductPort cartProductPort;
     private final CartQueryService cartQueryService;
     private final CartItemValidator cartItemValidator;
+    private final CartMapper cartMapper;
 
     public AddCartItemsResult addItems(AddCartItemsCommand command) {
         List<Long> variantIds = command.toProductVariantIds();
@@ -40,7 +42,7 @@ public class CartFacade {
                 .toList();
         cartItemValidator.validatePurchasable(targetProducts);
 
-        CreateCartItemsContext context = CreateCartItemsContext.of(command, productData);
+        CreateCartItemsContext context = cartMapper.toCreateContext(command, productDataMap);
         cartCommandService.addCartItems(context);
 
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(command.userId(), variantIds);
@@ -110,8 +112,7 @@ public class CartFacade {
         CartProductResult.CartProductDetail product = productsMap.get(cartItem.productVariantId());
         cartItemValidator.validatePurchasable(product);
 
-        UpdateCartItemContext context = UpdateCartItemContext.of(cartItem, command, products);
-
+        UpdateCartItemContext context = cartMapper.toUpdateContext(command, cartItem, product);
         cartCommandService.updateCartItemQuantity(context);
 
         return UpdateCartItemQuantityResult.from(cartItem);
