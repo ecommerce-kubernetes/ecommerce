@@ -58,6 +58,15 @@ public class OrderSheetService {
         return OrderSheetCreateResult.from(savedOrderSheet);
     }
 
+    private List<OrderSheetItem> createOrderSheetItems(OrderCartItemsResult cartItems,
+                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+        return cartItems.items().stream().map(cartItem -> createOrderSheetItem(
+                cartItem.productVariantId(),
+                cartItem.quantity(),
+                productsMap
+        )).toList();
+    }
+
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
         OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
 
@@ -65,7 +74,7 @@ public class OrderSheetService {
         OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
 
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
-        List<OrderSheetItem> orderSheetItems = createOrderSheetItems(command, productsMap);
+        List<OrderSheetItem> orderSheetItems = createDirectOrderSheetItems(command, productsMap);
 
         OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
 
@@ -83,24 +92,27 @@ public class OrderSheetService {
         return orderSheet;
     }
 
-    private List<OrderSheetItem> createOrderSheetItems(CreateDirectOrderSheetCommand command,
-                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        return command.items().stream().map(orderVariant -> {
-            OrderProductsResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
-            orderValidator.validateOrderable(product, orderVariant.quantity());
-            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
-                    orderVariant.quantity(), product.options());
-        }).toList();
+    private List<OrderSheetItem> createDirectOrderSheetItems(CreateDirectOrderSheetCommand command,
+                                                             Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+        return command.items().stream().map(orderVariant -> createOrderSheetItem(
+                orderVariant.productVariantId(),
+                orderVariant.quantity(),
+                productsMap
+        )).toList();
     }
 
-    private List<OrderSheetItem> createOrderSheetItems(OrderCartItemsResult cartItems,
-                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        return cartItems.items().stream().map(cartItem -> {
-            OrderProductsResult.OrderProductDetail product = productsMap.get(cartItem.productVariantId());
-            orderValidator.validateOrderable(product, cartItem.quantity());
-            return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
-                    cartItem.quantity(), product.options());
-        }).toList();
+    private OrderSheetItem createOrderSheetItem(Long productVariantId, int quantity,
+                                                      Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+        OrderProductsResult.OrderProductDetail product = productsMap.get(productVariantId);
+
+        orderValidator.validateOrderable(product, quantity);
+
+        return OrderSheetItem.create(
+                product.productSnapshot(),
+                product.priceSnapshot(),
+                quantity,
+                product.options()
+        );
     }
 
     public OrderSheetResult getOrderSheet(String orderSheetId, Long userId) {

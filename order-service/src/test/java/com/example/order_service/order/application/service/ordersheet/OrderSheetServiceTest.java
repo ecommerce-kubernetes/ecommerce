@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.result.*;
+import com.example.order_service.order.application.service.OrderValidator;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
@@ -59,6 +60,8 @@ public class OrderSheetServiceTest {
     private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
+    @Spy
+    private OrderValidator orderValidator;
 
     @Test
     @DisplayName("장바구니 주문서 생성")
