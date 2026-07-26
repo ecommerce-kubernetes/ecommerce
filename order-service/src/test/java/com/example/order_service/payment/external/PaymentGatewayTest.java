@@ -12,7 +12,7 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.external.mapper.PgErrorTranslator;
 import com.example.order_service.payment.application.external.mapper.PgMapper;
 import com.example.order_service.payment.exception.PaymentErrorCode;
-import com.example.order_service.payment.exception.PaymentGatewayException;
+import com.example.order_service.payment.exception.PaymentPortException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -72,7 +72,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR, code);
@@ -90,7 +90,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code);
@@ -108,7 +108,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code);
@@ -147,7 +147,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR, code);
@@ -165,7 +165,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code);
@@ -183,7 +183,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code);
@@ -222,7 +222,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_NOT_FOUND, code);
@@ -240,7 +240,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code);
@@ -258,7 +258,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
-                    .isInstanceOf(PaymentGatewayException.class)
+                    .isInstanceOf(PaymentPortException.class)
                     .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                     .extracting("errorCode", "externalErrorCode")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code);

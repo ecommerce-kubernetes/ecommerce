@@ -9,7 +9,7 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.gateway.DefaultPortException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.common.mapper.MoneyMapperImpl;
@@ -95,7 +95,7 @@ class CartProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_SERVER_ERROR, code);
@@ -114,7 +114,7 @@ class CartProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, code);
@@ -132,7 +132,7 @@ class CartProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, code);
@@ -150,7 +150,7 @@ class CartProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_CIRCUIT_OPEN, code);

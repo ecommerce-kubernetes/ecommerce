@@ -6,7 +6,7 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode;
-import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.gateway.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
@@ -44,7 +44,7 @@ public class OrderCouponAdaptor implements OrderCouponPort {
         CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
             case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
             case "RATE" -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
-            default -> throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
+            default -> throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
         };
 
         ItemCouponSnapshot itemCouponSnapshot = ItemCouponSnapshot.of(
@@ -73,7 +73,7 @@ public class OrderCouponAdaptor implements OrderCouponPort {
         CouponDiscountPolicy discountPolicy = switch (response.discountType()) {
             case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(response.discountAmount()));
             case "RATE" -> new RateCouponDiscountPolicy(response.discountRate(), Money.wons(response.maxDiscountAmount()));
-            default -> throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
+            default -> throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
         };
 
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(response.cartCouponId(),
@@ -90,13 +90,13 @@ public class OrderCouponAdaptor implements OrderCouponPort {
         try {
             return apiCall.get();
         } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CouponGatewayErrorCode.COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(CouponGatewayErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CouponGatewayErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         }
     }
 

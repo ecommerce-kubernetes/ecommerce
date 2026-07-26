@@ -2,7 +2,7 @@ package com.example.order_service.cart.infrastructure.adaptor.mapper;
 
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
-import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.gateway.DefaultPortException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
@@ -31,7 +31,7 @@ public interface CartProductPortMapper {
             case "STOP_SALE" -> CartProductStatus.STOP_SALE;
             case "DELETED" -> CartProductStatus.DELETED;
             case "PREPARING" -> CartProductStatus.PREPARING;
-            case null, default -> throw new DefaultGatewayException(
+            case null, default -> throw new DefaultPortException(
                     ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR,
                     "UNSUPPORTED_STATUS",
                     "처리할 수 없는 상품 상태입니다"

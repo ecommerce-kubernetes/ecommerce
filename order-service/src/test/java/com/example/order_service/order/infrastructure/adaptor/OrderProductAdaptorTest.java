@@ -4,17 +4,19 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.gateway.DefaultPortException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
 import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
+import com.example.order_service.order.infrastructure.adaptor.mapper.OrderProductPortMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -33,6 +35,8 @@ public class OrderProductAdaptorTest {
     private OrderProductAdaptor orderProductAdaptor;
     @Mock
     private ProductGateway adaptor;
+    @Spy
+    private OrderProductPortMapper orderProductPortMapper;
 
     @Test
     @DisplayName("상품을 조회한다")
@@ -86,7 +90,7 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_SERVER_ERROR, code);
@@ -104,7 +108,7 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, code);
@@ -122,7 +126,7 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, code);
@@ -140,7 +144,7 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(ProductGatewayErrorCode.PRODUCT_CIRCUIT_OPEN, code);

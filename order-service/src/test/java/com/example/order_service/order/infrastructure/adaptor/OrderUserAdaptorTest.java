@@ -5,7 +5,7 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.gateway.DefaultPortException;
 import com.example.order_service.common.exception.gateway.UserGatewayErrorCode;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
@@ -77,7 +77,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_CLIENT_ERROR);
     }
@@ -91,7 +91,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_SERVER_ERROR);
     }
@@ -105,7 +105,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_UNAVAILABLE_SERVER_ERROR);
     }
@@ -119,7 +119,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultGatewayException.class)
+                .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserGatewayErrorCode.USER_CIRCUIT_OPEN);
     }

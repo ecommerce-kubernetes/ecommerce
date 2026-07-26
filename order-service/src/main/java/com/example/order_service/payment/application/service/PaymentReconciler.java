@@ -8,7 +8,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
-import com.example.order_service.payment.exception.PaymentGatewayException;
+import com.example.order_service.payment.exception.PaymentPortException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,7 +65,7 @@ public class PaymentReconciler {
         }
     }
 
-    private void handleReadyPaymentError(PaymentResult.Default payment, PaymentGatewayException e) {
+    private void handleReadyPaymentError(PaymentResult.Default payment, PaymentPortException e) {
         PaymentErrorCode errorCode = e.errorCode();
         switch (errorCode) {
             case PAYMENT_PG_NOT_FOUND -> {
@@ -82,7 +82,7 @@ public class PaymentReconciler {
     }
 
     private void processPayments(List<PaymentResult.Default> payments, String taskName, Consumer<PaymentResult.Default> task,
-                                 BiConsumer<PaymentResult.Default, PaymentGatewayException> errorHandler) {
+                                 BiConsumer<PaymentResult.Default, PaymentPortException> errorHandler) {
         if (payments.isEmpty()) {
             return;
         }
@@ -95,7 +95,7 @@ public class PaymentReconciler {
                 log.info("[{}] 조기 종료", taskName);
                 Thread.currentThread().interrupt();
                 return;
-            } catch (PaymentGatewayException e) {
+            } catch (PaymentPortException e) {
                 errorHandler.accept(payment, e);
             } catch (Exception e) {
                 log.error("[{}] 내부 시스템 에러. 다음 스케줄러 대기. paymentKey = {}", taskName, payment.paymentKey(), e);
@@ -109,7 +109,7 @@ public class PaymentReconciler {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
             PGPaymentResult.Cancellation cancellation = paymentGateway.cancel(cancelCommand);
             onSuccess.accept(cancellation);
-        } catch (PaymentGatewayException e) {
+        } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN ->
@@ -162,7 +162,7 @@ public class PaymentReconciler {
         }
     }
 
-    private void reconcileRefundPendingErrorHandle(PaymentResult.Default payment, PaymentGatewayException e) {
+    private void reconcileRefundPendingErrorHandle(PaymentResult.Default payment, PaymentPortException e) {
         PaymentErrorCode errorCode = e.errorCode();
         switch (errorCode) {
             case PAYMENT_PG_NOT_FOUND -> {

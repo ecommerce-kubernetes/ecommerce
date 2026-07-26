@@ -1,11 +1,11 @@
 package com.example.order_service.payment.exception;
 
-import com.example.order_service.common.exception.gateway.GatewayException;
+import com.example.order_service.common.exception.gateway.PortException;
 
-public class PaymentGatewayException extends GatewayException {
+public class PaymentPortException extends PortException {
     private final PaymentErrorCode errorCode;
 
-    public PaymentGatewayException(PaymentErrorCode errorCode, String externalErrorCode, String message) {
+    public PaymentPortException(PaymentErrorCode errorCode, String externalErrorCode, String message) {
         super(externalErrorCode, message);
         this.errorCode = errorCode;
     }

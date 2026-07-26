@@ -12,7 +12,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.exception.PaymentErrorCode;
-import com.example.order_service.payment.exception.PaymentGatewayException;
+import com.example.order_service.payment.exception.PaymentPortException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -71,7 +71,7 @@ public class PaymentFacade {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
                     order.totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
-        } catch (PaymentGatewayException e) {
+        } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR,
@@ -119,7 +119,7 @@ public class PaymentFacade {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
             paymentGateway.cancel(cancelCommand);
             return true;
-        } catch (PaymentGatewayException e) {
+        } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR:
@@ -170,7 +170,7 @@ public class PaymentFacade {
             PGPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
             PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel.status(), cancel.lastCancel());
             paymentCommandService.cancel(context);
-        } catch (PaymentGatewayException e) {
+        } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR ->
