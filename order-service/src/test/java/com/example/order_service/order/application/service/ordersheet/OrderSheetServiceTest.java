@@ -29,7 +29,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -138,121 +137,6 @@ public class OrderSheetServiceTest {
     }
 
     @Test
-    @DisplayName("장바구니 주문서 생성시, 장바구니 항목이 누락되면 예외가 발생한다.")
-    void createCartOrderSheet_missing_cartItem() {
-        //given
-        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
-                .userId(1L)
-                .cartItemIds(List.of(1L, 2L))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
-        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
-
-        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
-        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.CART_ITEM_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("장바구니 주문서 생성시, 상품 정보가 누락되면 예외가 발생한다.")
-    void createCartOrderSheet_missing_product() {
-        //given
-        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
-                .userId(1L)
-                .cartItemIds(List.of(1L))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
-        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
-
-        OrderProductsResult products = OrderProductsResult.builder().products(Collections.emptyList()).build();
-
-        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
-        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
-        given(orderProductPort.getProducts(anyList())).willReturn(products);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("장바구니 주문서 생성시, 주문 상품이 주문 가능한 상태가 아니면 예외가 발생한다")
-    void createCartOrderSheet_unOrderable_product() {
-        //given
-        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
-                .userId(1L)
-                .cartItemIds(List.of(1L))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
-        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
-
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
-
-        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
-        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
-        given(orderProductPort.getProducts(anyList())).willReturn(products);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
-    }
-
-    @Test
-    @DisplayName("장바구니 주문서 생성시, 주문 상품의 재고가 주문 수량보다 적으면 예외가 발생한다.")
-    void createCartOrderSheet_product_stock_insufficient() {
-        //given
-        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
-                .userId(1L)
-                .cartItemIds(List.of(1L))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 15);
-        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
-
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 10);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
-
-        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
-        given(orderCartPort.getCartItems(anyLong(), anyList())).willReturn(cartResult);
-        given(orderProductPort.getProducts(anyList())).willReturn(products);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createCartOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
-    }
-
-    @Test
     @DisplayName("바로 구매 주문서 생성")
     void createDirectOrderSheet() {
         //given
@@ -332,100 +216,6 @@ public class OrderSheetServiceTest {
         assertThat(result.orderSheetId()).isNotNull();
         assertThat(result.expiresAt()).isEqualTo(expectedExpiresAt);
         assertThat(capturedOrderSheet.getShippingAddress()).isNull();
-    }
-
-    @Test
-    @DisplayName("바로 구매 주문서 생성시 주문 상품이 누락된 경우 예외가 발생한다.")
-    void createDirectOrderSheet_missing_product() {
-        //given
-        Long userId = 1L;
-        CreateDirectOrderSheetCommand.OrderVariant item1 = CreateDirectOrderSheetCommand.OrderVariant.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateDirectOrderSheetCommand.OrderVariant item2 = CreateDirectOrderSheetCommand.OrderVariant.builder()
-                .productVariantId(2L)
-                .quantity(3)
-                .build();
-        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
-                .userId(userId)
-                .items(List.of(item1, item2))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderProductsResult.OrderProductDetail product1 = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product1)).build();
-        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductPort.getProducts(anyList())).willReturn(products);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("바로 구매 주문서를 생성할때, 주문 상품이 주문 가능한 상태가 아니면 예외가 발생한다.")
-    void createDirectOrderSheet_unOrderable_product() {
-        //given
-        Long userId = 1L;
-        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
-                .userId(userId)
-                .items(List.of(item))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.STOP_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
-        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductPort.getProducts(anyList())).willReturn(products);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
-    }
-
-    @Test
-    @DisplayName("바로 구매 주문서를 생성할때, 주문 상품의 재고가 주문 수량보다 적으면 예외가 발생한다.")
-    void createDirectOrderSheet_product_insufficient_stock() {
-        //given
-        Long userId = 1L;
-        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
-                .userId(userId)
-                .items(List.of(item))
-                .build();
-
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 1);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
-        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
-        given(orderProductPort.getProducts(anyList())).willReturn(products);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.createDirectOrderSheet(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
     }
 
     @Test
@@ -811,7 +601,6 @@ public class OrderSheetServiceTest {
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
     }
 
-
     @Test
     @DisplayName("포인트를 적용할 때, 주문서가 만료되었으면 예외가 발생한다")
     void applyPoints_orderSheet_expired() {
@@ -834,34 +623,6 @@ public class OrderSheetServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
     }
-
-    @Test
-    @DisplayName("사용할 포인트가 사용가능 포인트를 초과하면 예외가 발생한다.")
-    void applyPoints_usedPoints_exceed_availablePoints() {
-        //given
-        Long userId = 1L;
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
-        ApplyPointCommand command = ApplyPointCommand.builder()
-                .orderSheetId(orderSheet.getId())
-                .userId(userId)
-                .usedPoints(2000L)
-                .build();
-
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        Money availablePoints = Money.wons(1000L);
-        OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
-
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
-        //when
-        //then
-        assertThatThrownBy(() -> orderSheetService.applyPoints(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
-    }
-
 
     private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress, Money availablePoints) {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");

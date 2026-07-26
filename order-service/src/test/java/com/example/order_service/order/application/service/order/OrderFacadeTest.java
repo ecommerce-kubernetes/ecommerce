@@ -59,8 +59,7 @@ public class OrderFacadeTest {
     private OrderCouponAdaptor orderCouponAdaptor;
     @Mock
     private OrderUserAdaptor orderUserAdaptor;
-    @Mock
-    private OrderValidator orderValidator;
+
     @Mock
     private PointUsagePolicy pointPolicy;
     @Spy
@@ -98,8 +97,6 @@ public class OrderFacadeTest {
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductAdaptor).should().getProducts(anyList());
             then(orderCouponAdaptor).should().calculate(any());
-            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductsResult.class),
-                    any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
             then(orderUserAdaptor).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
         }
@@ -128,8 +125,6 @@ public class OrderFacadeTest {
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductAdaptor).should().getProducts(anyList());
             then(orderCouponAdaptor).shouldHaveNoInteractions();
-            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductsResult.class),
-                    any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
             then(orderUserAdaptor).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
         }

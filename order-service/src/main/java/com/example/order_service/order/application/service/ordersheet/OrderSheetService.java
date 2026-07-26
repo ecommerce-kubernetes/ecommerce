@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.result.*;
+import com.example.order_service.order.application.service.OrderValidator;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
@@ -33,6 +34,7 @@ public class OrderSheetService {
     private final OrderCouponPort orderCouponPort;
     private final OrderUserPort orderUserPort;
     private final OrderCartPort orderCartPort;
+    private final OrderValidator orderValidator;
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetRepository repository;
     private final Clock clock;
@@ -42,7 +44,7 @@ public class OrderSheetService {
 
         OrderCartItemsResult cartItems = orderCartPort.getCartItems(command.userId(), command.cartItemIds());
 
-        validateMissingCartItems(command, cartItems);
+        orderValidator.validateMissingCartItems(command.cartItemIds(), cartItems);
 
         List<Long> orderVariantIds = cartItems.toProductVariantIds();
         OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
@@ -54,12 +56,6 @@ public class OrderSheetService {
 
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetCreateResult.from(savedOrderSheet);
-    }
-
-    private void validateMissingCartItems(CreateCartOrderSheetCommand command, OrderCartItemsResult cartItems) {
-        if (command.cartItemIds().size() != cartItems.items().size()) {
-            throw new BusinessException(OrderErrorCode.CART_ITEM_NOT_FOUND);
-        }
     }
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
@@ -91,7 +87,7 @@ public class OrderSheetService {
                                                        Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         return command.items().stream().map(orderVariant -> {
             OrderProductsResult.OrderProductDetail product = productsMap.get(orderVariant.productVariantId());
-            validateProductIsOrderable(product, orderVariant.quantity());
+            orderValidator.validateOrderable(product, orderVariant.quantity());
             return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
                     orderVariant.quantity(), product.options());
         }).toList();
@@ -101,24 +97,10 @@ public class OrderSheetService {
                                                        Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         return cartItems.items().stream().map(cartItem -> {
             OrderProductsResult.OrderProductDetail product = productsMap.get(cartItem.productVariantId());
-            validateProductIsOrderable(product, cartItem.quantity());
+            orderValidator.validateOrderable(product, cartItem.quantity());
             return OrderSheetItem.create(product.productSnapshot(), product.priceSnapshot(),
                     cartItem.quantity(), product.options());
         }).toList();
-    }
-
-    private void validateProductIsOrderable(OrderProductsResult.OrderProductDetail product, int quantity) {
-        if (product == null) {
-            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
-        }
-
-        if (product.status() != OrderProductStatus.ON_SALE) {
-            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
-        }
-
-        if (quantity > product.stock()) {
-            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
-        }
     }
 
     public OrderSheetResult getOrderSheet(String orderSheetId, Long userId) {
@@ -172,9 +154,7 @@ public class OrderSheetService {
         OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
         Money usedPoints = Money.wons(command.usedPoints());
 
-        if (ordererProfile.availablePoints().isLessThan(usedPoints)) {
-            throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
-        }
+        orderValidator.validateAvailablePoints(ordererProfile.availablePoints(), usedPoints);
 
         orderSheet.applyPoints(usedPoints, pointUsagePolicy);
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));

@@ -37,7 +37,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderFacade {
 
-    private final OrderValidator validator;
     private final OrderMapper orderMapper;
     private final PointUsagePolicy pointPolicy;
     private final OrderUserAdaptor orderUserAdaptor;
