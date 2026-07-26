@@ -2,6 +2,8 @@ package com.example.order_service.cart.infrastructure.adaptor;
 
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
+import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapper;
+import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapperImpl;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -9,6 +11,8 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
+import com.example.order_service.common.mapper.MoneyMapper;
+import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -32,7 +37,11 @@ class CartProductAdaptorTest {
     @InjectMocks
     private CartProductAdaptor cartProductAdaptor;
     @Mock
-    private ProductGateway adaptor;
+    private ProductGateway productGateway;
+    @Spy
+    private MoneyMapper moneyMapper = new MoneyMapperImpl();
+    @Spy
+    private CartProductPortMapper cartProductPortMapper = new CartProductPortMapperImpl(moneyMapper);
 
     @Test
     @DisplayName("상품을 조회한다")
@@ -61,7 +70,7 @@ class CartProductAdaptorTest {
                 .options(List.of(option))
                 .build();
         ProductResponse response = ProductResponse.builder().products(List.of(detail)).build();
-        given(adaptor.getProducts(anyList())).willReturn(response);
+        given(productGateway.getProducts(anyList())).willReturn(response);
         //when
         CartProductResult result = cartProductAdaptor.getProducts(variantIds);
         //then
@@ -82,7 +91,7 @@ class CartProductAdaptorTest {
         String message = "알 수 없는 에러가 발생했습니다";
         List<Long> variantIds = List.of(1L, 2L);
         willThrow(new ExternalServerException(code, message))
-                .given(adaptor).getProducts(anyList());
+                .given(productGateway).getProducts(anyList());
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
@@ -101,7 +110,7 @@ class CartProductAdaptorTest {
         String message = "잘못된 상품 조회 요청입니다";
         List<Long> variantIds = List.of(1L, 2L);
         willThrow(new ExternalClientException(code, message))
-                .given(adaptor).getProducts(anyList());
+                .given(productGateway).getProducts(anyList());
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
@@ -119,7 +128,7 @@ class CartProductAdaptorTest {
         String message = "상품 서비스 통신 장애";
         List<Long> variantIds = List.of(1L, 2L);
         willThrow(new ExternalSystemUnavailableException(code, message))
-                .given(adaptor).getProducts(anyList());
+                .given(productGateway).getProducts(anyList());
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
@@ -137,7 +146,7 @@ class CartProductAdaptorTest {
         String message = "상품 서비스 서킷 오픈";
         List<Long> variantIds = List.of(1L, 2L);
         willThrow(new ExternalCircuitBreakerException(code, message))
-                .given(adaptor).getProducts(anyList());
+                .given(productGateway).getProducts(anyList());
         //when
         //then
         assertThatThrownBy(() -> cartProductAdaptor.getProducts(variantIds))
