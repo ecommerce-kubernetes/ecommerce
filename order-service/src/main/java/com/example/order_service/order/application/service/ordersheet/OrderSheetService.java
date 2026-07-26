@@ -56,12 +56,8 @@ public class OrderSheetService {
     }
 
     private void validateMissingCartItems(CreateCartOrderSheetCommand command, OrderCartItemsResult cartItems) {
-        List<Long> requestCartItemIds = command.cartItemIds();
-        for (Long requestCartItemId : requestCartItemIds) {
-            List<Long> findCartItemIds = cartItems.items().stream().map(OrderCartItemsResult.Item::cartItemId).toList();
-            if (!findCartItemIds.contains(requestCartItemId)){
-                throw new BusinessException(OrderErrorCode.CART_ITEM_NOT_FOUND);
-            }
+        if (command.cartItemIds().size() != cartItems.items().size()) {
+            throw new BusinessException(OrderErrorCode.CART_ITEM_NOT_FOUND);
         }
     }
 
