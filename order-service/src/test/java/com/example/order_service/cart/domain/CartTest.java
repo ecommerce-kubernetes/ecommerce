@@ -44,14 +44,12 @@ public class CartTest {
         Long productVariantId = 1L;
         int quantity = 3;
         //when
-        cart.addItem(productVariantId, quantity, 100, idGenerator);
+        CartItem cartItem = cart.addItem(productVariantId, quantity, 100, idGenerator);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
-        assertThat(cart.getCartItems())
+        assertThat(cartItem)
                 .extracting("productVariantId", "quantity")
-                .containsExactlyInAnyOrder(
-                        tuple(productVariantId, quantity)
-                );
+                .containsExactly(productVariantId, quantity);
     }
 
     @Test
@@ -62,13 +60,12 @@ public class CartTest {
         Long productVariantId = 1L;
         cart.addItem(productVariantId, 3, 100, idGenerator);
         //when
-        cart.addItem(productVariantId, 2, 100, idGenerator);
+        CartItem cartItem = cart.addItem(productVariantId, 2, 100, idGenerator);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
-        CartItem findItem = cart.findItemByProductVariantId(productVariantId).orElseThrow();
-        assertThat(findItem)
+        assertThat(cartItem)
                 .extracting("productVariantId", "quantity")
-                .contains(1L, 5);
+                .containsExactly(productVariantId, 5);
     }
 
     @Test

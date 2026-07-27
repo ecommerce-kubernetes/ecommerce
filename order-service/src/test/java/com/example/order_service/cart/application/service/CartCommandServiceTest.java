@@ -1,5 +1,6 @@
 package com.example.order_service.cart.application.service;
 
+import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
@@ -45,16 +46,16 @@ class CartCommandServiceTest {
                 .items(List.of(item))
                 .build();
         //when
-        cartCommandService.addCartItems(command);
+        List<CartItemData> cartItemData = cartCommandService.addCartItems(command);
         //then
-        Cart cart = cartRepository.findByUserId(command.userId()).orElseThrow();
-        assertThat(cart.getCartItems()).hasSize(1);
-        assertThat(cart.getCartItems()).allSatisfy(cartItem ->
-                assertThat(cartItem.getId()).isNotNull());
-        assertThat(cart.getCartItems())
-                .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
+        assertThat(cartItemData).hasSize(1);
+
+        assertThat(cartItemData).allSatisfy(cartItem -> assertThat(cartItem.cartItemId()).isNotNull());
+
+        assertThat(cartItemData)
+                .extracting(CartItemData::productVariantId, CartItemData::quantity)
                 .containsExactlyInAnyOrder(
-                        tuple(item.productVariantId(), item.quantity())
+                        tuple(1L, 3)
                 );
     }
 
@@ -74,12 +75,13 @@ class CartCommandServiceTest {
                 .build();
         cartRepository.save(Cart.create(userId, idGenerator));
         //when
-        cartCommandService.addCartItems(command);
+        List<CartItemData> cartItemData = cartCommandService.addCartItems(command);
         //then
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow();
-        assertThat(cart.getCartItems()).hasSize(1);
-        assertThat(cart.getCartItems())
-                .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
+        assertThat(cartItemData).hasSize(1);
+        assertThat(cartItemData).allSatisfy(cartItem -> assertThat(cartItem.cartItemId()).isNotNull());
+
+        assertThat(cartItemData)
+                .extracting(CartItemData::productVariantId, CartItemData::quantity)
                 .containsExactlyInAnyOrder(
                         tuple(1L, 3)
                 );
@@ -128,40 +130,35 @@ class CartCommandServiceTest {
                 .isEqualTo(CartErrorCode.CART_NOT_FOUND);
     }
 
-    @Nested
-    @DisplayName("장바구니 항목 삭제")
-    class DeleteCartItems {
+    @Test
+    @DisplayName("장바구니에 담긴 항목을 제거한다")
+    void deleteCartItems(){
+        //given
+        Long userId = 1L;
 
-        @Test
-        @DisplayName("장바구니에 담긴 항목을 제거한다")
-        void deleteCartItems(){
-            //given
-            Long userId = 1L;
+        Cart cart = Cart.create(userId, idGenerator);
+        cart.addItem(1L, 3, 100, idGenerator);
+        cart.addItem(2L, 3, 100, idGenerator);
+        cartRepository.save(cart);
 
-            Cart cart = Cart.create(userId, idGenerator);
-            cart.addItem(1L, 3, 100, idGenerator);
-            cart.addItem(2L, 3, 100, idGenerator);
-            cartRepository.save(cart);
+        CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
+        CartItem item2 = cart.findItemByProductVariantId(2L).orElseThrow();
+        //when
+        cartCommandService.deleteCartItems(userId, List.of(item1.getId(), item2.getId()));
+        //then
+        Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
+        assertThat(findCart.getCartItems()).isEmpty();
+    }
 
-            CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
-            CartItem item2 = cart.findItemByProductVariantId(2L).orElseThrow();
-            //when
-            cartCommandService.deleteCartItems(userId, List.of(item1.getId(), item2.getId()));
-            //then
-            Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
-            assertThat(findCart.getCartItems()).isEmpty();
-        }
-
-        @Test
-        @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
-        void deleteCartItems_notFound_cart(){
-            //given
-            //when
-            //then
-            assertThatThrownBy(() -> cartCommandService.deleteCartItems(1L, List.of(1L, 2L)))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_NOT_FOUND);
-        }
+    @Test
+    @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
+    void deleteCartItems_notFound_cart(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> cartCommandService.deleteCartItems(1L, List.of(1L, 2L)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.CART_NOT_FOUND);
     }
 }
