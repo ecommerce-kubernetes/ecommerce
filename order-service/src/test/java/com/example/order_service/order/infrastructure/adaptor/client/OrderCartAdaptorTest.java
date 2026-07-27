@@ -2,8 +2,8 @@ package com.example.order_service.order.infrastructure.adaptor.client;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.service.CartQueryService;
-import com.example.order_service.common.exception.gateway.CartGatewayErrorCode;
-import com.example.order_service.common.exception.gateway.DefaultPortException;
+import com.example.order_service.common.exception.port.CartPortErrorCode;
+import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.order.application.port.dto.result.OrderCartItemsResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,6 +63,6 @@ class OrderCartAdaptorTest {
         assertThatThrownBy(() -> orderCartAdaptor.getCartItems(1L, List.of(1L, 2L)))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartGatewayErrorCode.CART_SERVER_ERROR);
+                .isEqualTo(CartPortErrorCode.CART_SERVER_ERROR);
     }
 }

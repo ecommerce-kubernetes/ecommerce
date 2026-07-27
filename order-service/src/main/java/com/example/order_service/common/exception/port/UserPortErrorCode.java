@@ -1,4 +1,4 @@
-package com.example.order_service.common.exception.gateway;
+package com.example.order_service.common.exception.port;
 
 import com.example.order_service.common.exception.ErrorCode;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum UserGatewayErrorCode implements ErrorCode {
+public enum UserPortErrorCode implements ErrorCode {
 
     USER_CLIENT_ERROR(HttpStatus.CONFLICT, "USER_CLIENT_ERROR", "유저 조회중 오류가 발생했습니다."),
     USER_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "USER_SERVER_ERROR", "유저 시스템에 일시적인 오류가 발생했습니다."),

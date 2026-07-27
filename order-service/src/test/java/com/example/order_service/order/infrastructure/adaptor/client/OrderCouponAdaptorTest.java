@@ -4,8 +4,8 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode;
-import com.example.order_service.common.exception.gateway.DefaultPortException;
+import com.example.order_service.common.exception.port.CouponPortErrorCode;
+import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
@@ -72,7 +72,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_SERVER_ERROR, code);
+                .containsExactly(CouponPortErrorCode.COUPON_SERVER_ERROR, code);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, code);
+                .containsExactly(CouponPortErrorCode.COUPON_CLIENT_ERROR, code);
     }
 
     @Test
@@ -104,7 +104,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_CIRCUIT_OPEN, code);
+                .containsExactly(CouponPortErrorCode.COUPON_CIRCUIT_OPEN, code);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
+                .containsExactly(CouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
     }
 
     @Test
@@ -161,7 +161,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_SERVER_ERROR, code);
+                .containsExactly(CouponPortErrorCode.COUPON_SERVER_ERROR, code);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, code);
+                .containsExactly(CouponPortErrorCode.COUPON_CLIENT_ERROR, code);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_CIRCUIT_OPEN, code);
+                .containsExactly(CouponPortErrorCode.COUPON_CIRCUIT_OPEN, code);
     }
 
     @Test
@@ -209,6 +209,6 @@ public class OrderCouponAdaptorTest {
                 .isInstanceOf(DefaultPortException.class)
                 .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponGatewayErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
+                .containsExactly(CouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
     }
 }

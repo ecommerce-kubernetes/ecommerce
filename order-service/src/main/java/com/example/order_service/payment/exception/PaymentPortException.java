@@ -1,6 +1,6 @@
 package com.example.order_service.payment.exception;
 
-import com.example.order_service.common.exception.gateway.PortException;
+import com.example.order_service.common.exception.port.PortException;
 
 public class PaymentPortException extends PortException {
     private final PaymentErrorCode errorCode;

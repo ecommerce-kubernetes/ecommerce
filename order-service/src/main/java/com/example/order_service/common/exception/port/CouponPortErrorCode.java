@@ -1,4 +1,4 @@
-package com.example.order_service.common.exception.gateway;
+package com.example.order_service.common.exception.port;
 
 import com.example.order_service.common.exception.ErrorCode;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum CouponGatewayErrorCode implements ErrorCode {
+public enum CouponPortErrorCode implements ErrorCode {
 
     COUPON_CLIENT_ERROR(HttpStatus.CONFLICT, "COUPON_CLIENT_ERROR", "쿠폰을 확인할 수 없습니다."),
     COUPON_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COUPON_SERVER_ERROR", "쿠폰 서비스에 일시적인 오류가 발생했습니다."),

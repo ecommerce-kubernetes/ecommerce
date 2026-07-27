@@ -1,4 +1,4 @@
-package com.example.order_service.common.exception.gateway;
+package com.example.order_service.common.exception.port;
 
 import com.example.order_service.common.exception.ErrorCode;
 import lombok.Getter;

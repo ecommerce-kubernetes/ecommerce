@@ -1,8 +1,8 @@
 package com.example.order_service.order.infrastructure.adaptor.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.gateway.CouponGatewayErrorCode;
-import com.example.order_service.common.exception.gateway.DefaultPortException;
+import com.example.order_service.common.exception.port.CouponPortErrorCode;
+import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.order.application.port.dto.result.CartCouponResult;
@@ -59,7 +59,7 @@ public class OrderCouponPortMapper {
         return switch (type) {
             case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(amount));
             case "RATE" -> new RateCouponDiscountPolicy(rate, Money.wons(maxAmount));
-            default -> throw new DefaultPortException(CouponGatewayErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
+            default -> throw new DefaultPortException(CouponPortErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
         };
     }
 }
