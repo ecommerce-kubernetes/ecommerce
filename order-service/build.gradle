@@ -88,6 +88,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.mapstruct:mapstruct:1.6.3'
+    implementation 'io.hypersistence:hypersistence-tsid:2.1.4'
 
     //QueryDsl
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'

@@ -7,6 +7,7 @@ import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +27,8 @@ class CartCommandServiceTest {
     private CartCommandService cartCommandService;
     @Autowired
     private CartRepository cartRepository;
+    @Autowired
+    private IdGenerator idGenerator;
 
     @Test
     @DisplayName("장바구니가 존재하지 않는 경우 장바구니를 생성한 뒤 상품을 추가한다")
@@ -69,7 +72,7 @@ class CartCommandServiceTest {
                 .userId(userId)
                 .items(List.of(item))
                 .build();
-        cartRepository.save(Cart.create(userId));
+        cartRepository.save(Cart.create(userId, idGenerator));
         //when
         cartCommandService.addCartItems(command);
         //then
@@ -87,7 +90,7 @@ class CartCommandServiceTest {
     void updateCartItemQuantity(){
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 3, 100);
         cartRepository.save(cart);
 
@@ -135,7 +138,7 @@ class CartCommandServiceTest {
             //given
             Long userId = 1L;
 
-            Cart cart = Cart.create(userId);
+            Cart cart = Cart.create(userId, idGenerator);
             cart.addItem(1L, 3, 100);
             cart.addItem(2L, 3, 100);
             cartRepository.save(cart);

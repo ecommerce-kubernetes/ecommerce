@@ -3,6 +3,7 @@ package com.example.order_service.cart.domain;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +20,6 @@ import java.util.Optional;
 public class Cart extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long userId;
@@ -27,13 +27,16 @@ public class Cart extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
-    private Cart(Long userId) {
+    private Cart(Long id, Long userId) {
+        Assert.notNull(id, "장바구니 생성시 장바구니 아이디는 필수 입니다.");
         Assert.notNull(userId, "장바구니 생성시 유저 아이디는 필수입니다.");
+        this.id = id;
         this.userId = userId;
     }
 
-    public static Cart create(Long userId) {
-        return new Cart(userId);
+    public static Cart create(Long userId, IdGenerator idGenerator) {
+        Long id = idGenerator.generate();
+        return new Cart(id, userId);
     }
 
     public void addItem(Long productVariantId, int quantity, int maxLimit) {

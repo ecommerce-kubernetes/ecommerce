@@ -6,6 +6,8 @@ import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,13 +26,15 @@ class CartQueryServiceTest {
     private CartQueryService cartQueryService;
     @Autowired
     private CartRepository cartRepository;
+    @Autowired
+    private IdGenerator idGenerator;
 
     @Test
     @DisplayName("장바구니의 전체 항목 정보를 반환한다.")
     void findCartItems() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 2, 100);
         cart.addItem(2L, 3, 100);
         cartRepository.save(cart);
@@ -66,7 +70,7 @@ class CartQueryServiceTest {
     void findCartItemsByVariantIds() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 3, 100);
         cart.addItem(2L, 2, 100);
         cartRepository.save(cart);
@@ -86,7 +90,7 @@ class CartQueryServiceTest {
     void findCartItemsByVariantIds_notFound_cartItem() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 3, 100);
         cartRepository.save(cart);
         //when
@@ -116,7 +120,7 @@ class CartQueryServiceTest {
     void findCartItemsByCartItemIds() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 3, 100);
         cart.addItem(2L, 2, 100);
         cartRepository.save(cart);
@@ -140,7 +144,7 @@ class CartQueryServiceTest {
     void findCartItemsByCartItemIds_notFound_cartItem() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 3, 100);
         cartRepository.save(cart);
 
@@ -170,7 +174,7 @@ class CartQueryServiceTest {
     void getCartItem() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cart.addItem(1L, 3, 100);
         cartRepository.save(cart);
         CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
@@ -201,7 +205,7 @@ class CartQueryServiceTest {
     void getCartItem_notFound_cartItem() {
         //given
         Long userId = 1L;
-        Cart cart = Cart.create(userId);
+        Cart cart = Cart.create(userId, idGenerator);
         cartRepository.save(cart);
         //when
         //then
