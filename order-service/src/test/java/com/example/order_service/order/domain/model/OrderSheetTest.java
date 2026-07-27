@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -366,6 +367,42 @@ public class OrderSheetTest {
         Money paymentAmount = orderSheet.calculateTotalPaymentAmount();
         //then
         assertThat(paymentAmount).isEqualTo(Money.wons(24000L));
+    }
+
+    @Test
+    @DisplayName("잔여 만료시간을 계산한다.")
+    void calculateRemainingTtl() {
+        //given
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = baseTime.plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        LocalDateTime currentTime = baseTime.plusMinutes(20);
+        //when
+        Duration duration = orderSheet.calculateRemainingTtl(currentTime);
+        //then
+        assertThat(duration.toMinutes()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("주문서가 만료된 경우 잔여 만료시간은 0이다")
+    void calculateRemainingTtl_duration_is_negative() {
+        //given
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = baseTime.plusMinutes(30);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
+
+        LocalDateTime currentTime = baseTime.plusMinutes(40);
+        //when
+        Duration duration = orderSheet.calculateRemainingTtl(currentTime);
+        //then
+        assertThat(duration.toMinutes()).isEqualTo(0);
     }
 
     private OrderSheetItem createOrderSheetItem() {

@@ -131,7 +131,8 @@ public class OrderSheetService {
                 command.zipCode(), command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(shippingAddress);
 
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
+        OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);
 
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
     }
@@ -143,7 +144,8 @@ public class OrderSheetService {
 
         orderSheet.applyItemCoupon(command.orderSheetItemId(), itemCouponResult.itemCoupon(), pointUsagePolicy);
 
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
+        OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);
 
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
     }
@@ -155,7 +157,8 @@ public class OrderSheetService {
 
         orderSheet.applyCartCoupon(cartCouponResult.cartCoupon(), pointUsagePolicy);
 
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
+        OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);
 
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
     }
@@ -169,7 +172,9 @@ public class OrderSheetService {
         orderValidator.validateAvailablePoints(ordererProfile.availablePoints(), usedPoints);
 
         orderSheet.applyPoints(usedPoints, pointUsagePolicy);
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+
+        Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
+        OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);
 
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
     }

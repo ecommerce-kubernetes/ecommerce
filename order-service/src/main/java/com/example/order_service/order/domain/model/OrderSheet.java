@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -174,6 +175,10 @@ public class OrderSheet {
         return pointApplicableAmount.subtract(usedPoints);
     }
 
+    public Duration calculateRemainingTtl(LocalDateTime currentTime) {
+        Duration remaining = Duration.between(currentTime, this.expiresAt);
+        return remaining.isNegative() ? Duration.ZERO : remaining;
+    }
     /**
      * 주문 접근 확인
      * <p>
