@@ -9,6 +9,7 @@ import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.annotation.MockKafka;
+import com.example.order_service.support.annotation.WithRedis;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @MockKafka
+@WithRedis
 class OrderSheetRedisRepositoryTest {
 
     private static final String PREFIX_ORDER_SHEET = "order:sheet:";
