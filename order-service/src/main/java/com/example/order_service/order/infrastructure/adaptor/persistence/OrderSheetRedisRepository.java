@@ -25,8 +25,31 @@ public class OrderSheetRedisRepository implements OrderSheetRepository {
     public OrderSheet save(OrderSheet orderSheet, Duration ttl) {
         OrderSheetRedisEntity entity = mapper.toEntity(orderSheet);
         String stringEntity = parseEntityToString(entity);
-        redisTemplate.opsForValue().set(PREFIX_ORDER_SHEET + entity.getId(), stringEntity, ttl);
+
+        redisTemplate.opsForValue().set(generateKey(entity.getId()), stringEntity, ttl);
         return orderSheet;
+    }
+
+    @Override
+    public Optional<OrderSheet> findById(String orderSheetId) {
+        String stringEntity = redisTemplate.opsForValue().get(generateKey(orderSheetId));
+
+        if (stringEntity == null) {
+            return Optional.empty();
+        }
+
+        OrderSheetRedisEntity entity = parseStringToEntity(stringEntity);
+        return Optional.of(mapper.toDomain(entity));
+    }
+
+    @Override
+    public Optional<OrderSheet> findByIdAndOrdererId(String orderSheetId, Long ordererId) {
+        return findById(orderSheetId)
+                .filter(domain -> domain.getOrderer().getUserId().equals(ordererId));
+    }
+
+    private String generateKey(String id) {
+        return PREFIX_ORDER_SHEET + id;
     }
 
     private String parseEntityToString(OrderSheetRedisEntity entity) {
@@ -44,30 +67,4 @@ public class OrderSheetRedisRepository implements OrderSheetRepository {
             throw new IllegalStateException("String을 주문서 엔티티로 파싱중 오류 발생");
         }
     }
-
-    @Override
-    public Optional<OrderSheet> findById(String orderSheetId) {
-        String stringEntity = redisTemplate.opsForValue().get(PREFIX_ORDER_SHEET + orderSheetId);
-        if (stringEntity == null) {
-            return Optional.empty();
-        }
-        OrderSheetRedisEntity entity = parseStringToEntity(stringEntity);
-        OrderSheet domain = mapper.toDomain(entity);
-        return Optional.of(domain);
-    }
-
-    @Override
-    public Optional<OrderSheet> findByIdAndOrdererId(String orderSheetId, Long ordererId) {
-        String stringEntity = redisTemplate.opsForValue().get(PREFIX_ORDER_SHEET + orderSheetId);
-        if (stringEntity == null) {
-            return Optional.empty();
-        }
-        OrderSheetRedisEntity entity = parseStringToEntity(stringEntity);
-        OrderSheet domain = mapper.toDomain(entity);
-        if (!domain.getOrderer().getUserId().equals(ordererId)) {
-            return Optional.empty();
-        }
-        return Optional.of(domain);
-    }
-
 }
