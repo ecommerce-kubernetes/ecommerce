@@ -51,7 +51,7 @@ public class CartFacadeTest {
 
 
     @Test
-    @DisplayName("장바구니에 상품을 추가한 뒤 추가된 장바구니 상품 정보를 조회하여 반환한다")
+    @DisplayName("장바구니에 상품을 추가한다.")
     void addItems() {
         //given
         AddCartItemsCommand addCommand = createAddCommand(1L, 3);
@@ -60,8 +60,7 @@ public class CartFacadeTest {
 
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
         doNothing().when(validator).validatePurchasable(anyList());
-        doNothing().when(cartCommandService).addCartItems(any(CreateCartItemsContext.class));
-        given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
+        given(cartCommandService.addCartItems(any(CreateCartItemsContext.class))).willReturn(List.of(cartItemData));
         //when
         AddCartItemsResult result = cartFacade.addItems(addCommand);
         //then
