@@ -224,11 +224,13 @@ public class OrderSheetRedisMapper {
         if (entity == null) {
             return null;
         }
-        CouponDiscountPolicy policy = switch (entity.getPolicyType()) {
-            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(entity.getFixedDiscountAmount()));
-            case "RATE" -> new RateCouponDiscountPolicy(entity.getDiscountRate(), Money.wons(entity.getMaxDiscountAmount()));
-            default -> throw new IllegalArgumentException("알 수 없는 쿠폰 정책 타입입니다.");
-        };
+
+        CouponDiscountPolicy policy = createDiscountPolicy(
+                entity.getPolicyType(),
+                entity.getFixedDiscountAmount(),
+                entity.getDiscountRate(),
+                entity.getMaxDiscountAmount()
+        );
 
         return CartCouponSnapshot.of(
                 entity.getCartCouponId(),
@@ -242,11 +244,12 @@ public class OrderSheetRedisMapper {
             return null;
         }
 
-        CouponDiscountPolicy policy = switch (entity.getPolicyType()) {
-            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(entity.getFixedDiscountAmount()));
-            case "RATE" -> new RateCouponDiscountPolicy(entity.getDiscountRate(), Money.wons(entity.getMaxDiscountAmount()));
-            default -> throw new IllegalArgumentException("알 수 없는 쿠폰 정책 타입입니다.");
-        };
+        CouponDiscountPolicy policy = createDiscountPolicy(
+                entity.getPolicyType(),
+                entity.getFixedDiscountAmount(),
+                entity.getDiscountRate(),
+                entity.getMaxDiscountAmount()
+        );
 
         return ItemCouponSnapshot.of(
                 entity.getItemCouponId(),
@@ -254,5 +257,13 @@ public class OrderSheetRedisMapper {
                 policy,
                 entity.getApplyQuantityLimit()
         );
+    }
+
+    private CouponDiscountPolicy createDiscountPolicy(String policyType, Long fixedAmount, Integer rate, Long maxAmount) {
+        return switch (policyType) {
+            case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(fixedAmount));
+            case "RATE" -> new RateCouponDiscountPolicy(rate, Money.wons(maxAmount));
+            default -> throw new IllegalArgumentException("알 수 없는 쿠폰 정책 타입입니다: " + policyType);
+        };
     }
 }
