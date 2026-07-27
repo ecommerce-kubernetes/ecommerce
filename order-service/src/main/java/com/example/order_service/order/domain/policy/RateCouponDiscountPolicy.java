@@ -1,7 +1,9 @@
 package com.example.order_service.order.domain.policy;
 
 import com.example.order_service.common.domain.vo.Money;
+import lombok.Getter;
 
+@Getter
 public class RateCouponDiscountPolicy implements CouponDiscountPolicy{
     private int discountRate;
     private Money maxDiscountAmount;
