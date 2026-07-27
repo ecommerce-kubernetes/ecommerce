@@ -12,9 +12,9 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.infrastructure.adaptor.OrderCouponAdaptor;
-import com.example.order_service.order.infrastructure.adaptor.OrderProductAdaptor;
-import com.example.order_service.order.infrastructure.adaptor.OrderUserAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.client.OrderCouponAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.client.OrderProductAdaptor;
+import com.example.order_service.order.infrastructure.adaptor.client.OrderUserAdaptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

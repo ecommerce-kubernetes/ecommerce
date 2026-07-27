@@ -20,16 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * 주문서 도메인
- * <p>
- * 주문서 도메인
- * 주문자, 주문 배송, 장바구니 쿠폰, 주문 상품 정보를 담당하는 애그리거트 루트 도메인
- * </p>
- *
- * @author 최민식
- * @since 2026. 05. 22
- */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
