@@ -2,6 +2,8 @@ package com.example.order_service.cart.domain;
 
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.common.util.TsidGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -10,12 +12,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CartItemTest {
 
+    private final IdGenerator idGenerator = new TsidGenerator();
+
     @Test
     @DisplayName("장바구니 항목을 생성한다")
     void create(){
         //given
         //when
-        CartItem item = CartItem.create(1L, 3, 100);
+        CartItem item = CartItem.create(1L, 3, 100, idGenerator);
         //then
         assertThat(item)
                 .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
@@ -28,7 +32,7 @@ public class CartItemTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> CartItem.create(null, 3, 100))
+        assertThatThrownBy(() -> CartItem.create(null, 3, 100, idGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
     }
@@ -39,7 +43,7 @@ public class CartItemTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> CartItem.create(1L, 0, 100))
+        assertThatThrownBy(() -> CartItem.create(1L, 0, 100, idGenerator))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
@@ -51,7 +55,7 @@ public class CartItemTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> CartItem.create(1L, 100, 50))
+        assertThatThrownBy(() -> CartItem.create(1L, 100, 50, idGenerator))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
@@ -61,7 +65,7 @@ public class CartItemTest {
     @DisplayName("수량을 추가한다")
     void addQuantity(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3, 100);
+        CartItem cartItem = CartItem.create(1L, 3, 100, idGenerator);
         //when
         cartItem.addQuantity(2, 10);
         //then
@@ -72,7 +76,7 @@ public class CartItemTest {
     @DisplayName("수량이 최대 한계치를 초과하면 예외가 발생한다")
     void addQuantity_quantity_exceed_maxLimit(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3, 100);
+        CartItem cartItem = CartItem.create(1L, 3, 100, idGenerator);
         //when
         //then
         assertThatThrownBy(() -> cartItem.addQuantity(10, 10))
@@ -85,7 +89,7 @@ public class CartItemTest {
     @DisplayName("장바구니 항목의 수량을 변경한다")
     void updateQuantity(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3, 100);
+        CartItem cartItem = CartItem.create(1L, 3, 100, idGenerator);
         //when
         cartItem.updateQuantity(5, 100);
         //then
@@ -96,7 +100,7 @@ public class CartItemTest {
     @DisplayName("항목 수량을 수정할때 상품 수량을 1 미만으로 변경할 수 없다")
     void updateQuantityWhenQuantityLessThan1(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3, 100);
+        CartItem cartItem = CartItem.create(1L, 3, 100, idGenerator);
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(0, 100))
@@ -109,7 +113,7 @@ public class CartItemTest {
     @DisplayName("항목 수량을 수정할때 최대 한계치를 초과할 수 없다.")
     void updateQuantity_quantity_exceed_maxLimit(){
         //given
-        CartItem cartItem = CartItem.create(1L, 3, 100);
+        CartItem cartItem = CartItem.create(1L, 3, 100, idGenerator);
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(50, 10))

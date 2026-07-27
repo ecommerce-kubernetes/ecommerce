@@ -2,6 +2,7 @@ package com.example.order_service.cart.domain;
 
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -14,7 +15,6 @@ import org.springframework.util.Assert;
 public class CartItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,14 +25,16 @@ public class CartItem {
 
     private int quantity;
 
-    private CartItem(Long productVariantId, int quantity) {
+    private CartItem(Long id, Long productVariantId, int quantity) {
+        Assert.notNull(id, "장바구니 항목 생성시 식별자는 필수입니다.");
         Assert.notNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
 
+        this.id = id;
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
-    public static CartItem create(Long productVariantId, int quantity, int maxLimit) {
+    public static CartItem create(Long productVariantId, int quantity, int maxLimit, IdGenerator idGenerator) {
         if (quantity <= 0) {
             throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
@@ -41,7 +43,9 @@ public class CartItem {
             throw new BusinessException(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
         }
 
-        return new CartItem(productVariantId, quantity);
+        Long id = idGenerator.generate();
+
+        return new CartItem(id, productVariantId, quantity);
     }
 
     public void addQuantity(int quantity, int maxLimit) {

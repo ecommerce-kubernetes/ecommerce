@@ -39,7 +39,7 @@ public class Cart extends BaseEntity {
         return new Cart(id, userId);
     }
 
-    public void addItem(Long productVariantId, int quantity, int maxLimit) {
+    public void addItem(Long productVariantId, int quantity, int maxLimit, IdGenerator idGenerator) {
         if (this.cartItems.size() >= 20) {
             throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
@@ -51,7 +51,7 @@ public class Cart extends BaseEntity {
             return;
         }
 
-        CartItem cartItem = CartItem.create(productVariantId, quantity, maxLimit);
+        CartItem cartItem = CartItem.create(productVariantId, quantity, maxLimit, idGenerator);
         this.cartItems.add(cartItem);
         cartItem.setCart(this);
     }

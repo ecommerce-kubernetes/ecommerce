@@ -24,7 +24,7 @@ public class CartCommandService {
         Cart cart = cartRepository.findByUserId(context.userId())
                 .orElseGet(() -> Cart.create(context.userId(), idGenerator));
         for (CreateCartItemsContext.Item item: context.items()) {
-            cart.addItem(item.productVariantId(), item.quantity(), item.maxLimit());
+            cart.addItem(item.productVariantId(), item.quantity(), item.maxLimit(), idGenerator);
         }
         cartRepository.save(cart);
     }

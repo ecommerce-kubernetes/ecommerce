@@ -6,7 +6,6 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -45,7 +44,7 @@ public class CartTest {
         Long productVariantId = 1L;
         int quantity = 3;
         //when
-        cart.addItem(productVariantId, quantity, 100);
+        cart.addItem(productVariantId, quantity, 100, idGenerator);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
         assertThat(cart.getCartItems())
@@ -61,9 +60,9 @@ public class CartTest {
         //given
         Cart cart = Cart.create(1L, idGenerator);
         Long productVariantId = 1L;
-        cart.addItem(productVariantId, 3, 100);
+        cart.addItem(productVariantId, 3, 100, idGenerator);
         //when
-        cart.addItem(productVariantId, 2, 100);
+        cart.addItem(productVariantId, 2, 100, idGenerator);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
         CartItem findItem = cart.findItemByProductVariantId(productVariantId).orElseThrow();
@@ -78,11 +77,11 @@ public class CartTest {
         //given
         Cart cart = Cart.create(1L, idGenerator);
         for (long i = 0; i < 20L; i++) {
-            cart.addItem(i, 3, 100);
+            cart.addItem(i, 3, 100, idGenerator);
         }
         //when
         //then
-        assertThatThrownBy(() -> cart.addItem(999L, 3, 100))
+        assertThatThrownBy(() -> cart.addItem(999L, 3, 100, idGenerator))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
@@ -93,14 +92,12 @@ public class CartTest {
     void updateItemQuantity(){
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        Long cartItemId = 1L;
-        CartItem cartItem = CartItem.create(1L, 3, 100);
-        ReflectionTestUtils.setField(cartItem, "id", cartItemId);
-        cart.getCartItems().add(cartItem);
+        cart.addItem(1L, 3, 100, idGenerator);
+        CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
         //when
-        cart.updateItemQuantity(cartItemId, 5, 100);
+        cart.updateItemQuantity(cartItem.getId(), 5, 100);
         //then
-        CartItem item = cart.findItemByCartItemId(cartItemId).orElseThrow();
+        CartItem item = cart.findItemByCartItemId(cartItem.getId()).orElseThrow();
         assertThat(item.getQuantity()).isEqualTo(5);
     }
 
@@ -122,12 +119,10 @@ public class CartTest {
     void deleteItem(){
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        Long cartItemId = 1L;
-        CartItem cartItem = CartItem.create(1L, 3, 100);
-        ReflectionTestUtils.setField(cartItem, "id", cartItemId);
-        cart.getCartItems().add(cartItem);
+        cart.addItem(1L, 3, 100, idGenerator);
+        CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
         //when
-        cart.deleteItem(cartItemId);
+        cart.deleteItem(cartItem.getId());
         //then
         assertThat(cart.getCartItems()).hasSize(0);
     }

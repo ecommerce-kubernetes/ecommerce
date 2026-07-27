@@ -91,7 +91,7 @@ class CartCommandServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100);
+        cart.addItem(1L, 3, 100, idGenerator);
         cartRepository.save(cart);
 
         CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
@@ -139,8 +139,8 @@ class CartCommandServiceTest {
             Long userId = 1L;
 
             Cart cart = Cart.create(userId, idGenerator);
-            cart.addItem(1L, 3, 100);
-            cart.addItem(2L, 3, 100);
+            cart.addItem(1L, 3, 100, idGenerator);
+            cart.addItem(2L, 3, 100, idGenerator);
             cartRepository.save(cart);
 
             CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
