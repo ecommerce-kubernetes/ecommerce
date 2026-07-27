@@ -1,4 +1,4 @@
-package com.example.order_service.order.api.web.dto.request;
+package com.example.order_service.order.api.web.dto.ordersheet.request;
 
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateCartOrderSheetCommand;
 import jakarta.validation.constraints.NotEmpty;

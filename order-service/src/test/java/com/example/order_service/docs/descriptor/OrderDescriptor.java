@@ -1,14 +1,19 @@
 package com.example.order_service.docs.descriptor;
 
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class OrderDescriptor {
 
-    public static FieldDescriptor[] getOrderCreateRequest() {
+    public static FieldDescriptor[] orderCreateRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("orderSheetId").description("주문서 ID")
+                fieldWithPath("orderSheetId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문서 ID(주문서 식별자)")
+                        .attributes(key("constraint").value("필수"))
         };
     }
 

@@ -1,7 +1,7 @@
 package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.order.api.web.dto.request.OrderRequest;
+import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
@@ -54,108 +54,90 @@ class OrderControllerTest {
     @MockitoBean
     private OrderQueryService orderQueryService;
 
-    @Nested
-    @DisplayName("주문 생성")
-    class Create {
+    @Test
+    @DisplayName("주문을 생성한다")
+    @WithCustomMockUser
+    void createOrder() throws Exception {
+        //given
+        OrderCreateRequest request = OrderCreateRequest.builder()
+                .orderSheetId("orderSheetId")
+                .build();
 
-        @Test
-        @DisplayName("주문을 생성한다")
-        @WithCustomMockUser
-        void createOrder() throws Exception {
-            //given
-            OrderRequest.Create request = OrderRequest.Create.builder()
-                    .orderSheetId("orderSheetId")
-                    .build();
-            OrderResult.Create result = Instancio.create(OrderResult.Create.class);
-            given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(post("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isAccepted())
-                    .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
-                    .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()))
-                    .andExpect(jsonPath("$.status").isString())
-                    .andExpect(jsonPath("$.createdAt").isString());
+        OrderResult.Create result = Instancio.create(OrderResult.Create.class);
+        given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
+                .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()))
+                .andExpect(jsonPath("$.status").isString())
+                .andExpect(jsonPath("$.createdAt").isString());
+    }
 
-        }
+    @Test
+    @DisplayName("주문 요청시 권한은 유저여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void createOrderWithAdminPrincipal() throws Exception {
+        //given
+        OrderCreateRequest request = OrderCreateRequest.builder()
+                .orderSheetId("orderSheetId")
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
 
-        @Test
-        @DisplayName("주문 요청시 권한은 유저여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void createOrderWithAdminPrincipal() throws Exception {
-            //given
-            OrderRequest.Create request = OrderRequest.Create.builder()
-                    .orderSheetId("orderSheetId")
-                    .build();
-            //when
-            //then
-            mockMvc.perform(post("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders"));
-        }
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
+    void createOrder_unAuthorized() throws Exception {
+        //given
+        OrderCreateRequest request = OrderCreateRequest.builder()
+                .orderSheetId("orderSheetId")
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
 
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
-        void createOrder_unAuthorized() throws Exception {
-            //given
-            OrderRequest.Create request = OrderRequest.Create.builder()
-                    .orderSheetId("orderSheetId")
-                    .build();
-            //when
-            //then
-            mockMvc.perform(post("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders"));
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @DisplayName("주문 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
-        @MethodSource("provideInvalidCreateOrderRequest")
-        @WithCustomMockUser
-        void createOrder_validation(String description, OrderRequest.Create request, String expectedField, String expectedMessage) throws Exception {
-            //given
-            //when, then
-            mockMvc.perform(post("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
-                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
-                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders"));
-        }
-
-        private static Stream<Arguments> provideInvalidCreateOrderRequest() {
-            return Stream.of(
-                    Arguments.of(
-                            "주문서 아이디가 없는 경우 검증에 실패한다",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(null)
-                                    .build(),
-                            "orderSheetId",
-                            "주문서 식별자(orderSheetId)는 필수 입니다."
-                    )
-            );
-        }
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("주문 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
+    @MethodSource("provideInvalidCreateOrderRequest")
+    @WithCustomMockUser
+    void createOrder_validation(String description, OrderCreateRequest request, String expectedField, String expectedMessage) throws Exception {
+        //given
+        //when, then
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
     }
 
     @Nested
@@ -297,5 +279,18 @@ class OrderControllerTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
+    }
+
+    private static Stream<Arguments> provideInvalidCreateOrderRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "주문서 아이디가 없는 경우 검증에 실패한다",
+                        OrderCreateRequest.builder()
+                                .orderSheetId(null)
+                                .build(),
+                        "orderSheetId",
+                        "주문서 식별자(orderSheetId)는 필수 입니다."
+                )
+        );
     }
 }

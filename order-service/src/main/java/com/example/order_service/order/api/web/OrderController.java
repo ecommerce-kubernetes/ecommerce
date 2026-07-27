@@ -2,9 +2,9 @@ package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserPrincipal;
-import com.example.order_service.order.api.web.dto.request.OrderRequest;
-import com.example.order_service.order.api.web.dto.request.OrderSearchCondition;
-import com.example.order_service.order.api.web.dto.response.OrderResponse;
+import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
+import com.example.order_service.order.api.web.dto.order.request.OrderSearchCondition;
+import com.example.order_service.order.api.web.dto.order.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
@@ -32,7 +32,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse.Create> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                            @RequestBody @Validated OrderRequest.Create request) {
+                                                            @RequestBody @Validated OrderCreateRequest request) {
         OrderCommand.Create command = request.toCommand(userPrincipal.getUserId());
         OrderResult.Create result = orderFacade.initialOrder(command);
         OrderResponse.Create response = OrderResponse.Create.from(result);
