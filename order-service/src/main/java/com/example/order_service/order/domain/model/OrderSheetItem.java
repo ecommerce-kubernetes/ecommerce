@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -73,7 +72,7 @@ public class OrderSheetItem {
         return priceSnapshot.getOriginalPrice().multiple(quantity);
     }
 
-    public Money calculateProductDiscountLineTotal() {
+    public Money calculateItemDiscountLineTotal() {
         return priceSnapshot.getDiscountAmount().multiple(quantity);
     }
 

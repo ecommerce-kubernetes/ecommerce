@@ -186,7 +186,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("상품 기본 할인 총액을 계산한다.")
-    void calculateProductDiscountLineTotal(){
+    void calculateItemDiscountLineTotal(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -195,7 +195,7 @@ public class OrderSheetItemTest {
         int quantity = 3;
         OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
         //when
-        Money result = item.calculateProductDiscountLineTotal();
+        Money result = item.calculateItemDiscountLineTotal();
         //then
         assertThat(result).isEqualTo(Money.wons(3000L));
     }

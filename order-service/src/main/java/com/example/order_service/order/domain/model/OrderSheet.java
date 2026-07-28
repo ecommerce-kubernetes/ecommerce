@@ -160,7 +160,7 @@ public class OrderSheet {
 
     public Money calculateTotalItemDiscount() {
         return this.items.stream()
-                .map(OrderSheetItem::calculateProductDiscountLineTotal)
+                .map(OrderSheetItem::calculateItemDiscountLineTotal)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -180,24 +180,6 @@ public class OrderSheet {
     public Duration calculateRemainingTtl(LocalDateTime currentTime) {
         Duration remaining = Duration.between(currentTime, this.expiresAt);
         return remaining.isNegative() ? Duration.ZERO : remaining;
-    }
-
-    /**
-     * 주문 접근 확인
-     * <p>
-     * 주문서의 주문자가 파라미터의 유저 아이디와 같은지 검증,
-     * 주문이 만료되었는지 검증
-     * </p>
-     *
-     * @param userId 유저 아이디
-     */
-    public void validateAccess(Long userId, LocalDateTime currentTime) {
-        if (!this.orderer.getUserId().equals(userId)) {
-            throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
-        }
-        if (this.isExpired(currentTime)) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
     }
 
     /**

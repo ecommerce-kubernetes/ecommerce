@@ -57,7 +57,7 @@
 #### 행위
 
 - create (항목 생성): 장바구니 항목을 생성한다.
-- addQuantity (수량 추가): 항목의 수량을 추가한다. 
+- addQuantity (수량 추가): 항목의 수량을 추가한다.
 - updateQuantity (수량 변경): 항목의 수량을 변경한다.
 
 #### 규칙
@@ -80,11 +80,11 @@
 
 | 필드명             | 타입                   | 설명        |
 |-----------------|----------------------|-----------|
-| id              | String               | 주문서 아이디   |
+| id              | Long                 | 주문서 아이디   |
 | orderer         | Orderer              | 주문자 정보    |
 | shippingAddress | ShippingAddress      | 배송 정보     |
 | items           | List<OrderSheetItem> | 주문 상품 리스트 |
-| cartCoupon      | OrderCouponSnapshot  | 장바구니 쿠폰   |
+| cartCoupon      | CartCouponSnapshot   | 장바구니 쿠폰   |
 | usedPoints      | Money                | 적용 포인트 금액 |
 | expiresAt       | LocalDateTime        | 주문서 만료 시간 |
 
@@ -125,7 +125,7 @@
 
 | 필드명                | 타입                          | 설명             |
 |--------------------|-----------------------------|----------------|
-| id                 | String                      | 주문서 상품 아이디     |
+| id                 | Long                        | 주문서 상품 아이디     |
 | productSnapshot    | ProductSnapshot             | 주문 시점 상품 정보    |
 | priceSnapshot      | ProductPriceSnapshot        | 주문 시점 상품 가격 정보 |
 | itemCouponSnapshot | ItemCouponSnapshot          | 적용 상품 쿠폰       |
@@ -154,6 +154,46 @@
 - 주문 항목에 쿠폰이 적용되지 않은 경우 쿠폰 할인 금액은 0원이다.
 - 상품 쿠폰 할인의 기준이 되는 금액은 상품 판매가이다.
 - 주문 항목의 상품 쿠폰 할인 금액을 계산할때 적용된 상품 쿠폰의 할인 금액이 상품 판매가 총액을 초과하는 경우, 실제 적용되는 쿠폰의 할인 금액은 판매가 총액을 최대 한도로 적용한다.
+
+### 주문(Order)
+
+사용자의 주문 데이터를 저장하는 주문 애거리거트 루트.
+
+#### 속성
+
+| 필드명               | 타입                | 설명         |
+|-------------------|-------------------|------------|
+| id                | Long              | 주문 아이디     |
+| status            | OrderStatus       | 주문 상태      |
+| orderName         | String            | 주문 이름      |
+| orderer           | Orderer           | 주문자 정보     |
+| shippingAddress   | ShippingAddress   | 배송 정보      |
+| orderItems        | List<OrderItem>   | 주문 항목      |
+| appliedCartCoupon | AppliedCartCoupon | 적용 장바구니 쿠폰 |
+| orderAmount       | OrderAmount       | 주문 가격 정보   |
+| orderCancelInfo   | OrderCancelInfo   | 주문 취소 사유   |
+| createdAt         | LocalDateTime     | 주문 생성일     |
+
+#### 행위
+
+#### 규칙
+
+### 주문 항목(OrderItem)
+
+주문(Order)의 주문 항목 정보를 저장하는 엔티티
+
+#### 속성
+
+| 필드명               | 타입                          | 설명          |
+|-------------------|-----------------------------|-------------|
+| id                | Long                        | 주문 항목 아이디   |
+| order             | Order                       | 주문          |
+| product           | ProductSnapshot             | 상품 정보       |
+| productPrice      | ProductPriceSnapshot        | 상품 가격 정보    |
+| appliedItemCoupon | AppliedItemCoupon           | 적용 상품 쿠폰    |
+| quantity          | Integer                     | 주문 수량       |
+| options           | List<ProductOptionSnapshot> | 상품 옵션       |
+| orderItemAmount   | OrderItemAmount             | 주문 항목 가격 정보 |
 
 ---
 
@@ -235,7 +275,7 @@
 
 ### 4-2. 장바구니 쿠폰(CartCouponSnapshot)
 
-주문 적용 장바구니 쿠폰 정보
+주문서(OrderSheet) 단계에서 장바구니 쿠폰의 유효성을 검증하고 할인 금액을 동적으로 계산하기 위한 스냅샷 정보.
 
 #### 속성
 
@@ -250,8 +290,6 @@
 
 - 장바구니 쿠폰 적용 가능 여부를 검증한다.
 - 장바구니 쿠폰 할인 금액을 계산한다.
-
-#### 규칙
 
 ### 5. 상품 정보(ProductSnapshot)
 
@@ -288,6 +326,64 @@
 |-----------------|--------|-------|
 | optionTypeName  | String | 옵션 이름 |
 | optionValueName | String | 옵션 값  |
+
+### 8. 적용 장바구니 쿠폰 정보(AppliedCartCoupon)
+
+주문(Order)에 실제 적용이 완료된 장바구니 쿠폰의 정보.
+
+### 속성
+
+| 필드명          | 타입     | 설명          |
+|--------------|--------|-------------|
+| cartCouponId | Long   | 장바구니 쿠폰 아이디 |
+| name         | String | 장바구니 쿠폰 이름  |
+
+### 9. 주문 가격 정보(OrderAmount)
+
+주문 가격 요약 정보
+
+| 필드명                     | 타입    | 설명               |
+|-------------------------|-------|------------------|
+| totalOriginalAmount     | Money | 총 주문 상품 원 가격 총액  |
+| totalItemDiscount       | Money | 총 주문 상품 할인 가격 총액 |
+| totalItemCouponDiscount | Money | 총 상품 쿠폰 할인 가격 총액 |
+| cartCouponDiscount      | Money | 장바구니 쿠폰 할인 금액    |
+| usedPoints              | Money | 적용 포인트           |
+| totalPaymentAmount      | Money | 최종 결제 가격         |
+
+### 10. 주문 취소 사유(OrderCancelInfo)
+
+주문 취소 정보
+
+### 속성
+
+| 필드명        | 타입            | 설명     |
+|------------|---------------|--------|
+| reason     | String        | 취소 사유  |
+| canceledAt | LocalDateTime | 주문 취소일 |
+
+### 11. 적용 상품 쿠폰 정보(AppliedItemCoupon)
+
+주문 항목(OrderItem)에 실제 적용이 완료된 상품 쿠폰의 정보.
+
+### 속성
+
+| 필드명          | 타입     | 설명        |
+|--------------|--------|-----------|
+| itemCouponId | Long   | 상품 쿠폰 아이디 |
+| name         | String | 상품 쿠폰 이름  |
+
+### 12. 주문 항목 가격 정보(OrderItemAmount)
+
+### 속성
+
+| 필드명                | 타입    | 설명             |
+|--------------------|-------|----------------|
+| originalAmount     | Money | 항목 원가 총액       |
+| itemDiscount       | Money | 항목 상품 할인 총액    |
+| lineTotal          | Money | 상품 판매가 총액      |
+| itemCouponDiscount | Money | 항목 상품 쿠폰 할인 금액 |
+| finalAmount        | Money | 항목 최종 결제 금액    |
 
 --
 
