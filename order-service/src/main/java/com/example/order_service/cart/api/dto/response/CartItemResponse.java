@@ -3,12 +3,14 @@ package com.example.order_service.cart.api.dto.response;
 import com.example.order_service.cart.application.dto.result.CartItemOption;
 import com.example.order_service.cart.application.dto.result.CartItemPrice;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.util.List;
 
 @Builder
 public record CartItemResponse(
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long cartItemId,
         String status,
         Long productId,

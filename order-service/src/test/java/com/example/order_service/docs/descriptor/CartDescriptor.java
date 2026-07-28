@@ -23,7 +23,7 @@ public class CartDescriptor {
     public static FieldDescriptor[] addCartItemsResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("items[].cartItemId")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("장바구니 항목 ID(장바구니 항목 식별자)")
         };
     }
@@ -31,7 +31,7 @@ public class CartDescriptor {
     public static FieldDescriptor[] cartResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("items[].cartItemId")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("장바구니 항목 ID(장바구니 항목 식별자)"),
                 fieldWithPath("items[].status")
                         .type(JsonFieldType.STRING)
@@ -85,7 +85,7 @@ public class CartDescriptor {
     public static FieldDescriptor[] cartItemResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("cartItemId")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("장바구니 항목 ID(장바구니 항목 식별자)"),
                 fieldWithPath("status")
                         .type(JsonFieldType.STRING)
@@ -144,7 +144,7 @@ public class CartDescriptor {
     public static FieldDescriptor[] updateCartItemQuantityResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("cartItemId")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("장바구니 항목 ID(장바구니 항목 식별자)")
         };
     }

@@ -1,6 +1,7 @@
 package com.example.order_service.cart.api.dto.response;
 
 import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.util.List;
@@ -12,6 +13,7 @@ public record AddCartItemsResponse(
 
     @Builder
     public record Item(
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Long cartItemId
     ) {
         public static Item from(AddCartItemsResult.AddedItemResult item) {

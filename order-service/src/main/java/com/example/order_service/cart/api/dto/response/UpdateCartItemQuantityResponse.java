@@ -1,10 +1,12 @@
 package com.example.order_service.cart.api.dto.response;
 
 import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 @Builder
 public record UpdateCartItemQuantityResponse(
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long cartItemId
 ) {
 
