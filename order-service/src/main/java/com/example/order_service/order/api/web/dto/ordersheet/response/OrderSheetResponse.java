@@ -76,7 +76,7 @@ public record OrderSheetResponse(
 
     @Builder
     public record OrderSheetItemResponse(
-            String orderSheetItemId,
+            Long orderSheetItemId,
             int quantity,
             ProductInfo product,
             List<OptionInfo> options,

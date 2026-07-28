@@ -64,7 +64,7 @@ public class OrderSheetController {
     @PatchMapping("/{orderSheetId}/items/{orderSheetItemId}/coupon")
     public ResponseEntity<OrderSheetUpdateResponse> applyItemCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                               @PathVariable("orderSheetId") Long orderSheetId,
-                                                              @PathVariable("orderSheetItemId") String orderSheetItemId,
+                                                              @PathVariable("orderSheetItemId") Long orderSheetItemId,
                                                               @RequestBody @Validated ApplyOrderSheetItemCouponRequest request) {
         ApplyItemCouponCommand command = request.toCommand(userPrincipal.getUserId(), orderSheetId, orderSheetItemId);
         OrderSheetUpdateResult result = orderSheetService.applyItemCoupon(command);

@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItemRedisEntity {
-    private String id;
+    private Long id;
     private ProductSnapshotRedisEntity productSnapshot;
     private ProductPriceSnapshotRedisEntity priceSnapshot;
     private ItemCouponSnapshotRedisEntity itemCouponSnapshot;

@@ -422,7 +422,7 @@ public class OrderSheetServiceTest {
                 .userId(1L)
                 .itemCouponId(10L)
                 .orderSheetId(999L)
-                .orderSheetItemId("orderSheetItemId")
+                .orderSheetItemId(100L)
                 .build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
@@ -469,7 +469,7 @@ public class OrderSheetServiceTest {
                 .userId(1L)
                 .itemCouponId(10L)
                 .orderSheetId(orderSheet.getId())
-                .orderSheetItemId("unknownOrderSheetItemId")
+                .orderSheetItemId(999L)
                 .build();
 
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));

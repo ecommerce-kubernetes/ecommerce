@@ -199,7 +199,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     void updateItemCoupon() throws Exception {
         //given
         Long orderSheetId = 1L;
-        String orderSheetItemId = "orderSheetItemId";
+        Long orderSheetItemId = 100L;
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
                 .build();
@@ -336,7 +336,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .appliedDiscountAmount(Money.wons(1000L))
                 .build();
         OrderSheetResult.OrderSheetItemResult item = OrderSheetResult.OrderSheetItemResult.builder()
-                .orderSheetItemId("orderSheetItemId")
+                .orderSheetItemId(1L)
                 .quantity(1)
                 .product(product)
                 .price(price)

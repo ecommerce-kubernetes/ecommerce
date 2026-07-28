@@ -40,7 +40,7 @@ public record OrderSheetResult(
 
     @Builder
     public record OrderSheetItemResult(
-            String orderSheetItemId,
+            Long orderSheetItemId,
             int quantity,
             ProductSnapshot product,
             List<ProductOptionSnapshot> options,

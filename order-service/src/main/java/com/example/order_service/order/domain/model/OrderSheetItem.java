@@ -20,7 +20,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
-    private String id;
+    private Long id;
     private ProductSnapshot productSnapshot;
     private ProductPriceSnapshot priceSnapshot;
     private ItemCouponSnapshot itemCouponSnapshot;
@@ -28,9 +28,9 @@ public class OrderSheetItem {
     private List<ProductOptionSnapshot> optionSnapshots;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(String id, ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, ItemCouponSnapshot itemCoupon,
+    private OrderSheetItem(Long id, ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, ItemCouponSnapshot itemCoupon,
                            int quantity, List<ProductOptionSnapshot> optionSnapshots) {
-        Assert.hasText(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
+        Assert.notNull(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
         Assert.notNull(productSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
         Assert.notNull(priceSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
         Assert.notNull(optionSnapshots, "주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
@@ -45,11 +45,11 @@ public class OrderSheetItem {
 
     public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot,
                                         int quantity, List<ProductOptionSnapshot> optionSnapshots, IdGenerator idGenerator) {
-        String id = UUID.randomUUID().toString();
-
         if (quantity <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
         }
+
+        Long id = idGenerator.generate();
 
         return OrderSheetItem.reconstitute()
                 .id(id)

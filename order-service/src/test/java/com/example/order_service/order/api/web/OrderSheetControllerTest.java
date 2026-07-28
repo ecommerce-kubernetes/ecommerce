@@ -399,7 +399,7 @@ class OrderSheetControllerTest {
     void applyItemCoupon() throws Exception {
         //given
         Long orderSheetId = 1L;
-        String orderSheetItemId = "orderSheetItemId";
+        Long orderSheetItemId = 100L;
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
                 .build();
@@ -425,7 +425,7 @@ class OrderSheetControllerTest {
     void applyItemCoupon_auAuthorized() throws Exception {
         //given
         Long orderSheetId = 1L;
-        String orderSheetItemId = "orderSheetItemId";
+        Long orderSheetItemId = 100L;
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
                 .build();
@@ -447,7 +447,7 @@ class OrderSheetControllerTest {
     void applyItemCoupon_forbidden() throws Exception {
         //given
         Long orderSheetId = 1L;
-        String orderSheetItemId = "orderSheetItemId";
+        Long orderSheetItemId = 100L;
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
                 .build();
@@ -470,7 +470,7 @@ class OrderSheetControllerTest {
     void applyItemCoupon_validation(String description, ApplyOrderSheetItemCouponRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         Long orderSheetId = 1L;
-        String orderSheetItemId = "orderSheetItemId";
+        Long orderSheetItemId = 100L;
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)

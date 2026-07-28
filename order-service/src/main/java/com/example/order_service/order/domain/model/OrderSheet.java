@@ -70,7 +70,7 @@ public class OrderSheet {
         this.shippingAddress = newAddress;
     }
 
-    public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon, PointUsagePolicy pointPolicy) {
+    public void applyItemCoupon(Long orderSheetItemId, ItemCouponSnapshot itemCoupon, PointUsagePolicy pointPolicy) {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND));
         item.applyItemCoupon(itemCoupon);
@@ -97,7 +97,7 @@ public class OrderSheet {
         this.usedPoints = usedPoints;
     }
 
-    private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
+    private Optional<OrderSheetItem> findOrderSheetItem(Long orderSheetItemId) {
         return this.items.stream().filter(item -> item.getId().equals(orderSheetItemId))
                 .findFirst();
     }

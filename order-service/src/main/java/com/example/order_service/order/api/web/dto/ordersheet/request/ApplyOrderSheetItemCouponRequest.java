@@ -9,7 +9,7 @@ public record ApplyOrderSheetItemCouponRequest(
         @NotNull(message = "{orderSheet.itemCouponId.notNull}")
         Long itemCouponId
 ) {
-    public ApplyItemCouponCommand toCommand(Long userId, Long orderSheetId, String orderSheetItemId) {
+    public ApplyItemCouponCommand toCommand(Long userId, Long orderSheetId, Long orderSheetItemId) {
         return ApplyItemCouponCommand.builder()
                 .userId(userId)
                 .orderSheetId(orderSheetId)

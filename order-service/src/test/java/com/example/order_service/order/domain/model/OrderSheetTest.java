@@ -171,7 +171,7 @@ public class OrderSheetTest {
         PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         //when
         //then
-        assertThatThrownBy(() -> orderSheet.applyItemCoupon("unknown", itemCoupon, pointPolicy))
+        assertThatThrownBy(() -> orderSheet.applyItemCoupon(999L, itemCoupon, pointPolicy))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND);

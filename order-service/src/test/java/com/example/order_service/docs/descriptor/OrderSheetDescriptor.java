@@ -112,7 +112,7 @@ public class OrderSheetDescriptor {
                         .type(JsonFieldType.STRING)
                         .description("상세 주소"),
                 fieldWithPath("items[*].orderSheetItemId")
-                        .type(JsonFieldType.STRING)
+                        .type(JsonFieldType.NUMBER)
                         .description("주문서 아이템 아이디"),
                 fieldWithPath("items[*].product.productId")
                         .type(JsonFieldType.NUMBER)
