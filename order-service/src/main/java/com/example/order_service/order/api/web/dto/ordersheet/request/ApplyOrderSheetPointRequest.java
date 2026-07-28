@@ -11,7 +11,7 @@ public record ApplyOrderSheetPointRequest(
         @Min(value = 0, message = "{orderSheet.usedPoints.min}")
         Long usedPoints
 ) {
-    public ApplyPointCommand toCommand(String orderSheetId, Long userId) {
+    public ApplyPointCommand toCommand(Long orderSheetId, Long userId) {
         return ApplyPointCommand.builder()
                 .orderSheetId(orderSheetId)
                 .userId(userId)

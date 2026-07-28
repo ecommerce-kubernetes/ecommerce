@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface OrderSheetRepository {
     OrderSheet save(OrderSheet orderSheet, Duration ttl);
-    Optional<OrderSheet> findById(String orderSheetId);
-    Optional<OrderSheet> findByIdAndOrdererId(String orderSheetId, Long ordererId);
+    Optional<OrderSheet> findById(Long orderSheetId);
+    Optional<OrderSheet> findByIdAndOrdererId(Long orderSheetId, Long ordererId);
 }

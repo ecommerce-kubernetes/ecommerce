@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetRedisEntity {
-    private String id;
+    private Long id;
     private OrdererRedisEntity orderer;
     private ShippingAddressRedisEntity shippingAddress;
     private List<OrderSheetItemRedisEntity> items;

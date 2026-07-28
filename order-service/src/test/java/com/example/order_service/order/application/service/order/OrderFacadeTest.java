@@ -85,7 +85,7 @@ public class OrderFacadeTest {
             OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
 
-            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
+//            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserAdaptor.getUserPoints(anyLong())).willReturn(userPoint);
             given(orderProductAdaptor.getProducts(anyList())).willReturn(productResult);
             given(orderCouponAdaptor.calculate(any())).willReturn(couponResult);
@@ -114,7 +114,7 @@ public class OrderFacadeTest {
             OrderProductsResult productResult = Instancio.create(OrderProductsResult.class);
             OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
-            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
+//            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserAdaptor.getUserPoints(anyLong())).willReturn(userPoint);
             given(orderProductAdaptor.getProducts(anyList())).willReturn(productResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
@@ -137,7 +137,7 @@ public class OrderFacadeTest {
                     .orderSheetId("sheetId")
                     .userId(999L)
                     .build();
-            given(orderSheetRepository.findById(anyString())).willReturn(Optional.empty());
+//            given(orderSheetRepository.findById(anyString())).willReturn(Optional.empty());
             //when
             //then
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
@@ -155,7 +155,7 @@ public class OrderFacadeTest {
                     .orderSheetId("sheetId")
                     .userId(999L)
                     .build();
-            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
+//            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             //when
             //then
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
@@ -174,7 +174,7 @@ public class OrderFacadeTest {
                     .orderSheetId("sheetId")
                     .userId(1L)
                     .build();
-            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
+//            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             //when
             //then
             assertThatThrownBy(() -> orderFacade.initialOrder(command))

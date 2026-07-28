@@ -19,12 +19,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
-    private String id;
+    private Long id;
     private Orderer orderer;
     private ShippingAddress shippingAddress;
     private List<OrderSheetItem> items;
@@ -33,9 +32,9 @@ public class OrderSheet {
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot cartCoupon,
+    private OrderSheet(Long id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot cartCoupon,
                        Money usedPoints, LocalDateTime expiresAt) {
-        Assert.hasText(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
+        Assert.notNull(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
         Assert.notNull(orderer, "주문서(OrderSheet) 생성시 주문자는 필수이다.");
         Assert.notNull(items, "주문서(OrderSheet) 생성시 주문 항목은 필수이다.");
         Assert.notNull(usedPoints, "주문서(OrderSheet) 생성시 적용 포인트 금액은 필수이다.");
@@ -54,7 +53,9 @@ public class OrderSheet {
         if (items.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
-        String id = UUID.randomUUID().toString();
+
+        Long id = idGenerator.generate();
+
         return OrderSheet.reconstitute()
                 .id(id)
                 .orderer(orderer)

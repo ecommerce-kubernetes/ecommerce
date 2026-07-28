@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record OrderSheetCreateResult(
-        String orderSheetId,
+        Long orderSheetId,
         LocalDateTime expiresAt
 ) {
     public static OrderSheetCreateResult from(OrderSheet orderSheet) {

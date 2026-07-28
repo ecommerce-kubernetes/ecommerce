@@ -122,10 +122,10 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @DisplayName("주문서를 조회한다")
     void getOrderSheet() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         OrderSheetResult result = createOrderSheetResult();
-        given(orderSheetService.getOrderSheet(anyString(), anyLong())).willReturn(result);
+        given(orderSheetService.getOrderSheet(anyLong(), anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/order-sheets/{orderSheetId}", orderSheetId)
@@ -155,7 +155,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @DisplayName("배송 정보를 수정한다")
     void updateShippingAddress() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
@@ -198,7 +198,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @DisplayName("상품 쿠폰을 변경한다")
     void updateItemCoupon() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         String orderSheetItemId = "orderSheetItemId";
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
@@ -239,7 +239,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @DisplayName("장바구니 쿠폰을 변경한다")
     void applyCartCoupon() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         ApplyOrderSheetCartCouponRequest request = ApplyOrderSheetCartCouponRequest.builder()
                 .cartCouponId(2L)
@@ -278,7 +278,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     @DisplayName("사용 포인트를 수정한다")
     void applyPoints() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
                 .usedPoints(1000L)
@@ -356,7 +356,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .maxUsablePoints(Money.wons(2500L))
                 .build();
         return OrderSheetResult.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(1L)
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .items(List.of(item))
@@ -369,14 +369,14 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     private OrderSheetCreateResult createOrderSheetCreateResult() {
         return OrderSheetCreateResult.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(1L)
                 .expiresAt(LocalDateTime.now())
                 .build();
     }
 
     private OrderSheetUpdateResult createOrderSheetUpdateResult() {
         return OrderSheetUpdateResult.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(1L)
                 .expiresAt(LocalDateTime.now())
                 .build();
     }

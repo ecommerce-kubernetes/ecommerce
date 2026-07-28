@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record OrderSheetUpdateResponse(
-        String orderSheetId,
+        Long orderSheetId,
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         LocalDateTime expiresAt

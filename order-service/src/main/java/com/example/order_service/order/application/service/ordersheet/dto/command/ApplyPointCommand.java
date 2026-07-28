@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record ApplyPointCommand(
-        String orderSheetId,
+        Long orderSheetId,
         Long userId,
         Long usedPoints
 ) {

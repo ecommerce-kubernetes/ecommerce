@@ -85,7 +85,7 @@ public class OrderSheetDescriptor {
     public static FieldDescriptor[] orderSheetResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("orderSheetId")
-                        .type(JsonFieldType.STRING)
+                        .type(JsonFieldType.NUMBER)
                         .description("주문서 ID(주문서 식별자)"),
                 fieldWithPath("orderer.userId")
                         .type(JsonFieldType.NUMBER)
@@ -199,7 +199,7 @@ public class OrderSheetDescriptor {
     public static FieldDescriptor[] createOrderSheetResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("orderSheetId")
-                        .type(JsonFieldType.STRING)
+                        .type(JsonFieldType.NUMBER)
                         .description("주문서 ID"),
                 fieldWithPath("expiresAt")
                         .type(JsonFieldType.STRING)
@@ -210,7 +210,7 @@ public class OrderSheetDescriptor {
     public static FieldDescriptor[] updateOrderSheetResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("orderSheetId")
-                        .type(JsonFieldType.STRING)
+                        .type(JsonFieldType.NUMBER)
                         .description("주문서 ID"),
                 fieldWithPath("expiresAt")
                         .type(JsonFieldType.STRING)

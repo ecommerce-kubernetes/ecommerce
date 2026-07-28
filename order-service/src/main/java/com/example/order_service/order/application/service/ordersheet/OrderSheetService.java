@@ -118,7 +118,7 @@ public class OrderSheetService {
         );
     }
 
-    public OrderSheetResult getOrderSheet(String orderSheetId, Long userId) {
+    public OrderSheetResult getOrderSheet(Long orderSheetId, Long userId) {
         OrderSheet orderSheet = getValidOrderSheet(orderSheetId, userId);
 
         OrdererPointResult ordererPoints = orderUserPort.getOrdererPoints(userId);
@@ -182,7 +182,7 @@ public class OrderSheetService {
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
     }
 
-    private OrderSheet getValidOrderSheet(String orderSheetId, Long userId) {
+    private OrderSheet getValidOrderSheet(Long orderSheetId, Long userId) {
         OrderSheet orderSheet = repository.findByIdAndOrdererId(orderSheetId, userId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
 

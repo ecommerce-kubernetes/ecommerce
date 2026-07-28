@@ -14,7 +14,7 @@ import java.util.List;
 
 @Builder
 public record OrderSheetResult(
-        String orderSheetId,
+        Long orderSheetId,
         Orderer orderer,
         ShippingAddress shippingAddress,
         List<OrderSheetItemResult> items,

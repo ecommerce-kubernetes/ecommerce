@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record UpdateOrderSheetShippingAddressCommand(
-        String orderSheetId,
+        Long orderSheetId,
         Long userId,
         String receiverName,
         String receiverPhone,

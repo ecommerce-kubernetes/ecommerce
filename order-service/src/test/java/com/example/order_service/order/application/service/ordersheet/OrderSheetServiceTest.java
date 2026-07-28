@@ -233,7 +233,7 @@ public class OrderSheetServiceTest {
         OrderSheet orderSheet = createOrderSheet(expiresAt);
 
         OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         //when
         OrderSheetResult result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
@@ -271,9 +271,9 @@ public class OrderSheetServiceTest {
     @DisplayName("주문서를 찾을 수 없는 경우 예외가 발생한다")
     void getOrderSheet_notFound() {
         //given
-        String orderSheetId = "notFound";
+        Long orderSheetId = 999L;
         Long userId = 1L;
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheetId, userId))
@@ -288,7 +288,7 @@ public class OrderSheetServiceTest {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
         OrderSheet orderSheet = createOrderSheet(expiresAt);
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId()))
@@ -313,7 +313,7 @@ public class OrderSheetServiceTest {
                 .addressDetail("321동 1234호")
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
         OrderSheetUpdateResult result = orderSheetService.updateShippingAddress(command);
@@ -332,7 +332,7 @@ public class OrderSheetServiceTest {
     void updateShippingAddress_notFound_orderSheet() {
         //given
         UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(999L)
                 .userId(1L)
                 .receiverName("수령자")
                 .receiverPhone("010-9876-5432")
@@ -341,7 +341,7 @@ public class OrderSheetServiceTest {
                 .addressDetail("321동 1234호")
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
@@ -365,7 +365,7 @@ public class OrderSheetServiceTest {
                 .address("서울시 테헤란로 321")
                 .addressDetail("321동 1234호")
                 .build();
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
@@ -393,7 +393,7 @@ public class OrderSheetServiceTest {
                 .orderSheetItemId(orderSheetItem.getId())
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
@@ -421,11 +421,11 @@ public class OrderSheetServiceTest {
         ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
                 .userId(1L)
                 .itemCouponId(10L)
-                .orderSheetId("unknownSheetId")
+                .orderSheetId(999L)
                 .orderSheetItemId("orderSheetItemId")
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
@@ -449,7 +449,7 @@ public class OrderSheetServiceTest {
                 .orderSheetItemId(orderSheetItem.getId())
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
@@ -476,7 +476,7 @@ public class OrderSheetServiceTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
         ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
         //when
         //then
@@ -502,7 +502,7 @@ public class OrderSheetServiceTest {
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(20L, "장바구니 5% 할인 쿠폰", new RateCouponDiscountPolicy(5, Money.wons(50000L)), Money.wons(30000L));
         CartCouponResult cartCouponResult = CartCouponResult.builder().cartCoupon(cartCoupon).build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
@@ -526,10 +526,10 @@ public class OrderSheetServiceTest {
         ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
                 .userId(1L)
                 .cartCouponId(20L)
-                .orderSheetId("unknownSheetId")
+                .orderSheetId(999L)
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyCartCoupon(command))
@@ -551,7 +551,7 @@ public class OrderSheetServiceTest {
                 .orderSheetId(orderSheet.getId())
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyCartCoupon(command))
@@ -576,7 +576,7 @@ public class OrderSheetServiceTest {
         Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
@@ -595,11 +595,11 @@ public class OrderSheetServiceTest {
         //given
         Long userId = 1L;
         ApplyPointCommand command = ApplyPointCommand.builder()
-                .orderSheetId("unknown")
+                .orderSheetId(999L)
                 .userId(userId)
                 .usedPoints(1000L)
                 .build();
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.empty());
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyPoints(command))
@@ -622,7 +622,7 @@ public class OrderSheetServiceTest {
                 .usedPoints(2000L)
                 .build();
 
-        given(repository.findByIdAndOrdererId(anyString(), anyLong())).willReturn(Optional.of(orderSheet));
+        given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyPoints(command))

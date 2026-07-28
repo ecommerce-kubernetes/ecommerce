@@ -11,7 +11,7 @@ public record ApplyOrderSheetCartCouponRequest(
         Long cartCouponId
 ) {
 
-    public ApplyCartCouponCommand toCommand(String orderSheetId, Long userId) {
+    public ApplyCartCouponCommand toCommand(Long orderSheetId, Long userId) {
         return ApplyCartCouponCommand.builder()
                 .orderSheetId(orderSheetId)
                 .userId(userId)

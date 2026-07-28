@@ -13,7 +13,7 @@ import java.util.List;
 
 @Builder
 public record OrderSheetResponse(
-        String orderSheetId,
+        Long orderSheetId,
         OrdererInfo orderer,
         ShippingAddressInfo shippingAddress,
         List<OrderSheetItemResponse> items,

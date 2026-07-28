@@ -5,7 +5,7 @@ import lombok.Builder;
 @Builder
 public record ApplyItemCouponCommand(
         Long userId,
-        String orderSheetId,
+        Long orderSheetId,
         String orderSheetItemId,
         Long itemCouponId
 ) {

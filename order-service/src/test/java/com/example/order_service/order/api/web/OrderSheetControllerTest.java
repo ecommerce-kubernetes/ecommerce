@@ -243,7 +243,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void getOrderSheet() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         Long userId = 1L;
         OrderSheetResult result = Instancio.create(OrderSheetResult.class);
         given(orderSheetService.getOrderSheet(orderSheetId, userId))
@@ -264,7 +264,7 @@ class OrderSheetControllerTest {
     @DisplayName("로그인 하지 않은 사용자는 주문서를 조회할 수 없다")
     void getOrderSheet_unAuthorized() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         //when
         //then
         mockMvc.perform(get("/order-sheets/{orderSheetId}", orderSheetId)
@@ -281,10 +281,10 @@ class OrderSheetControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void getOrderSheet_forbidden() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         //when
         //then
-        mockMvc.perform(get("/order-sheets/{orderSheetId}", "orderSheetId")
+        mockMvc.perform(get("/order-sheets/{orderSheetId}", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
@@ -298,7 +298,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void updateShippingAddress() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
@@ -327,7 +327,7 @@ class OrderSheetControllerTest {
     @DisplayName("로그인 하지 않은 사용자는 배송 정보를 수정할 수 없다")
     void updateShippingAddress_unAuthorized() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
@@ -352,7 +352,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void updateShippingAddress_forbidden() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         UpdateOrderSheetShippingAddressRequest request = UpdateOrderSheetShippingAddressRequest.builder()
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
@@ -378,7 +378,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void updateShippingAddress_validate(String description, UpdateOrderSheetShippingAddressRequest req, String expectedField, String expectedMessage) throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", orderSheetId)
@@ -398,7 +398,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void applyItemCoupon() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         String orderSheetItemId = "orderSheetItemId";
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
@@ -424,7 +424,7 @@ class OrderSheetControllerTest {
     @DisplayName("로그인하지 않은 사용자는 상품 쿠폰을 변경할 수 없다")
     void applyItemCoupon_auAuthorized() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         String orderSheetItemId = "orderSheetItemId";
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
@@ -446,7 +446,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void applyItemCoupon_forbidden() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         String orderSheetItemId = "orderSheetItemId";
         ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
                 .itemCouponId(1L)
@@ -469,7 +469,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void applyItemCoupon_validation(String description, ApplyOrderSheetItemCouponRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         String orderSheetItemId = "orderSheetItemId";
         //when
         //then
@@ -490,7 +490,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void applyCartCoupon() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         ApplyOrderSheetCartCouponRequest request = ApplyOrderSheetCartCouponRequest.builder()
                 .cartCouponId(1L)
                 .build();
@@ -514,7 +514,7 @@ class OrderSheetControllerTest {
     @DisplayName("로그인 되지 않은 사용자는 장바구니 쿠폰을 변경할 수 없다")
     void applyCartCoupon_unAuthorized() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         ApplyOrderSheetCartCouponRequest request = ApplyOrderSheetCartCouponRequest.builder()
                 .cartCouponId(1L)
                 .build();
@@ -535,7 +535,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void applyCartCoupon_forbidden() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         ApplyOrderSheetCartCouponRequest request = ApplyOrderSheetCartCouponRequest.builder()
                 .cartCouponId(1L)
                 .build();
@@ -557,7 +557,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void applyCartCoupon_validation(String description, ApplyOrderSheetCartCouponRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         //when
         //then
         mockMvc.perform(patch("/order-sheets/" + orderSheetId + "/cart-coupon")
@@ -577,7 +577,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void applyPoints() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
                 .usedPoints(1000L)
                 .build();
@@ -602,7 +602,7 @@ class OrderSheetControllerTest {
     @DisplayName("로그인되지 않은 사용자는 사용 포인트를 수정할 수 없다")
     void applyPoints_unAuthorized() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
                 .usedPoints(1000L)
                 .build();
@@ -623,7 +623,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void applyPoints_forbidden() throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         ApplyOrderSheetPointRequest request = ApplyOrderSheetPointRequest.builder()
                 .usedPoints(1000L)
                 .build();
@@ -645,7 +645,7 @@ class OrderSheetControllerTest {
     @WithCustomMockUser
     void applyPoints_validate(String description, ApplyOrderSheetPointRequest req, String expectedField, String expectedMessage) throws Exception {
         //given
-        String orderSheetId = "orderSheetId";
+        Long orderSheetId = 1L;
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{orderSheetId}/points", orderSheetId)

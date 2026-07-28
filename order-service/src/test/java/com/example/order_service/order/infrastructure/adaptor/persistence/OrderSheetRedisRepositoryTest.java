@@ -85,7 +85,7 @@ class OrderSheetRedisRepositoryTest {
     void findById_notFound() {
         //given
         //when
-        Optional<OrderSheet> findOrderSheet = repository.findById("unknown");
+        Optional<OrderSheet> findOrderSheet = repository.findById(999L);
         //then
         assertThat(findOrderSheet).isEmpty();
     }
@@ -111,7 +111,7 @@ class OrderSheetRedisRepositoryTest {
     void findByIdAndOrdererId_notFound() {
         //given
         //when
-        Optional<OrderSheet> findOrderSheet = repository.findByIdAndOrdererId("unknown", 1L);
+        Optional<OrderSheet> findOrderSheet = repository.findByIdAndOrdererId(999L, 1L);
         //then
         assertThat(findOrderSheet).isEmpty();
     }

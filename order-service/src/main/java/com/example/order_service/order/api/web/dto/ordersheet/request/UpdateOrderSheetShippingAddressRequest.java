@@ -20,7 +20,7 @@ public record UpdateOrderSheetShippingAddressRequest(
         @NotBlank(message = "{orderSheet.addressDetail.notNull}")
         String addressDetail
 ) {
-        public UpdateOrderSheetShippingAddressCommand toCommand(String orderSheetId, Long userId) {
+        public UpdateOrderSheetShippingAddressCommand toCommand(Long orderSheetId, Long userId) {
                 return UpdateOrderSheetShippingAddressCommand.builder()
                         .orderSheetId(orderSheetId)
                         .userId(userId)

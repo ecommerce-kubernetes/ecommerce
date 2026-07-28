@@ -31,7 +31,7 @@ public class OrderSheetRedisRepository implements OrderSheetRepository {
     }
 
     @Override
-    public Optional<OrderSheet> findById(String orderSheetId) {
+    public Optional<OrderSheet> findById(Long orderSheetId) {
         String stringEntity = redisTemplate.opsForValue().get(generateKey(orderSheetId));
 
         if (stringEntity == null) {
@@ -43,12 +43,12 @@ public class OrderSheetRedisRepository implements OrderSheetRepository {
     }
 
     @Override
-    public Optional<OrderSheet> findByIdAndOrdererId(String orderSheetId, Long ordererId) {
+    public Optional<OrderSheet> findByIdAndOrdererId(Long orderSheetId, Long ordererId) {
         return findById(orderSheetId)
                 .filter(domain -> domain.getOrderer().getUserId().equals(ordererId));
     }
 
-    private String generateKey(String id) {
+    private String generateKey(Long id) {
         return PREFIX_ORDER_SHEET + id;
     }
 
