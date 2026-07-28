@@ -2,6 +2,7 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.OrderValidator;
@@ -37,6 +38,7 @@ public class OrderSheetService {
     private final OrderValidator orderValidator;
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetRepository repository;
+    private final IdGenerator idGenerator;
     private final Clock clock;
 
     public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
@@ -84,7 +86,7 @@ public class OrderSheetService {
 
     private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<OrderSheetItem> orderSheetItems) {
         OrderSheet orderSheet = OrderSheet.create(ordererProfile.orderer(), orderSheetItems,
-                LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()));
+                LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()), idGenerator);
 
         if (ordererProfile.defaultShippingAddress() != null) {
             orderSheet.changeShippingAddress(ordererProfile.defaultShippingAddress());
@@ -111,7 +113,8 @@ public class OrderSheetService {
                 product.productSnapshot(),
                 product.priceSnapshot(),
                 quantity,
-                product.options()
+                product.options(),
+                idGenerator
         );
     }
 

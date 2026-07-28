@@ -2,6 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.CartCouponSnapshot;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
@@ -49,7 +50,7 @@ public class OrderSheet {
         this.expiresAt = expiresAt;
     }
 
-    public static OrderSheet create(Orderer orderer, List<OrderSheetItem> items, LocalDateTime expiresAt) {
+    public static OrderSheet create(Orderer orderer, List<OrderSheetItem> items, LocalDateTime expiresAt, IdGenerator idGenerator) {
         if (items.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }

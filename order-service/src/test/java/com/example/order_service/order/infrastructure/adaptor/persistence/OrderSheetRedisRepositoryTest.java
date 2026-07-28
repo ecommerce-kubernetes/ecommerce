@@ -1,6 +1,7 @@
 package com.example.order_service.order.infrastructure.adaptor.persistence;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -37,6 +38,9 @@ class OrderSheetRedisRepositoryTest {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private IdGenerator idGenerator;
 
     private final PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
 
@@ -126,8 +130,8 @@ class OrderSheetRedisRepositoryTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
 
-        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options);
-        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt);
+        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options, idGenerator);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt, idGenerator);
 
         orderSheet.changeShippingAddress(shippingAddress);
         orderSheet.applyItemCoupon(orderSheetItem.getId(), itemCoupon, pointUsagePolicy);

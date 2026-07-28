@@ -1,6 +1,8 @@
 package com.example.order_service.order.infrastructure.adaptor.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderSheetRedisMapperTest {
     private final PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
     private final OrderSheetRedisMapper mapper = new OrderSheetRedisMapper();
+    private final IdGenerator idGenerator = new TsidGenerator();
 
     @Test
     @DisplayName("주문서 도메인을 엔티티로 변환한다")
@@ -51,8 +54,8 @@ class OrderSheetRedisMapperTest {
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options);
-        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt);
+        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options, idGenerator);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt, idGenerator);
 
         orderSheet.changeShippingAddress(shippingAddress);
         orderSheet.applyItemCoupon(orderSheetItem.getId(), itemCoupon, pointUsagePolicy);

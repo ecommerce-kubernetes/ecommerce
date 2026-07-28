@@ -2,6 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
@@ -42,7 +43,8 @@ public class OrderSheetItem {
         this.optionSnapshots = optionSnapshots;
     }
 
-    public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, int quantity, List<ProductOptionSnapshot> optionSnapshots) {
+    public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot,
+                                        int quantity, List<ProductOptionSnapshot> optionSnapshots, IdGenerator idGenerator) {
         String id = UUID.randomUUID().toString();
 
         if (quantity <= 0) {

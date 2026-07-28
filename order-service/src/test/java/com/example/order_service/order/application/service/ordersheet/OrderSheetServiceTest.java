@@ -2,6 +2,8 @@ package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.result.*;
 import com.example.order_service.order.application.service.OrderValidator;
@@ -62,6 +64,8 @@ public class OrderSheetServiceTest {
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
     @Spy
     private OrderValidator orderValidator;
+    @Spy
+    private IdGenerator idGenerator = new TsidGenerator();
 
     @Test
     @DisplayName("장바구니 주문서 생성")
@@ -672,8 +676,8 @@ public class OrderSheetServiceTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
 
-        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options);
-        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt);
+        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options, idGenerator);
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt, idGenerator);
 
         orderSheet.changeShippingAddress(shippingAddress);
         orderSheet.applyItemCoupon(orderSheetItem.getId(), itemCoupon, pointUsagePolicy);
