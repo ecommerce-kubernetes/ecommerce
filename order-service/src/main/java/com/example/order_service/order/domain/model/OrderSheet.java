@@ -24,11 +24,17 @@ import java.util.Optional;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
     private Long id;
+
     private Orderer orderer;
+
     private ShippingAddress shippingAddress;
+
     private List<OrderSheetItem> items;
+
     private CartCouponSnapshot cartCoupon;
+
     private Money usedPoints;
+
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
@@ -91,9 +97,11 @@ public class OrderSheet {
 
     public void applyPoints(Money usedPoints, PointUsagePolicy policy) {
         Money maxUsablePoints = calculateMaxUsablePoints(policy);
+
         if (usedPoints.isGreaterThan(maxUsablePoints)) {
             throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
         }
+
         this.usedPoints = usedPoints;
     }
 
@@ -118,8 +126,10 @@ public class OrderSheet {
         if (this.cartCoupon == null) {
             return Money.ZERO;
         }
+
         Money totalFinalAmount = calculateTotalFinalAmount();
         Money discount = cartCoupon.calculateDiscount(totalFinalAmount);
+
         return Money.min(totalFinalAmount, discount);
     }
 
@@ -171,6 +181,7 @@ public class OrderSheet {
         Duration remaining = Duration.between(currentTime, this.expiresAt);
         return remaining.isNegative() ? Duration.ZERO : remaining;
     }
+
     /**
      * 주문 접근 확인
      * <p>

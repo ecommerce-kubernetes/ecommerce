@@ -53,18 +53,19 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 생성 API")
     void createOrder() throws Exception {
         //given
+        Long orderSheetId = 1L;
         OrderCreateRequest createOrderRequest = OrderCreateRequest.builder()
-                .orderSheetId("sheetId")
+                .orderSheetId(orderSheetId)
                 .build();
 
         OrderResult.Create result = OrderResult.Create.builder()
+                .orderId(1L)
                 .orderNo("ORDER_NO")
                 .status(OrderStatus.PENDING)
                 .orderName("상품 1외 1건")
                 .totalPaymentAmount(Money.wons(9000L))
                 .createdAt(LocalDateTime.now())
                 .build();
-        OrderResponse.Create response = OrderResponse.Create.from(result);
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
                 .willReturn(result);
@@ -75,8 +76,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         .headers(roleUser)
                         .content(objectMapper.writeValueAsString(createOrderRequest)))
                 .andDo(print())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andDo(document(
                         "orders/create",
                         preprocessRequest(
@@ -88,7 +88,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(OrderDescriptor.orderCreateRequest()),
-                        responseFields(OrderDescriptor.getOrderCreateResponse())
+                        responseFields(OrderDescriptor.orderCreateResponse())
                 ));
     }
 
@@ -96,6 +96,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 정보를 조회한다")
     void getOrder() throws Exception {
         //given
+        Long orderSheetId = 1L;
         OrderResult.Detail result = createDetailResult();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         given(orderQueryService.getOrder(anyString(), anyLong()))

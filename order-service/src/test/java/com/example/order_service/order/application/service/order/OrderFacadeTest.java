@@ -76,7 +76,7 @@ public class OrderFacadeTest {
             //given
             OrderSheet orderSheet = createOrderSheet();
             OrderCommand.Create command = OrderCommand.Create.builder()
-                    .orderSheetId("sheetId")
+                    .orderSheetId(1L)
                     .userId(1L)
                     .build();
             OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
@@ -107,7 +107,7 @@ public class OrderFacadeTest {
             //given
             OrderSheet orderSheet = createOrderSheetWithoutCoupon();
             OrderCommand.Create command = OrderCommand.Create.builder()
-                    .orderSheetId("sheetId")
+                    .orderSheetId(1L)
                     .userId(1L)
                     .build();
             OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
@@ -134,7 +134,7 @@ public class OrderFacadeTest {
         void initialOrder_not_found_sheet(){
             //given
             OrderCommand.Create command = OrderCommand.Create.builder()
-                    .orderSheetId("sheetId")
+                    .orderSheetId(1L)
                     .userId(999L)
                     .build();
 //            given(orderSheetRepository.findById(anyString())).willReturn(Optional.empty());
@@ -152,7 +152,7 @@ public class OrderFacadeTest {
             //given
             OrderSheet orderSheet = createOrderSheet();
             OrderCommand.Create command = OrderCommand.Create.builder()
-                    .orderSheetId("sheetId")
+                    .orderSheetId(1L)
                     .userId(999L)
                     .build();
 //            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
@@ -171,7 +171,7 @@ public class OrderFacadeTest {
             OrderSheet orderSheet = createOrderSheet();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderCommand.Create command = OrderCommand.Create.builder()
-                    .orderSheetId("sheetId")
+                    .orderSheetId(1L)
                     .userId(1L)
                     .build();
 //            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));

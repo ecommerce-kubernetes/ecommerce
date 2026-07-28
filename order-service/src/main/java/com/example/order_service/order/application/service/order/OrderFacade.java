@@ -56,7 +56,7 @@ public class OrderFacade {
      * @return 생성된 주문 정보
      */
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
-        OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
+        OrderSheet orderSheet = findOrderSheetById(null);
         orderSheet.validateAccess(command.userId(), LocalDateTime.now(clock));
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);

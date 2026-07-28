@@ -14,6 +14,7 @@ public class OrderResult {
 
     @Builder
     public record Create(
+            Long orderId,
             String orderNo,
             OrderStatus status,
             String orderName,

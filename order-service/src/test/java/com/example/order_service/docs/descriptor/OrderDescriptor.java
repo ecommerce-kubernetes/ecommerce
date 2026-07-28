@@ -17,13 +17,9 @@ public class OrderDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getOrderCreateResponse() {
+    public static FieldDescriptor[] orderCreateResponse() {
         return new FieldDescriptor[] {
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("status").description("주문 상태"),
-                fieldWithPath("createdAt").description("주문 일시"),
-                fieldWithPath("orderName").description("주문 설명"),
-                fieldWithPath("totalPaymentAmount").description("최종 결제 금액")
+            fieldWithPath("orderId").type(JsonFieldType.NUMBER).description("주문 식별자")
         };
     }
 

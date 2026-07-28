@@ -59,8 +59,9 @@ class OrderControllerTest {
     @WithCustomMockUser
     void createOrder() throws Exception {
         //given
+        Long orderSheetId = 1L;
         OrderCreateRequest request = OrderCreateRequest.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(orderSheetId)
                 .build();
 
         OrderResult.Create result = Instancio.create(OrderResult.Create.class);
@@ -72,11 +73,8 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
-                .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()))
-                .andExpect(jsonPath("$.status").isString())
-                .andExpect(jsonPath("$.createdAt").isString());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.orderId").value(result.orderId()));
     }
 
     @Test
@@ -84,8 +82,9 @@ class OrderControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void createOrderWithAdminPrincipal() throws Exception {
         //given
+        Long orderSheetId = 1L;
         OrderCreateRequest request = OrderCreateRequest.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(orderSheetId)
                 .build();
         //when
         //then
@@ -104,8 +103,9 @@ class OrderControllerTest {
     @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
     void createOrder_unAuthorized() throws Exception {
         //given
+        Long orderSheetId = 1L;
         OrderCreateRequest request = OrderCreateRequest.builder()
-                .orderSheetId("orderSheetId")
+                .orderSheetId(orderSheetId)
                 .build();
         //when
         //then

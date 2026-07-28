@@ -2,12 +2,13 @@ package com.example.order_service.order.api.web.dto.order.request;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
 public record OrderCreateRequest(
-        @NotBlank(message = "{order.orderSheetId.notNull}")
-        String orderSheetId
+        @NotNull(message = "{order.orderSheetId.notNull}")
+        Long orderSheetId
 ) {
         public OrderCommand.Create toCommand(Long userId) {
                 return OrderCommand.Create.builder()

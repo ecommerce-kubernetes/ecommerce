@@ -7,7 +7,7 @@ public class OrderCommand {
     @Builder
     public record Create(
             Long userId,
-            String orderSheetId
+            Long orderSheetId
     ) {
     }
 
