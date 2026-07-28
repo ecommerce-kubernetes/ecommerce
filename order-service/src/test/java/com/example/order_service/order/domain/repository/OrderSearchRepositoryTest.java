@@ -46,7 +46,7 @@ public class OrderSearchRepositoryTest {
         Order order3 = createOrder();
         ReflectionTestUtils.setField(order3.getOrderer(), "userId", 2L);
         orderRepository.saveAll(List.of(order1, order2, order3));
-        OrderSearchCommand command = OrderSearchCommand.of("latest", null, null);
+        OrderSearchCommand command =null;
         Pageable pageable = PageRequest.of(0, 20);
         //when
         Page<Order> orders = orderSearchRepository.searchOrders(1L, command, pageable);
@@ -74,7 +74,7 @@ public class OrderSearchRepositoryTest {
                 .executeUpdate();
         em.flush();
         em.clear();
-        OrderSearchCommand command = OrderSearchCommand.of("latest", "2024", null);
+        OrderSearchCommand command = null;
         Pageable pageable = PageRequest.of(0, 20);
         //when
         Page<Order> orders = orderSearchRepository.searchOrders(1L, command, pageable);
@@ -96,7 +96,7 @@ public class OrderSearchRepositoryTest {
         OrderItem shirts = order2.getOrderItems().get(0);
         ReflectionTestUtils.setField(shirts.getProduct(), "productName", "셔츠");
         orderRepository.saveAll(List.of(order1, order2));
-        OrderSearchCommand command = OrderSearchCommand.of("latest", null, "셔츠");
+        OrderSearchCommand command = null;
         Pageable pageable = PageRequest.of(0, 10);
         //when
         Page<Order> orders = orderSearchRepository.searchOrders(1L, command, pageable);
@@ -111,7 +111,7 @@ public class OrderSearchRepositoryTest {
         //given
         Order firstOrder = orderRepository.save(createOrder());
         Order secondOrder = orderRepository.save(createOrder());
-        OrderSearchCommand command = OrderSearchCommand.of("latest", null, null);
+        OrderSearchCommand command = null;
         Pageable pageable = PageRequest.of(0, 20);
         //when
         Page<Order> orders = orderSearchRepository.searchOrders(1L, command, pageable);

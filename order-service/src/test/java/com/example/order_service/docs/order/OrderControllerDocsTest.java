@@ -6,9 +6,11 @@ import com.example.order_service.order.api.web.OrderController;
 import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
+import com.example.order_service.order.application.service.order.dto.command.OrderCreateCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
@@ -56,16 +58,12 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .orderSheetId(orderSheetId)
                 .build();
 
-        OrderResult.Create result = OrderResult.Create.builder()
+        OrderCreateResult result = OrderCreateResult.builder()
                 .orderId(1L)
-                .orderNo("ORDER_NO")
-                .status(OrderStatus.PENDING)
-                .orderName("상품 1외 1건")
-                .totalPaymentAmount(Money.wons(9000L))
-                .createdAt(LocalDateTime.now())
                 .build();
+
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
+        given(orderFacade.initialOrder(any(OrderCreateCommand.class)))
                 .willReturn(result);
         //when
         //then
@@ -95,7 +93,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     void getOrder() throws Exception {
         //given
         Long orderId = 1L;
-        OrderResult.Detail result = createDetailResult();
+        OrderResult result = createOrderResult();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         given(orderQueryService.getOrder(anyLong(), anyLong()))
                 .willReturn(result);
@@ -116,7 +114,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(OrderDescriptor.getOrderDetailResponse()),
+                        responseFields(OrderDescriptor.orderResponse()),
                         pathParameters(
                                 parameterWithName("orderId")
                                         .description("주문 아이디 (주문 식별자)")
@@ -129,8 +127,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 목록 조회 API")
     void getOrders() throws Exception {
         //given
-        Page<OrderResult.Summary> summaryResult = createSummaryResult();
-        given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
+        Page<OrderSummaryResult> summaryResult = createSummaryResult();
+        given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class)))
                 .willReturn(summaryResult);
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         //when
@@ -155,7 +153,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(OrderDescriptor.getOrderSummaryResponse()),
+                        responseFields(OrderDescriptor.orderSummaryResponse()),
                         queryParameters(
                                 parameterWithName("page")
                                         .description("페이지 번호"),
@@ -171,59 +169,74 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 ));
     }
 
-    private OrderResult.Detail createDetailResult() {
+    private OrderResult createOrderResult() {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
-                "12345", "서울시 테헤란로 123", "123동 1234호");
-//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
-        return OrderResult.Detail.builder()
-                .orderNo("orderNo")
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1_XL_BLUE", "청바지", "product/product/jean.jpg");
+        ProductOptionSnapshot option1 = ProductOptionSnapshot.of("사이즈", "XL");
+        ProductOptionSnapshot option2 = ProductOptionSnapshot.of("색상", "BLUE");
+        OrderResult.ItemPayment itemPayment = OrderResult.ItemPayment.builder()
+                .lineTotal(Money.wons(27000L))
+                .couponDiscount(Money.wons(1000L))
+                .finalItemAmount(Money.wons(26000L))
+                .build();
+
+        OrderResult.OrderItemResult orderItem = OrderResult.OrderItemResult.builder()
+                .orderItemId(100L)
+                .product(product)
+                .options(List.of(option1, option2))
+                .quantity(3)
+                .itemPayment(itemPayment)
+                .build();
+
+        OrderResult.PaymentSummary paymentSummary = OrderResult.PaymentSummary.builder()
+                .totalOriginalAmount(Money.wons(30000L))
+                .totalItemDiscount(Money.wons(3000L))
+                .totalItemCouponDiscount(Money.wons(1000L))
+                .cartCouponDiscount(Money.wons(1000L))
+                .usedPoints(Money.wons(1000L))
+                .totalPaymentAmount(Money.wons(24000L))
+                .build();
+
+        return OrderResult.builder()
+                .orderId(1L)
                 .status(OrderStatus.COMPLETED)
-                .orderName("청바지")
+                .orderName("상품")
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
-//                .cartCoupon(cartCoupon)
-                .items(createItems())
-                .totalOriginalPrice(Money.wons(10000L))
-                .totalProductDiscountAmount(Money.wons(1000L))
-                .totalCouponDiscountAmount(Money.wons(2000L))
-                .usedPoints(Money.wons(1000L))
-                .totalPaymentAmount(Money.wons(6000L))
+                .orderItems(List.of(orderItem))
+                .paymentSummary(paymentSummary)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
 
-    private Page<OrderResult.Summary> createSummaryResult() {
-        OrderResult.Summary summary = OrderResult.Summary.builder()
-                .orderNo("orderNo")
+    private Page<OrderSummaryResult> createSummaryResult() {
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1_XL_BLUE", "청바지", "product/product/jean.jpg");
+        ProductOptionSnapshot option1 = ProductOptionSnapshot.of("사이즈", "XL");
+        ProductOptionSnapshot option2 = ProductOptionSnapshot.of("색상", "BLUE");
+        OrderSummaryResult.ItemPayment itemPayment = OrderSummaryResult.ItemPayment.builder()
+                .lineTotal(Money.wons(27000L))
+                .couponDiscount(Money.wons(1000L))
+                .finalItemAmount(Money.wons(26000L))
+                .build();
+
+        OrderSummaryResult.OrderItemResult orderItem = OrderSummaryResult.OrderItemResult.builder()
+                .orderItemId(100L)
+                .product(product)
+                .options(List.of(option1, option2))
+                .quantity(3)
+                .itemPayment(itemPayment)
+                .build();
+
+        OrderSummaryResult orderSummary = OrderSummaryResult.builder()
+                .orderId(1L)
                 .status(OrderStatus.COMPLETED)
-                .orderName("청바지")
-                .orderItems(createItems())
+                .orderItems(List.of(orderItem))
                 .createdAt(LocalDateTime.now())
                 .build();
-        Pageable pageable = PageRequest.of(0, 20);
 
-        return new PageImpl<>(
-                List.of(summary),
-                pageable,
-                1
-        );
-    }
-
-    private List<OrderResult.OrderedItem> createItems() {
-        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "하의 1000원 할인", Money.wons(1000L));
-        ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
-        ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
-        return List.of(
-                OrderResult.OrderedItem.builder()
-                        .product(product)
-                        .productPrice(price)
-//                        .itemCoupon(itemCoupon)
-                        .quantity(1)
-                        .options(List.of(xl, blue))
-                        .build()
-        );
+        Pageable pageable = PageRequest.of(0, 10);
+        return new PageImpl<>(List.of(orderSummary), pageable, 2);
     }
 }

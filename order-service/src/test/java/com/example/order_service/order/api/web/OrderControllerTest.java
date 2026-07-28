@@ -4,9 +4,12 @@ import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
+import com.example.order_service.order.application.service.order.dto.command.OrderCreateCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
+import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,8 +67,8 @@ class OrderControllerTest {
                 .orderSheetId(orderSheetId)
                 .build();
 
-        OrderResult.Create result = Instancio.create(OrderResult.Create.class);
-        given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
+        OrderCreateResult result = Instancio.create(OrderCreateResult.class);
+        given(orderFacade.initialOrder(any(OrderCreateCommand.class)))
                 .willReturn(result);
         //when
         //then
@@ -146,22 +149,21 @@ class OrderControllerTest {
     void getOrder() throws Exception {
         //given
         Long orderId = 1L;
-        OrderResult.Detail result = Instancio.create(OrderResult.Detail.class);
-        given(orderQueryService.getOrder(anyLong(), anyLong()))
-                .willReturn(result);
+        OrderResult result = Instancio.create(OrderResult.class);
+        given(orderQueryService.getOrder(anyLong(), anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/orders/{orderId}", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
-                .andExpect(jsonPath("$.status").isString())
-                .andExpect(jsonPath("$.totalOriginalPrice").value(result.totalOriginalPrice().longValue()))
-                .andExpect(jsonPath("$.totalProductDiscountAmount").value(result.totalProductDiscountAmount().longValue()))
-                .andExpect(jsonPath("$.totalCouponDiscountAmount").value(result.totalCouponDiscountAmount().longValue()))
-                .andExpect(jsonPath("$.usedPoints").value(result.usedPoints().longValue()))
-                .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()));
+                .andExpect(jsonPath("$.orderId").value(result.orderId()))
+                .andExpect(jsonPath("$.status").value(result.status().name()))
+                .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                .andExpect(jsonPath("$.shippingAddress.receiverName").value(result.shippingAddress().getReceiverName()))
+                .andExpect(jsonPath("$.orderItems").isNotEmpty())
+                .andExpect(jsonPath("$.orderItems[0].orderItemId").exists())
+                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
     }
 
     @Test
@@ -199,81 +201,75 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.path").value("/orders/" + orderId));
     }
 
-    @Nested
+    @Test
     @DisplayName("주문 목록 조회")
-    class GetOrders {
+    @WithCustomMockUser
+    void getOrders() throws Exception {
+        //given
+        List<OrderSummaryResult> summaries = Instancio.ofList(OrderSummaryResult.class)
+                .size(2)
+                .create();
+        Pageable pageable = PageRequest.of(0, 10);
+        PageImpl<OrderSummaryResult> result = new PageImpl<>(summaries, pageable, 2);
+        given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class))).willReturn(result);
+        //when
+        //then
+        mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "latest"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElement").value(2))
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[*].orderId", containsInAnyOrder(
+                        String.valueOf(summaries.get(0).orderId()),
+                        String.valueOf(summaries.get(1).orderId())
+                )))
+                .andExpect(jsonPath("$.content[0].orderItems").isArray())
+                .andExpect(jsonPath("$.content[0].orderItems.length()").value(summaries.get(0).orderItems().size()));
+    }
 
-        @Test
-        @DisplayName("주문 목록 조회")
-        @WithCustomMockUser
-        void getOrders() throws Exception {
-            //given
-            List<OrderResult.Summary> summaries = Instancio.ofList(OrderResult.Summary.class)
-                    .size(2)
-                    .create();
-            Pageable pageable = PageRequest.of(0, 10);
-            PageImpl<OrderResult.Summary> result = new PageImpl<>(summaries, pageable, 2);
-            given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(get("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("sort", "latest"))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.currentPage").value(0))
-                    .andExpect(jsonPath("$.pageSize").value(10))
-                    .andExpect(jsonPath("$.totalElement").value(2))
-                    .andExpect(jsonPath("$.content.length()").value(2))
-                    .andExpect(jsonPath("$.content[*].orderNo", containsInAnyOrder(
-                            summaries.get(0).orderNo(),
-                            summaries.get(1).orderNo()
-                    )))
-                    .andExpect(jsonPath("$.content[0].orderItems").isArray())
-                    .andExpect(jsonPath("$.content[0].orderItems.length()").value(summaries.get(0).orderItems().size()));
-        }
+    @Test
+    @DisplayName("주문 목록 조회시 권한은 유저여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void getOrders_Admin_role() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "latest"))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
 
-        @Test
-        @DisplayName("주문 목록 조회시 권한은 유저여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void getOrders_Admin_role() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(get("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("sort", "latest"))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 주문 목록을 조회할 수 없다")
-        void getOrders_unAuthorized() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(get("/orders")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("sort", "latest"))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders"));
-        }
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문 목록을 조회할 수 없다")
+    void getOrders_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "latest"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
     }
 
     private static Stream<Arguments> provideInvalidCreateOrderRequest() {

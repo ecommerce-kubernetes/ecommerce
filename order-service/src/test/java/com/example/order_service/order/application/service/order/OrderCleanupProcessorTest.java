@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.model.OrderStatus;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +40,7 @@ class OrderCleanupProcessorTest {
     @DisplayName("타임아웃된 대기 주문을 실패 처리 한다")
     void cleanupExpiredPendingOrders(){
         //given
-        OrderResult.Summary timeoutOrder = Instancio.of(OrderResult.Summary.class)
+        OrderResultDeprecated.Summary timeoutOrder = Instancio.of(OrderResultDeprecated.Summary.class)
                 .set(field("status"), OrderStatus.PENDING)
                 .create();
         given(queryService.getPendingOrdersBefore(any(), anyInt())).willReturn(List.of(timeoutOrder));
@@ -65,10 +65,10 @@ class OrderCleanupProcessorTest {
     @DisplayName("처리 중 하나의 주문에서 예외가 발생해도 다음 주문 처리를 계속 진행한다")
     void cleanupExpiredPendingOrders_continueOnException() {
         // given
-        OrderResult.Summary order1 = Instancio.of(OrderResult.Summary.class)
+        OrderResultDeprecated.Summary order1 = Instancio.of(OrderResultDeprecated.Summary.class)
                 .set(field("orderNo"), "ORD-FAIL-123")
                 .create();
-        OrderResult.Summary order2 = Instancio.of(OrderResult.Summary.class)
+        OrderResultDeprecated.Summary order2 = Instancio.of(OrderResultDeprecated.Summary.class)
                 .set(field("orderNo"), "ORD-SUCCESS-456")
                 .create();
 
@@ -89,8 +89,8 @@ class OrderCleanupProcessorTest {
     @DisplayName("스레드 인터럽트 발생 시 조기 종료하고 인터럽트 상태를 복구한다 (Graceful Shutdown)")
     void cleanupExpiredPendingOrders_interrupted() {
         // given
-        OrderResult.Summary order1 = Instancio.of(OrderResult.Summary.class).create();
-        OrderResult.Summary order2 = Instancio.of(OrderResult.Summary.class).create();
+        OrderResultDeprecated.Summary order1 = Instancio.of(OrderResultDeprecated.Summary.class).create();
+        OrderResultDeprecated.Summary order2 = Instancio.of(OrderResultDeprecated.Summary.class).create();
         given(queryService.getPendingOrdersBefore(any(), anyInt())).willReturn(List.of(order1, order2));
         Thread.currentThread().interrupt();
 

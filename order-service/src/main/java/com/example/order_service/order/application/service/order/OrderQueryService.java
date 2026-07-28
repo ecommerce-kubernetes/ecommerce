@@ -3,6 +3,8 @@ package com.example.order_service.order.application.service.order;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
+import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
@@ -34,7 +36,7 @@ public class OrderQueryService {
      * @param orderNo 주문 번호
      * @return 주문 상세 정보
      */
-    public OrderResult.Detail getOrder(Long orderId, Long userId) {
+    public OrderResult getOrder(Long orderId, Long userId) {
         return null;
     }
 
@@ -47,10 +49,10 @@ public class OrderQueryService {
      * @param orderNo 주문 번호
      * @return 주문 상세 정보
      */
-    public OrderResult.Detail getOrder(String orderNo) {
+    public OrderResultDeprecated.Detail getOrder(String orderNo) {
         Order order = orderRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        return OrderResult.Detail.from(order);
+        return OrderResultDeprecated.Detail.from(order);
     }
 
     /**
@@ -64,13 +66,12 @@ public class OrderQueryService {
      * @param pageable 페이지네이션
      * @return 주문 목록
      */
-    public Page<OrderResult.Summary> getOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
-        Page<Order> orders = orderSearchRepository.searchOrders(userId, command, pageable);
-        return orders.map(OrderResult.Summary::from);
+    public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
+        return null;
     }
 
-    public List<OrderResult.Summary> getPendingOrdersBefore(LocalDateTime threshold, int size) {
+    public List<OrderResultDeprecated.Summary> getPendingOrdersBefore(LocalDateTime threshold, int size) {
         List<Order> orders = orderSearchRepository.findOrdersBefore(threshold, size);
-        return orders.stream().map(OrderResult.Summary::from).toList();
+        return orders.stream().map(OrderResultDeprecated.Summary::from).toList();
     }
 }

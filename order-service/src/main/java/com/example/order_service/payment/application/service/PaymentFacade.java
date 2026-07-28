@@ -3,6 +3,7 @@ package com.example.order_service.payment.application.service;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.payment.application.external.PaymentGateway;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
@@ -52,11 +53,11 @@ public class PaymentFacade {
      * @return 결제 승인 결과
      */
     public PaymentResult.PaymentApproval confirm(PaymentCommand.Confirm command) {
-        OrderResult.Detail order = orderQueryService.getOrder(1L, command.userId());
+        OrderResult order = orderQueryService.getOrder(1L, command.userId());
         if (order.status() != OrderStatus.PENDING) {
             throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
         }
-        if (!order.totalPaymentAmount().equals(command.amount())) {
+        if (!order.paymentSummary().totalPaymentAmount().equals(command.amount())) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
         PaymentContext.Create context = mapper.toContext(command);
@@ -65,11 +66,11 @@ public class PaymentFacade {
         return approveWithFallback(payment, pgResult);
     }
 
-    private PGPaymentResult.Approval confirmWithPg(PaymentResult.Default payment, OrderResult.Detail order,
+    private PGPaymentResult.Approval confirmWithPg(PaymentResult.Default payment, OrderResult order,
                                                    PaymentCommand.Confirm command) {
         try {
-            PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
-                    order.totalPaymentAmount());
+            PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderId().toString(), command.paymentKey(),
+                    order.paymentSummary().totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
         } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();

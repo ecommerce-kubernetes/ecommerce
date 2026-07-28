@@ -3,7 +3,7 @@ package com.example.order_service.order.application.orchestrator;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.application.service.order.OrderCommandService;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaCommand;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
@@ -40,13 +40,13 @@ public class OrderSagaManager {
     @Transactional
     public void startSaga(String orderNo, Long paymentId) {
         orderCommandService.changePaid(orderNo);
-        OrderResult.Detail order = orderQueryService.getOrder(orderNo);
+        OrderResultDeprecated.Detail order = orderQueryService.getOrder(orderNo);
         SagaPayload payload = createPayload(order);
         OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         orderSagaService.createSaga(command);
     }
 
-    private SagaPayload createPayload(OrderResult.Detail order) {
+    private SagaPayload createPayload(OrderResultDeprecated.Detail order) {
         List<Long> itemCouponIds = order.items().stream()
                 .map(item -> item.itemCoupon().getItemCouponId())
                 .filter(java.util.Objects::nonNull)

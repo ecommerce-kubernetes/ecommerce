@@ -2,7 +2,7 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
@@ -42,10 +42,10 @@ public class OrderCommandService {
      * @param context 주문 생성 컨텍스트
      * @return 생성된 주문 DTO
      */
-    public OrderResult.Create saveOrder(OrderContext.CreateOrderContext context) {
+    public OrderResultDeprecated.Create saveOrder(OrderContext.CreateOrderContext context) {
         Order order = initialOrder(context);
         Order savedOrder = orderRepository.save(order);
-        return OrderResult.Create.from(savedOrder);
+        return OrderResultDeprecated.Create.from(savedOrder);
     }
 
     /**

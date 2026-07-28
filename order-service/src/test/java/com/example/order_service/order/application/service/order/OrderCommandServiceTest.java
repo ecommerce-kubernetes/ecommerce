@@ -2,7 +2,7 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.vo.*;
@@ -37,7 +37,7 @@ public class OrderCommandServiceTest {
             //given
             OrderContext.CreateOrderContext context = createContext();
             //when
-            OrderResult.Create result = orderCommandService.saveOrder(context);
+            OrderResultDeprecated.Create result = orderCommandService.saveOrder(context);
             //then
             assertThat(result.orderNo()).isNotNull();
             assertThat(result.status()).isEqualTo(OrderStatus.PENDING);

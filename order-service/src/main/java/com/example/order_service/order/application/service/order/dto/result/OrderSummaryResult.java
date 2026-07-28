@@ -2,27 +2,22 @@ package com.example.order_service.order.application.service.order.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.model.OrderStatus;
-import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
-import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record OrderResult(
+public record OrderSummaryResult(
         Long orderId,
         OrderStatus status,
-        String orderName,
-        Orderer orderer,
-        ShippingAddress shippingAddress,
         List<OrderItemResult> orderItems,
-        PaymentSummary paymentSummary,
 
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         LocalDateTime createdAt
-
 ) {
 
     @Builder
@@ -30,25 +25,14 @@ public record OrderResult(
             Long orderItemId,
             ProductSnapshot product,
             List<ProductOptionSnapshot> options,
-            int quantity,
+            Integer quantity,
             ItemPayment itemPayment
-    ) {
-    }
+    ) {}
 
     @Builder
     public record ItemPayment(
             Money lineTotal,
             Money couponDiscount,
             Money finalItemAmount
-    ) {}
-
-    @Builder
-    public record PaymentSummary(
-            Money totalOriginalAmount,
-            Money totalItemDiscount,
-            Money totalItemCouponDiscount,
-            Money cartCouponDiscount,
-            Money usedPoints,
-            Money totalPaymentAmount
     ) {}
 }

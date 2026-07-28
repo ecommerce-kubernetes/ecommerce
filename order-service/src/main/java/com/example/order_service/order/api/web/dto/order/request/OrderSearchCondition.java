@@ -1,6 +1,5 @@
 package com.example.order_service.order.api.web.dto.order.request;
 
-import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,8 +11,4 @@ public class OrderSearchCondition {
     private String sort = "latest";
     private String year;
     private String productName;
-
-    public OrderSearchCommand toCommand() {
-        return OrderSearchCommand.of(sort, year, productName);
-    }
 }

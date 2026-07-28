@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,11 +23,11 @@ public class OrderCleanupProcessor {
 
     public void cleanupExpiredPendingOrders() {
         LocalDateTime threshold = LocalDateTime.now(clock).minusMinutes(THRESHOLD_MINUTES);
-        List<OrderResult.Summary> orders = queryService.getPendingOrdersBefore(threshold, CHUNK_SIZE);
+        List<OrderResultDeprecated.Summary> orders = queryService.getPendingOrdersBefore(threshold, CHUNK_SIZE);
         if (orders.isEmpty()) {
             return;
         }
-        for (OrderResult.Summary order : orders) {
+        for (OrderResultDeprecated.Summary order : orders) {
             try {
                 commandService.changeFailed(order.orderNo(), "SYSTEM_TIMEOUT");
                 Thread.sleep(THROTTLE_MS);

@@ -1,17 +1,14 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.application.port.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.port.dto.result.OrderUserResult;
-import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
-import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.command.OrderCreateCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
-import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.infrastructure.adaptor.client.OrderCouponAdaptor;
 import com.example.order_service.order.infrastructure.adaptor.client.OrderProductAdaptor;
 import com.example.order_service.order.infrastructure.adaptor.client.OrderUserAdaptor;
@@ -20,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -55,13 +51,8 @@ public class OrderFacade {
      * @param command 주문 생성 커맨드
      * @return 생성된 주문 정보
      */
-    public OrderResult.Create initialOrder(OrderCommand.Create command) {
-        OrderSheet orderSheet = findOrderSheetById(null);
-        orderSheet.validateAccess(command.userId(), LocalDateTime.now(clock));
-        OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
-        OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
-        OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
-        return orderCommandService.saveOrder(context);
+    public OrderCreateResult initialOrder(OrderCreateCommand command) {
+        return null;
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {

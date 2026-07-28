@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.payment.application.external.PaymentGateway;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
@@ -67,7 +68,7 @@ public class PaymentFacadeTest {
             PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
                     .userId(1L).orderNo("orderNo").paymentKey("paymentKey")
                     .amount(Money.wons(10000L)).build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -107,7 +108,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PAID)
                     .create();
             given(orderQueryService.getOrder(anyLong(), anyLong()))
@@ -133,7 +134,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(4000L))
                     .create();
@@ -160,7 +161,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -191,7 +192,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -221,7 +222,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -257,7 +258,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -293,7 +294,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -328,7 +329,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -363,7 +364,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -393,7 +394,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
@@ -424,7 +425,7 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+            OrderResult order = Instancio.of(OrderResult.class)
                     .set(field("status"), OrderStatus.PENDING)
                     .set(field("totalPaymentAmount"), Money.wons(10000L))
                     .create();
