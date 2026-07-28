@@ -13,6 +13,7 @@ import java.util.List;
 
 @Builder
 public record OrderSheetResponse(
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long orderSheetId,
         OrdererInfo orderer,
         ShippingAddressInfo shippingAddress,
@@ -76,6 +77,7 @@ public record OrderSheetResponse(
 
     @Builder
     public record OrderSheetItemResponse(
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Long orderSheetItemId,
             int quantity,
             ProductInfo product,

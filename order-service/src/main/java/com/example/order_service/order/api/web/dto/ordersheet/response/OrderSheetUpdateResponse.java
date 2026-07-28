@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record OrderSheetUpdateResponse(
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long orderSheetId,
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
