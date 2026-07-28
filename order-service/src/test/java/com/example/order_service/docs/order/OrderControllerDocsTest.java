@@ -4,7 +4,6 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderDescriptor;
 import com.example.order_service.order.api.web.OrderController;
 import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
-import com.example.order_service.order.api.web.dto.order.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
@@ -37,7 +36,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
@@ -96,14 +94,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 정보를 조회한다")
     void getOrder() throws Exception {
         //given
-        Long orderSheetId = 1L;
+        Long orderId = 1L;
         OrderResult.Detail result = createDetailResult();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        given(orderQueryService.getOrder(anyString(), anyLong()))
+        given(orderQueryService.getOrder(anyLong(), anyLong()))
                 .willReturn(result);
         //when
         //then
-        mockMvc.perform(get("/orders/{orderNo}", "ORDER_NO")
+        mockMvc.perform(get("/orders/{orderId}", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser))
                 .andDo(print())
@@ -120,8 +118,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         requestHeaders(AUTH_HEADER),
                         responseFields(OrderDescriptor.getOrderDetailResponse()),
                         pathParameters(
-                                parameterWithName("orderNo")
-                                        .description("주문 번호")
+                                parameterWithName("orderId")
+                                        .description("주문 아이디 (주문 식별자)")
                         )
                 ));
 

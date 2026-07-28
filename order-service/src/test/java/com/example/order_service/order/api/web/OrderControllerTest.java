@@ -140,68 +140,63 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
 
-    @Nested
-    @DisplayName("주문 조회")
-    class GetOrder {
+    @Test
+    @DisplayName("주문 정보를 조회한다")
+    @WithCustomMockUser
+    void getOrder() throws Exception {
+        //given
+        Long orderId = 1L;
+        OrderResult.Detail result = Instancio.create(OrderResult.Detail.class);
+        given(orderQueryService.getOrder(anyLong(), anyLong()))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
+                .andExpect(jsonPath("$.status").isString())
+                .andExpect(jsonPath("$.totalOriginalPrice").value(result.totalOriginalPrice().longValue()))
+                .andExpect(jsonPath("$.totalProductDiscountAmount").value(result.totalProductDiscountAmount().longValue()))
+                .andExpect(jsonPath("$.totalCouponDiscountAmount").value(result.totalCouponDiscountAmount().longValue()))
+                .andExpect(jsonPath("$.usedPoints").value(result.usedPoints().longValue()))
+                .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()));
+    }
 
-        @Test
-        @DisplayName("주문 정보를 조회한다")
-        @WithCustomMockUser
-        void getOrder() throws Exception {
-            //given
-            String orderNo = "orderNo";
-            OrderResult.Detail result = Instancio.create(OrderResult.Detail.class);
-            given(orderQueryService.getOrder(anyString(), anyLong()))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(get("/orders/{orderNo}", orderNo)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
-                    .andExpect(jsonPath("$.status").isString())
-                    .andExpect(jsonPath("$.totalOriginalPrice").value(result.totalOriginalPrice().longValue()))
-                    .andExpect(jsonPath("$.totalProductDiscountAmount").value(result.totalProductDiscountAmount().longValue()))
-                    .andExpect(jsonPath("$.totalCouponDiscountAmount").value(result.totalCouponDiscountAmount().longValue()))
-                    .andExpect(jsonPath("$.usedPoints").value(result.usedPoints().longValue()))
-                    .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()));
-        }
+    @Test
+    @DisplayName("주문 정보를 조회할때는 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void getOrder_Admin_role() throws Exception {
+        //given
+        Long orderId = 1L;
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/" + orderId));
+    }
 
-        @Test
-        @DisplayName("주문 정보를 조회할때는 유저 권한이여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void getOrder_Admin_role() throws Exception {
-            //given
-            String orderNo = "orderNo";
-            //when
-            //then
-            mockMvc.perform(get("/orders/{orderNo}", orderNo)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders/orderNo"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 주문 정보를 조회할 수 없다")
-        void getOrder_unAuthorized() throws Exception {
-            //given
-            String orderNo = "orderNo";
-            //when
-            //then
-            mockMvc.perform(get("/orders/{orderNo}", orderNo)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/orders/orderNo"));
-        }
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문 정보를 조회할 수 없다")
+    void getOrder_unAuthorized() throws Exception {
+        //given
+        Long orderId = 1L;
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/" + orderId));
     }
 
     @Nested

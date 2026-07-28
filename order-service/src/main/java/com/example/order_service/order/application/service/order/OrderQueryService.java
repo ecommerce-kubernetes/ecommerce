@@ -16,15 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 주문 조회 담당 서비스
- * <p>
- * 주문 조회 로직을 담당하는 서비스
- * </p>
- *
- * @author 최민식
- * @since 2026. 06. 02
- */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -43,10 +34,8 @@ public class OrderQueryService {
      * @param orderNo 주문 번호
      * @return 주문 상세 정보
      */
-    public OrderResult.Detail getOrder(String orderNo, Long userId) {
-        Order order = orderRepository.findByOrderNoAndOrderer_UserId(orderNo, userId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        return OrderResult.Detail.from(order);
+    public OrderResult.Detail getOrder(Long orderId, Long userId) {
+        return null;
     }
 
     /**

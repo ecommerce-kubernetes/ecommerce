@@ -48,7 +48,7 @@ public class OrderQueryServiceTest {
             Order order = createOrder();
             orderRepository.save(order);
             //when
-            OrderResult.Detail result = orderQueryService.getOrder("orderNo", 1L);
+            OrderResult.Detail result = orderQueryService.getOrder(1L, 1L);
             //then
             assertThat(result.orderNo()).isEqualTo("orderNo");
             assertThat(result.orderer().getUserId()).isEqualTo(1L);
@@ -60,7 +60,7 @@ public class OrderQueryServiceTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> orderQueryService.getOrder("notFound", 1L))
+            assertThatThrownBy(() -> orderQueryService.getOrder(999L, 1L))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);

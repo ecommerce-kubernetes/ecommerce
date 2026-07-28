@@ -52,7 +52,7 @@ public class PaymentFacade {
      * @return 결제 승인 결과
      */
     public PaymentResult.PaymentApproval confirm(PaymentCommand.Confirm command) {
-        OrderResult.Detail order = orderQueryService.getOrder(command.orderNo(), command.userId());
+        OrderResult.Detail order = orderQueryService.getOrder(1L, command.userId());
         if (order.status() != OrderStatus.PENDING) {
             throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
         }

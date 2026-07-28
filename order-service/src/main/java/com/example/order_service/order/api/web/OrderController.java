@@ -6,14 +6,13 @@ import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequ
 import com.example.order_service.order.api.web.dto.order.request.OrderSearchCondition;
 import com.example.order_service.order.api.web.dto.order.response.OrderCreateResponse;
 import com.example.order_service.order.api.web.dto.order.response.OrderResponse;
+import com.example.order_service.order.api.web.dto.order.response.OrderSummaryResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
-import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderFacade orderFacade;
-    private final OrderQueryService orderQueryService;
 
     @PostMapping
     public ResponseEntity<OrderCreateResponse> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -40,21 +38,16 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.SC_CREATED).body(response);
     }
 
-    @GetMapping("/{orderNo}")
-    public ResponseEntity<OrderResponse.Detail> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                         @PathVariable("orderNo") String orderNo) {
-        OrderResult.Detail result = orderQueryService.getOrder(orderNo, userPrincipal.getUserId());
-        OrderResponse.Detail response = OrderResponse.Detail.from(result);
-        return ResponseEntity.ok(response);
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                         @PathVariable("orderId") Long orderId) {
+        return null;
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<OrderResponse.Summary>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                @ModelAttribute OrderSearchCondition condition,
-                                                                @PageableDefault(size = 20, page = 0) Pageable pageable) {
-        OrderSearchCommand command = condition.toCommand();
-        Page<OrderResult.Summary> orders = orderQueryService.getOrders(userPrincipal.getUserId(), command, pageable);
-        PageDto<OrderResponse.Summary> summaryPageDto = PageDto.of(orders, OrderResponse.Summary::from);
-        return ResponseEntity.ok(summaryPageDto);
+    public ResponseEntity<PageDto<OrderSummaryResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                   @ModelAttribute OrderSearchCondition condition,
+                                                                   @PageableDefault(size = 20, page = 0) Pageable pageable) {
+        return null;
     }
 }

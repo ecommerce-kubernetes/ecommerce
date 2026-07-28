@@ -7,36 +7,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record OrderResponse(
+public record OrderSummaryResponse(
         Long orderId,
         String status,
-        String orderName,
-        OrdererResponse orderer,
-        ShippingAddressResponse shippingAddress,
         List<OrderItemResponse> orderItems,
-        PaymentSummaryResponse paymentSummary,
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         LocalDateTime createdAt
 ) {
-
-    @Builder
-    public record OrdererResponse(
-            Long userId,
-            String userName,
-            String phoneNumber
-    ) {
-    }
-
-    @Builder
-    public record ShippingAddressResponse(
-            String receiverName,
-            String receiverPhone,
-            String zipCode,
-            String address,
-            String addressDetail
-    ) {
-    }
 
     @Builder
     public record OrderItemResponse(
@@ -70,17 +48,6 @@ public record OrderResponse(
             Long lineTotal,
             Long couponDiscount,
             Long finalItemAmount
-    ) {
-    }
-
-    @Builder
-    public record PaymentSummaryResponse(
-            Long totalOriginalAmount,
-            Long totalItemDiscount,
-            Long totalItemCouponDiscount,
-            Long cartCouponDiscount,
-            Long usedPoints,
-            Long totalPaymentAmount
     ) {
     }
 }
