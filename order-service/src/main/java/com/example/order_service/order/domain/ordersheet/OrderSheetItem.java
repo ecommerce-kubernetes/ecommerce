@@ -3,6 +3,7 @@ package com.example.order_service.order.domain.ordersheet;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -45,6 +46,22 @@ public class OrderSheetItem {
         this.itemCouponSnapshot = itemCoupon;
         this.quantity = quantity;
         this.optionSnapshots = optionSnapshots;
+    }
+
+    public static OrderSheetItem create(CreateOrderSheetItemContext context, IdGenerator idGenerator) {
+        if (context.quantity() <= 0) {
+            throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
+        }
+
+        Long id = idGenerator.generate();
+
+        return OrderSheetItem.reconstitute()
+                .id(id)
+                .productSnapshot(context.productSnapshot())
+                .priceSnapshot(context.priceSnapshot())
+                .quantity(context.quantity())
+                .optionSnapshots(context.optionSnapshots())
+                .build();
     }
 
     public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot,

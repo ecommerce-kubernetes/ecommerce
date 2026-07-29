@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
@@ -33,8 +34,15 @@ public class OrderSheetItemTest {
                 Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
         int quantity = 1;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(List.of(productOption))
+                .build();
         //when
-        OrderSheetItem result = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, List.of(productOption), idGenerator);
+        OrderSheetItem result = OrderSheetItem.create(context, idGenerator);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -54,9 +62,16 @@ public class OrderSheetItemTest {
                 Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
         int quantity = 1;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(null)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(List.of(productOption))
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> OrderSheetItem.create(null, priceSnapshot, quantity, List.of(productOption), idGenerator))
+        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
     }
@@ -69,9 +84,16 @@ public class OrderSheetItemTest {
                 "청바지", "/product/product/jean1.jpg");
         ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
         int quantity = 1;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(null)
+                .quantity(quantity)
+                .optionSnapshots(List.of(productOption))
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> OrderSheetItem.create(productSnapshot, null, quantity, List.of(productOption), idGenerator))
+        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
     }
@@ -86,9 +108,16 @@ public class OrderSheetItemTest {
                 Money.wons(1000L), Money.wons(9000L));
         ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
         int quantity = 0;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(List.of(productOption))
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, List.of(productOption), idGenerator))
+        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.INVALID_ITEM_QUANTITY);
@@ -103,9 +132,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(null)
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, null, idGenerator))
+        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
     }
@@ -119,7 +155,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
@@ -138,7 +183,17 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         //then
         assertThatThrownBy(() -> item.applyItemCoupon(null))
@@ -155,7 +210,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
@@ -176,7 +240,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         Money result = item.calculateOriginalLineTotal();
         //then
@@ -192,7 +265,15 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         Money result = item.calculateItemDiscountLineTotal();
         //then
@@ -208,7 +289,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         Money result = item.calculateLineTotal();
         //then
@@ -224,7 +314,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
@@ -244,7 +343,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         Money couponDiscount = item.calculateCouponDiscount();
         //then
@@ -260,7 +368,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 1;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(30000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "30000원 할인 쿠폰", policy, 1);
         item.applyItemCoupon(itemCoupon);
@@ -279,7 +396,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         Money result = item.calculateFinalAmount();
         //then
@@ -295,7 +421,16 @@ public class OrderSheetItemTest {
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
-        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList(), idGenerator);
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots( Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", policy, 1);
         item.applyItemCoupon(itemCoupon);
