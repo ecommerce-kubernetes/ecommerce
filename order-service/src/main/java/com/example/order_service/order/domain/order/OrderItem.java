@@ -20,49 +20,31 @@ import java.util.List;
 public class OrderItem extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
+
     @Embedded
     private ProductSnapshot product;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "discountAmount", column = @Column(name = "product_discount_amount"))
     })
     private ProductPriceSnapshot productPrice;
-//    @Embedded
-//    @AttributeOverrides({
-//            @AttributeOverride(name = "discountAmount", column = @Column(name = "coupon_discount_amount"))
-//    })
-//    private ItemCouponSnapshot itemCoupon;
+
+    @Embedded
+    private AppliedItemCoupon appliedItemCoupon;
+
     private Integer quantity;
+
     @Convert(converter = ProductOptionSnapshotConverter.class)
     private List<ProductOptionSnapshot> options;
 
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(ProductSnapshot product, ProductPriceSnapshot productPrice, ItemCouponSnapshot itemCoupon,
-                      Integer quantity, List<ProductOptionSnapshot> options) {
-        this.product = product;
-        this.productPrice = productPrice;
-//        this.itemCoupon = itemCoupon;
-        this.quantity = quantity;
-        this.options = options;
-    }
+    @Embedded
+    private OrderItemAmount orderItemAmount;
 
-    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, ItemCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
-        return OrderItem.builder()
-                .product(product)
-                .productPrice(productPrice)
-                .itemCoupon(itemCoupon)
-                .quantity(quantity)
-                .options(options)
-                .build();
-    }
-
-    protected void setOrder(Order order) {
-        this.order = order;
-    }
 }
 
