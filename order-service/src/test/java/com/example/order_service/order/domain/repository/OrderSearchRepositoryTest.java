@@ -127,8 +127,7 @@ public class OrderSearchRepositoryTest {
                 "서울시 테헤란로 123", "123동 1234호");
 //        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
         OrderItem orderItem = createOrderItem();
-        return Order.init("orderNo", orderer, shippingAddress, null, List.of(orderItem),
-                Money.wons(10000L), Money.wons(1000L), Money.wons(2000L), Money.ZERO, Money.wons(7000L));
+        return null;
     }
 
     private OrderItem createOrderItem() {

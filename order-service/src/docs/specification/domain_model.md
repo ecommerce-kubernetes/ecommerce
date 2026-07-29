@@ -176,7 +176,11 @@
 
 #### 행위
 
+- create(주문 생성): 주문을 생성한다.
+
 #### 규칙
+
+- 주문을 생성할때 주문 필수 정보(id, status, orderName, orderer, shippingAddress, orderItems, orderAmount, createdAt)가 필요하다.
 
 ### 주문 항목(OrderItem)
 
@@ -195,6 +199,17 @@
 | options           | List<ProductOptionSnapshot> | 상품 옵션       |
 | orderItemAmount   | OrderItemAmount             | 주문 항목 가격 정보 |
 
+#### 행위
+
+- create(주문 항목 생성): 주문 항목을 생성한다.
+
+#### 규칙
+
+- 주문 항목을 생성할때 상품 스냅샷이 필요하다.
+- 주문 항목을 생성할때 주문 시점의 가격 정보가 필요하다.
+- 주문 항목을 생성할 때 주문 수량이 필요하다.
+- 주문 항목을 생성할 때 주문 수량은 1개 이상이어야 한다.
+- 상품 옵션 정보는 빈 목록일 수 있지만 `null`일 수 없다.
 ---
 
 ## 값 객체(VO)

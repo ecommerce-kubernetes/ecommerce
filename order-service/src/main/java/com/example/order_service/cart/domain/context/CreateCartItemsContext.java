@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.dto.param;
+package com.example.order_service.cart.domain.context;
 
 import lombok.Builder;
 

@@ -1,11 +1,10 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
-import com.example.order_service.cart.application.dto.param.UpdateCartItemContext;
+import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
-import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

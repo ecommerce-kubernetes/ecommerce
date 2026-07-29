@@ -13,9 +13,13 @@ import org.springframework.util.Assert;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CartCouponSnapshot {
+
     private Long cartCouponId;
+
     private String name;
+
     private CouponDiscountPolicy discountPolicy;
+
     private Money minimumPaymentAmount;
 
     @Builder(builderMethodName = "reconstitute")

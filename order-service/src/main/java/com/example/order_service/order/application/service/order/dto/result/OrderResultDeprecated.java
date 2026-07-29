@@ -26,10 +26,8 @@ public class OrderResultDeprecated {
     ) {
         public static Create from(Order order) {
             return Create.builder()
-                    .orderNo(order.getOrderNo())
                     .status(order.getStatus())
                     .orderName(order.getOrderName())
-                    .totalPaymentAmount(order.getTotalPaymentAmount())
                     .createdAt(order.getCreatedAt())
                     .build();
         }
@@ -53,18 +51,12 @@ public class OrderResultDeprecated {
     ) {
         public static Detail from(Order order) {
             return Detail.builder()
-                    .orderNo(order.getOrderNo())
                     .status(order.getStatus())
                     .orderName(order.getOrderName())
                     .orderer(order.getOrderer())
                     .shippingAddress(order.getShippingAddress())
 //                    .cartCoupon(order.getCartCoupon())
                     .items(OrderedItem.from(order.getOrderItems()))
-                    .totalOriginalPrice(order.getTotalOriginalPrice())
-                    .totalProductDiscountAmount(order.getTotalProductDiscountAmount())
-                    .totalCouponDiscountAmount(order.getTotalCouponDiscountAmount())
-                    .usedPoints(order.getUsedPoints())
-                    .totalPaymentAmount(order.getTotalPaymentAmount())
                     .createdAt(order.getCreatedAt())
                     .build();
         }
@@ -80,7 +72,6 @@ public class OrderResultDeprecated {
     ) {
         public static Summary from(Order order) {
             return Summary.builder()
-                    .orderNo(order.getOrderNo())
                     .status(order.getStatus())
                     .orderName(order.getOrderName())
                     .orderItems(OrderedItem.from(order.getOrderItems()))

@@ -18,11 +18,17 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
+
     private Long id;
+
     private ProductSnapshot productSnapshot;
+
     private ProductPriceSnapshot priceSnapshot;
+
     private ItemCouponSnapshot itemCouponSnapshot;
+
     private int quantity;
+
     private List<ProductOptionSnapshot> optionSnapshots;
 
     @Builder(builderMethodName = "reconstitute")

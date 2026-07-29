@@ -4,7 +4,7 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.application.dto.param.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.CreateCartItemsContext;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.facade.mapper.CartMapper;
 import com.example.order_service.cart.application.port.CartProductPort;

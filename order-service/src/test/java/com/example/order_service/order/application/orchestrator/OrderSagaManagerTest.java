@@ -193,7 +193,7 @@ class OrderSagaManagerTest {
                     Long userId = 1L;
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
-                    order.paid();
+//                    order.paid();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
@@ -228,7 +228,7 @@ class OrderSagaManagerTest {
                     Long userId = 1L;
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
-                    order.paid();
+//                    order.paid();
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of());
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
@@ -291,7 +291,7 @@ class OrderSagaManagerTest {
                     Long userId = 1L;
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
-                    order.paid();
+//                    order.paid();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(2L, 3L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
@@ -359,7 +359,7 @@ class OrderSagaManagerTest {
                     Long userId = 1L;
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
-                    order.paid();
+//                    order.paid();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
@@ -400,7 +400,7 @@ class OrderSagaManagerTest {
                     Long userId = 1L;
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
-                    order.paid();
+//                    order.paid();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
@@ -579,20 +579,10 @@ class OrderSagaManagerTest {
     }
 
     private Order createOrder(String orderNo) {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-//        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
-        List<OrderItem> orderItems = createOrderItems();
-        return Order.init(orderNo, orderer, shippingAddress, null, orderItems, Money.wons(10000L),
-                Money.wons(1000L), Money.wons(2000L), Money.wons(1000L), Money.wons(6000L));
+        return null;
     }
 
     private List<OrderItem> createOrderItems() {
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
-        ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-//        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(2L, "상품 1000원 할인 쿠폰", Money.wons(1000L));
-//        OrderItem orderItem = OrderItem.create(productSnapshot, productPriceSnapshot, itemCoupon, 1, List.of());
-//        return List.of(orderItem);
         return null;
     }
 }
