@@ -3,7 +3,7 @@ package com.example.order_service.order.application.service.order;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
-import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.annotation.IsolatedTest;

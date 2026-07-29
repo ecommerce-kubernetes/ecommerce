@@ -1,9 +1,11 @@
 package com.example.order_service.order.application.service.order.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.model.Order;
-import com.example.order_service.order.domain.model.OrderItem;
-import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.order.Order;
+import com.example.order_service.order.domain.order.OrderItem;
+import com.example.order_service.order.domain.order.OrderStatus;
+import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
 

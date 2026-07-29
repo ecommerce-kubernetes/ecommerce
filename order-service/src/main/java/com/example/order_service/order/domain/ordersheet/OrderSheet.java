@@ -1,11 +1,9 @@
-package com.example.order_service.order.domain.model;
+package com.example.order_service.order.domain.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
-import com.example.order_service.order.domain.vo.CartCouponSnapshot;
-import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;

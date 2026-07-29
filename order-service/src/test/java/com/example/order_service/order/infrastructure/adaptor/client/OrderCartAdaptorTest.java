@@ -4,7 +4,7 @@ import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.common.exception.port.CartPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
-import com.example.order_service.order.application.port.dto.result.OrderCartItemsResult;
+import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

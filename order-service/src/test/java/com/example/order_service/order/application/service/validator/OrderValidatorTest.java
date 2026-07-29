@@ -1,10 +1,10 @@
-package com.example.order_service.order.application.service;
+package com.example.order_service.order.application.service.validator;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.port.dto.result.OrderCartItemsResult;
-import com.example.order_service.order.application.port.dto.result.OrderProductStatus;
-import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
+import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
+import com.example.order_service.order.application.port.dto.OrderProductStatus;
+import com.example.order_service.order.application.port.dto.OrderProductsResult;
 import com.example.order_service.order.exception.OrderErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;

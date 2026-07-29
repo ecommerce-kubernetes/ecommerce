@@ -1,7 +1,7 @@
 package com.example.order_service.order.infrastructure.adaptor.persistence;
 
 import com.example.order_service.order.application.port.OrderSheetRepository;
-import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderSheetRedisMapper;
 import com.example.order_service.order.infrastructure.adaptor.persistence.entity.OrderSheetRedisEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;

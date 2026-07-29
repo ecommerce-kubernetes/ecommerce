@@ -5,13 +5,13 @@ import com.example.order_service.common.exception.port.CouponPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
-import com.example.order_service.order.application.port.dto.result.CartCouponResult;
-import com.example.order_service.order.application.port.dto.result.ItemCouponResult;
+import com.example.order_service.order.application.port.dto.CartCouponResult;
+import com.example.order_service.order.application.port.dto.ItemCouponResult;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
-import com.example.order_service.order.domain.vo.CartCouponSnapshot;
-import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import org.springframework.stereotype.Component;
 
 @Component

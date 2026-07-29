@@ -1,8 +1,8 @@
 package com.example.order_service.order.infrastructure.persistence;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
-import com.example.order_service.order.domain.model.Order;
-import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.order.Order;
+import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;

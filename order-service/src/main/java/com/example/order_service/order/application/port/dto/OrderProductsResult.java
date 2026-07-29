@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.port.dto.result;
+package com.example.order_service.order.application.port.dto;
 
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;

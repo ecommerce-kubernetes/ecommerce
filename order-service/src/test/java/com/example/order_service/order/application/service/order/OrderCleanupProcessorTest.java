@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
-import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.order.OrderStatus;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

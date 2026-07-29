@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.model;
+package com.example.order_service.order.domain.order;
 
 import lombok.RequiredArgsConstructor;
 

@@ -11,7 +11,7 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
-import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;

@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.port.dto.result;
+package com.example.order_service.order.application.port.dto;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.vo.Orderer;

@@ -8,9 +8,8 @@ import com.example.order_service.infrastructure.dto.response.user.UserPointsResp
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.infrastructure.gateway.UserGateway;
 import com.example.order_service.order.application.port.OrderUserPort;
-import com.example.order_service.order.application.port.dto.result.OrderUserResult;
-import com.example.order_service.order.application.port.dto.result.OrdererPointResult;
-import com.example.order_service.order.application.port.dto.result.OrdererProfileResult;
+import com.example.order_service.order.application.port.dto.OrdererPointResult;
+import com.example.order_service.order.application.port.dto.OrdererProfileResult;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderUserPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,10 +55,5 @@ public class OrderUserAdaptor implements OrderUserPort {
 
     private UserPointsResponse executeGetUserPoints(Long userId) {
         return userGateway.getUserPoints(userId);
-    }
-
-    @Deprecated
-    public OrderUserResult.UserPoint getUserPoints(Long userId) {
-        return null;
     }
 }

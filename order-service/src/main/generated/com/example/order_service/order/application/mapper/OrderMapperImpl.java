@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.mapper;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.domain.model.OrderSheet;
-import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import java.util.ArrayList;
 import java.util.List;

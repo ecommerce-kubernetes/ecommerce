@@ -5,7 +5,7 @@ import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.common.exception.port.CartPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.order.application.port.OrderCartPort;
-import com.example.order_service.order.application.port.dto.result.OrderCartItemsResult;
+import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

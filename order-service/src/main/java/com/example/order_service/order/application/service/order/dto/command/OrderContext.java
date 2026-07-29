@@ -1,6 +1,8 @@
 package com.example.order_service.order.application.service.order.dto.command;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
 

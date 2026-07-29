@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.service.ordersheet.dto.result;
 
-import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

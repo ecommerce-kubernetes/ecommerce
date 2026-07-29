@@ -10,10 +10,8 @@ import com.example.order_service.infrastructure.dto.response.coupon.CartCouponRe
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.order.application.port.OrderCouponPort;
-import com.example.order_service.order.application.port.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.port.dto.result.CartCouponResult;
-import com.example.order_service.order.application.port.dto.result.ItemCouponResult;
-import com.example.order_service.order.application.port.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.port.dto.CartCouponResult;
+import com.example.order_service.order.application.port.dto.ItemCouponResult;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderCouponPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -58,10 +56,5 @@ public class OrderCouponAdaptor implements OrderCouponPort {
         } catch (ExternalSystemUnavailableException e) {
             throw new DefaultPortException(CouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         }
-    }
-
-    @Deprecated
-    public OrderCouponResult.Calculate calculate(OrderCouponCommand.Calculate command) {
-        return null;
     }
 }

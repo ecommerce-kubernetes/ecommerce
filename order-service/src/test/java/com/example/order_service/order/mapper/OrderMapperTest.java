@@ -3,14 +3,13 @@ package com.example.order_service.order.mapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.domain.model.OrderSheet;
-import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
 import com.example.order_service.order.domain.vo.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;

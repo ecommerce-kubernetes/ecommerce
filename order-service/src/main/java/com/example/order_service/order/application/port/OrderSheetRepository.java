@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.port;
 
-import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
 
 import java.time.Duration;
 import java.util.Optional;

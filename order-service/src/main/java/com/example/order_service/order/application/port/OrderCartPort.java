@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.port;
 
-import com.example.order_service.order.application.port.dto.result.OrderCartItemsResult;
+import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.port;
 
-import com.example.order_service.order.application.port.dto.result.CartCouponResult;
-import com.example.order_service.order.application.port.dto.result.ItemCouponResult;
+import com.example.order_service.order.application.port.dto.CartCouponResult;
+import com.example.order_service.order.application.port.dto.ItemCouponResult;
 
 public interface OrderCouponPort {
     ItemCouponResult getItemCoupon(Long userId, Long itemCouponId);

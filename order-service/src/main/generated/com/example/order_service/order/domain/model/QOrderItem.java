@@ -2,6 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
+import com.example.order_service.order.domain.order.OrderItem;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;

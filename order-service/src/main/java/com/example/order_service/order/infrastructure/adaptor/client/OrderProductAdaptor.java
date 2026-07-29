@@ -9,7 +9,7 @@ import com.example.order_service.common.exception.port.ProductPortErrorCode;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.order.application.port.OrderProductPort;
-import com.example.order_service.order.application.port.dto.result.OrderProductsResult;
+import com.example.order_service.order.application.port.dto.OrderProductsResult;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderProductPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

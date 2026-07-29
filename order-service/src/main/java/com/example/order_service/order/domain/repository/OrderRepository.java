@@ -1,6 +1,6 @@
 package com.example.order_service.order.domain.repository;
 
-import com.example.order_service.order.domain.model.Order;
+import com.example.order_service.order.domain.order.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

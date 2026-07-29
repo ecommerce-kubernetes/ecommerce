@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.vo;
+package com.example.order_service.order.domain.ordersheet;
 
 
 import com.example.order_service.common.domain.vo.Money;

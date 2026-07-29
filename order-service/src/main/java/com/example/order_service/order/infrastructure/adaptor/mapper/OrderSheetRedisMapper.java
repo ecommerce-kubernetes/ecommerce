@@ -1,8 +1,10 @@
 package com.example.order_service.order.infrastructure.adaptor.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.model.OrderSheet;
-import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;

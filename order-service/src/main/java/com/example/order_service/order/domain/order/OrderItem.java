@@ -1,8 +1,8 @@
-package com.example.order_service.order.domain.model;
+package com.example.order_service.order.domain.order;
 
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.util.ProductOptionSnapshotConverter;
-import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;

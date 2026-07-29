@@ -3,8 +3,8 @@ package com.example.order_service.order.infrastructure.adaptor.mapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
-import com.example.order_service.order.application.port.dto.result.OrdererPointResult;
-import com.example.order_service.order.application.port.dto.result.OrdererProfileResult;
+import com.example.order_service.order.application.port.dto.OrdererPointResult;
+import com.example.order_service.order.application.port.dto.OrdererProfileResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

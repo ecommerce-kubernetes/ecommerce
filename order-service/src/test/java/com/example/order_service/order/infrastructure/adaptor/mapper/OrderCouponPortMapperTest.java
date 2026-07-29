@@ -3,12 +3,12 @@ package com.example.order_service.order.infrastructure.adaptor.mapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
-import com.example.order_service.order.application.port.dto.result.CartCouponResult;
-import com.example.order_service.order.application.port.dto.result.ItemCouponResult;
+import com.example.order_service.order.application.port.dto.CartCouponResult;
+import com.example.order_service.order.application.port.dto.ItemCouponResult;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
-import com.example.order_service.order.domain.vo.CartCouponSnapshot;
-import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
