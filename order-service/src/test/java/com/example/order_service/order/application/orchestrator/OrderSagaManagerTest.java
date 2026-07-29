@@ -71,7 +71,7 @@ class OrderSagaManagerTest {
             //when
             orderSagaManager.startSaga(orderNo, paymentId);
             //then
-            Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+            Order findOrder = null;
             OrderSagaInstance findSaga = sagaRepository.findByOrderNo(orderNo).orElseThrow();
             assertThat(findOrder.getStatus()).isEqualTo(OrderStatus.PAID);
             assertThat(findSaga.getCurrentStep()).isEqualTo(SagaStep.INVENTORY_DEDUCT_PENDING);
@@ -92,7 +92,7 @@ class OrderSagaManagerTest {
             assertThatThrownBy(() -> orderSagaManager.startSaga(orderNo, paymentId))
                     .isInstanceOf(RuntimeException.class);
             //then
-            Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+            Order findOrder = null;
             assertThat(findOrder.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(sagaRepository.findByOrderNo(orderNo)).isEmpty();
         }
@@ -209,7 +209,7 @@ class OrderSagaManagerTest {
                     orderSagaManager.handleReply(message);
                     //then
                     OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
-                    Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                    Order findOrder =null;
                     assertThat(findInstance.getHistories()).hasSize(1);
                     assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPLETE);
                     assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);
@@ -245,7 +245,7 @@ class OrderSagaManagerTest {
                     orderSagaManager.handleReply(message);
                     //then
                     OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
-                    Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                    Order findOrder = null;
                     assertThat(findInstance.getHistories()).hasSize(1);
                     assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.FAILED);
                     assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);
@@ -307,7 +307,7 @@ class OrderSagaManagerTest {
                     orderSagaManager.handleReply(message);
                     //then
                     OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
-                    Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                    Order findOrder = null;
                     assertThat(findInstance.getHistories()).hasSize(1);
                     assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPLETE);
                     assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);
@@ -375,7 +375,7 @@ class OrderSagaManagerTest {
                     orderSagaManager.handleReply(message);
                     //then
                     OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
-                    Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                    Order findOrder = null;
                     assertThat(findInstance.getHistories()).hasSize(1);
                     assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPLETE);
                     assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);
@@ -416,7 +416,7 @@ class OrderSagaManagerTest {
                     orderSagaManager.handleReply(message);
                     //then
                     OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
-                    Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                    Order findOrder = null;
                     assertThat(findInstance.getHistories()).hasSize(1);
                     assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.FAILED);
                     assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);

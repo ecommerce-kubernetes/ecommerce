@@ -1,11 +1,14 @@
 package com.example.order_service.cart.domain;
 
+import com.example.order_service.cart.domain.context.CreateCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -34,6 +37,39 @@ public class CartTest {
         assertThatThrownBy(() -> Cart.create(null, idGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("장바구니 생성시 유저 아이디는 필수입니다.");
+    }
+    
+    @Test
+    @DisplayName("여러 항목을 장바구니에 추가한다")
+    void addItems() {
+        //given
+        Cart cart = Cart.create(1L, idGenerator);
+        CreateCartItemsContext context = CreateCartItemsContext.builder()
+                .userId(1L)
+                .items(List.of(
+                        CreateCartItemsContext.Item.builder()
+                                .productVariantId(1L)
+                                .quantity(2)
+                                .maxLimit(100)
+                                .build(),
+                        CreateCartItemsContext.Item.builder()
+                                .productVariantId(2L)
+                                .quantity(3)
+                                .maxLimit(100)
+                                .build()
+                ))
+                .build();
+        //when
+        List<CartItem> cartItems = cart.addItems(context, idGenerator);
+        //then
+        assertThat(cart.getCartItems()).hasSize(2);
+        assertThat(cartItems).hasSize(2);
+        assertThat(cartItems)
+                .extracting("productVariantId", "quantity")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 2),
+                        tuple(2L, 3)
+                );
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.example.order_service.cart.domain;
 
+import com.example.order_service.cart.domain.context.CreateCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
@@ -37,6 +38,12 @@ public class Cart extends BaseEntity {
     public static Cart create(Long userId, IdGenerator idGenerator) {
         Long id = idGenerator.generate();
         return new Cart(id, userId);
+    }
+
+    public List<CartItem> addItems(CreateCartItemsContext context, IdGenerator idGenerator) {
+        return context.items().stream()
+                .map(item -> addItem(item.productVariantId(), item.quantity(), item.maxLimit(), idGenerator))
+                .toList();
     }
 
     public CartItem addItem(Long productVariantId, int quantity, int maxLimit, IdGenerator idGenerator) {

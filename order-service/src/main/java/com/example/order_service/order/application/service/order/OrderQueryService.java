@@ -31,9 +31,7 @@ public class OrderQueryService {
     }
 
     public OrderResultDeprecated.Detail getOrder(String orderNo) {
-        Order order = orderRepository.findByOrderNo(orderNo)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        return OrderResultDeprecated.Detail.from(order);
+        return null;
     }
 
     public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {

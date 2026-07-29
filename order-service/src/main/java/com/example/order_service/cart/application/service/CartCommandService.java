@@ -1,6 +1,7 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.domain.context.CreateCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
@@ -25,12 +26,11 @@ public class CartCommandService {
         Cart cart = cartRepository.findByUserId(context.userId())
                 .orElseGet(() -> Cart.create(context.userId(), idGenerator));
 
-        List<CartItemData> result = context.items().stream()
-                .map(item -> cart.addItem(item.productVariantId(), item.quantity(), item.maxLimit(), idGenerator))
+        List<CartItem> addedItems = cart.addItems(context, idGenerator);
+        cartRepository.save(cart);
+        return addedItems.stream()
                 .map(CartItemData::from)
                 .toList();
-        cartRepository.save(cart);
-        return result;
     }
 
     public void updateCartItemQuantity(UpdateCartItemContext context) {

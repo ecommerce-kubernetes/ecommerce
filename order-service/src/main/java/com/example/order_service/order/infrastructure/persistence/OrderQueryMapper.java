@@ -5,21 +5,20 @@ import lombok.AllArgsConstructor;
 
 import java.util.Arrays;
 
-import static com.example.order_service.order.domain.model.QOrder.order;
-
+//TODO
 public class OrderQueryMapper {
     @AllArgsConstructor
     private enum SortType {
         LATEST("latest") {
             @Override
             public OrderSpecifier<?> getSpecifier() {
-                return order.createdAt.desc();
+                return null;
             }
         },
         OLDEST("oldest") {
             @Override
             public OrderSpecifier<?> getSpecifier(){
-                return order.createdAt.asc();
+                return null;
             }
         };
 

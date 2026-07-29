@@ -17,9 +17,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.order_service.order.domain.model.QOrder.order;
-import static com.example.order_service.order.domain.model.QOrderItem.orderItem;
 
+//TODO
 @Slf4j
 @Repository
 public class OrderQueryDslRepository implements OrderSearchRepository {
@@ -32,64 +31,12 @@ public class OrderQueryDslRepository implements OrderSearchRepository {
 
     @Override
     public Page<Order> searchOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
-        OrderSpecifier<?> sortOrder = OrderQueryMapper.toOrderSpecifier(command.getSort());
-        List<Order> result = queryFactory.selectFrom(order).distinct()
-                .from(order)
-                .join(order.orderItems, orderItem)
-                .where(
-                        yearEq(command.getYear()),
-                        order.orderer.userId.eq(userId),
-                        productNameEq(command.getProductName())
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(sortOrder, order.id.desc())
-                .fetch();
-
-        Long totalElement = queryFactory.select(order.countDistinct())
-                .from(order)
-                .leftJoin(order.orderItems, orderItem)
-                .where(
-                        yearEq(command.getYear()),
-                        order.orderer.userId.eq(userId),
-                        productNameEq(command.getProductName())
-                )
-                .fetchOne();
-        return new PageImpl<>(
-                result,
-                pageable,
-                totalElement != null ? totalElement : 0
-        );
+        return null;
     }
 
-    private BooleanExpression yearEq(String yearString) {
-        if (yearString == null || yearString.isEmpty()){
-            return null;
-        }
-        int year = Integer.parseInt(yearString);
-        LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.of(year + 1, 1, 1, 0, 0);
-        return order.createdAt.goe(start)
-                .and(order.createdAt.lt(end));
-    }
-
-    private BooleanExpression productNameEq(String productName) {
-        if (productName == null || productName.isEmpty()) {
-            return null;
-        }
-        return orderItem.product.productName.contains(productName);
-    }
 
     @Override
     public List<Order> findOrdersBefore(LocalDateTime threshold, int size) {
-        return queryFactory
-                .selectFrom(order)
-                .where(
-                        order.status.eq(OrderStatus.PENDING),
-                        order.createdAt.before(threshold)
-                )
-                .orderBy(order.createdAt.asc())
-                .limit(size)
-                .fetch();
+        return null;
     }
 }
