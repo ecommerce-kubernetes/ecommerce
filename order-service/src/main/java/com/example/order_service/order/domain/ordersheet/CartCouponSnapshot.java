@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 @Getter
-@Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CartCouponSnapshot {
 
     private Long cartCouponId;
@@ -22,13 +21,7 @@ public class CartCouponSnapshot {
 
     private Money minimumPaymentAmount;
 
-    @Builder(builderMethodName = "reconstitute")
     private CartCouponSnapshot(Long cartCouponId, String name, CouponDiscountPolicy discountPolicy, Money minimumPaymentAmount) {
-        Assert.notNull(cartCouponId, "장바구니 쿠폰 아이디는 필수 입니다.");
-        Assert.hasText(name, "장바구니 쿠폰 이름은 필수 입니다.");
-        Assert.notNull(discountPolicy, "장바구니 쿠폰 할인 정책은 필수 입니다.");
-        Assert.notNull(minimumPaymentAmount, "장바구니 최소 결제 금액은 필수 입니다.");
-
         this.cartCouponId = cartCouponId;
         this.name = name;
         this.discountPolicy = discountPolicy;
@@ -36,16 +29,12 @@ public class CartCouponSnapshot {
     }
 
     public static CartCouponSnapshot of(Long cartCouponId, String name, CouponDiscountPolicy discountPolicy, Money minimumPaymentAmount) {
-        return CartCouponSnapshot.reconstitute()
-                .cartCouponId(cartCouponId)
-                .name(name)
-                .discountPolicy(discountPolicy)
-                .minimumPaymentAmount(minimumPaymentAmount)
-                .build();
-    }
+        Assert.notNull(cartCouponId, "장바구니 쿠폰 아이디는 필수 입니다.");
+        Assert.hasText(name, "장바구니 쿠폰 이름은 필수 입니다.");
+        Assert.notNull(discountPolicy, "장바구니 쿠폰 할인 정책은 필수 입니다.");
+        Assert.notNull(minimumPaymentAmount, "장바구니 최소 결제 금액은 필수 입니다.");
 
-    public static CartCouponSnapshot empty() {
-        return null;
+        return new CartCouponSnapshot(cartCouponId, name, discountPolicy, minimumPaymentAmount);
     }
 
     public boolean isSatisfiedBy(Money baseAmount) {
