@@ -12,6 +12,8 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
 import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -52,7 +54,7 @@ public class OrderSheetService {
         OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
 
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
-        List<OrderSheetItem> orderSheetItems = createOrderSheetItems(cartItems, productsMap);
+        List<CreateOrderSheetItemContext> orderSheetItems = createCartOrderSheetItemsContext(cartItems, productsMap);
 
         OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
 
@@ -60,9 +62,9 @@ public class OrderSheetService {
         return OrderSheetCreateResult.from(savedOrderSheet);
     }
 
-    private List<OrderSheetItem> createOrderSheetItems(OrderCartItemsResult cartItems,
-                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        return cartItems.items().stream().map(cartItem -> createOrderSheetItem(
+    private List<CreateOrderSheetItemContext> createCartOrderSheetItemsContext(OrderCartItemsResult cartItems,
+                                                                  Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+        return cartItems.items().stream().map(cartItem -> createOrderSheetItemContext(
                 cartItem.productVariantId(),
                 cartItem.quantity(),
                 productsMap
@@ -76,7 +78,7 @@ public class OrderSheetService {
         OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
 
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
-        List<OrderSheetItem> orderSheetItems = createDirectOrderSheetItems(command, productsMap);
+        List<CreateOrderSheetItemContext> orderSheetItems = createDirectOrderSheetItemsContext(command, productsMap);
 
         OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
 
@@ -84,9 +86,15 @@ public class OrderSheetService {
         return OrderSheetCreateResult.from(savedOrderSheet);
     }
 
-    private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<OrderSheetItem> orderSheetItems) {
-        OrderSheet orderSheet = OrderSheet.create(ordererProfile.orderer(), orderSheetItems,
-                LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes()), idGenerator);
+    private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<CreateOrderSheetItemContext> orderSheetItemsContext) {
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes());
+        CreateOrderSheetContext createOrderSheetContext = CreateOrderSheetContext.builder()
+                .orderer(ordererProfile.orderer())
+                .items(orderSheetItemsContext)
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(createOrderSheetContext, idGenerator);
 
         if (ordererProfile.defaultShippingAddress() != null) {
             orderSheet.changeShippingAddress(ordererProfile.defaultShippingAddress());
@@ -94,28 +102,27 @@ public class OrderSheetService {
         return orderSheet;
     }
 
-    private List<OrderSheetItem> createDirectOrderSheetItems(CreateDirectOrderSheetCommand command,
-                                                             Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        return command.items().stream().map(orderVariant -> createOrderSheetItem(
+    private List<CreateOrderSheetItemContext> createDirectOrderSheetItemsContext(CreateDirectOrderSheetCommand command,
+                                                                    Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+        return command.items().stream().map(orderVariant -> createOrderSheetItemContext(
                 orderVariant.productVariantId(),
                 orderVariant.quantity(),
                 productsMap
         )).toList();
     }
 
-    private OrderSheetItem createOrderSheetItem(Long productVariantId, int quantity,
-                                                      Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+    private CreateOrderSheetItemContext createOrderSheetItemContext(Long productVariantId, int quantity,
+                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         OrderProductsResult.OrderProductDetail product = productsMap.get(productVariantId);
 
         orderValidator.validateOrderable(product, quantity);
 
-        return OrderSheetItem.create(
-                product.productSnapshot(),
-                product.priceSnapshot(),
-                quantity,
-                product.options(),
-                idGenerator
-        );
+        return CreateOrderSheetItemContext.builder()
+                .productSnapshot(product.productSnapshot())
+                .priceSnapshot(product.priceSnapshot())
+                .quantity(quantity)
+                .optionSnapshots(product.options())
+                .build();
     }
 
     public OrderSheetResult getOrderSheet(Long orderSheetId, Long userId) {

@@ -6,6 +6,8 @@ import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
 import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
@@ -132,11 +134,25 @@ class OrderSheetRedisRepositoryTest {
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
 
-        OrderSheetItem orderSheetItem = OrderSheetItem.create(product, price, 5, options, idGenerator);
-        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(orderSheetItem), expiresAt, idGenerator);
+        CreateOrderSheetItemContext itemCtx = CreateOrderSheetItemContext.builder()
+                .productSnapshot(product)
+                .priceSnapshot(price)
+                .quantity(5)
+                .optionSnapshots(options)
+                .build();
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        OrderSheetItem item = orderSheet.getItems().getFirst();
 
         orderSheet.changeShippingAddress(shippingAddress);
-        orderSheet.applyItemCoupon(orderSheetItem.getId(), itemCoupon, pointUsagePolicy);
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointUsagePolicy);
         orderSheet.applyCartCoupon(cartCoupon, pointUsagePolicy);
 
         orderSheet.applyPoints(Money.wons(1000L), pointUsagePolicy);

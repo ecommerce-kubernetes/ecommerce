@@ -64,23 +64,6 @@ public class OrderSheetItem {
                 .build();
     }
 
-    public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot,
-                                        int quantity, List<ProductOptionSnapshot> optionSnapshots, IdGenerator idGenerator) {
-        if (quantity <= 0) {
-            throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
-        }
-
-        Long id = idGenerator.generate();
-
-        return OrderSheetItem.reconstitute()
-                .id(id)
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(optionSnapshots)
-                .build();
-    }
-
     void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
         Assert.notNull(itemCoupon, "적용할 쿠폰 정보는 필수 입니다.");
         this.itemCouponSnapshot = itemCoupon;

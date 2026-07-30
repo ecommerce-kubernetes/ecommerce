@@ -74,22 +74,6 @@ public class OrderSheet {
                 .build();
     }
 
-    public static OrderSheet create(Orderer orderer, List<OrderSheetItem> items, LocalDateTime expiresAt, IdGenerator idGenerator) {
-        if (items.isEmpty()) {
-            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
-        }
-
-        Long id = idGenerator.generate();
-
-        return OrderSheet.reconstitute()
-                .id(id)
-                .orderer(orderer)
-                .items(items)
-                .usedPoints(Money.ZERO)
-                .expiresAt(expiresAt)
-                .build();
-    }
-
     public void changeShippingAddress(ShippingAddress newAddress) {
         Assert.notNull(newAddress, "변경할 배송 정보는 필수 입니다.");
         this.shippingAddress = newAddress;
