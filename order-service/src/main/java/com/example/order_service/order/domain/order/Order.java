@@ -68,7 +68,7 @@ public class Order extends BaseEntity {
         this.orderCancelInfo = orderCancelInfo;
     }
 
-    public static Order create(CreateOrderContext context) {
+    public static Order create(CreateOrderContext context, IdGenerator idGenerator) {
         return null;
     }
 

@@ -4,6 +4,7 @@ import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.ProductOptionSnapshotConverter;
+import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -68,14 +69,22 @@ public class OrderItem extends BaseEntity {
         this.orderItemAmount = orderItemAmount;
     }
 
-    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, Integer quantity,
-                                   List<ProductOptionSnapshot> options, OrderItemAmount orderItemAmount, IdGenerator idGenerator) {
-        if (quantity <= 0) {
+    public static OrderItem create(CreateOrderItemContext context, IdGenerator idGenerator) {
+        if (context.quantity() <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
         }
 
-        return null;
-    }
+        Long id = idGenerator.generate();
 
+        return OrderItem.builder()
+                .id(id)
+                .product(context.productSnapshot())
+                .productPrice(context.priceSnapshot())
+                .appliedItemCoupon(context.appliedItemCoupon())
+                .quantity(context.quantity())
+                .options(context.options())
+                .orderItemAmount(context.orderItemAmount())
+                .build();
+    }
 }
 

@@ -1,7 +1,13 @@
 package com.example.order_service.order.domain.order;
 
 import com.example.order_service.common.domain.vo.Money;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItemAmount {
 
     private Money originalAmount;
@@ -13,4 +19,22 @@ public class OrderItemAmount {
     private Money itemCouponDiscount;
 
     private Money finalAmount;
+
+    private OrderItemAmount(Money originalAmount, Money itemDiscount, Money lineTotal, Money itemCouponDiscount, Money finalAmount) {
+        Assert.notNull(originalAmount, "항목 원가 총액은 필수 입니다.");
+        Assert.notNull(itemDiscount, "항목 상품 할인 총액은 필수 입니다.");
+        Assert.notNull(lineTotal, "상품 판매가 총액은 필수 입니다.");
+        Assert.notNull(itemCouponDiscount, "항목 상품 쿠폰 할인 금액은 필수 입니다.");
+        Assert.notNull(finalAmount, "항목 최종 결제 금액은 필수 입니다.");
+
+        this.originalAmount = originalAmount;
+        this.itemDiscount = itemDiscount;
+        this.lineTotal = lineTotal;
+        this.itemCouponDiscount = itemCouponDiscount;
+        this.finalAmount = finalAmount;
+    }
+
+    public static OrderItemAmount of(Money originalAmount, Money itemDiscount, Money lineTotal, Money itemCouponDiscount, Money finalAmount) {
+        return new OrderItemAmount(originalAmount, itemDiscount, lineTotal, itemCouponDiscount, finalAmount);
+    }
 }
