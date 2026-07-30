@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Getter
 @Embeddable
@@ -26,18 +27,12 @@ public class ProductSnapshot {
     }
 
     public static ProductSnapshot of(Long productId, Long productVariantId, String sku, String productName, String thumbnail) {
-        if (productId == null || productVariantId == null) {
-            throw new IllegalArgumentException("상품 식별자는 필수 입니다");
-        }
-        if (sku == null || sku.isBlank()) {
-            throw new IllegalArgumentException("상품 SKU 는 필수입니다");
-        }
-        if (productName == null || productName.isBlank()) {
-            throw new IllegalArgumentException("상품명은 필수입니다");
-        }
-        if (thumbnail == null || thumbnail.isBlank()) {
-            throw new IllegalArgumentException("상품 썸네일은 필수입니다");
-        }
+        Assert.notNull(productId, "상품 식별자는 필수 입니다.");
+        Assert.notNull(productVariantId, "상품 변형 식별자는 필수 입니다.");
+        Assert.hasText(sku, "상품 SKU는 필수 입니다.");
+        Assert.hasText(productName, "상품명은 필수 입니다.");
+        Assert.hasText(thumbnail, "상품 썸네일은 필수 입니다.");
+
         return new ProductSnapshot(productId, productVariantId, sku, productName, thumbnail);
     }
 }

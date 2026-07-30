@@ -19,14 +19,7 @@ public class ShippingAddress {
     private String address;
     private String addressDetail;
 
-    @Builder(builderMethodName = "reconstitute")
     private ShippingAddress(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
-        Assert.hasText(receiverName, "배송 정보에 수령인 이름은 필수 입니다.");
-        Assert.hasText(receiverPhone, "배송 정보에 수령인 전화번호는 필수 입니다.");
-        Assert.hasText(zipCode, "배송 정보에 우편 번호는 필수 입니다.");
-        Assert.hasText(address, "배송 정보에 주소는 필수 입니다.");
-        Assert.hasText(addressDetail, "배송 정보에 상세 주소는 필수 입니다.");
-
         this.receiverName = receiverName;
         this.receiverPhone = receiverPhone;
         this.zipCode = zipCode;
@@ -35,11 +28,17 @@ public class ShippingAddress {
     }
 
     public static ShippingAddress of(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
-        if (receiverPhone == null || !receiverPhone.matches("^01[016-9]-\\d{3,4}-\\d{4}$")) {
+        Assert.hasText(receiverName, "수령인 이름은 필수 입니다.");
+        Assert.hasText(receiverPhone, "수령인 전화번호는 필수 입니다.");
+        Assert.hasText(zipCode, "우편 번호는 필수 입니다.");
+        Assert.hasText(address, "주소는 필수 입니다.");
+        Assert.hasText(addressDetail, "상세 주소는 필수 입니다.");
+
+        if (!receiverPhone.matches("^01[016-9]-\\d{3,4}-\\d{4}$")) {
             throw new BusinessException(OrderErrorCode.INVALID_PHONE_NUMBER);
         }
 
-        if (zipCode == null || !zipCode.matches("^\\d{5}$")) {
+        if (!zipCode.matches("^\\d{5}$")) {
             throw new BusinessException(OrderErrorCode.INVALID_ZIPCODE);
         }
 

@@ -1,6 +1,8 @@
 package com.example.order_service.order.domain.vo;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,29 +34,60 @@ class ProductPriceSnapshotTest {
                 );
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("invalidPrice")
-    void of_null(String description, Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
+    @Test
+    @DisplayName("상품 원 가격이 누락되면 예외가 발생한다.")
+    void of_originalPrice_null() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> ProductPriceSnapshot.of(originalPrice, discountRate, discountAmount, discountedPrice))
+        assertThatThrownBy(() -> ProductPriceSnapshot.of(null, 10, Money.wons(1000L), Money.wons(9000L)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("상품 가격 정보 누락");
+                .hasMessage("상품 원 가격은 필수 입니다.");
     }
 
-    @ParameterizedTest(name = "할인율은 0~100 사이값이다")
-    @CsvSource(
-            value = {"-1, 101"},
-            nullValues = "null"
-    )
-    void of_discountRate_between_0_and_100(Integer discountRate) {
+    @Test
+    @DisplayName("상품 할인율이 누락되면 예외가 발생한다.")
+    void of_discountRate_null() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(10000L), discountRate, Money.wons(1000L), Money.wons(9000L)))
+        assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(10000L), null, Money.wons(1000L), Money.wons(9000L)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("할인율은 0 ~ 100 의 값이여야 합니다");
+                .hasMessage("상품 할인율은 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("상품 할인 금액이 누락되면 예외가 발생한다.")
+    void of_discountAmount_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(10000L), 10, null, Money.wons(9000L)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("상품 할인 금액은 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("상품 판매 가격이 누락되면 예외가 발생한다.")
+    void of_discountedPrice_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("상품 판매 가격은 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("상품 할인율은 0~100 사이값이여야 한다.")
+    void of_discountRate_between_0_and_100() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(10000L), 101, Money.wons(1000L), Money.wons(9000L)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.INVALID_PRODUCT_DISCOUNT_RATE);
     }
 
     @Test
@@ -64,8 +97,9 @@ class ProductPriceSnapshotTest {
         //when
         //then
         assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(100L), 10, Money.wons(1000L), Money.wons(9000L)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("상품 할인 금액이 상품 금액을 초과할 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.INVALID_PRODUCT_DISCOUNT_AMOUNT);
     }
 
     @Test
@@ -75,24 +109,8 @@ class ProductPriceSnapshotTest {
         //when
         //then
         assertThatThrownBy(() -> ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(100L), Money.wons(9000L)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("상품 판매 가격이 올바르지 않습니다");
-    }
-
-    private static Stream<Arguments> invalidPrice() {
-        return Stream.of(
-                Arguments.of(
-                        "상품 원본 가격 null" ,null, 10, Money.wons(1000L), Money.wons(9000L)
-                ),
-                Arguments.of(
-                        "상품 할인율 null", Money.wons(10000L), null, Money.wons(1000L), Money.wons(9000L)
-                ),
-                Arguments.of(
-                        "상품 할인 가격 null",Money.wons(10000L), 10, null, Money.wons(9000L)
-                ),
-                Arguments.of(
-                        "상품 판매 가격 null", Money.wons(10000L), 10,  Money.wons(1000L),  null
-                )
-        );
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.INVALID_PRODUCT_DISCOUNTED_PRICE);
     }
 }

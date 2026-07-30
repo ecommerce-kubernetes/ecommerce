@@ -35,7 +35,19 @@ class ShippingAddressTest {
         assertThatThrownBy(() -> ShippingAddress.of(receiverName, "010-1234-5678", "12345",
                 "서울시 테헤란로 123", "123동 1234호"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("배송 정보에 수령인 이름은 필수 입니다.");
+                .hasMessage("수령인 이름은 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("수령인 전화번호가 누락되면 예외가 발생한다.")
+    void of_receiverPhone_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> ShippingAddress.of("수령인", null, "12345",
+                "서울시 테헤란로 123", "123동 1234호"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("수령인 전화번호는 필수 입니다.");
     }
 
     @Test
@@ -50,6 +62,18 @@ class ShippingAddressTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.INVALID_PHONE_NUMBER);
+    }
+
+    @Test
+    @DisplayName("우편번호가 누락되면 예외가 발생한다.")
+    void of_zipCode_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> ShippingAddress.of("수령인", "010-1234-5678", null,
+                "서울시 테헤란로 123", "123동 1234호"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("우편 번호는 필수 입니다.");
     }
 
     @Test
@@ -76,7 +100,7 @@ class ShippingAddressTest {
         assertThatThrownBy(() -> ShippingAddress.of("수령인", "010-1234-5678", "12345", address,
                 "123동 1234호"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("배송 정보에 주소는 필수 입니다.");
+                .hasMessage("주소는 필수 입니다.");
     }
 
     @Test
@@ -89,6 +113,6 @@ class ShippingAddressTest {
         assertThatThrownBy(() -> ShippingAddress.of("수령인", "010-1234-5678", "12345",
                 "서울시 테헤란로 123", addressDetail))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("배송 정보에 상세 주소는 필수 입니다.");
+                .hasMessage("상세 주소는 필수 입니다.");
     }
 }

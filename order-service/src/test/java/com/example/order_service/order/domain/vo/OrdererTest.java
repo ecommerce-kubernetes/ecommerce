@@ -47,6 +47,17 @@ class OrdererTest {
     }
 
     @Test
+    @DisplayName("유저 전화번호가 없으면 예외가 발생한다.")
+    void of_phoneNumber_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> Orderer.of(1L, "주문자", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("유저 전화번호는 필수 입니다.");
+    }
+
+    @Test
     @DisplayName("전화 번호가 유효하지 않으면 예외가 발생한다.")
     void of_invalid_phoneNumber() {
         //given
