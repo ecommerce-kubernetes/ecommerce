@@ -26,18 +26,19 @@ public class CartItem {
     private int quantity;
 
     private CartItem(Long id, Long productVariantId, int quantity) {
+        Assert.notNull(id, "장바구니 항목 생성시 식별자는 필수입니다.");
+        Assert.notNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
+
         this.id = id;
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
     public static CartItem create(Long productVariantId, int quantity, int maxLimit, IdGenerator idGenerator) {
-        Assert.notNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
+
         Assert.notNull(idGenerator, "아이디 생성기는 필수 입니다.");
 
         Long id = idGenerator.generate();
-
-        Assert.notNull(id, "장바구니 항목 생성시 식별자는 필수입니다.");
 
         if (quantity <= 0) {
             throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
