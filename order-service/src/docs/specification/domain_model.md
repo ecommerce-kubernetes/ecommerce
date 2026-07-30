@@ -211,6 +211,7 @@
 - 주문 항목을 생성할 때 주문 수량은 1개 이상이어야 한다.
 - 주문 항목을 생성할 때 상품 옵션 정보는 빈 목록일 수 있지만 `null`일 수 없다.
 - 주문 항목을 생성할 때 주문 항목 가격 정보가 필요하다.
+
 ---
 
 ## 값 객체(VO)
@@ -358,14 +359,14 @@
 
 주문 가격 요약 정보
 
-| 필드명                     | 타입    | 설명               |
-|-------------------------|-------|------------------|
-| totalOriginalAmount     | Money | 총 주문 상품 원 가격 총액  |
-| totalItemDiscount       | Money | 총 주문 상품 할인 가격 총액 |
-| totalItemCouponDiscount | Money | 총 상품 쿠폰 할인 가격 총액 |
-| cartCouponDiscount      | Money | 장바구니 쿠폰 할인 금액    |
-| usedPoints              | Money | 적용 포인트           |
-| totalPaymentAmount      | Money | 최종 결제 가격         |
+| 필드명                     | 타입    | 설명            |
+|-------------------------|-------|---------------|
+| totalOriginalAmount     | Money | 총 주문 상품 원 가격  |
+| totalItemDiscount       | Money | 총 주문 상품 할인 가격 |
+| totalItemCouponDiscount | Money | 총 상품 쿠폰 할인 가격 |
+| cartCouponDiscount      | Money | 장바구니 쿠폰 할인 가격 |
+| usedPoints              | Money | 적용 포인트        |
+| totalPaymentAmount      | Money | 최종 결제 금액      |
 
 ### 10. 주문 취소 사유(OrderCancelInfo)
 

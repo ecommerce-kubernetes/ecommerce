@@ -14,14 +14,14 @@ public class AppliedItemCoupon {
     private String name;
 
     private AppliedItemCoupon (Long itemCouponId, String name) {
-        Assert.notNull(itemCouponId, "적용 상품 쿠폰 아이디는 필수 입니다.");
-        Assert.hasText(name, "적용 상품 쿠폰 이름은 필수 입니다.");
-
         this.itemCouponId = itemCouponId;
         this.name = name;
     }
 
     public static AppliedItemCoupon of(Long itemCouponId, String name) {
+        Assert.notNull(itemCouponId, "적용 상품 쿠폰 아이디는 필수 입니다.");
+        Assert.hasText(name, "적용 상품 쿠폰 이름은 필수 입니다.");
+
         return new AppliedItemCoupon(itemCouponId, name);
     }
 }
