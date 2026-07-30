@@ -3,6 +3,7 @@ package com.example.order_service.order.domain.ordersheet;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
@@ -52,6 +53,25 @@ public class OrderSheet {
         this.cartCoupon = cartCoupon;
         this.usedPoints = usedPoints;
         this.expiresAt = expiresAt;
+    }
+
+    public static OrderSheet create(CreateOrderSheetContext context, IdGenerator idGenerator) {
+        if (context.items().isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
+        }
+
+        Long id = idGenerator.generate();
+
+        List<OrderSheetItem> orderSheetItems = context.items().stream().map(itemCtx -> OrderSheetItem.create(itemCtx, idGenerator))
+                .toList();
+
+        return OrderSheet.reconstitute()
+                .id(id)
+                .orderer(context.orderer())
+                .items(orderSheetItems)
+                .usedPoints(Money.ZERO)
+                .expiresAt(context.expiresAt())
+                .build();
     }
 
     public static OrderSheet create(Orderer orderer, List<OrderSheetItem> items, LocalDateTime expiresAt, IdGenerator idGenerator) {
