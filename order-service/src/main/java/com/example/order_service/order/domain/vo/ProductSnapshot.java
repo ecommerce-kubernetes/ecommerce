@@ -11,10 +11,15 @@ import org.springframework.util.Assert;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductSnapshot {
+
     private Long productId;
+
     private Long productVariantId;
+
     private String sku;
+
     private String productName;
+
     private String thumbnail;
 
     @Builder(builderMethodName = "reconstitute")

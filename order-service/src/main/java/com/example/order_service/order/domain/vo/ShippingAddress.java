@@ -2,21 +2,25 @@ package com.example.order_service.order.domain.vo;
 
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.mysema.commons.lang.Assert;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShippingAddress {
+
     private String receiverName;
+
     private String receiverPhone;
+
     private String zipCode;
+
     private String address;
+
     private String addressDetail;
 
     private ShippingAddress(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {

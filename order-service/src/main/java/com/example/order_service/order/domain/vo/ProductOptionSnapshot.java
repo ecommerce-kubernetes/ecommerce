@@ -1,17 +1,18 @@
 package com.example.order_service.order.domain.vo;
 
-import com.mysema.commons.lang.Assert;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductOptionSnapshot {
+
     private String optionTypeName;
+
     private String optionValueName;
 
     private ProductOptionSnapshot(String optionTypeName, String optionValueName) {

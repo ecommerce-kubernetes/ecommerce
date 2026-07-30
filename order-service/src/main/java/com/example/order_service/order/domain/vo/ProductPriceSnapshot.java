@@ -13,9 +13,13 @@ import org.springframework.util.Assert;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductPriceSnapshot {
+
     private Money originalPrice;
+
     private Integer discountRate;
+
     private Money discountAmount;
+
     private Money discountedPrice;
 
     private ProductPriceSnapshot(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {

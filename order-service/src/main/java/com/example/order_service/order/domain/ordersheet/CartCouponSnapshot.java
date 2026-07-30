@@ -2,9 +2,7 @@ package com.example.order_service.order.domain.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
-import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;

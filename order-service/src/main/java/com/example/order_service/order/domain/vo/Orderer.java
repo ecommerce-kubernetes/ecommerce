@@ -4,7 +4,6 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.exception.OrderErrorCode;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
@@ -13,8 +12,11 @@ import org.springframework.util.Assert;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Orderer {
+
     private Long userId;
+
     private String userName;
+
     private String phoneNumber;
 
     private Orderer(Long userId, String userName, String phoneNumber) {
