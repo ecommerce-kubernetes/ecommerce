@@ -38,6 +38,29 @@ public class CartItemTest {
     }
 
     @Test
+    @DisplayName("아이디 생성기가 없으면 예외가 발생한다.")
+    void create_idGenerator_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> CartItem.create(1L, 3, 100, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("아이디 생성기는 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("아이디가 누락되면 예외가 발생한다.")
+    void create_id_null() {
+        //given
+        IdGenerator nullIdGenerator = () -> null;
+        //when
+        //then
+        assertThatThrownBy(() -> CartItem.create(1L, 3, 100, nullIdGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("장바구니 항목 생성시 식별자는 필수입니다.");
+    }
+
+    @Test
     @DisplayName("수량이 1미만인 항목은 생성할 수 없다")
     void create_quantity_less_than_1(){
         //given

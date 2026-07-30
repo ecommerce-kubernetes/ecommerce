@@ -36,7 +36,30 @@ public class CartTest {
         //then
         assertThatThrownBy(() -> Cart.create(null, idGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("장바구니 생성시 유저 아이디는 필수입니다.");
+                .hasMessage("장바구니 생성시 유저 아이디는 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("장바구니를 생성할때 아이디 생성기가 누락되면 예외가 발생한다.")
+    void create_idGenerator_null() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> Cart.create(1L, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("아이디 생성기는 필수 입니다.");
+    }
+
+    @Test
+    @DisplayName("장바구니를 생성할때 아이디가 누락되면 예외가 발생한다.")
+    void create_id_null() {
+        //given
+        IdGenerator nullIdGenerator = () -> null;
+        //when
+        //then
+        assertThatThrownBy(() -> Cart.create(1L, nullIdGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("장바구니 생성시 장바구니 아이디는 필수 입니다.");
     }
     
     @Test
