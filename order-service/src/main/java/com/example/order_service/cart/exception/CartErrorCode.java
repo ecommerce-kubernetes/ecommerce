@@ -14,6 +14,7 @@ public enum CartErrorCode implements ErrorCode {
     CART_SIZE_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "CART_SIZE_LIMIT_EXCEEDED", "장바구니 최대 항목 개수를 초과했습니다."),
     INVALID_CART_ITEM_QUANTITY(HttpStatus.CONFLICT, "INVALID_CART_ITEM_QUANTITY", "항목 수량이 유효하지 않습니다."),
     QUANTITY_EXCEED_MAX_LIMIT(HttpStatus.CONFLICT, "QUANTITY_EXCEED_MAX_LIMIT", "수량이 한도를 초과했습니다."),
+    CART_ITEMS_REQUIRED(HttpStatus.CONFLICT, "CART_ITEMS_REQUIRED", "장바구니에 추가할 상품은 최소 한개 이상이여야 합니다."),
     PRODUCT_NOT_ON_SALE(HttpStatus.CONFLICT, "PRODUCT_NOT_ON_SALE", "판매중인 상품이 아닙니다.");
 
     private final HttpStatus status;

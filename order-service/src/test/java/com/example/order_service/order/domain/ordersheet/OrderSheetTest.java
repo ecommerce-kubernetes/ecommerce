@@ -104,6 +104,25 @@ public class OrderSheetTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
     }
+    
+    @Test
+    @DisplayName("주문서를 생성할때 아이디 생성기가 누락되면 예외가 발생한다.")
+    void create_idGenerator_null() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx))
+                .expiresAt(expiresAt)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> OrderSheet.create(context, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("주문서(OrderSheet) 생성시 아이디 생성기는 필수이다.");
+    }
 
     @Test
     @DisplayName("주문서의 배송 정보를 변경한다")

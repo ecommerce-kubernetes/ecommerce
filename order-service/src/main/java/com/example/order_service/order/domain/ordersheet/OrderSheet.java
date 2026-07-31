@@ -56,9 +56,11 @@ public class OrderSheet {
     }
 
     public static OrderSheet create(CreateOrderSheetContext context, IdGenerator idGenerator) {
-        if (context.items().isEmpty()) {
+        if (context.items() == null || context.items().isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
+
+        Assert.notNull(idGenerator, "주문서(OrderSheet) 생성시 아이디 생성기는 필수이다.");
 
         Long id = idGenerator.generate();
 

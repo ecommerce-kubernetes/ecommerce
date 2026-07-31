@@ -96,6 +96,23 @@ public class CartTest {
     }
 
     @Test
+    @DisplayName("장바구니 상품 추가시 상품이 비어있으면 예외가 발생한다.")
+    void addItems_items_null() {
+        //given
+        Cart cart = Cart.create(1L, idGenerator);
+        CreateCartItemsContext context = CreateCartItemsContext.builder()
+                .userId(1L)
+                .items(null)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> cart.addItems(context, idGenerator))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.CART_ITEMS_REQUIRED);
+    }
+
+    @Test
     @DisplayName("항목을 추가한다")
     void addItem() {
         //given

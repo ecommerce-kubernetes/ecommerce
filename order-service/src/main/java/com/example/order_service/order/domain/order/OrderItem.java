@@ -86,5 +86,9 @@ public class OrderItem extends BaseEntity {
                 .orderItemAmount(context.orderItemAmount())
                 .build();
     }
+
+    void setOrder(Order order) {
+        this.order = order;
+    }
 }
 

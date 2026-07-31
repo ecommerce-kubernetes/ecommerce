@@ -46,6 +46,9 @@ public class Cart extends BaseEntity {
     }
 
     public List<CartItem> addItems(CreateCartItemsContext context, IdGenerator idGenerator) {
+        if (context.items() == null || context.items().isEmpty()) {
+            throw new BusinessException(CartErrorCode.CART_ITEMS_REQUIRED);
+        }
         return context.items().stream()
                 .map(item -> addItem(item.productVariantId(), item.quantity(), item.maxLimit(), idGenerator))
                 .toList();

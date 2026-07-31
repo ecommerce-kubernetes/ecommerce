@@ -1,16 +1,19 @@
 package com.example.order_service.order.domain.order;
 
 import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
+import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
-import org.springframework.util.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +72,48 @@ public class Order extends BaseEntity {
     }
 
     public static Order create(CreateOrderContext context, IdGenerator idGenerator) {
-        return null;
+        if (context.items() == null || context.items().isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
+        }
+
+        Assert.notNull(idGenerator, "주문(Order) 생성시 아이디 생성기는 필수이다.");
+
+        Long id = idGenerator.generate();
+
+        String orderName = generateOrderName(context.items());
+
+        Order order = Order.builder()
+                .id(id)
+                .status(OrderStatus.PENDING)
+                .orderName(orderName)
+                .orderer(context.orderer())
+                .shippingAddress(context.shippingAddress())
+                .appliedCartCoupon(context.appliedCartCoupon())
+                .orderAmount(context.orderAmount())
+                .orderCancelInfo(null)
+                .build();
+
+        for (CreateOrderItemContext itemCtx : context.items()) {
+            OrderItem orderItem = OrderItem.create(itemCtx, idGenerator);
+            order.addOrderItem(orderItem);
+        }
+
+        return order;
+    }
+
+    private static String generateOrderName(List<CreateOrderItemContext> items) {
+        int size = items.size();
+        String firstProductName = items.getFirst().productSnapshot().getProductName();
+        if (size == 1) {
+            return firstProductName;
+        }
+
+        return String.format("%s 외 %d건", firstProductName, size - 1);
+    }
+
+    private void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
     }
 
 }
