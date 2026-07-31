@@ -56,11 +56,10 @@ public class CartFacadeTest {
         //given
         AddCartItemsCommand addCommand = createAddCommand(1L, 3);
         CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE, 100);
-        CartItemData cartItemData = createCartItemData(1L, 3);
 
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
         doNothing().when(validator).validatePurchasable(anyList());
-        given(cartCommandService.addCartItems(any(CreateCartItemsContext.class))).willReturn(List.of(cartItemData));
+        given(cartCommandService.addCartItems(any(CreateCartItemsContext.class))).willReturn(List.of(1L));
         //when
         AddCartItemsResult result = cartFacade.addItems(addCommand);
         //then

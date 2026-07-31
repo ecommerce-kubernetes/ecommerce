@@ -1,6 +1,5 @@
 package com.example.order_service.cart.application.service;
 
-import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.domain.context.CreateCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.application.port.CartRepository;
@@ -45,17 +44,11 @@ class CartCommandServiceTest {
                 .items(List.of(item))
                 .build();
         //when
-        List<CartItemData> cartItemData = cartCommandService.addCartItems(command);
+        List<Long> cartItemIds = cartCommandService.addCartItems(command);
         //then
-        assertThat(cartItemData).hasSize(1);
+        assertThat(cartItemIds).hasSize(1);
 
-        assertThat(cartItemData).allSatisfy(cartItem -> assertThat(cartItem.cartItemId()).isNotNull());
-
-        assertThat(cartItemData)
-                .extracting(CartItemData::productVariantId, CartItemData::quantity)
-                .containsExactlyInAnyOrder(
-                        tuple(1L, 3)
-                );
+        assertThat(cartItemIds).allSatisfy(cartItemId -> assertThat(cartItemId).isNotNull());
     }
 
     @Test
@@ -74,16 +67,10 @@ class CartCommandServiceTest {
                 .build();
         cartRepository.save(Cart.create(userId, idGenerator));
         //when
-        List<CartItemData> cartItemData = cartCommandService.addCartItems(command);
+        List<Long> cartItemIds = cartCommandService.addCartItems(command);
         //then
-        assertThat(cartItemData).hasSize(1);
-        assertThat(cartItemData).allSatisfy(cartItem -> assertThat(cartItem.cartItemId()).isNotNull());
-
-        assertThat(cartItemData)
-                .extracting(CartItemData::productVariantId, CartItemData::quantity)
-                .containsExactlyInAnyOrder(
-                        tuple(1L, 3)
-                );
+        assertThat(cartItemIds).hasSize(1);
+        assertThat(cartItemIds).allSatisfy(cartItemId -> assertThat(cartItemId).isNotNull());
     }
 
     @Test

@@ -22,14 +22,14 @@ public class CartCommandService {
     private final CartRepository cartRepository;
     private final IdGenerator idGenerator;
 
-    public List<CartItemData> addCartItems(CreateCartItemsContext context) {
+    public List<Long> addCartItems(CreateCartItemsContext context) {
         Cart cart = cartRepository.findByUserId(context.userId())
                 .orElseGet(() -> Cart.create(context.userId(), idGenerator));
 
         List<CartItem> addedItems = cart.addItems(context, idGenerator);
         cartRepository.save(cart);
         return addedItems.stream()
-                .map(CartItemData::from)
+                .map(CartItem::getId)
                 .toList();
     }
 

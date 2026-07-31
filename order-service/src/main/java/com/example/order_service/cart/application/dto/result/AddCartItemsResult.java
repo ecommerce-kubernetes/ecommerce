@@ -1,6 +1,5 @@
 package com.example.order_service.cart.application.dto.result;
 
-import com.example.order_service.cart.application.dto.data.CartItemData;
 import lombok.Builder;
 
 import java.util.List;
@@ -15,20 +14,20 @@ public record AddCartItemsResult(
             Long cartItemId
     ) {
 
-        public static AddedItemResult from(CartItemData data) {
+        public static AddedItemResult from(Long cartItemId) {
             return AddedItemResult.builder()
-                    .cartItemId(data.cartItemId())
+                    .cartItemId(cartItemId)
                     .build();
         }
 
-        public static List<AddedItemResult> from(List<CartItemData> data) {
-            return data.stream().map(AddedItemResult::from).toList();
+        public static List<AddedItemResult> from(List<Long> cartItemIds) {
+            return cartItemIds.stream().map(AddedItemResult::from).toList();
         }
     }
 
-    public static AddCartItemsResult from(List<CartItemData> data) {
+    public static AddCartItemsResult from(List<Long> cartItemIds) {
         return AddCartItemsResult.builder()
-                .items(AddedItemResult.from(data))
+                .items(AddedItemResult.from(cartItemIds))
                 .build();
     }
 }

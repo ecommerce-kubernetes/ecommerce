@@ -41,7 +41,7 @@ public class CartFacade {
         cartItemValidator.validatePurchasable(targetProducts);
 
         CreateCartItemsContext context = cartMapper.toCreateContext(command, productDataMap);
-        List<CartItemData> cartItems = cartCommandService.addCartItems(context);
+        List<Long> cartItems = cartCommandService.addCartItems(context);
 
         return AddCartItemsResult.from(cartItems);
     }
