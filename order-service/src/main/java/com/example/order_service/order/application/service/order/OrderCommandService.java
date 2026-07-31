@@ -1,8 +1,10 @@
 package com.example.order_service.order.application.service.order;
 
+import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.order.Order;
+import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class OrderCommandService {
     private final OrderRepository orderRepository;
+    private final IdGenerator idGenerator;
 
-
-    public OrderResultDeprecated.Create saveOrder(OrderContext.CreateOrderContext context) {
-        Order order = initialOrder(context);
-        Order savedOrder = orderRepository.save(order);
-        return OrderResultDeprecated.Create.from(savedOrder);
+    public Long saveOrder(CreateOrderContext context) {
+        Order order = Order.create(context, idGenerator);
+        Order save = orderRepository.save(order);
+        return save.getId();
     }
 
     public void changePaid(String orderNo) {
@@ -32,7 +34,4 @@ public class OrderCommandService {
     public void changeFailed(String orderNo, String reason) {
     }
 
-    private Order initialOrder(OrderContext.CreateOrderContext context) {
-        return null;
-    }
 }
