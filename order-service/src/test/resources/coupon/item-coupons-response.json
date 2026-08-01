@@ -1,0 +1,24 @@
+{
+  "userId": 1,
+  "itemCoupons": [
+    {
+      "itemCouponId": 1,
+      "status": "AVAILABLE",
+      "name": "청바지 1000원 할인 쿠폰",
+      "applyQuantityLimit": 1,
+      "discountType": "FIXED",
+      "discountAmount": 1000,
+      "expiresAt": "2026-12-25 23:59:59"
+    },
+    {
+      "itemCouponId": 2,
+      "status": "AVAILABLE",
+      "name": "반팔티 10% 할인 쿠폰",
+      "applyQuantityLimit": 1,
+      "discountType": "RATE",
+      "discountRate": 10,
+      "maxDiscountAmount": 10000,
+      "expiresAt": "2026-12-25 23:59:59"
+    }
+  ]
+}
