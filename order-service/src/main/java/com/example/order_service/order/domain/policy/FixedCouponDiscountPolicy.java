@@ -1,9 +1,11 @@
 package com.example.order_service.order.domain.policy;
 
 import com.example.order_service.common.domain.vo.Money;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode
 public class FixedCouponDiscountPolicy implements CouponDiscountPolicy {
     private Money discountAmount;
 
