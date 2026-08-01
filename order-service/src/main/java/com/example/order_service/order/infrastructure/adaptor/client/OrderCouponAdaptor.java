@@ -8,14 +8,17 @@ import com.example.order_service.common.exception.port.CouponPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
+import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.dto.CartCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponResult;
+import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderCouponPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @Service
@@ -42,6 +45,16 @@ public class OrderCouponAdaptor implements OrderCouponPort {
 
     private CartCouponResponse executeGetCartCoupon(Long userId, Long cartCouponId) {
         return executeWithExceptionTranslation(() -> couponGateway.getCartCoupon(userId, cartCouponId));
+    }
+
+    @Override
+    public ItemCouponsResult getItemCoupons(Long userId, List<Long> itemCouponIds) {
+        ItemCouponsResponse response = executeGetItemCoupons(userId, itemCouponIds);
+        return orderCouponPortMapper.mapToItemCouponsResult(response);
+    }
+
+    private ItemCouponsResponse executeGetItemCoupons(Long userId, List<Long> itemCouponIds){
+        return executeWithExceptionTranslation(() -> couponGateway.getItemCoupons(userId, itemCouponIds));
     }
 
     private <T> T executeWithExceptionTranslation(Supplier<T> apiCall) {
