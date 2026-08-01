@@ -6,7 +6,7 @@ import com.example.order_service.order.api.web.OrderController;
 import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.dto.command.OrderCreateCommand;
+import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
@@ -63,7 +63,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        given(orderFacade.initialOrder(any(OrderCreateCommand.class)))
+        given(orderFacade.createOrder(any(CreateOrderCommand.class)))
                 .willReturn(result);
         //when
         //then

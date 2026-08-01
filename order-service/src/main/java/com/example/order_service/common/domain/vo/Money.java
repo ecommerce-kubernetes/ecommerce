@@ -6,12 +6,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/**
- * 금액 VO
- * 금액을 관리하는 Value Object
- *
- * @author 2026. 05. 23
- */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Money {
     public static final Money ZERO = new Money(BigDecimal.ZERO);

@@ -10,13 +10,6 @@ import org.springframework.http.HttpStatus;
 public enum OrderErrorCode implements ErrorCode {
     INVALID_ITEM_QUANTITY(HttpStatus.CONFLICT, "INVALID_ITEM_QUANTITY", "항목 수량이 유효하지 않습니다."),
     ORDER_ITEMS_REQUIRED(HttpStatus.CONFLICT, "ORDER_ITEMS_REQUIRED", "주문 상품은 최소 한개 이상이여야 합니다"),
-    INVALID_ORDER_STATUS_FOR_FAIL(HttpStatus.CONFLICT, "INVALID_ORDER_STATUS_FOR_FAIL", "주문을 실패 상태로 변경할 수 없습니다"),
-    INVALID_ORDER_STATUS_FOR_COMPLETION(HttpStatus.CONFLICT, "INVALID_ORDER_STATUS_FOR_COMPLETION", "주문을 완료 상태로 변경할 수 없습니다"),
-    INVALID_ORDER_STATUS_FOR_PAYMENT(HttpStatus.CONFLICT, "INVALID_ORDER_STATUS_FOR_PAYMENT", "결제 가능한 주문이 아닙니다"),
-    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_ACCESS_DENIED", "주문 조회 권한이 없습니다"),
-    POINTS_DISCOUNT_CHANGE(HttpStatus.CONFLICT, "POINT_DISCOUNT_CHANGE", "사용 가능 포인트가 변동되었습니다"),
-    ITEM_COUPON_DISCOUNT_CHANGE(HttpStatus.CONFLICT, "ITEM_COUPON_DISCOUNT_CHANGE", "상품 쿠폰 할인금이 변동되었습니다"),
-    PRODUCT_PRICE_CHANGE(HttpStatus.CONFLICT, "PRODUCT_PRICE_CHANGE", "주문 상품 가격이 변동되었습니다"),
     ORDER_SHEET_EXPIRED(HttpStatus.CONFLICT, "ORDER_SHEET_EXPIRED", "주문서가 만료되었습니다"),
     INVALID_PHONE_NUMBER(HttpStatus.CONFLICT, "INVALID_PHONE_NUMBER", "유효하지 않은 전화번호 형식입니다."),
     INVALID_ZIPCODE(HttpStatus.CONFLICT, "INVALID_ZIPCODE", "유효하지 않은 우편번호 형식입니다."),
@@ -37,6 +30,7 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_PRODUCT_INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "ORDER_PRODUCT_INSUFFICIENT_STOCK", "상품 수량이 부족합니다"),
     ORDER_PRODUCT_UNORDERABLE(HttpStatus.CONFLICT, "ORDER_PRODUCT_UNORDERABLE", "판매할 수 없는 상품이 존재합니다"),
     ORDER_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_PRODUCT_NOT_FOUND", "주문 상품을 찾을 수 없습니다"),
+    PRODUCT_PRICE_CHANGED(HttpStatus.CONFLICT, "PRODUCT_PRICE_CHANGED", "상품 가격이 변동되었습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다");
     private final HttpStatus status;
     private final String code;

@@ -9,7 +9,7 @@ import com.example.order_service.order.api.web.dto.order.response.OrderResponse;
 import com.example.order_service.order.api.web.dto.order.response.OrderSummaryResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.dto.command.OrderCreateCommand;
+import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
@@ -37,8 +37,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderCreateResponse> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                            @RequestBody @Validated OrderCreateRequest request) {
-        OrderCreateCommand command = request.toCommand(userPrincipal.getUserId());
-        OrderCreateResult result = orderFacade.initialOrder(command);
+        CreateOrderCommand command = request.toCommand(userPrincipal.getUserId());
+        OrderCreateResult result = orderFacade.createOrder(command);
         OrderCreateResponse response = OrderCreateResponse.from(result);
         return ResponseEntity.status(HttpStatus.SC_CREATED).body(response);
     }

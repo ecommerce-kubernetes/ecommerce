@@ -4,11 +4,10 @@ import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.dto.command.OrderCreateCommand;
+import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
-import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
@@ -16,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -68,7 +66,7 @@ class OrderControllerTest {
                 .build();
 
         OrderCreateResult result = Instancio.create(OrderCreateResult.class);
-        given(orderFacade.initialOrder(any(OrderCreateCommand.class)))
+        given(orderFacade.createOrder(any(CreateOrderCommand.class)))
                 .willReturn(result);
         //when
         //then

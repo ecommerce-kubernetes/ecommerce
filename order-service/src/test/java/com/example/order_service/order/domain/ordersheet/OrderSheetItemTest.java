@@ -161,7 +161,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -173,7 +173,7 @@ public class OrderSheetItemTest {
         //then
         assertThat(item.getItemCouponSnapshot()).isEqualTo(itemCoupon);
     }
-    
+
     @Test
     @DisplayName("주문 항목에 쿠폰을 적용할때 쿠폰이 없으면 예외가 발생한다.")
     void applyItemCoupon_itemCoupon_null() {
@@ -189,7 +189,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
 
@@ -200,7 +200,7 @@ public class OrderSheetItemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("적용할 쿠폰 정보는 필수 입니다.");
     }
-    
+
     @Test
     @DisplayName("상품 쿠폰을 해제한다")
     void removeItemCoupon() {
@@ -216,7 +216,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -246,7 +246,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -258,7 +258,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("상품 기본 할인 총액을 계산한다.")
-    void calculateItemDiscountLineTotal(){
+    void calculateItemDiscountLineTotal() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -270,7 +270,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -282,7 +282,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("상품 판매가 총액을 계산한다.")
-    void calculateLineTotal(){
+    void calculateLineTotal() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -295,7 +295,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -307,7 +307,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목의 쿠폰 할인 금액을 계산한다.")
-    void calculateCouponDiscount(){
+    void calculateCouponDiscount() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -320,7 +320,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -336,7 +336,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목에 상품 쿠폰이 적용되지 않은 경우 상품 쿠폰 할인 금액은 0원 이다.")
-    void calculateCouponDiscount_not_apply_itemCoupon(){
+    void calculateCouponDiscount_not_apply_itemCoupon() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -349,7 +349,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -361,7 +361,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목에 적용된 상품 쿠폰 할인 금액이 주문 항목의 판매가 총액을 넘어서는 경우 쿠폰 할인 금액은 판매가 총액을 한도로 적용된다.")
-    void calculateCouponDiscount_lineTotal_lessThan_discountAmount(){
+    void calculateCouponDiscount_lineTotal_lessThan_discountAmount() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -374,7 +374,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -402,7 +402,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -427,7 +427,7 @@ public class OrderSheetItemTest {
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots( Collections.emptyList())
+                .optionSnapshots(Collections.emptyList())
                 .build();
 
         OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
@@ -438,5 +438,34 @@ public class OrderSheetItemTest {
         Money result = item.calculateFinalAmount();
         //then
         assertThat(result).isEqualTo(Money.wons(26000L));
+    }
+
+    @Test
+    @DisplayName("상품 가격 정보가 동일하지 않으면 예외가 발생한다.")
+    void validatePriceNotChanged() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+
+        ProductPriceSnapshot target = ProductPriceSnapshot.of(Money.wons(10000L), 20, Money.wons(2000L), Money.wons(8000L));
+        //when
+        //then
+        assertThatThrownBy(() -> item.validatePriceNotChanged(target))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.PRODUCT_PRICE_CHANGED);
     }
 }

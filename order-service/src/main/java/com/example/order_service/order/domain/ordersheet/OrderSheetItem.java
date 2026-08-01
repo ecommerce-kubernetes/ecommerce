@@ -98,44 +98,17 @@ public class OrderSheetItem {
         return calculateLineTotal().subtract(calculateCouponDiscount());
     }
 
-    /**
-     * 주문 상품의 상품 변형 아이디
-     * <p>
-     * 주문 상품의 상품 변형 아이디를 반환한다
-     * </p>
-     *
-     * @return 주문 상품 변형 아이디
-     */
     public Long getProductVariantId() {
         return this.productSnapshot.getProductVariantId();
-    }
-
-    /**
-     * 주문 상품의 상품 쿠폰 아이디
-     * <p>
-     * 주문 상품의 상품 쿠폰 아이디를 반환한다
-     * </p>
-     *
-     * @return 주문 상품 쿠폰 아이디
-     */
-    public Long getCouponId() {
-        return this.getItemCouponSnapshot().getItemCouponId();
-    }
-
-    /**
-     * 주문 상품 판매 금액
-     * <p>
-     * 주문 상품의 판매 금액을 반환한다
-     * </p>
-     *
-     * @return 주문 상품 판매 금액
-     */
-    public Money getDiscountedPrice() {
-        return this.getPriceSnapshot().getDiscountedPrice();
     }
 
     public boolean hasCoupon() {
         return this.itemCouponSnapshot.getItemCouponId() != null;
     }
 
+    public void validatePriceNotChanged(ProductPriceSnapshot currentPriceSnapshot) {
+        if(!this.priceSnapshot.equals(currentPriceSnapshot)) {
+            throw new BusinessException(OrderErrorCode.PRODUCT_PRICE_CHANGED);
+        }
+    }
 }
