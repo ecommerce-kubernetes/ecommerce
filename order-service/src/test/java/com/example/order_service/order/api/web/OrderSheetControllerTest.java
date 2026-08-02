@@ -408,7 +408,7 @@ class OrderSheetControllerTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String expectedExpiresAt = result.expiresAt().format(formatter);
 
-        given(orderSheetService.applyItemCoupon(any())).willReturn(result);
+        given(orderSheetService.applyItemCoupons(any())).willReturn(result);
         //when
         //then
         mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)

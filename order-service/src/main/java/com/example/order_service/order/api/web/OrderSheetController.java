@@ -66,8 +66,8 @@ public class OrderSheetController {
                                                               @PathVariable("orderSheetId") Long orderSheetId,
                                                               @PathVariable("orderSheetItemId") Long orderSheetItemId,
                                                               @RequestBody @Validated ApplyOrderSheetItemCouponRequest request) {
-        ApplyItemCouponCommand command = request.toCommand(userPrincipal.getUserId(), orderSheetId, orderSheetItemId);
-        OrderSheetUpdateResult result = orderSheetService.applyItemCoupon(command);
+        ApplyItemCouponsCommand command = request.toCommand(userPrincipal.getUserId(), orderSheetId, orderSheetItemId);
+        OrderSheetUpdateResult result = orderSheetService.applyItemCoupons(command);
         OrderSheetUpdateResponse response = OrderSheetUpdateResponse.from(result);
         return ResponseEntity.ok(response);
     }

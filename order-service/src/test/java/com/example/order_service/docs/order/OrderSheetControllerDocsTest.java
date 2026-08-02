@@ -205,7 +205,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .build();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         OrderSheetUpdateResult result = createOrderSheetUpdateResult();
-        given(orderSheetService.applyItemCoupon(any(ApplyItemCouponCommand.class)))
+        given(orderSheetService.applyItemCoupons(any(ApplyItemCouponsCommand.class)))
                 .willReturn(result);
         //when
         //then

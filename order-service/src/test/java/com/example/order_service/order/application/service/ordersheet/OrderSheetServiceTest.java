@@ -380,28 +380,41 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰을 적용한다.")
-    void applyItemCoupon() {
+    void applyItemCoupons() {
         //given
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
-        ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
+        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
+                .status(OrderCouponStatus.AVAILABLE)
+                .itemCoupon(itemCoupon)
+                .expiresAt(LocalDateTime.now().plusDays(10))
+                .build();
+
+        ItemCouponsResult itemCouponsResult = ItemCouponsResult.builder()
+                .userId(1L)
+                .itemCoupons(List.of(itemCouponResult))
+                .build();
 
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
         OrderSheet orderSheet = createOrderSheet(expiresAt);
         OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
 
-        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
-                .userId(1L)
-                .itemCouponId(10L)
-                .orderSheetId(orderSheet.getId())
+        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
                 .orderSheetItemId(orderSheetItem.getId())
+                .itemCouponId(10L)
+                .build();
+
+        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
+                .userId(1L)
+                .orderSheetId(orderSheet.getId())
+                .itemCouponCommands(List.of(itemCouponCommand))
                 .build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
+        given(orderCouponPort.getItemCoupons(anyLong(), anyList())).willReturn(itemCouponsResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
         //when
-        OrderSheetUpdateResult result = orderSheetService.applyItemCoupon(command);
+        OrderSheetUpdateResult result = orderSheetService.applyItemCoupons(command);
         //then
         assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
         assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
@@ -420,19 +433,23 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰 적용 시, 주문서를 찾을 수 없으면 예외가 발생한다")
-    void applyItemCoupon_notFound_orderSheet() {
+    void applyItemCoupons_notFound_orderSheet() {
         //given
-        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
-                .userId(1L)
+        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
+                .orderSheetItemId(1L)
                 .itemCouponId(10L)
+                .build();
+
+        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
+                .userId(1L)
                 .orderSheetId(999L)
-                .orderSheetItemId(100L)
+                .itemCouponCommands(List.of(itemCouponCommand))
                 .build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
-        assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
+        assertThatThrownBy(() -> orderSheetService.applyItemCoupons(command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
@@ -440,23 +457,27 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
-    void applyItemCoupon_expired_orderSheet() {
+    void applyItemCoupons_expired_orderSheet() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
         OrderSheet orderSheet = createOrderSheet(expiresAt);
         OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
 
-        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
-                .userId(1L)
-                .itemCouponId(10L)
-                .orderSheetId(orderSheet.getId())
+        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
                 .orderSheetItemId(orderSheetItem.getId())
+                .itemCouponId(10L)
+                .build();
+
+        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
+                .userId(1L)
+                .orderSheetId(orderSheet.getId())
+                .itemCouponCommands(List.of(itemCouponCommand))
                 .build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
-        assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
+        assertThatThrownBy(() -> orderSheetService.applyItemCoupons(command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
@@ -469,22 +490,34 @@ public class OrderSheetServiceTest {
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
         OrderSheet orderSheet = createOrderSheet(expiresAt);
 
-        ApplyItemCouponCommand command = ApplyItemCouponCommand.builder()
-                .userId(1L)
-                .itemCouponId(10L)
-                .orderSheetId(orderSheet.getId())
+        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
                 .orderSheetItemId(999L)
+                .itemCouponId(10L)
+                .build();
+
+        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
+                .userId(1L)
+                .orderSheetId(orderSheet.getId())
+                .itemCouponCommands(List.of(itemCouponCommand))
                 .build();
 
         CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
-        ItemCouponResult couponResult = ItemCouponResult.builder().itemCoupon(itemCoupon).build();
+        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
+                .status(OrderCouponStatus.AVAILABLE)
+                .itemCoupon(itemCoupon)
+                .expiresAt(LocalDateTime.now().plusDays(10))
+                .build();
+        ItemCouponsResult couponsResult = ItemCouponsResult.builder()
+                .userId(1L)
+                .itemCoupons(List.of(itemCouponResult))
+                .build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderCouponPort.getItemCoupon(anyLong(), anyLong())).willReturn(couponResult);
+        given(orderCouponPort.getItemCoupons(anyLong(), anyList())).willReturn(couponsResult);
         //when
         //then
-        assertThatThrownBy(() -> orderSheetService.applyItemCoupon(command))
+        assertThatThrownBy(() -> orderSheetService.applyItemCoupons(command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND);

@@ -10,8 +10,8 @@ import com.example.order_service.order.application.service.ordersheet.dto.comman
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
-import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
@@ -147,12 +147,17 @@ public class OrderSheetService {
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
     }
 
-    public OrderSheetUpdateResult applyItemCoupon(ApplyItemCouponCommand command) {
+    public OrderSheetUpdateResult applyItemCoupons(ApplyItemCouponsCommand command) {
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
 
-        ItemCouponResult itemCouponResult = orderCouponPort.getItemCoupon(command.userId(), command.itemCouponId());
+        ItemCouponsResult itemCouponsResult = orderCouponPort.getItemCoupons(command.userId(), command.toItemCouponIds());
+        Map<Long, ItemCouponsResult.ItemCouponResult> itemCouponMap = itemCouponsResult.toMap();
 
-        orderSheet.applyItemCoupon(command.orderSheetItemId(), itemCouponResult.itemCoupon(), pointUsagePolicy);
+        for(ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand: command.itemCouponCommands()) {
+            ItemCouponsResult.ItemCouponResult couponResult = itemCouponMap.get(itemCouponCommand.itemCouponId());
+            orderValidator.validateItemCoupon(couponResult, LocalDateTime.now(clock));
+            orderSheet.applyItemCoupon(itemCouponCommand.orderSheetItemId(), couponResult.itemCoupon(), pointUsagePolicy);
+        }
 
         Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
         OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);

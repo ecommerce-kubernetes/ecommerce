@@ -2,12 +2,11 @@ package com.example.order_service.order.application.service.validator;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
-import com.example.order_service.order.application.port.dto.OrderProductStatus;
-import com.example.order_service.order.application.port.dto.OrderProductsResult;
+import com.example.order_service.order.application.port.dto.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -36,6 +35,20 @@ public class OrderValidator {
     public void validateAvailablePoints(Money availablePoints, Money usedPoints) {
         if (availablePoints.isLessThan(usedPoints)) {
             throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+        }
+    }
+
+    public void validateItemCoupon(ItemCouponsResult.ItemCouponResult couponResult, LocalDateTime currentTime) {
+        if (couponResult == null) {
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_NOT_FOUND);
+        }
+
+        if(couponResult.status() != OrderCouponStatus.AVAILABLE) {
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE);
+        }
+
+        if (couponResult.expiresAt().isBefore(currentTime)){
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_EXPIRED);
         }
     }
 }

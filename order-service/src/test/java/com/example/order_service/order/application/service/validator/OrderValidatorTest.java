@@ -2,14 +2,16 @@ package com.example.order_service.order.application.service.validator;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
-import com.example.order_service.order.application.port.dto.OrderProductStatus;
-import com.example.order_service.order.application.port.dto.OrderProductsResult;
+import com.example.order_service.order.application.port.dto.*;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
+import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.exception.OrderErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -97,5 +99,62 @@ class OrderValidatorTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+    }
+
+    @Test
+    @DisplayName("누락된 상품 쿠폰이 있는지 검증한다.")
+    void validateItemCoupon_missing_coupon() {
+        //given
+        LocalDateTime currentTime = LocalDateTime.now();
+        //when
+        //then
+        assertThatThrownBy(() -> orderValidator.validateItemCoupon(null, currentTime))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_COUPON_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰이 사용 가능한지 확인한다.")
+    void validateItemCoupon_coupon_unavailable() {
+        //given
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponDiscountPolicy, 1);
+        LocalDateTime expiresAt = LocalDateTime.now().plusDays(10);
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
+                .status(OrderCouponStatus.USED)
+                .itemCoupon(itemCoupon)
+                .expiresAt(expiresAt)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> orderValidator.validateItemCoupon(itemCouponResult, currentTime))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_COUPON_UNAVAILABLE);
+    }
+
+    @Test
+    @DisplayName("쿠폰이 만료되었는지 검증한다.")
+    void validateItemCoupon_coupon_expired() {
+        //given
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponDiscountPolicy, 1);
+        LocalDateTime expiresAt = LocalDateTime.now().minusDays(1);
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
+                .status(OrderCouponStatus.AVAILABLE)
+                .itemCoupon(itemCoupon)
+                .expiresAt(expiresAt)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> orderValidator.validateItemCoupon(itemCouponResult, currentTime))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_COUPON_EXPIRED);
     }
 }
