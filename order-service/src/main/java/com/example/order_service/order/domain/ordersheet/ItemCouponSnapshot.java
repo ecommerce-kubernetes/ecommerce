@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(of = "itemCouponId")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemCouponSnapshot {
 

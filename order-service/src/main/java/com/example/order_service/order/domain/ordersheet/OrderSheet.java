@@ -17,6 +17,7 @@ import org.springframework.util.Assert;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -84,9 +85,24 @@ public class OrderSheet {
     public void applyItemCoupon(Long orderSheetItemId, ItemCouponSnapshot itemCoupon, PointUsagePolicy pointPolicy) {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND));
+
+        validateDuplicateItemCouponApplication(orderSheetItemId, itemCoupon);
+
         item.applyItemCoupon(itemCoupon);
 
         adjustUsedPointsByPolicy(pointPolicy);
+    }
+
+    private void validateDuplicateItemCouponApplication(Long orderSheetItemId, ItemCouponSnapshot itemCoupon) {
+        boolean isDuplicateApplication = this.items.stream()
+                .filter(item -> !item.getId().equals(orderSheetItemId))
+                .map(OrderSheetItem::getItemCouponSnapshot)
+                .filter(Objects::nonNull)
+                .anyMatch(appliedCoupon -> appliedCoupon.equals(itemCoupon));
+
+        if (isDuplicateApplication) {
+            throw new BusinessException(OrderErrorCode.DUPLICATE_ITEM_COUPON_APPLICATION);
+        }
     }
 
     public void applyCartCoupon(CartCouponSnapshot cartCoupon, PointUsagePolicy pointPolicy) {

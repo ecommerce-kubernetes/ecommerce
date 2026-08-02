@@ -33,7 +33,7 @@ public class OrderSheetTest {
     void create() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
@@ -53,7 +53,7 @@ public class OrderSheetTest {
     @DisplayName("주문서를 생성할때 주문자 정보가 없으면 예외가 발생한다.")
     void create_orderer_null() {
         //given
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(null)
@@ -91,7 +91,7 @@ public class OrderSheetTest {
     void create_expiresAt_null() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
@@ -110,7 +110,7 @@ public class OrderSheetTest {
     void create_idGenerator_null() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
@@ -129,7 +129,7 @@ public class OrderSheetTest {
     void changeShippingAddress() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
@@ -153,7 +153,7 @@ public class OrderSheetTest {
     void changeShippingAddress_shippingAddress_null() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
@@ -175,7 +175,7 @@ public class OrderSheetTest {
     void applyItemCoupon() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
@@ -204,7 +204,7 @@ public class OrderSheetTest {
         Money usedPoints = Money.wons(2600L);
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -231,7 +231,7 @@ public class OrderSheetTest {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -250,6 +250,38 @@ public class OrderSheetTest {
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_ITEM_NOT_FOUND);
     }
+    
+    @Test
+    @DisplayName("상품 쿠폰을 적용할때 동일한 쿠폰이 다른 주문 항목에 이미 적용되어있다면 예외가 발생한다.")
+    void applyItemCoupon_apply_same_itemCoupon_multiple_items() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+        CreateOrderSheetItemContext itemCtx2 = createOrderSheetItemContext(2L);
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1, itemCtx2))
+                .expiresAt(expiresAt)
+                .build();
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        OrderSheetItem item1 = orderSheet.getItems().getFirst();
+        OrderSheetItem item2 = orderSheet.getItems().getLast();
+
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", couponPolicy, 1);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+
+        orderSheet.applyItemCoupon(item1.getId(), itemCoupon, pointPolicy);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.applyItemCoupon(item2.getId(), itemCoupon, pointPolicy))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.DUPLICATE_ITEM_COUPON_APPLICATION);
+    }
 
     @Test
     @DisplayName("장바구니 쿠폰을 적용한다")
@@ -257,7 +289,7 @@ public class OrderSheetTest {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -281,7 +313,7 @@ public class OrderSheetTest {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -304,7 +336,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -333,7 +365,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -367,7 +399,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -391,7 +423,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -415,7 +447,7 @@ public class OrderSheetTest {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -443,7 +475,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -462,7 +494,7 @@ public class OrderSheetTest {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -480,7 +512,7 @@ public class OrderSheetTest {
     void calculateTotalItemCouponDiscount(){
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
@@ -505,7 +537,7 @@ public class OrderSheetTest {
     void calculateTotalPaymentAmount(){
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
@@ -540,7 +572,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = baseTime.plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
 
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
@@ -566,7 +598,7 @@ public class OrderSheetTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         LocalDateTime expiresAt = baseTime.plusMinutes(30);
 
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext();
+        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
         CreateOrderSheetContext context = CreateOrderSheetContext.builder()
                 .orderer(orderer)
                 .items(List.of(itemCtx))
@@ -582,8 +614,8 @@ public class OrderSheetTest {
         assertThat(duration.toMinutes()).isEqualTo(0);
     }
 
-    private CreateOrderSheetItemContext createOrderSheetItemContext() {
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "product/product.jpg");
+    private CreateOrderSheetItemContext createOrderSheetItemContext(Long productVariantId) {
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, productVariantId, "SKU", "상품", "product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
         int quantity = 3;
 
