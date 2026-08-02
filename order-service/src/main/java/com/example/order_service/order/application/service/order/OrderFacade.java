@@ -19,15 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 주문 관련 플로우를 담당하는 오케스트레이션 서비스
- * <p>
- * 외부 MSA 도메인과의 통신을 통해 주문 생성 검증, 주문을 생성하는 플로우를 담당
- * </p>
- *
- * @author 최민식
- * @since 2026. 06. 02.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,7 +26,7 @@ public class OrderFacade {
 
     private final OrderSheetRepository orderSheetRepository;
     private final OrderProductPort orderProductPort;
-    private final OrderValidator validator;
+    private final OrderValidator orderValidator;
     private final Clock clock;
 
     public OrderCreateResult createOrder(CreateOrderCommand command) {
@@ -46,7 +37,7 @@ public class OrderFacade {
 
         for (OrderSheetItem item : orderSheet.getItems()) {
             OrderProductsResult.OrderProductDetail product = productsMap.get(item.getProductVariantId());
-            validator.validateOrderable(product, item.getQuantity());
+            orderValidator.validateOrderable(product, item.getQuantity());
             item.validatePriceNotChanged(product.priceSnapshot());
         }
         return null;

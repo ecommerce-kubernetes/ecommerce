@@ -202,4 +202,10 @@ public class OrderSheet {
         Duration remaining = Duration.between(currentTime, this.expiresAt);
         return remaining.isNegative() ? Duration.ZERO : remaining;
     }
+
+    public List<OrderSheetItem> findOrderSheetItemsWithAppliedItemCoupon() {
+        return this.items.stream()
+                .filter(OrderSheetItem::hasCoupon)
+                .toList();
+    }
 }

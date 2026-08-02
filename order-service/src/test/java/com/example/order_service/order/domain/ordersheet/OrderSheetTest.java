@@ -614,6 +614,39 @@ public class OrderSheetTest {
         assertThat(duration.toMinutes()).isEqualTo(0);
     }
 
+    @Test
+    @DisplayName("상품 쿠폰이 적용된 주문 항목을 조회한다.")
+    void findOrderSheetItemsWithAppliedItemCoupon(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+        CreateOrderSheetItemContext itemCtx2 = createOrderSheetItemContext(2L);
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1, itemCtx2))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        OrderSheetItem item = orderSheet.getItems().getFirst();
+
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponDiscountPolicy, 1);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointPolicy);
+        //when
+        List<OrderSheetItem> result = orderSheet.findOrderSheetItemsWithAppliedItemCoupon();
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result)
+                .extracting("id")
+                .containsExactly(item.getId());
+    }
+
     private CreateOrderSheetItemContext createOrderSheetItemContext(Long productVariantId) {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, productVariantId, "SKU", "상품", "product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));

@@ -103,7 +103,7 @@ public class OrderSheetItem {
     }
 
     public boolean hasCoupon() {
-        return this.itemCouponSnapshot.getItemCouponId() != null;
+        return this.itemCouponSnapshot != null;
     }
 
     public void validatePriceNotChanged(ProductPriceSnapshot currentPriceSnapshot) {
