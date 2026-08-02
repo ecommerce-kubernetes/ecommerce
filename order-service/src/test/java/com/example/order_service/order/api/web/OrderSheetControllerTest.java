@@ -400,9 +400,16 @@ class OrderSheetControllerTest {
         //given
         Long orderSheetId = 1L;
         Long orderSheetItemId = 100L;
-        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+
+        ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest applyItemCoupon = ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                .orderSheetItemId(orderSheetItemId)
                 .itemCouponId(1L)
                 .build();
+
+        ApplyOrderSheetItemCouponsRequest request = ApplyOrderSheetItemCouponsRequest.builder()
+                .applyItemCoupons(List.of(applyItemCoupon))
+                .build();
+
         OrderSheetUpdateResult result = Instancio.create(OrderSheetUpdateResult.class);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -411,7 +418,7 @@ class OrderSheetControllerTest {
         given(orderSheetService.applyItemCoupons(any())).willReturn(result);
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/item-coupons", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -426,19 +433,25 @@ class OrderSheetControllerTest {
         //given
         Long orderSheetId = 1L;
         Long orderSheetItemId = 100L;
-        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+
+        ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest applyItemCoupon = ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                .orderSheetItemId(orderSheetItemId)
                 .itemCouponId(1L)
+                .build();
+
+        ApplyOrderSheetItemCouponsRequest request = ApplyOrderSheetItemCouponsRequest.builder()
+                .applyItemCoupons(List.of(applyItemCoupon))
                 .build();
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/item-coupons", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/items/" + orderSheetItemId + "/coupon"));
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/item-coupons"));
     }
 
     @Test
@@ -448,32 +461,37 @@ class OrderSheetControllerTest {
         //given
         Long orderSheetId = 1L;
         Long orderSheetItemId = 100L;
-        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+
+        ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest applyItemCoupon = ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                .orderSheetItemId(orderSheetItemId)
                 .itemCouponId(1L)
+                .build();
+
+        ApplyOrderSheetItemCouponsRequest request = ApplyOrderSheetItemCouponsRequest.builder()
+                .applyItemCoupons(List.of(applyItemCoupon))
                 .build();
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/item-coupons", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
                 .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/items/" + orderSheetItemId + "/coupon"));
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/item-coupons"));
     }
 
     @ParameterizedTest(name = "{0}")
     @DisplayName("상품 쿠폰 적용 요청 검증")
     @MethodSource("provideInvalidApplyItemCouponRequest")
     @WithCustomMockUser
-    void applyItemCoupon_validation(String description, ApplyOrderSheetItemCouponRequest request, String expectedField, String expectedMessage) throws Exception {
+    void applyItemCoupon_validation(String description, ApplyOrderSheetItemCouponsRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         Long orderSheetId = 1L;
-        Long orderSheetItemId = 100L;
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/item-coupons", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -482,7 +500,7 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.errors[0].field").value(expectedField))
                 .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/items/" + orderSheetItemId + "/coupon"));
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/item-coupons"));
     }
 
     @Test
@@ -826,11 +844,35 @@ class OrderSheetControllerTest {
     private static Stream<Arguments> provideInvalidApplyItemCouponRequest() {
         return Stream.of(
                 Arguments.of(
-                        "상품 쿠폰 아이디가 없으면 검증에 실패한다",
-                        ApplyOrderSheetItemCouponRequest.builder()
-                                .itemCouponId(null)
+                        "적용 상품 쿠폰이 없으면 예외가 발생한다.",
+                        ApplyOrderSheetItemCouponsRequest.builder()
+                                .applyItemCoupons(Collections.emptyList())
                                 .build(),
-                        "itemCouponId",
+                        "applyItemCoupons",
+                        "적용할 상품 쿠폰은 한 개 이상이어야 합니다."
+                ),
+                Arguments.of(
+                        "주문 항목 아이디가 누락되면 예외가 발생한다.",
+                        ApplyOrderSheetItemCouponsRequest.builder()
+                                .applyItemCoupons(
+                                        List.of(ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                                                .orderSheetItemId(null)
+                                                .itemCouponId(1L)
+                                                .build())
+                                ).build(),
+                        "applyItemCoupons[0].orderSheetItemId",
+                        "주문 항목(OrderSheetItem) 식별자는 필수 입니다."
+                ),
+                Arguments.of(
+                        "상품 쿠폰 아이디가 누락되면 예외가 발생한다.",
+                        ApplyOrderSheetItemCouponsRequest.builder()
+                                .applyItemCoupons(
+                                        List.of(ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                                                .orderSheetItemId(1L)
+                                                .itemCouponId(null)
+                                                .build())
+                                ).build(),
+                        "applyItemCoupons[0].itemCouponId",
                         "상품 쿠폰 식별자는 필수값 입니다."
                 )
         );

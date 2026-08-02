@@ -200,8 +200,12 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         //given
         Long orderSheetId = 1L;
         Long orderSheetItemId = 100L;
-        ApplyOrderSheetItemCouponRequest request = ApplyOrderSheetItemCouponRequest.builder()
+        ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest itemCouponReq = ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                .orderSheetItemId(orderSheetItemId)
                 .itemCouponId(1L)
+                .build();
+        ApplyOrderSheetItemCouponsRequest request = ApplyOrderSheetItemCouponsRequest.builder()
+                .applyItemCoupons(List.of(itemCouponReq))
                 .build();
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         OrderSheetUpdateResult result = createOrderSheetUpdateResult();
@@ -209,7 +213,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                 .willReturn(result);
         //when
         //then
-        mockMvc.perform(patch("/order-sheets/{orderSheetId}/items/{orderSheetItemId}/coupon", orderSheetId, orderSheetItemId)
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/item-coupons", orderSheetId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser)
                         .content(objectMapper.writeValueAsString(request)))
@@ -228,9 +232,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         responseFields(updateOrderSheetResponse()),
                         pathParameters(
                                 parameterWithName("orderSheetId")
-                                        .description("주문서 ID(주문서 식별자)"),
-                                parameterWithName("orderSheetItemId")
-                                        .description("주문서 상품 ID(주문서 상품 식별자)")
+                                        .description("주문서 ID(주문서 식별자)")
                         )
                 ));
     }

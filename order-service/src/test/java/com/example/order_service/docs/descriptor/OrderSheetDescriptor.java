@@ -57,7 +57,11 @@ public class OrderSheetDescriptor {
 
     public static FieldDescriptor[] applyItemCouponRequest() {
         return new FieldDescriptor[]{
-                fieldWithPath("itemCouponId")
+                fieldWithPath("applyItemCoupons[].orderSheetItemId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("적용 주문 항목 ID")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("applyItemCoupons[].itemCouponId")
                         .type(JsonFieldType.NUMBER)
                         .description("상품 쿠폰 ID")
                         .attributes(key("constraint").value("필수"))
