@@ -537,7 +537,11 @@ public class OrderSheetServiceTest {
                 .build();
 
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(20L, "장바구니 5% 할인 쿠폰", new RateCouponDiscountPolicy(5, Money.wons(50000L)), Money.wons(30000L));
-        CartCouponResult cartCouponResult = CartCouponResult.builder().cartCoupon(cartCoupon).build();
+        CartCouponResult cartCouponResult = CartCouponResult.builder()
+                .status(OrderCouponStatus.AVAILABLE)
+                .cartCoupon(cartCoupon)
+                .expiresAt(LocalDateTime.now(clock).plusDays(1))
+                .build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);

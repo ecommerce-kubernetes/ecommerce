@@ -43,11 +43,23 @@ public class OrderValidator {
             throw new BusinessException(OrderErrorCode.ORDER_COUPON_NOT_FOUND);
         }
 
-        if(couponResult.status() != OrderCouponStatus.AVAILABLE) {
+        validateCouponAvailable(couponResult.status(), currentTime, couponResult.expiresAt());
+    }
+
+    public void validateCartCoupon(CartCouponResult cartCouponResult, LocalDateTime currentTime) {
+        if (cartCouponResult == null) {
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_NOT_FOUND);
+        }
+
+        validateCouponAvailable(cartCouponResult.status(), currentTime, cartCouponResult.expiresAt());
+    }
+
+    private void validateCouponAvailable(OrderCouponStatus status, LocalDateTime currentTime, LocalDateTime expiresAt) {
+        if (status != OrderCouponStatus.AVAILABLE) {
             throw new BusinessException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE);
         }
 
-        if (couponResult.expiresAt().isBefore(currentTime)){
+        if (expiresAt.isBefore(currentTime)) {
             throw new BusinessException(OrderErrorCode.ORDER_COUPON_EXPIRED);
         }
     }

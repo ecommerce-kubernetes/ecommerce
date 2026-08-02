@@ -170,6 +170,8 @@ public class OrderSheetService {
 
         CartCouponResult cartCouponResult = orderCouponPort.getCartCoupon(command.userId(), command.cartCouponId());
 
+        orderValidator.validateCartCoupon(cartCouponResult, LocalDateTime.now(clock));
+
         orderSheet.applyCartCoupon(cartCouponResult.cartCoupon(), pointUsagePolicy);
 
         Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
