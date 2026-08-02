@@ -28,7 +28,7 @@ public class OrderCouponAdaptor implements OrderCouponPort {
     @Override
     public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {
         CartCouponResponse response = executeGetCartCoupon(userId, cartCouponId);
-        return orderCouponPortMapper.mapToCartcouponResult(response);
+        return orderCouponPortMapper.mapToCartCouponResult(response);
     }
 
     private CartCouponResponse executeGetCartCoupon(Long userId, Long cartCouponId) {

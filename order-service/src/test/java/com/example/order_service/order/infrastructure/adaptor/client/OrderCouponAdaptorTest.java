@@ -160,11 +160,13 @@ public class OrderCouponAdaptorTest {
 
         CartCouponResponse response = CartCouponResponse.builder()
                 .userId(userId)
+                .status("AVAILABLE")
                 .cartCouponId(cartCouponId)
                 .name("장바구니 1000원 할인 쿠폰")
                 .minimumPaymentAmount(50000L)
                 .discountType("FIXED")
                 .discountAmount(1000L)
+                .expiresAt(LocalDateTime.now().plusDays(10))
                 .build();
 
         given(gateway.getCartCoupon(anyLong(), anyLong()))
@@ -196,8 +198,8 @@ public class OrderCouponAdaptorTest {
     @DisplayName("장바구니 쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 예외가 발생한다")
     void getCartCoupon_ExternalClientException(){
         //given
-        String code = "COUPON_EXPIRED";
-        String message = "쿠폰이 만료되었습니다";
+        String code = "PERMISSION_DENIED";
+        String message = "조회 권한이 부족합니다.";
         given(gateway.getCartCoupon(anyLong(), anyLong())).willThrow(new ExternalClientException(code, message));
         //when
         //then

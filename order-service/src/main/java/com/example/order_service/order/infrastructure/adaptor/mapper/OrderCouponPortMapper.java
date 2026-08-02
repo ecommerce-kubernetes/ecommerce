@@ -52,7 +52,7 @@ public class OrderCouponPortMapper {
                 .build();
     }
 
-    public CartCouponResult mapToCartcouponResult(CartCouponResponse response) {
+    public CartCouponResult mapToCartCouponResult(CartCouponResponse response) {
         CouponDiscountPolicy discountPolicy = createDiscountPolicy(
                 response.discountType(),
                 response.discountAmount(),
@@ -60,13 +60,17 @@ public class OrderCouponPortMapper {
                 response.maxDiscountAmount()
         );
 
+        OrderCouponStatus status = mapToCouponStatus(response.status());
+
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(response.cartCouponId(),
                 response.name(),
                 discountPolicy,
                 Money.wons(response.minimumPaymentAmount()));
 
         return CartCouponResult.builder()
+                .status(status)
                 .cartCoupon(cartCoupon)
+                .expiresAt(response.expiresAt())
                 .build();
     }
 

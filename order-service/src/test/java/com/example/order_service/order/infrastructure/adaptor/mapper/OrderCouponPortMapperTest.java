@@ -40,7 +40,7 @@ class OrderCouponPortMapperTest {
 
         ItemCouponsResponse.ItemCoupon itemCoupon2 = ItemCouponsResponse.ItemCoupon.builder()
                 .itemCouponId(2L)
-                .status("AVAILABLE")
+                .status("USED")
                 .name("10% 할인 쿠폰")
                 .applyQuantityLimit(1)
                 .discountType("RATE")
@@ -68,7 +68,7 @@ class OrderCouponPortMapperTest {
                 .extracting("status", "itemCoupon", "expiresAt")
                 .containsExactly(
                         tuple(OrderCouponStatus.AVAILABLE, expectedSnapshot1, now),
-                        tuple(OrderCouponStatus.AVAILABLE, expectedSnapshot2, now)
+                        tuple(OrderCouponStatus.USED, expectedSnapshot2, now)
                 );
     }
 
@@ -76,17 +76,22 @@ class OrderCouponPortMapperTest {
     @DisplayName("장바구니 쿠폰 조회 결과를 매핑한다 (정액 쿠폰)")
     void mapToCartCouponResult_fixed(){
         //given
+        LocalDateTime expiresAt = LocalDateTime.now();
         CartCouponResponse response = CartCouponResponse.builder()
                 .userId(1L)
                 .cartCouponId(1L)
+                .status("AVAILABLE")
                 .name("장바구니 1000원 할인 쿠폰")
                 .minimumPaymentAmount(10000L)
                 .discountType("FIXED")
                 .discountAmount(1000L)
+                .expiresAt(expiresAt)
                 .build();
         //when
-        CartCouponResult result = orderCouponPortMapper.mapToCartcouponResult(response);
+        CartCouponResult result = orderCouponPortMapper.mapToCartCouponResult(response);
         //then
+        assertThat(result.status()).isEqualTo(OrderCouponStatus.AVAILABLE);
+        assertThat(result.expiresAt()).isEqualTo(expiresAt);
         CartCouponSnapshot cartCouponSnapshot = result.cartCoupon();
         assertThat(cartCouponSnapshot)
                 .extracting("cartCouponId", "name", "minimumPaymentAmount")
@@ -100,18 +105,23 @@ class OrderCouponPortMapperTest {
     @DisplayName("장바구니 쿠폰 조회 결과를 매핑한다 (정률 쿠폰)")
     void mapToCartCouponResult_rate(){
         //given
+        LocalDateTime expiresAt = LocalDateTime.now();
         CartCouponResponse response = CartCouponResponse.builder()
                 .userId(1L)
                 .cartCouponId(1L)
+                .status("USED")
                 .name("장바구니 10% 할인 쿠폰")
                 .minimumPaymentAmount(10000L)
                 .discountType("RATE")
                 .discountRate(10)
                 .maxDiscountAmount(10000L)
+                .expiresAt(expiresAt)
                 .build();
         //when
-        CartCouponResult result = orderCouponPortMapper.mapToCartcouponResult(response);
+        CartCouponResult result = orderCouponPortMapper.mapToCartCouponResult(response);
         //then
+        assertThat(result.status()).isEqualTo(OrderCouponStatus.USED);
+        assertThat(result.expiresAt()).isEqualTo(expiresAt);
         CartCouponSnapshot cartCouponSnapshot = result.cartCoupon();
         assertThat(cartCouponSnapshot)
                 .extracting("cartCouponId", "name", "minimumPaymentAmount")
