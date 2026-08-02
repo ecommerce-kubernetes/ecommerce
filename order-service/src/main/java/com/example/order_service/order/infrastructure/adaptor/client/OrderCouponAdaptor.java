@@ -7,12 +7,10 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.common.exception.port.CouponPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
-import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.dto.CartCouponResult;
-import com.example.order_service.order.application.port.dto.ItemCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderCouponPortMapper;
 import lombok.RequiredArgsConstructor;
@@ -26,16 +24,6 @@ import java.util.function.Supplier;
 public class OrderCouponAdaptor implements OrderCouponPort {
     private final CouponGateway couponGateway;
     private final OrderCouponPortMapper orderCouponPortMapper;
-
-    @Override
-    public ItemCouponResult getItemCoupon(Long userId, Long itemCouponId) {
-        ItemCouponResponse response = executeGetItemCoupon(userId, itemCouponId);
-        return orderCouponPortMapper.mapToItemCouponResult(response);
-    }
-
-    private ItemCouponResponse executeGetItemCoupon(Long userId, Long itemCouponId) {
-        return executeWithExceptionTranslation(() -> couponGateway.getItemCoupon(userId, itemCouponId));
-    }
 
     @Override
     public CartCouponResult getCartCoupon(Long userId, Long cartCouponId) {

@@ -7,11 +7,9 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.common.exception.port.CouponPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
-import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.order.application.port.dto.CartCouponResult;
-import com.example.order_service.order.application.port.dto.ItemCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderCouponPortMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -40,93 +38,6 @@ public class OrderCouponAdaptorTest {
     private CouponGateway gateway;
     @Spy
     private OrderCouponPortMapper orderCouponPortMapper;
-
-    @Test
-    @DisplayName("상품 쿠폰을 조회한다.")
-    void getItemCoupon_fixDiscount(){
-        //given
-        Long userId = 1L;
-        Long itemCouponId = 1L;
-
-        ItemCouponResponse response = ItemCouponResponse.builder()
-                .userId(userId)
-                .discountType("FIXED")
-                .itemCouponId(itemCouponId)
-                .name("청바지 1000원 할인")
-                .applyQuantityLimit(1)
-                .discountAmount(1000L)
-                .build();
-
-        given(gateway.getItemCoupon(anyLong(), anyLong())).willReturn(response);
-        //when
-        ItemCouponResult result = orderCouponAdaptor.getItemCoupon(userId, itemCouponId);
-        //then
-        assertThat(result.itemCoupon()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
-    void getItemCoupon_ExternalServerException(){
-        //given
-        String code = "INTERNAL_SERVER_ERROR";
-        String message = "처리중 오류가 발생했습니다";
-        given(gateway.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalServerException(code, message));
-        //when
-        //then
-        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponPortErrorCode.COUPON_SERVER_ERROR, code);
-    }
-
-    @Test
-    @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 예외가 발생한다")
-    void getItemCoupon_ExternalClientException(){
-        //given
-        String code = "COUPON_EXPIRED";
-        String message = "쿠폰이 만료되었습니다";
-        given(gateway.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalClientException(code, message));
-        //when
-        //then
-        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponPortErrorCode.COUPON_CLIENT_ERROR, code);
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 조회중 쿠폰 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
-    void getItemCoupon_ExternalCircuitBreakerException(){
-        //given
-        String code = "COUPON_CIRCUIT_OPEN";
-        String message = "쿠폰 서비스 서킷 브레이커 열림";
-        given(gateway.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalCircuitBreakerException(code, message));
-        //when
-        //then
-        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponPortErrorCode.COUPON_CIRCUIT_OPEN, code);
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 조회중 쿠폰 서비스에서 통신 불가 오류가 발생한 경우 예외가 발생한다")
-    void getItemCoupon_ExternalUnavailableServerException() {
-        //given
-        String code = "SERVICE_UNAVAILABLE";
-        String message = "쿠폰 서비스 통신 장애";
-        given(gateway.getItemCoupon(anyLong(), anyLong())).willThrow(new ExternalSystemUnavailableException(code, message));
-        //when
-        //then
-        assertThatThrownBy(() -> orderCouponAdaptor.getItemCoupon(1L, 1L))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
-    }
 
     @Test
     @DisplayName("상품 쿠폰 정보를 조회한다.")

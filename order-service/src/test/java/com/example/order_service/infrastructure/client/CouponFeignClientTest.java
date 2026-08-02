@@ -4,7 +4,6 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.infrastructure.dto.request.ItemCouponsRequest;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
-import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,105 +37,6 @@ public class CouponFeignClientTest {
     private String readJson(String path) throws IOException {
         ClassPathResource resource = new ClassPathResource(path);
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 정보를 조회한다. (정액 쿠폰)")
-    void getItemCoupon_fixed() throws IOException {
-        //given
-        Long userId = 1L;
-        Long itemCouponId = 1L;
-        String mockJsonResponse = readJson("coupon/fix-item-coupon-response.json");
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/item-coupons/" + itemCouponId))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        ItemCouponResponse response = client.getItemCoupon(userId, itemCouponId);
-        //then
-        assertThat(response.userId()).isEqualTo(userId);
-        assertThat(response.applyQuantityLimit()).isEqualTo(3);
-        assertThat(response.discountType()).isEqualTo("FIXED");
-        assertThat(response.discountAmount()).isEqualTo(1000L);
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 정보를 조회한다. (정률 쿠폰)")
-    void getItemCoupon_rate() throws IOException {
-        //given
-        Long userId = 1L;
-        Long itemCouponId = 1L;
-        String mockJsonResponse = readJson("coupon/rate-item-coupon-response.json");
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/item-coupons/" + itemCouponId))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        ItemCouponResponse response = client.getItemCoupon(userId, itemCouponId);
-        //then
-        assertThat(response.userId()).isEqualTo(userId);
-        assertThat(response.applyQuantityLimit()).isEqualTo(1);
-        assertThat(response.discountType()).isEqualTo("RATE");
-        assertThat(response.discountRate()).isEqualTo(10);
-        assertThat(response.maxDiscountAmount()).isEqualTo(50000L);
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 조회 클라이언트 오류 응답 반환시 예외가 발생한다")
-    void getItemCoupon_thrown_client_error() {
-        //given
-        Long userId =1L;
-        Long itemCouponId = 1L;
-        String mockJsonResponse = """
-                {
-                    "code": "COUPON_EXPIRED",
-                    "message": "쿠폰이 만료되었습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/coupons/calculate"
-                }
-                """;
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/item-coupons/" + itemCouponId))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.BAD_REQUEST.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        //then
-        assertThatThrownBy(() -> client.getItemCoupon(userId, itemCouponId))
-                .isInstanceOf(ExternalClientException.class)
-                .hasMessage("쿠폰이 만료되었습니다")
-                .extracting("errorCode")
-                .isEqualTo("COUPON_EXPIRED");
-    }
-
-    @Test
-    @DisplayName("상품 쿠폰 조회 서버 오류 응답 반환시 예외가 발생한다")
-    void getItemCoupon_thrown_server_error() {
-        //given
-        Long userId =1L;
-        Long itemCouponId = 1L;
-        String mockJsonResponse = """
-                {
-                    "code": "FAILED_INTERNAL_SYSTEM_PROCESSING",
-                    "message": "처리중 알 수 없는 오류가 발생했습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/coupons/calculate"
-                }
-                """;
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/item-coupons/" + itemCouponId))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        //then
-        assertThatThrownBy(() -> client.getItemCoupon(userId, itemCouponId))
-                .isInstanceOf(ExternalServerException.class)
-                .hasMessage("처리중 알 수 없는 오류가 발생했습니다")
-                .extracting("errorCode")
-                .isEqualTo("FAILED_INTERNAL_SYSTEM_PROCESSING");
     }
 
     @Test

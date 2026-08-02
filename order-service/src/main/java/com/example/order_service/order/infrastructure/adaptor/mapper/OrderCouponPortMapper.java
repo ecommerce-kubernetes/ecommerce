@@ -4,10 +4,8 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.port.CouponPortErrorCode;
 import com.example.order_service.common.exception.port.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
-import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.order.application.port.dto.CartCouponResult;
-import com.example.order_service.order.application.port.dto.ItemCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.application.port.dto.OrderCouponStatus;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -21,26 +19,6 @@ import java.util.List;
 
 @Component
 public class OrderCouponPortMapper {
-
-    public ItemCouponResult mapToItemCouponResult(ItemCouponResponse response) {
-        CouponDiscountPolicy discountPolicy = createDiscountPolicy(
-                response.discountType(),
-                response.discountAmount(),
-                response.discountRate(),
-                response.maxDiscountAmount()
-        );
-
-        ItemCouponSnapshot itemCouponSnapshot = ItemCouponSnapshot.of(
-                response.itemCouponId(),
-                response.name(),
-                discountPolicy,
-                response.applyQuantityLimit()
-        );
-
-        return ItemCouponResult.builder()
-                .itemCoupon(itemCouponSnapshot)
-                .build();
-    }
 
     public ItemCouponsResult mapToItemCouponsResult(ItemCouponsResponse response) {
         List<ItemCouponsResult.ItemCouponResult> itemCoupons = response.itemCoupons().stream().map(this::mapToItemCouponResult).toList();

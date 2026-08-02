@@ -4,6 +4,7 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
+import com.example.order_service.infrastructure.dto.request.ItemCouponsRequest;
 import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,40 +47,40 @@ public class CouponGatewayCircuitBreakerTest {
     @DisplayName("쿠폰 서비스에서 연속으로 서버 에러가 발생한 경우 서킷 브레이커가 열려 요청이 차단된다")
     void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
-        given(client.getItemCoupon(anyLong(), anyLong()))
+        given(client.getItemCoupons(anyLong(), any(ItemCouponsRequest.class)))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getItemCoupon(1L, 1L))
+            assertThatThrownBy(() -> adaptor.getItemCoupons(1L, List.of(1L, 2L)))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("COUPON-SERVICE 통신 장애");
         }
 
-        assertThatThrownBy(() -> adaptor.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> adaptor.getItemCoupons(1L,  List.of(1L, 2L)))
                 .isInstanceOf(ExternalCircuitBreakerException.class)
                 .hasMessage("COUPON-SERVICE 서킷 차단")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
-        verify(client, times(3)).getItemCoupon(anyLong(), anyLong());
+        verify(client, times(3)).getItemCoupons(anyLong(), any());
     }
 
     @Test
     @DisplayName("쿠폰 서비스에서 연속으로 클라이언트 에러가 발생한 경우 서킷 브레이커는 닫혀있어야 한다")
     void circuitbreaker_close_after_consecutive_client_failures() {
         //given
-        given(client.getItemCoupon(anyLong(), anyLong()))
+        given(client.getItemCoupons(anyLong(), any(ItemCouponsRequest.class)))
                 .willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getItemCoupon(1L, 1L))
+            assertThatThrownBy(() -> adaptor.getItemCoupons(1L, List.of(1L, 2L)))
                     .isInstanceOf(ExternalClientException.class);
         }
-        assertThatThrownBy(() -> adaptor.getItemCoupon(1L, 1L))
+        assertThatThrownBy(() -> adaptor.getItemCoupons(1L, List.of(1L, 2L)))
                 .isInstanceOf(ExternalClientException.class);
-        verify(client, times(4)).getItemCoupon(anyLong(), anyLong());
+        verify(client, times(4)).getItemCoupons(anyLong(), any(ItemCouponsRequest.class));
     }
 
 }
