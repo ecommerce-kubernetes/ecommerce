@@ -21,6 +21,7 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_ORDER_ITEM_LINE_TOTAL(HttpStatus.CONFLICT, "INVALID_ORDER_ITEM_LINE_TOTAL", "유효하지 않은 상품 판매가 총액 입니다."),
     ITEM_COUPON_DISCOUNT_EXCEEDS_LINE_TOTAL(HttpStatus.CONFLICT, "ITEM_COUPON_DISCOUNT_EXCEEDS_LINE_TOTAL", "상품 판매가 총액은 상품 쿠폰 할인 금액보다 적을 수 없습니다."),
     DUPLICATE_ITEM_COUPON_APPLICATION(HttpStatus.CONFLICT, "DUPLICATE_ITEM_COUPON_APPLICATION", "동일한 상품 쿠폰을 여러 주문 항목에 중복 적용할 수 없습니다."),
+    DUPLICATE_ITEM_COUPON_REQUEST(HttpStatus.BAD_REQUEST, "DUPLICATE_ITEM_COUPON_REQUEST", "동일한 주문 항목에 여러 쿠폰을 지정할 수 없습니다."),
     ORDER_DISCOUNT_EXCEEDS_TOTAL_AMOUNT(HttpStatus.CONFLICT, "ORDER_DISCOUNT_EXCEEDS_TOTAL_AMOUNT", "총 할인 금액은 주문 원가를 초과할 수 없습니다."),
     INVALID_TOTAL_PAYMENT_AMOUNT(HttpStatus.CONFLICT, "INVALID_TOTAL_PAYMENT_AMOUNT", "유효하지 않은 최종 결제 금액 입니다."),
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND", "장바구니 항목을 찾을 수 없습니다"),

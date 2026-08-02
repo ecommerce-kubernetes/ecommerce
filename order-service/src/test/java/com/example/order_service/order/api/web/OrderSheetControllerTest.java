@@ -12,6 +12,7 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -499,6 +500,39 @@ class OrderSheetControllerTest {
                 .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
                 .andExpect(jsonPath("$.errors[0].field").value(expectedField))
                 .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/item-coupons"));
+    }
+
+    @Test
+    @DisplayName("동일한 주문 항목에 여러 쿠폰을 적용하려는 경우 예외가 발생한다.")
+    @WithCustomMockUser
+    void applyItemCoupon_duplicate_item_coupon_request() throws Exception {
+        //given
+        Long orderSheetId = 1L;
+        Long orderSheetItemId = 100L;
+
+        ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest applyItemCoupon1 = ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                .orderSheetItemId(orderSheetItemId)
+                .itemCouponId(1L)
+                .build();
+
+        ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest applyItemCoupon2 = ApplyOrderSheetItemCouponsRequest.ApplyItemCouponRequest.builder()
+                .orderSheetItemId(orderSheetItemId)
+                .itemCouponId(2L)
+                .build();
+
+        ApplyOrderSheetItemCouponsRequest request = ApplyOrderSheetItemCouponsRequest.builder()
+                .applyItemCoupons(List.of(applyItemCoupon1, applyItemCoupon2))
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/order-sheets/{orderSheetId}/item-coupons", orderSheetId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_ITEM_COUPON_REQUEST"))
+                .andExpect(jsonPath("$.message").value("동일한 주문 항목에 여러 쿠폰을 지정할 수 없습니다."))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId + "/item-coupons"));
     }
