@@ -148,10 +148,12 @@ public class CouponFeignClientTest {
         //then
         assertThat(response.userId()).isEqualTo(userId);
         assertThat(response.cartCouponId()).isEqualTo(1);
+        assertThat(response.status()).isEqualTo("AVAILABLE");
         assertThat(response.name()).isEqualTo("장바구니 1000원 할인 쿠폰");
         assertThat(response.minimumPaymentAmount()).isEqualTo(50000L);
         assertThat(response.discountType()).isEqualTo("FIXED");
         assertThat(response.discountAmount()).isEqualTo(1000L);
+        assertThat(response.expiresAt()).isEqualTo(LocalDateTime.of(2026, 12, 25, 23, 59, 59));
     }
 
     @Test
@@ -171,12 +173,14 @@ public class CouponFeignClientTest {
         CartCouponResponse response = client.getCartCoupon(userId, cartCouponId);
         //then
         assertThat(response.userId()).isEqualTo(userId);
+        assertThat(response.status()).isEqualTo("AVAILABLE");
         assertThat(response.cartCouponId()).isEqualTo(1);
         assertThat(response.name()).isEqualTo("장바구니 5% 할인 쿠폰");
         assertThat(response.minimumPaymentAmount()).isEqualTo(50000L);
         assertThat(response.discountType()).isEqualTo("RATE");
         assertThat(response.discountRate()).isEqualTo(5);
         assertThat(response.maxDiscountAmount()).isEqualTo(10000L);
+        assertThat(response.expiresAt()).isEqualTo(LocalDateTime.of(2026, 12, 25, 23, 59, 59));
     }
 
     @Test
@@ -187,24 +191,24 @@ public class CouponFeignClientTest {
         Long cartCouponId = 1L;
         String mockJsonResponse = """
                 {
-                    "code": "COUPON_EXPIRED",
-                    "message": "쿠폰이 만료되었습니다",
+                    "code": "PERMISSION_DENIED",
+                    "message": "조회 권한이 부족합니다.",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/coupons/calculate"
                 }
                 """;
         stubFor(get(urlEqualTo("/internal/users/" + userId + "/cart-coupons/" + cartCouponId))
                 .willReturn(aResponse()
-                        .withStatus(HttpStatus.BAD_REQUEST.value())
+                        .withStatus(HttpStatus.FORBIDDEN.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                         .withBody(mockJsonResponse)));
         //when
         //then
         assertThatThrownBy(() -> client.getCartCoupon(userId, cartCouponId))
                 .isInstanceOf(ExternalClientException.class)
-                .hasMessage("쿠폰이 만료되었습니다")
+                .hasMessage("조회 권한이 부족합니다.")
                 .extracting("errorCode")
-                .isEqualTo("COUPON_EXPIRED");
+                .isEqualTo("PERMISSION_DENIED");
     }
 
     @Test
