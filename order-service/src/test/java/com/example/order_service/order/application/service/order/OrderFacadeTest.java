@@ -4,11 +4,15 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
+import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.OrderProductPort;
 import com.example.order_service.order.application.port.OrderSheetRepository;
-import com.example.order_service.order.application.port.dto.OrderProductStatus;
-import com.example.order_service.order.application.port.dto.OrderProductsResult;
+import com.example.order_service.order.application.port.OrderUserPort;
+import com.example.order_service.order.application.port.dto.*;
 import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
+import com.example.order_service.order.application.service.validator.OrderValidator;
+import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
@@ -21,9 +25,6 @@ import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.infrastructure.adaptor.client.OrderCouponAdaptor;
-import com.example.order_service.order.infrastructure.adaptor.client.OrderProductAdaptor;
-import com.example.order_service.order.infrastructure.adaptor.client.OrderUserAdaptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,9 +41,9 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,12 +58,13 @@ public class OrderFacadeTest {
     @Mock
     private OrderProductPort orderProductPort;
     @Mock
-    private OrderCouponAdaptor orderCouponAdaptor;
+    private OrderCouponPort orderCouponPort;
     @Mock
-    private OrderUserAdaptor orderUserAdaptor;
-
-    @Mock
-    private PointUsagePolicy pointPolicy;
+    private OrderUserPort orderUserPort;
+    @Spy
+    private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+    @Spy
+    private OrderValidator orderValidator;
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
     
@@ -83,10 +85,25 @@ public class OrderFacadeTest {
                 .products(List.of(product))
                 .build();
 
+        ItemCouponsResult.ItemCouponResult itemCouponResult = createItemCouponResult();
+        ItemCouponsResult itemCoupons = ItemCouponsResult.builder()
+                .userId(1L)
+                .itemCoupons(List.of(itemCouponResult))
+                .build();
+
+        CartCouponResult cartCouponResult = createCartCouponResult();
+        OrdererProfileResult ordererProfile = createOrdererProfile();
+
         given(orderSheetRepository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderProductPort.getProducts(anyList())).willReturn(products);
+        given(orderCouponPort.getItemCoupons(anyLong(), anyList())).willReturn(itemCoupons);
+        given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
+        given(orderCommandService.saveOrder(any(CreateOrderContext.class))).willReturn(1L);
         //when
+        OrderCreateResult result = orderFacade.createOrder(command);
         //then
+        assertThat(result.orderId()).isEqualTo(1L);
     }
 
     @Test
@@ -153,8 +170,7 @@ public class OrderFacadeTest {
                 .build();
 
         IdGenerator idGenerator = new TsidGenerator();
-        PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
-        
+
         OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
 
         OrderSheetItem item = orderSheet.getItems().getFirst();
@@ -178,6 +194,37 @@ public class OrderFacadeTest {
                 .stock(stock)
                 .priceSnapshot(priceSnapshot)
                 .options(List.of(option1, option2))
+                .build();
+    }
+
+    private ItemCouponsResult.ItemCouponResult createItemCouponResult() {
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
+        return ItemCouponsResult.ItemCouponResult.builder()
+                .status(OrderCouponStatus.AVAILABLE)
+                .itemCoupon(itemCoupon)
+                .expiresAt(LocalDateTime.now(clock).plusDays(1))
+                .build();
+    }
+
+    private CartCouponResult createCartCouponResult() {
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
+        return CartCouponResult.builder()
+                .status(OrderCouponStatus.AVAILABLE)
+                .cartCoupon(cartCoupon)
+                .expiresAt(LocalDateTime.now(clock).plusDays(1))
+                .build();
+    }
+
+    private OrdererProfileResult createOrdererProfile() {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+
+        return OrdererProfileResult.builder()
+                .orderer(orderer)
+                .availablePoints(Money.wons(10000L))
+                .defaultShippingAddress(shippingAddress)
                 .build();
     }
 
