@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode
 public class FixedCouponDiscountPolicy implements CouponDiscountPolicy {
     private Money discountAmount;
 

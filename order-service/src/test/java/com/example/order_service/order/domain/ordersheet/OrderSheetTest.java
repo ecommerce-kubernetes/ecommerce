@@ -647,6 +647,181 @@ public class OrderSheetTest {
                 .containsExactly(item.getId());
     }
 
+    @Test
+    @DisplayName("장바구니 쿠폰 적용 유무를 반환한다.")
+    void hasCoupon() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCouponSnapshot = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", couponDiscountPolicy, Money.wons(10000L));
+
+        orderSheet.applyCartCoupon(cartCouponSnapshot, pointPolicy);
+        //when
+        boolean hasCoupon = orderSheet.hasCoupon();
+        //then
+        assertThat(hasCoupon).isTrue();
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰이 적용되어있지 않은 주문서에 검증을 수행하면 예외가 발생한다.")
+    void validateCartCouponNotChanged_not_apply_carCoupon() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCouponSnapshot = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", couponDiscountPolicy, Money.wons(10000L));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.validateCartCouponNotChanged(cartCouponSnapshot))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("해당 주문서에는 장바구니 쿠폰이 적용되어있지 않습니다");
+    }
+
+    @Test
+    @DisplayName("주문서의 장바구니 쿠폰의 아이디가 동일하지 않으면 예외가 발생한다")
+    void validateCartCouponNotChanged_miss_match_cartCouponId() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy oldDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CouponDiscountPolicy newDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot oldCartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", oldDiscountPolicy, Money.wons(10000L));
+        CartCouponSnapshot newCartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인 쿠폰", newDiscountPolicy, Money.wons(10000L));
+
+        orderSheet.applyCartCoupon(oldCartCoupon, pointPolicy);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.validateCartCouponNotChanged(newCartCoupon))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("검증하려는 쿠폰 ID가 주문서에 적용된 장바구니 쿠폰 ID와 일치하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("주문서의 장바구니 쿠폰의 할인 정책이 동일하지 않으면 예외가 발생한다.")
+    void validateCartCouponNotChanged_couponDiscountPolicy() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy oldDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CouponDiscountPolicy newDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
+        CartCouponSnapshot oldCartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", oldDiscountPolicy, Money.wons(10000L));
+        CartCouponSnapshot newCartCoupon = CartCouponSnapshot.of(1L, "장바구니 2000원 할인 쿠폰", newDiscountPolicy, Money.wons(10000L));
+
+        orderSheet.applyCartCoupon(oldCartCoupon, pointPolicy);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.validateCartCouponNotChanged(newCartCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
+    }
+
+    @Test
+    @DisplayName("장바구니 쿠폰의 최소 결제금액이 동일하지 않으면 예외가 발생한다.")
+    void validateCartCouponNotChanged_minimumPaymentAmount() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy oldDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CouponDiscountPolicy newDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot oldCartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", oldDiscountPolicy, Money.wons(10000L));
+        CartCouponSnapshot newCartCoupon = CartCouponSnapshot.of(1L, "장바구니 2000원 할인 쿠폰", newDiscountPolicy, Money.wons(20000L));
+
+        orderSheet.applyCartCoupon(oldCartCoupon, pointPolicy);
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.validateCartCouponNotChanged(newCartCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
+    }
+
+    @Test
+    @DisplayName("포인트가 최대 적용 가능 한도를 초과하는지 검증한다.")
+    void validatePointsLimit() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        CreateOrderSheetItemContext itemCtx1 = createOrderSheetItemContext(1L);
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
+                .orderer(orderer)
+                .items(List.of(itemCtx1))
+                .expiresAt(expiresAt)
+                .build();
+
+        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        //when
+        //then
+        assertThatThrownBy(() -> orderSheet.validatePointsLimit(Money.wons(5000L), pointPolicy))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+    }
+
     private CreateOrderSheetItemContext createOrderSheetItemContext(Long productVariantId) {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, productVariantId, "SKU", "상품", "product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));

@@ -117,12 +117,7 @@ public class OrderSheet {
     }
 
     public void applyPoints(Money usedPoints, PointUsagePolicy policy) {
-        Money maxUsablePoints = calculateMaxUsablePoints(policy);
-
-        if (usedPoints.isGreaterThan(maxUsablePoints)) {
-            throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
-        }
-
+        validatePointsLimit(usedPoints, policy);
         this.usedPoints = usedPoints;
     }
 
@@ -207,5 +202,31 @@ public class OrderSheet {
         return this.items.stream()
                 .filter(OrderSheetItem::hasCoupon)
                 .toList();
+    }
+
+    public boolean hasCoupon() {
+        return this.cartCoupon != null;
+    }
+
+    public void validateCartCouponNotChanged(CartCouponSnapshot currentCartCoupon) {
+        if (!this.hasCoupon()) {
+            throw new IllegalStateException("해당 주문서에는 장바구니 쿠폰이 적용되어있지 않습니다");
+        }
+
+        if (!this.cartCoupon.getCartCouponId().equals(currentCartCoupon.getCartCouponId())) {
+            throw new IllegalArgumentException("검증하려는 쿠폰 ID가 주문서에 적용된 장바구니 쿠폰 ID와 일치하지 않습니다.");
+        }
+
+        if (!this.cartCoupon.getDiscountPolicy().equals(currentCartCoupon.getDiscountPolicy()) ||
+                !this.cartCoupon.getMinimumPaymentAmount().equals(currentCartCoupon.getMinimumPaymentAmount())) {
+            throw new BusinessException(OrderErrorCode.COUPON_POLICY_CHANGED);
+        }
+    }
+
+    public void validatePointsLimit(Money targetPoints, PointUsagePolicy policy) {
+        Money maxUsablePoints = calculateMaxUsablePoints(policy);
+        if (targetPoints.isGreaterThan(maxUsablePoints)) {
+            throw new BusinessException(OrderErrorCode.EXCEED_AVAILABLE_POINTS);
+        }
     }
 }

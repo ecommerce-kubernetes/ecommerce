@@ -36,6 +36,7 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_COUPON_UNAVAILABLE(HttpStatus.CONFLICT, "ORDER_COUPON_UNAVAILABLE", "사용할 수 없는 쿠폰입니다."),
     ORDER_COUPON_EXPIRED(HttpStatus.CONFLICT, "ORDER_COUPON_EXPIRED", "쿠폰이 만료되었습니다"),
     PRODUCT_PRICE_CHANGED(HttpStatus.CONFLICT, "PRODUCT_PRICE_CHANGED", "상품 가격이 변동되었습니다."),
+    COUPON_POLICY_CHANGED(HttpStatus.CONFLICT, "COUPON_POLICY_CHANGED", "쿠폰 정책이 변동되었습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다");
     private final HttpStatus status;
     private final String code;

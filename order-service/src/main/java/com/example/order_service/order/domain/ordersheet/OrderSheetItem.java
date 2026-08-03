@@ -86,9 +86,10 @@ public class OrderSheetItem {
     }
 
     public Money calculateCouponDiscount() {
-        if (this.itemCouponSnapshot == null) {
+        if (!hasCoupon()) {
             return Money.ZERO;
         }
+
         Money couponDiscount = this.itemCouponSnapshot.calculateTotalDiscount(priceSnapshot.getDiscountedPrice(), quantity);
         Money lineTotal = calculateLineTotal();
         return Money.min(couponDiscount, lineTotal);
@@ -107,8 +108,23 @@ public class OrderSheetItem {
     }
 
     public void validatePriceNotChanged(ProductPriceSnapshot currentPriceSnapshot) {
-        if(!this.priceSnapshot.equals(currentPriceSnapshot)) {
+        if (!this.priceSnapshot.equals(currentPriceSnapshot)) {
             throw new BusinessException(OrderErrorCode.PRODUCT_PRICE_CHANGED);
+        }
+    }
+
+    public void validateItemCouponNotChanged(ItemCouponSnapshot currentItemCouponSnapshot) {
+        if (!this.hasCoupon()) {
+            throw new IllegalStateException("해당 주문 항목에는 쿠폰이 적용되어있지 않습니다.");
+        }
+
+        if (!this.itemCouponSnapshot.getItemCouponId().equals(currentItemCouponSnapshot.getItemCouponId())) {
+            throw new IllegalArgumentException("검증하려는 쿠폰 ID가 주문 항목에 적용된 상품 쿠폰 ID와 일치하지 않습니다.");
+        }
+
+        if (!this.itemCouponSnapshot.getDiscountPolicy().equals(currentItemCouponSnapshot.getDiscountPolicy()) ||
+                !this.itemCouponSnapshot.getApplyQuantityLimit().equals(currentItemCouponSnapshot.getApplyQuantityLimit())) {
+            throw new BusinessException(OrderErrorCode.COUPON_POLICY_CHANGED);
         }
     }
 }

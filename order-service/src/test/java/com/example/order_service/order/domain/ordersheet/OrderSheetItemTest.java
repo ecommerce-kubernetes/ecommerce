@@ -6,7 +6,9 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -14,6 +16,7 @@ import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -467,5 +470,133 @@ public class OrderSheetItemTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.PRODUCT_PRICE_CHANGED);
+    }
+
+    @Test
+    @DisplayName("쿠폰이 적용되지 않은 주문 항목에 검증을 수행하면 예외가 발생한다.")
+    void validateItemCouponNotChanged_not_apply_itemCoupon() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+
+        CouponDiscountPolicy newCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
+        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", newCouponPolicy, 1);
+        //when
+        //then
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("해당 주문 항목에는 쿠폰이 적용되어있지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("주문 항목에 적용된 상품 쿠폰 아이디와 동일하지 않으면 예외가 발생한다")
+    void validateItemCouponNotChanged_miss_match_itemCouponId() {
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+
+        CouponDiscountPolicy oldCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CouponDiscountPolicy newCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot oldItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", oldCouponPolicy, 1);
+        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(2L, "1000원 할인 쿠폰", newCouponPolicy, 1);
+
+        item.applyItemCoupon(oldItemCoupon);
+        //when
+        //then
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("검증하려는 쿠폰 ID가 주문 항목에 적용된 상품 쿠폰 ID와 일치하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰 할인 정책이 동일하지 않으면 예외가 발생한다.")
+    void validateItemCouponNotChanged_couponDiscountPolicy() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+
+        CouponDiscountPolicy oldCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CouponDiscountPolicy newCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
+        ItemCouponSnapshot oldItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", oldCouponPolicy, 1);
+        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", newCouponPolicy, 1);
+
+        item.applyItemCoupon(oldItemCoupon);
+        //when
+        //then
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰의 최대 적용 가능 수량이 동일하지 않으면 예외가 발생한다.")
+    void validateItemCouponNotChanged_maxQuantityLimit() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(Collections.emptyList())
+                .build();
+
+        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot oldItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponPolicy, 3);
+        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", couponPolicy, 1);
+
+        item.applyItemCoupon(oldItemCoupon);
+        //when
+        //then
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
     }
 }

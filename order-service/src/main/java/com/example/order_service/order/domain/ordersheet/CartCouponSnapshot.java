@@ -3,11 +3,13 @@ package com.example.order_service.order.domain.ordersheet;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 @Getter
+@EqualsAndHashCode(of = "cartCouponId")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CartCouponSnapshot {
 
