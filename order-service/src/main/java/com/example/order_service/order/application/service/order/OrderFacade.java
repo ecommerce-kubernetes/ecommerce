@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -51,22 +50,22 @@ public class OrderFacade {
 
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId(), currentTime);
 
-        Map<Long, OrderProductsResult.OrderProductDetail> productsMap = validateOrderItems(orderSheet);
+        validateOrderItems(orderSheet);
 
-        Map<Long, ItemCouponsResult.ItemCouponResult> itemCouponsMap = validateItemCoupons(orderSheet, currentTime);
+        validateItemCoupons(orderSheet, currentTime);
 
-        CartCouponResult cartCouponResult = validateCartCoupon(orderSheet, currentTime);
+        validateCartCoupon(orderSheet, currentTime);
 
         validateUsedPoints(orderSheet);
 
-        CreateOrderContext orderContext = createOrderContext(orderSheet, productsMap, itemCouponsMap, cartCouponResult);
+        CreateOrderContext orderContext = createOrderContext(orderSheet);
 
         Long orderId = orderCommandService.saveOrder(orderContext);
 
         return OrderCreateResult.of(orderId);
     }
 
-    private Map<Long, OrderProductsResult.OrderProductDetail> validateOrderItems(OrderSheet orderSheet) {
+    private void validateOrderItems(OrderSheet orderSheet) {
         List<Long> productVariantIds = orderSheet.getItems().stream()
                 .map(OrderSheetItem::getProductVariantId).toList();
         OrderProductsResult products = orderProductPort.getProducts(productVariantIds);
@@ -78,55 +77,55 @@ public class OrderFacade {
             orderValidator.validateOrderable(product, item.getQuantity());
             item.validatePriceNotChanged(product.priceSnapshot());
         }
-        return productsMap;
     }
 
-    private Map<Long, ItemCouponsResult.ItemCouponResult> validateItemCoupons(OrderSheet orderSheet, LocalDateTime currentTime) {
+    private void validateItemCoupons(OrderSheet orderSheet, LocalDateTime currentTime) {
         List<OrderSheetItem> appliedItemCouponItems = orderSheet.findOrderSheetItemsWithAppliedItemCoupon();
+
         if (appliedItemCouponItems.isEmpty()) {
-            return Collections.emptyMap();
+            return;
         }
 
         List<Long> itemCouponIds = appliedItemCouponItems.stream().map(item -> item.getItemCouponSnapshot().getItemCouponId()).toList();
         ItemCouponsResult itemCoupons = orderCouponPort.getItemCoupons(orderSheet.getOrderer().getUserId(), itemCouponIds);
         Map<Long, ItemCouponsResult.ItemCouponResult> itemCouponsMap = itemCoupons.toMap();
+
         for (OrderSheetItem item : appliedItemCouponItems) {
             ItemCouponsResult.ItemCouponResult itemCoupon = itemCouponsMap.get(item.getItemCouponSnapshot().getItemCouponId());
             orderValidator.validateItemCoupon(itemCoupon, currentTime);
             item.validateItemCouponNotChanged(itemCoupon.itemCoupon());
         }
-
-        return itemCouponsMap;
     }
 
-    private CartCouponResult validateCartCoupon(OrderSheet orderSheet, LocalDateTime currentTime) {
-        if (!orderSheet.hasCoupon()){
-            return null;
+    private void validateCartCoupon(OrderSheet orderSheet, LocalDateTime currentTime) {
+        if (!orderSheet.hasCoupon()) {
+            return;
         }
+
         Long cartCouponId = orderSheet.getCartCoupon().getCartCouponId();
         CartCouponResult cartCouponResult = orderCouponPort.getCartCoupon(orderSheet.getOrderer().getUserId(), cartCouponId);
+
         orderValidator.validateCartCoupon(cartCouponResult, currentTime);
         orderSheet.validateCartCouponNotChanged(cartCouponResult.cartCoupon());
-
-        return cartCouponResult;
     }
 
     private void validateUsedPoints(OrderSheet orderSheet) {
         if (orderSheet.getUsedPoints().equals(Money.ZERO)) {
             return;
         }
+
         OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(orderSheet.getOrderer().getUserId());
+
         orderValidator.validateAvailablePoints(ordererProfile.availablePoints(), orderSheet.getUsedPoints());
         orderSheet.validatePointsLimit(orderSheet.getUsedPoints(), pointUsagePolicy);
     }
 
-    private CreateOrderContext createOrderContext(OrderSheet orderSheet, Map<Long, OrderProductsResult.OrderProductDetail> productsMap,
-                                                  Map<Long, ItemCouponsResult.ItemCouponResult> itemCouponsMap, CartCouponResult cartCouponResult) {
+    private CreateOrderContext createOrderContext(OrderSheet orderSheet) {
         OrderAmount orderAmount = OrderAmount.of(orderSheet.calculateTotalOriginalAmount(), orderSheet.calculateTotalItemDiscount(),
                 orderSheet.calculateTotalItemCouponDiscount(), orderSheet.calculateCartCouponDiscount(), orderSheet.getUsedPoints(),
                 orderSheet.calculateTotalPaymentAmount());
 
-        List<CreateOrderItemContext> orderItemContexts = createOrderItemContexts(orderSheet.getItems(), productsMap, itemCouponsMap);
+        List<CreateOrderItemContext> orderItemContexts = createOrderItemContexts(orderSheet.getItems());
 
         CreateOrderContext.CreateOrderContextBuilder builder = CreateOrderContext.builder()
                 .orderer(orderSheet.getOrderer())
@@ -136,15 +135,14 @@ public class OrderFacade {
         if (orderSheet.hasCoupon()) {
             AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(
                     orderSheet.getCartCoupon().getCartCouponId(),
-                    cartCouponResult.cartCoupon().getName()
+                    orderSheet.getCartCoupon().getName()
             );
             builder.appliedCartCoupon(appliedCartCoupon);
         }
         return builder.build();
     }
 
-    private List<CreateOrderItemContext> createOrderItemContexts(List<OrderSheetItem> orderSheetItems, Map<Long, OrderProductsResult.OrderProductDetail> productsMap,
-                                                                 Map<Long, ItemCouponsResult.ItemCouponResult> itemCouponsMap) {
+    private List<CreateOrderItemContext> createOrderItemContexts(List<OrderSheetItem> orderSheetItems) {
         return orderSheetItems.stream().map(item -> {
             OrderItemAmount orderItemAmount = OrderItemAmount.of(
                     item.calculateOriginalLineTotal(),
@@ -154,18 +152,16 @@ public class OrderFacade {
                     item.calculateFinalAmount()
             );
 
-            OrderProductsResult.OrderProductDetail product = productsMap.get(item.getProductVariantId());
             CreateOrderItemContext.CreateOrderItemContextBuilder builder = CreateOrderItemContext.builder()
-                    .productSnapshot(product.productSnapshot())
+                    .productSnapshot(item.getProductSnapshot())
                     .priceSnapshot(item.getPriceSnapshot())
                     .quantity(item.getQuantity())
-                    .options(product.options())
+                    .options(item.getOptionSnapshots())
                     .orderItemAmount(orderItemAmount);
 
             if (item.hasCoupon()) {
-                ItemCouponsResult.ItemCouponResult itemCouponResult = itemCouponsMap.get(item.getItemCouponSnapshot().getItemCouponId());
                 AppliedItemCoupon appliedItemCoupon = AppliedItemCoupon.of(item.getItemCouponSnapshot().getItemCouponId(),
-                        itemCouponResult.itemCoupon().getName());
+                        item.getItemCouponSnapshot().getName());
                 builder.appliedItemCoupon(appliedItemCoupon);
             }
             return builder.build();
