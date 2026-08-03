@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
@@ -8,7 +7,6 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
-import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;

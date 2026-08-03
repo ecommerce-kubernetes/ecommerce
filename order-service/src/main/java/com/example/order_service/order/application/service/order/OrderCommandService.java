@@ -1,8 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.repository.OrderRepository;

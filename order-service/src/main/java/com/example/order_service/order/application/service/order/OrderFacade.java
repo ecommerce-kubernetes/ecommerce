@@ -2,7 +2,6 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.OrderProductPort;
 import com.example.order_service.order.application.port.OrderSheetRepository;
@@ -50,7 +49,7 @@ public class OrderFacade {
     public OrderCreateResult createOrder(CreateOrderCommand command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
 
-        OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
+        OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId(), currentTime);
 
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = validateOrderItems(orderSheet);
 
@@ -134,9 +133,9 @@ public class OrderFacade {
                 .shippingAddress(orderSheet.getShippingAddress())
                 .items(orderItemContexts)
                 .orderAmount(orderAmount);
-        if (cartCouponResult != null) {
+        if (orderSheet.hasCoupon()) {
             AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(
-                    cartCouponResult.cartCoupon().getCartCouponId(),
+                    orderSheet.getCartCoupon().getCartCouponId(),
                     cartCouponResult.cartCoupon().getName()
             );
             builder.appliedCartCoupon(appliedCartCoupon);
@@ -164,20 +163,20 @@ public class OrderFacade {
                     .orderItemAmount(orderItemAmount);
 
             if (item.hasCoupon()) {
-                ItemCouponsResult.ItemCouponResult latestItemCoupon = itemCouponsMap.get(item.getItemCouponSnapshot().getItemCouponId());
-                AppliedItemCoupon appliedItemCoupon = AppliedItemCoupon.of(latestItemCoupon.itemCoupon().getItemCouponId(),
-                        latestItemCoupon.itemCoupon().getName());
+                ItemCouponsResult.ItemCouponResult itemCouponResult = itemCouponsMap.get(item.getItemCouponSnapshot().getItemCouponId());
+                AppliedItemCoupon appliedItemCoupon = AppliedItemCoupon.of(item.getItemCouponSnapshot().getItemCouponId(),
+                        itemCouponResult.itemCoupon().getName());
                 builder.appliedItemCoupon(appliedItemCoupon);
             }
             return builder.build();
         }).toList();
     }
 
-    private OrderSheet getValidOrderSheet(Long orderSheetId, Long userId) {
+    private OrderSheet getValidOrderSheet(Long orderSheetId, Long userId, LocalDateTime currentTime) {
         OrderSheet orderSheet = orderSheetRepository.findByIdAndOrdererId(orderSheetId, userId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
 
-        if (orderSheet.isExpired(LocalDateTime.now(clock))) {
+        if (orderSheet.isExpired(currentTime)) {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
         return orderSheet;

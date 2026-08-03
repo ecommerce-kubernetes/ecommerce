@@ -6,10 +6,10 @@ import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsR
 import com.example.order_service.order.application.port.dto.CartCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.application.port.dto.OrderCouponStatus;
-import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
-import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
+import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
+import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -12,7 +12,6 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;

@@ -5,12 +5,11 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.*;
-import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
-import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
+import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
@@ -56,14 +55,15 @@ public class OrderSheetService {
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
         List<CreateOrderSheetItemContext> orderSheetItems = createCartOrderSheetItemsContext(cartItems, productsMap);
 
-        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes());
+        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems, expiresAt);
 
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetCreateResult.from(savedOrderSheet);
     }
 
     private List<CreateOrderSheetItemContext> createCartOrderSheetItemsContext(OrderCartItemsResult cartItems,
-                                                                  Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+                                                                               Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         return cartItems.items().stream().map(cartItem -> createOrderSheetItemContext(
                 cartItem.productVariantId(),
                 cartItem.quantity(),
@@ -80,14 +80,15 @@ public class OrderSheetService {
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
         List<CreateOrderSheetItemContext> orderSheetItems = createDirectOrderSheetItemsContext(command, productsMap);
 
-        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems);
+        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes());
+        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems, expiresAt);
 
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetCreateResult.from(savedOrderSheet);
     }
 
-    private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<CreateOrderSheetItemContext> orderSheetItemsContext) {
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes());
+    private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<CreateOrderSheetItemContext> orderSheetItemsContext,
+                                        LocalDateTime expiresAt) {
         CreateOrderSheetContext createOrderSheetContext = CreateOrderSheetContext.builder()
                 .orderer(ordererProfile.orderer())
                 .items(orderSheetItemsContext)
@@ -103,7 +104,7 @@ public class OrderSheetService {
     }
 
     private List<CreateOrderSheetItemContext> createDirectOrderSheetItemsContext(CreateDirectOrderSheetCommand command,
-                                                                    Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+                                                                                 Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         return command.items().stream().map(orderVariant -> createOrderSheetItemContext(
                 orderVariant.productVariantId(),
                 orderVariant.quantity(),
@@ -112,7 +113,7 @@ public class OrderSheetService {
     }
 
     private CreateOrderSheetItemContext createOrderSheetItemContext(Long productVariantId, int quantity,
-                                                       Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
+                                                                    Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
         OrderProductsResult.OrderProductDetail product = productsMap.get(productVariantId);
 
         orderValidator.validateOrderable(product, quantity);
@@ -149,17 +150,18 @@ public class OrderSheetService {
 
     public OrderSheetUpdateResult applyItemCoupons(ApplyItemCouponsCommand command) {
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
+        LocalDateTime currentTime = LocalDateTime.now(clock);
 
         ItemCouponsResult itemCouponsResult = orderCouponPort.getItemCoupons(command.userId(), command.toItemCouponIds());
         Map<Long, ItemCouponsResult.ItemCouponResult> itemCouponMap = itemCouponsResult.toMap();
 
-        for(ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand: command.itemCouponCommands()) {
+        for (ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand : command.itemCouponCommands()) {
             ItemCouponsResult.ItemCouponResult couponResult = itemCouponMap.get(itemCouponCommand.itemCouponId());
-            orderValidator.validateItemCoupon(couponResult, LocalDateTime.now(clock));
+            orderValidator.validateItemCoupon(couponResult, currentTime);
             orderSheet.applyItemCoupon(itemCouponCommand.orderSheetItemId(), couponResult.itemCoupon(), pointUsagePolicy);
         }
 
-        Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
+        Duration remainingTtl = orderSheet.calculateRemainingTtl(currentTime);
         OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);
 
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());
@@ -167,14 +169,14 @@ public class OrderSheetService {
 
     public OrderSheetUpdateResult applyCartCoupon(ApplyCartCouponCommand command) {
         OrderSheet orderSheet = getValidOrderSheet(command.orderSheetId(), command.userId());
-
+        LocalDateTime currentTime = LocalDateTime.now(clock);
         CartCouponResult cartCouponResult = orderCouponPort.getCartCoupon(command.userId(), command.cartCouponId());
 
-        orderValidator.validateCartCoupon(cartCouponResult, LocalDateTime.now(clock));
+        orderValidator.validateCartCoupon(cartCouponResult, currentTime);
 
         orderSheet.applyCartCoupon(cartCouponResult.cartCoupon(), pointUsagePolicy);
 
-        Duration remainingTtl = orderSheet.calculateRemainingTtl(LocalDateTime.now(clock));
+        Duration remainingTtl = orderSheet.calculateRemainingTtl(currentTime);
         OrderSheet savedOrderSheet = repository.save(orderSheet, remainingTtl);
 
         return OrderSheetUpdateResult.of(savedOrderSheet.getId(), orderSheet.getExpiresAt());

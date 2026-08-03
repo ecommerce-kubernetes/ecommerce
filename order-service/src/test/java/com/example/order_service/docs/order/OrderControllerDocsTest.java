@@ -12,7 +12,10 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.OrderStatus;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.vo.Orderer;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+import com.example.order_service.order.domain.vo.ProductSnapshot;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +29,8 @@ import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
