@@ -66,6 +66,8 @@ public class OrderFacadeTest {
     @Spy
     private OrderValidator orderValidator;
     @Spy
+    private OrderContextFactory orderContextFactory;
+    @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
     
     

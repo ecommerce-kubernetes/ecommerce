@@ -13,12 +13,7 @@ import com.example.order_service.order.application.port.dto.OrdererProfileResult
 import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.validator.OrderValidator;
-import com.example.order_service.order.domain.order.AppliedCartCoupon;
-import com.example.order_service.order.domain.order.AppliedItemCoupon;
-import com.example.order_service.order.domain.order.OrderAmount;
-import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
-import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
 import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
@@ -43,6 +38,7 @@ public class OrderFacade {
     private final OrderUserPort orderUserPort;
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderValidator orderValidator;
+    private final OrderContextFactory orderContextFactory;
     private final Clock clock;
 
     public OrderCreateResult createOrder(CreateOrderCommand command) {
@@ -58,7 +54,7 @@ public class OrderFacade {
 
         validateUsedPoints(orderSheet);
 
-        CreateOrderContext orderContext = createOrderContext(orderSheet);
+        CreateOrderContext orderContext = orderContextFactory.create(orderSheet);
 
         Long orderId = orderCommandService.saveOrder(orderContext);
 
@@ -118,54 +114,6 @@ public class OrderFacade {
 
         orderValidator.validateAvailablePoints(ordererProfile.availablePoints(), orderSheet.getUsedPoints());
         orderSheet.validatePointsLimit(orderSheet.getUsedPoints(), pointUsagePolicy);
-    }
-
-    private CreateOrderContext createOrderContext(OrderSheet orderSheet) {
-        OrderAmount orderAmount = OrderAmount.of(orderSheet.calculateTotalOriginalAmount(), orderSheet.calculateTotalItemDiscount(),
-                orderSheet.calculateTotalItemCouponDiscount(), orderSheet.calculateCartCouponDiscount(), orderSheet.getUsedPoints(),
-                orderSheet.calculateTotalPaymentAmount());
-
-        List<CreateOrderItemContext> orderItemContexts = createOrderItemContexts(orderSheet.getItems());
-
-        CreateOrderContext.CreateOrderContextBuilder builder = CreateOrderContext.builder()
-                .orderer(orderSheet.getOrderer())
-                .shippingAddress(orderSheet.getShippingAddress())
-                .items(orderItemContexts)
-                .orderAmount(orderAmount);
-        if (orderSheet.hasCoupon()) {
-            AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(
-                    orderSheet.getCartCoupon().getCartCouponId(),
-                    orderSheet.getCartCoupon().getName()
-            );
-            builder.appliedCartCoupon(appliedCartCoupon);
-        }
-        return builder.build();
-    }
-
-    private List<CreateOrderItemContext> createOrderItemContexts(List<OrderSheetItem> orderSheetItems) {
-        return orderSheetItems.stream().map(item -> {
-            OrderItemAmount orderItemAmount = OrderItemAmount.of(
-                    item.calculateOriginalLineTotal(),
-                    item.calculateItemDiscountLineTotal(),
-                    item.calculateLineTotal(),
-                    item.calculateCouponDiscount(),
-                    item.calculateFinalAmount()
-            );
-
-            CreateOrderItemContext.CreateOrderItemContextBuilder builder = CreateOrderItemContext.builder()
-                    .productSnapshot(item.getProductSnapshot())
-                    .priceSnapshot(item.getPriceSnapshot())
-                    .quantity(item.getQuantity())
-                    .options(item.getOptionSnapshots())
-                    .orderItemAmount(orderItemAmount);
-
-            if (item.hasCoupon()) {
-                AppliedItemCoupon appliedItemCoupon = AppliedItemCoupon.of(item.getItemCouponSnapshot().getItemCouponId(),
-                        item.getItemCouponSnapshot().getName());
-                builder.appliedItemCoupon(appliedItemCoupon);
-            }
-            return builder.build();
-        }).toList();
     }
 
     private OrderSheet getValidOrderSheet(Long orderSheetId, Long userId, LocalDateTime currentTime) {

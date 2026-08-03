@@ -56,7 +56,13 @@ class OrderContextFactoryTest {
 
         AppliedItemCoupon appliedItemCoupon = AppliedItemCoupon.of(1L, "청바지 1000원 할인");
 
-        OrderItemAmount orderItemAmount = OrderItemAmount.of(Money.wons(30000L), Money.wons(3000L), Money.wons(27000L), Money.wons(1000L), Money.wons(26000L));
+        OrderItemAmount orderItemAmount = OrderItemAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(27000L),
+                Money.wons(1000L),
+                Money.wons(26000L)
+        );
 
         List<ProductOptionSnapshot> options = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
@@ -94,7 +100,7 @@ class OrderContextFactoryTest {
         CreateOrderSheetItemContext itemCtx = CreateOrderSheetItemContext.builder()
                 .productSnapshot(product)
                 .priceSnapshot(price)
-                .quantity(5)
+                .quantity(3)
                 .optionSnapshots(options)
                 .build();
 
