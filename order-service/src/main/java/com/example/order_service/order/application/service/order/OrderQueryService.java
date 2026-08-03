@@ -1,11 +1,11 @@
 package com.example.order_service.order.application.service.order;
 
+import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.Order;
-import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,20 +19,19 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrderQueryService {
-
     private final OrderRepository orderRepository;
-    private final OrderSearchRepository orderSearchRepository;
 
+    private final OrderSearchRepository orderSearchRepository;
 
     public OrderResult getOrder(Long orderId, Long userId) {
         return null;
     }
 
-    public OrderResultDeprecated.Detail getOrder(String orderNo) {
+    public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
         return null;
     }
 
-    public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
+    public OrderResultDeprecated.Detail getOrder(String orderNo) {
         return null;
     }
 

@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrderSearchRepositoryTest {
 
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderRepositoryDeprecated orderRepositoryDepreCated;
     @Autowired
     private OrderSearchRepository orderSearchRepository;
     @Autowired
@@ -45,7 +45,7 @@ public class OrderSearchRepositoryTest {
         Order order2 = createOrder();
         Order order3 = createOrder();
         ReflectionTestUtils.setField(order3.getOrderer(), "userId", 2L);
-        orderRepository.saveAll(List.of(order1, order2, order3));
+        orderRepositoryDepreCated.saveAll(List.of(order1, order2, order3));
         OrderSearchCommand command =null;
         Pageable pageable = PageRequest.of(0, 20);
         //when
@@ -61,8 +61,8 @@ public class OrderSearchRepositoryTest {
     @DisplayName("연도 필터로 주문 목록을 조회한다")
     void searchOrders_byYear(){
         //given
-        Order order2024 = orderRepository.save(createOrder());
-        Order order2025 = orderRepository.save(createOrder());
+        Order order2024 = orderRepositoryDepreCated.save(createOrder());
+        Order order2025 = orderRepositoryDepreCated.save(createOrder());
         em.createQuery("update Order o set o.createdAt = :date where o.id = :id")
                 .setParameter("date", LocalDateTime.of(2024, 10, 10, 10, 10))
                 .setParameter("id", order2024.getId())
@@ -95,7 +95,7 @@ public class OrderSearchRepositoryTest {
         Order order2 = createOrder();
         OrderItem shirts = order2.getOrderItems().get(0);
         ReflectionTestUtils.setField(shirts.getProduct(), "productName", "셔츠");
-        orderRepository.saveAll(List.of(order1, order2));
+        orderRepositoryDepreCated.saveAll(List.of(order1, order2));
         OrderSearchCommand command = null;
         Pageable pageable = PageRequest.of(0, 10);
         //when
@@ -109,8 +109,8 @@ public class OrderSearchRepositoryTest {
     @DisplayName("최신순으로 정렬하여 조회한다")
     void searchOrders_sortByLatest(){
         //given
-        Order firstOrder = orderRepository.save(createOrder());
-        Order secondOrder = orderRepository.save(createOrder());
+        Order firstOrder = orderRepositoryDepreCated.save(createOrder());
+        Order secondOrder = orderRepositoryDepreCated.save(createOrder());
         OrderSearchCommand command = null;
         Pageable pageable = PageRequest.of(0, 20);
         //when

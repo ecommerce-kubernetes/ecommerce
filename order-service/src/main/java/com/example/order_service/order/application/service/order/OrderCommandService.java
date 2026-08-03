@@ -1,9 +1,9 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
-import com.example.order_service.order.domain.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

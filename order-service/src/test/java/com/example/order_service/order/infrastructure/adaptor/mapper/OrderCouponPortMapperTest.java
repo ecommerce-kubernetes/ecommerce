@@ -8,6 +8,7 @@ import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.application.port.dto.OrderCouponStatus;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
+import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.RateCouponDiscountPolicy;
 import org.junit.jupiter.api.DisplayName;
@@ -87,18 +88,15 @@ class OrderCouponPortMapperTest {
                 .discountAmount(1000L)
                 .expiresAt(expiresAt)
                 .build();
+
+        CouponDiscountPolicy discountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCouponSnapshot = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", discountPolicy, Money.wons(10000L));
         //when
         CartCouponResult result = orderCouponPortMapper.mapToCartCouponResult(response);
         //then
         assertThat(result.status()).isEqualTo(OrderCouponStatus.AVAILABLE);
         assertThat(result.expiresAt()).isEqualTo(expiresAt);
-        CartCouponSnapshot cartCouponSnapshot = result.cartCoupon();
-        assertThat(cartCouponSnapshot)
-                .extracting("cartCouponId", "name", "minimumPaymentAmount")
-                .containsExactly(1L, "장바구니 1000원 할인 쿠폰", Money.wons(10000L));
-
-        assertThat(cartCouponSnapshot.getDiscountPolicy()).isInstanceOf(FixedCouponDiscountPolicy.class);
-        assertThat(cartCouponSnapshot.getDiscountPolicy().calculateDiscount(Money.wons(10000L))).isEqualTo(Money.wons(1000L));
+        assertThat(result.cartCoupon()).isEqualTo(cartCouponSnapshot);
     }
 
     @Test
@@ -117,18 +115,14 @@ class OrderCouponPortMapperTest {
                 .maxDiscountAmount(10000L)
                 .expiresAt(expiresAt)
                 .build();
+
+        CouponDiscountPolicy discountPolicy = new RateCouponDiscountPolicy(10, Money.wons(10000L));
+        CartCouponSnapshot cartCouponSnapshot = CartCouponSnapshot.of(1L, "장바구니 10% 할인 쿠폰", discountPolicy, Money.wons(10000L));
         //when
         CartCouponResult result = orderCouponPortMapper.mapToCartCouponResult(response);
         //then
         assertThat(result.status()).isEqualTo(OrderCouponStatus.USED);
         assertThat(result.expiresAt()).isEqualTo(expiresAt);
-        CartCouponSnapshot cartCouponSnapshot = result.cartCoupon();
-        assertThat(cartCouponSnapshot)
-                .extracting("cartCouponId", "name", "minimumPaymentAmount")
-                .containsExactly(1L, "장바구니 10% 할인 쿠폰", Money.wons(10000L));
-
-        assertThat(cartCouponSnapshot.getDiscountPolicy()).isInstanceOf(RateCouponDiscountPolicy.class);
-        assertThat(cartCouponSnapshot.getDiscountPolicy().calculateDiscount(Money.wons(10000L))).isEqualTo(Money.wons(1000L));
-        assertThat(cartCouponSnapshot.getDiscountPolicy().calculateDiscount(Money.wons(150000L))).isEqualTo(Money.wons(10000L));
+        assertThat(result.cartCoupon()).isEqualTo(cartCouponSnapshot);
     }
 }

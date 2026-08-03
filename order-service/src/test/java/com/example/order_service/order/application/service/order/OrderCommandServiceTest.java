@@ -1,13 +1,13 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.AppliedCartCoupon;
 import com.example.order_service.order.domain.order.AppliedItemCoupon;
 import com.example.order_service.order.domain.order.OrderAmount;
 import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
-import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;

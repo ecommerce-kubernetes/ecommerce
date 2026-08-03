@@ -6,7 +6,7 @@ import com.example.order_service.order.application.service.saga.OrderSagaService
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.order.OrderItem;
 import com.example.order_service.order.domain.order.OrderStatus;
-import com.example.order_service.order.domain.repository.OrderRepository;
+import com.example.order_service.order.domain.repository.OrderRepositoryDeprecated;
 import com.example.order_service.order.domain.repository.OrderSagaInstanceRepository;
 import com.example.order_service.order.domain.saga.OrderSagaInstance;
 import com.example.order_service.order.domain.saga.SagaStatus;
@@ -42,7 +42,7 @@ class OrderSagaManagerTest {
     @Autowired
     private OrderSagaManager orderSagaManager;
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderRepositoryDeprecated orderRepositoryDepreCated;
     @Autowired
     private OrderSagaInstanceRepository sagaRepository;
     @MockitoSpyBean
@@ -52,7 +52,7 @@ class OrderSagaManagerTest {
 
     @AfterEach
     void cleanUp() {
-        orderRepository.deleteAll();
+        orderRepositoryDepreCated.deleteAll();
         sagaRepository.deleteAll();
     }
 
@@ -67,7 +67,7 @@ class OrderSagaManagerTest {
             String orderNo = "orderNo";
             Long paymentId = 1L;
             Order order = createOrder(orderNo);
-            orderRepository.save(order);
+            orderRepositoryDepreCated.save(order);
             //when
             orderSagaManager.startSaga(orderNo, paymentId);
             //then
@@ -85,7 +85,7 @@ class OrderSagaManagerTest {
             String orderNo = "orderNo";
             Long paymentId = 1L;
             Order order = createOrder(orderNo);
-            orderRepository.save(order);
+            orderRepositoryDepreCated.save(order);
             doThrow(new RuntimeException())
                     .when(orderSagaService).createSaga(any());
             //when
@@ -200,7 +200,7 @@ class OrderSagaManagerTest {
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
-                    orderRepository.save(order);
+                    orderRepositoryDepreCated.save(order);
                     SagaReplyMessage message = SagaReplyMessage.builder()
                             .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
                             .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
@@ -236,7 +236,7 @@ class OrderSagaManagerTest {
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
                     instance.compensateTo(SagaStep.INVENTORY_RESTORE_PENDING);
                     sagaRepository.save(instance);
-                    orderRepository.save(order);
+                    orderRepositoryDepreCated.save(order);
                     SagaReplyMessage message = SagaReplyMessage.builder()
                             .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
                             .step(SagaStep.INVENTORY_RESTORE_PENDING).code("INVENTORY_RESTORE_SUCCESS")
@@ -298,7 +298,7 @@ class OrderSagaManagerTest {
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
                     sagaRepository.save(instance);
-                    orderRepository.save(order);
+                    orderRepositoryDepreCated.save(order);
                     SagaReplyMessage message = SagaReplyMessage.builder()
                             .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
                             .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
@@ -366,7 +366,7 @@ class OrderSagaManagerTest {
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.POINTS_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
-                    orderRepository.save(order);
+                    orderRepositoryDepreCated.save(order);
                     SagaReplyMessage message = SagaReplyMessage.builder()
                             .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
                             .step(SagaStep.POINTS_DEDUCT_PENDING).code("POINTS_DEDUCT_PENDING")
@@ -407,7 +407,7 @@ class OrderSagaManagerTest {
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
-                    orderRepository.save(order);
+                    orderRepositoryDepreCated.save(order);
                     SagaReplyMessage message = SagaReplyMessage.builder()
                             .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
                             .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INSUFFICIENT_STOCK")
