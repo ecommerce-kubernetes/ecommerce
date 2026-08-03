@@ -6,4 +6,9 @@ import lombok.Builder;
 public record OrderCreateResult(
         Long orderId
 ) {
+    public static OrderCreateResult of(Long orderId) {
+        return OrderCreateResult.builder()
+                .orderId(orderId)
+                .build();
+    }
 }
