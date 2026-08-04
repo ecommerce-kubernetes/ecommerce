@@ -1,6 +1,5 @@
 package com.example.order_service.docs.descriptor;
 
-import kafka.utils.Json;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -8,6 +7,15 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class PaymentDescriptor {
+
+    public static FieldDescriptor[] createRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("orderId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문 식별자")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
 
     public static FieldDescriptor[] getConfirmRequest() {
         return new FieldDescriptor[] {
@@ -31,6 +39,23 @@ public class PaymentDescriptor {
                 fieldWithPath("paymentId")
                         .type(JsonFieldType.NUMBER)
                         .description("결제 번호"),
+        };
+    }
+
+    public static FieldDescriptor[] createResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("paymentId")
+                        .type(JsonFieldType.STRING)
+                        .description("결제 식별자"),
+                fieldWithPath("orderId")
+                        .type(JsonFieldType.STRING)
+                        .description("주문 식별자"),
+                fieldWithPath("orderName")
+                        .type(JsonFieldType.STRING)
+                        .description("주문 이름"),
+                fieldWithPath("totalAmount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("결제 금액")
         };
     }
 }

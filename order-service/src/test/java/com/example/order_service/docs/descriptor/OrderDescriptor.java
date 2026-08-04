@@ -19,7 +19,7 @@ public class OrderDescriptor {
 
     public static FieldDescriptor[] orderCreateResponse() {
         return new FieldDescriptor[] {
-            fieldWithPath("orderId").type(JsonFieldType.NUMBER).description("주문 식별자")
+            fieldWithPath("orderId").type(JsonFieldType.STRING).description("주문 식별자")
         };
     }
 

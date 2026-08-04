@@ -4,11 +4,15 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.PaymentDescriptor;
 import com.example.order_service.payment.api.web.PaymentController;
 import com.example.order_service.payment.api.web.dto.request.PaymentConfirmRequest;
+import com.example.order_service.payment.api.web.dto.request.PaymentCreateRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
+import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
+import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentMethod;
 import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.support.RestDocSupport;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +37,44 @@ public class PaymentControllerDocsTest extends RestDocSupport {
     @Override
     protected Object initController() {
         return new PaymentController(paymentFacade);
+    }
+
+    @Test
+    @DisplayName("결제를 생성한다.")
+    void createPayment() throws Exception {
+        //given
+        PaymentCreateRequest request = PaymentCreateRequest.builder()
+                .orderId(1L)
+                .build();
+        HttpHeaders authHeader = createAuthHeader("ROLE_USER");
+        PaymentCreateResult result = PaymentCreateResult.builder()
+                .paymentId(1L)
+                .orderId(1L)
+                .orderName("상품")
+                .totalAmount(Money.wons(10000L))
+                .build();
+        given(paymentFacade.create(any(PaymentCreateCommand.class)))
+                .willReturn(result);
+        //when
+        //then
+        mockMvc.perform(post("/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andDo(document(
+                        "payments/create",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(PaymentDescriptor.createRequest()),
+                        responseFields(PaymentDescriptor.createResponse())
+                ));
     }
 
     @Test

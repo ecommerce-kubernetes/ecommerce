@@ -10,6 +10,8 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
+import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
+import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPortException;
@@ -20,15 +22,6 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 
-/**
- * 결제를 담당하는 오케스트레이션 서비스
- * <p>
- * 외부 결제 PG 호출 및 결제 생성 오케스트레이션을 담당
- * </p>
- *
- * @author 최민식
- * @since 2026 06. 02
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,17 +33,10 @@ public class PaymentFacade {
     private final PaymentGateway paymentGateway;
     private final Clock clock;
 
-    /**
-     * 결제 승인 처리
-     * <p>
-     * 주문 검증 후 PG 승인 요청을 수행하고
-     * 내부 결제 상태를 승인 처리한다.
-     * 승인 처리 실패 시 망취소를 시도한다.
-     * </p>
-     *
-     * @param command 결제 생성 커맨드
-     * @return 결제 승인 결과
-     */
+    public PaymentCreateResult create(PaymentCreateCommand command) {
+        return null;
+    }
+
     public PaymentResult.PaymentApproval confirm(PaymentCommand.Confirm command) {
         OrderResult order = orderQueryService.getOrder(1L, command.userId());
         if (order.status() != OrderStatus.PENDING) {
