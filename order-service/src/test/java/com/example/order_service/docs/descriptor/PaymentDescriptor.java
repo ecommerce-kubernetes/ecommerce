@@ -1,27 +1,36 @@
 package com.example.order_service.docs.descriptor;
 
+import kafka.utils.Json;
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class PaymentDescriptor {
 
     public static FieldDescriptor[] getConfirmRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("paymentKey").description("결제 키"),
-                fieldWithPath("amount").description("결제 금액")
+                fieldWithPath("orderId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("주문 식별자")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("paymentKey")
+                        .type(JsonFieldType.STRING)
+                        .description("결제 키")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("amount")
+                        .type(JsonFieldType.NUMBER)
+                        .description("결제 금액")
+                        .attributes(key("constraint").value("필수"))
         };
     }
 
     public static FieldDescriptor[] getApprovalResponse() {
         return new FieldDescriptor[] {
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("paymentKey").description("결제 키"),
-                fieldWithPath("totalAmount").description("총 결제 금액"),
-                fieldWithPath("method").description("결제 수단"),
-                fieldWithPath("status").description("결제 상태"),
-                fieldWithPath("approvedAt").description("결제 시간")
+                fieldWithPath("paymentId")
+                        .type(JsonFieldType.NUMBER)
+                        .description("결제 번호"),
         };
     }
 }

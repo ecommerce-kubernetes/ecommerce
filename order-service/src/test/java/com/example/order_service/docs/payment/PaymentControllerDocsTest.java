@@ -3,7 +3,7 @@ package com.example.order_service.docs.payment;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.PaymentDescriptor;
 import com.example.order_service.payment.api.web.PaymentController;
-import com.example.order_service.payment.api.web.dto.request.PaymentRequest;
+import com.example.order_service.payment.api.web.dto.request.PaymentConfirmRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentMethod;
@@ -39,13 +39,14 @@ public class PaymentControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 결제를 승인한다")
     void paymentConfirm() throws Exception {
         //given
-        PaymentRequest.Confirm request = PaymentRequest.Confirm.builder()
-                .orderNo("orderNo")
+        PaymentConfirmRequest request = PaymentConfirmRequest.builder()
+                .orderId(1L)
                 .paymentKey("paymentKey")
                 .amount(10000L)
                 .build();
         HttpHeaders authHeader = createAuthHeader("ROLE_USER");
         PaymentResult.PaymentApproval result = PaymentResult.PaymentApproval.builder()
+                .paymentId(1L)
                 .paymentKey("paymentKey")
                 .orderNo("orderNo")
                 .totalAmount(Money.wons(10000L))

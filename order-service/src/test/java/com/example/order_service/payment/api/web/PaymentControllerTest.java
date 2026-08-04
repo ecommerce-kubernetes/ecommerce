@@ -1,7 +1,7 @@
 package com.example.order_service.payment.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.payment.api.web.dto.request.PaymentRequest;
+import com.example.order_service.payment.api.web.dto.request.PaymentConfirmRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
@@ -51,7 +51,7 @@ public class PaymentControllerTest {
         @WithCustomMockUser
         void paymentConfirm() throws Exception {
             //given
-            PaymentRequest.Confirm request = Instancio.of(PaymentRequest.Confirm.class)
+            PaymentConfirmRequest request = Instancio.of(PaymentConfirmRequest.class)
                     .set(field("amount"), 1000L)
                     .create();
             PaymentResult.PaymentApproval result = Instancio.create(PaymentResult.PaymentApproval.class);
@@ -63,16 +63,14 @@ public class PaymentControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.paymentKey").value(result.paymentKey()))
-                    .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
-                    .andExpect(jsonPath("$.totalAmount").isNumber());
+                    .andExpect(jsonPath("$.paymentId").value(result.paymentId()));
         }
 
         @Test
         @DisplayName("로그인 하지 않은 사용자는 결제 승인 할 수 없다")
         void paymentConfirm_unAuthorized() throws Exception {
             //given
-            PaymentRequest.Confirm request = Instancio.of(PaymentRequest.Confirm.class)
+            PaymentConfirmRequest request = Instancio.of(PaymentConfirmRequest.class)
                     .set(field("amount"), 1000L)
                     .create();
             //when
@@ -92,7 +90,7 @@ public class PaymentControllerTest {
         @DisplayName("권한이 없는 사용자는 결제 승인 할 수 없다")
         void paymentConfirm_forbidden() throws Exception {
             //given
-            PaymentRequest.Confirm request = Instancio.of(PaymentRequest.Confirm.class)
+            PaymentConfirmRequest request = Instancio.of(PaymentConfirmRequest.class)
                     .set(field("amount"), 1000L)
                     .create();
             //when
@@ -111,7 +109,7 @@ public class PaymentControllerTest {
         @DisplayName("결제 승인 입력 검증 테스트")
         @MethodSource("provideInvalidConfirm")
         @WithCustomMockUser
-        void paymentConfirm_validation(String description, PaymentRequest.Confirm request, String expectedField, String expectedMessage) throws Exception {
+        void paymentConfirm_validation(String description, PaymentConfirmRequest request, String expectedField, String expectedMessage) throws Exception {
             //given
             //when
             //then
@@ -128,33 +126,44 @@ public class PaymentControllerTest {
         }
 
         static Stream<Arguments> provideInvalidConfirm() {
-            PaymentRequest.Confirm BASE = PaymentRequest.Confirm.builder()
-                    .orderNo("orderNo")
-                    .paymentKey("paymentKey")
-                    .amount(10000L)
-                    .build();
             return Stream.of(
                     Arguments.of(
-                            "주문 번호가 없으면 검증에 실패한다",
-                            BASE.toBuilder().orderNo(null).build(),
-                            "orderNo",
-                            "주문 번호는 필수입니다."
+                            "주문 식별자가 없으면 검증에 실패한다",
+                            PaymentConfirmRequest.builder()
+                                    .orderId(null)
+                                    .paymentKey("paymentKey")
+                                    .amount(1000L)
+                                    .build(),
+                            "orderId",
+                            "주문 식별자는 필수입니다."
                     ),
                     Arguments.of(
                             "결제 키가 없으면 검증에 실패한다",
-                            BASE.toBuilder().paymentKey(null).build(),
+                            PaymentConfirmRequest.builder()
+                                    .orderId(1L)
+                                    .paymentKey(null)
+                                    .amount(1000L)
+                                    .build(),
                             "paymentKey",
                             "결제 키는 필수입니다."
                     ),
                     Arguments.of(
                             "결제 금액이 없으면 검증에 실패한다",
-                            BASE.toBuilder().amount(null).build(),
+                            PaymentConfirmRequest.builder()
+                                    .orderId(1L)
+                                    .paymentKey("paymentKey")
+                                    .amount(null)
+                                    .build(),
                             "amount",
                             "결제 금액은 필수입니다."
                     ),
                     Arguments.of(
                             "결제 금액이 1원보다 작으면 검증에 실패한다.",
-                            BASE.toBuilder().amount(0L).build(),
+                            PaymentConfirmRequest.builder()
+                                    .orderId(1L)
+                                    .paymentKey("paymentKey")
+                                    .amount(0L)
+                                    .build(),
                             "amount",
                             "결제 금액은 1원 이상이어야 합니다."
                     )

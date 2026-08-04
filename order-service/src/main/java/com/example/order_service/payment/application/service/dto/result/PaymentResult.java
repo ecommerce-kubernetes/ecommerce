@@ -32,6 +32,7 @@ public class PaymentResult {
 
     @Builder
     public record PaymentApproval(
+            Long paymentId,
             String paymentKey,
             String orderNo,
             Money totalAmount,

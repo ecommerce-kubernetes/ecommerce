@@ -1,8 +1,8 @@
 package com.example.order_service.payment.api.web;
 
 import com.example.order_service.common.security.model.UserPrincipal;
-import com.example.order_service.payment.api.web.dto.request.PaymentRequest;
-import com.example.order_service.payment.api.web.dto.response.PaymentResponse;
+import com.example.order_service.payment.api.web.dto.request.PaymentConfirmRequest;
+import com.example.order_service.payment.api.web.dto.response.PaymentApprovalResponse;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
@@ -25,11 +25,11 @@ public class PaymentController {
     private final PaymentFacade paymentFacade;
 
     @PostMapping("/confirm")
-    public ResponseEntity<PaymentResponse.PaymentApproval> paymentConfirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                          @RequestBody @Validated PaymentRequest.Confirm request) {
+    public ResponseEntity<PaymentApprovalResponse> paymentConfirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                                  @RequestBody @Validated PaymentConfirmRequest request) {
         PaymentCommand.Confirm command = request.toCommand(userPrincipal.getUserId());
         PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);
-        PaymentResponse.PaymentApproval response = PaymentResponse.PaymentApproval.from(confirm);
+        PaymentApprovalResponse response = PaymentApprovalResponse.from(confirm);
         return ResponseEntity.ok(response);
     }
 }
