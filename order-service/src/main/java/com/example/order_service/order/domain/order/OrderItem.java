@@ -53,12 +53,7 @@ public class OrderItem extends BaseEntity {
     @Builder(access = AccessLevel.PRIVATE)
     private OrderItem(Long id, ProductSnapshot product, ProductPriceSnapshot productPrice, AppliedItemCoupon appliedItemCoupon,
                       Integer quantity, List<ProductOptionSnapshot> options, OrderItemAmount orderItemAmount) {
-        Assert.notNull(id, "주문 항목(OrderItem) 생성시 아이디는 필수이다.");
-        Assert.notNull(product, "주문 항목(OrderItem) 생성시 상품 정보는 필수이다.");
-        Assert.notNull(productPrice, "주문 항목(OrderItem) 생성시 상품 가격 정보는 필수이다.");
-        Assert.notNull(quantity, "주문 항목(OrderItem) 생성시 주문 수량은 필수이다.");
-        Assert.notNull(options, "주문 항목(OrderItem) 생성시 상품 옵션은 필수이다.");
-        Assert.notNull(orderItemAmount, "주문 항목(OrderItem) 생성시 주문 항목 가격 정보는 필수이다.");
+
 
         this.id = id;
         this.product = product;
@@ -70,11 +65,19 @@ public class OrderItem extends BaseEntity {
     }
 
     public static OrderItem create(CreateOrderItemContext context, IdGenerator idGenerator) {
+        Assert.notNull(idGenerator, "주문 항목(OrderItem) 생성시 아이디 생성기는 필수이다.");
+        Long id = idGenerator.generate();
+        Assert.notNull(id, "주문 항목(OrderItem) 생성시 아이디는 필수이다.");
+
+        Assert.notNull(context.productSnapshot(), "주문 항목(OrderItem) 생성시 상품 정보는 필수이다.");
+        Assert.notNull(context.priceSnapshot(), "주문 항목(OrderItem) 생성시 상품 가격 정보는 필수이다.");
+        Assert.notNull(context.quantity(), "주문 항목(OrderItem) 생성시 주문 수량은 필수이다.");
+        Assert.notNull(context.options(), "주문 항목(OrderItem) 생성시 상품 옵션은 필수이다.");
+        Assert.notNull(context.orderItemAmount(), "주문 항목(OrderItem) 생성시 주문 항목 가격 정보는 필수이다.");
+
         if (context.quantity() <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
         }
-
-        Long id = idGenerator.generate();
 
         return OrderItem.builder()
                 .id(id)

@@ -22,7 +22,7 @@ public class PaymentResult {
         public static Default from(Payment payment) {
             return Default.builder()
                     .id(payment.getId())
-                    .orderNo(payment.getOrderNo())
+                    .orderNo(null)
                     .paymentKey(payment.getPaymentKey())
                     .totalAmount(payment.getTotalAmount())
                     .status(payment.getStatus())
@@ -43,7 +43,7 @@ public class PaymentResult {
         public static PaymentApproval of(Payment payment, PaymentRecord paymentRecord) {
             return PaymentApproval.builder()
                     .paymentKey(payment.getPaymentKey())
-                    .orderNo(payment.getOrderNo())
+                    .orderNo(null)
                     .totalAmount(payment.getTotalAmount())
                     .method(payment.getMethod())
                     .status(payment.getStatus())
@@ -63,7 +63,7 @@ public class PaymentResult {
         public static PaymentCancel of(Payment payment, PaymentRecord paymentRecord) {
             return PaymentCancel.builder()
                     .paymentKey(payment.getPaymentKey())
-                    .orderNo(payment.getOrderNo())
+                    .orderNo(null)
                     .canceledAmount(paymentRecord.getAmount())
                     .status(payment.getStatus())
                     .canceledAt(paymentRecord.getOccurredAt())

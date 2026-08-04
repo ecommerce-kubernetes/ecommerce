@@ -29,18 +29,16 @@ public class Cart extends BaseEntity {
     private List<CartItem> cartItems = new ArrayList<>();
 
     private Cart(Long id, Long userId) {
-        Assert.notNull(id, "장바구니 생성시 장바구니 아이디는 필수 입니다.");
-        Assert.notNull(userId, "장바구니 생성시 유저 아이디는 필수 입니다.");
-
         this.id = id;
         this.userId = userId;
     }
 
     public static Cart create(Long userId, IdGenerator idGenerator) {
-
         Assert.notNull(idGenerator, "아이디 생성기는 필수 입니다.");
+        Assert.notNull(userId, "장바구니 생성시 유저 아이디는 필수 입니다.");
 
         Long id = idGenerator.generate();
+        Assert.notNull(id, "장바구니 생성시 장바구니 아이디는 필수 입니다.");
 
         return new Cart(id, userId);
     }

@@ -55,6 +55,56 @@ public class OrderSheetItemTest {
     }
 
     @Test
+    @DisplayName("주문 항목을 생성할때 아이디 생성기가 누락되면 예외가 발생한다.")
+    void create_idGenerator_null(){
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
+        int quantity = 1;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(List.of(productOption))
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> OrderSheetItem.create(context, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("주문 항목(OrderSheetItem) 생성시 아이디 생성기는 필수이다.");
+    }
+
+    @Test
+    @DisplayName("주문 항목 생성시 아이디가 누락되면 예외가 발생한다.")
+    void create_id_null(){
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
+        int quantity = 1;
+        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+                .builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(List.of(productOption))
+                .build();
+
+        IdGenerator nullIdGenerator = () -> null;
+        //when
+        //then
+        assertThatThrownBy(() -> OrderSheetItem.create(context, nullIdGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
+    }
+
+    @Test
     @DisplayName("주문 항목을 생성할때 상품 스냅샷이 누락되면 예외가 발생한다.")
     void create_productSnapshot_null() {
         //given

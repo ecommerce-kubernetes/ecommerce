@@ -35,11 +35,6 @@ public class OrderSheetItem {
     @Builder(builderMethodName = "reconstitute")
     private OrderSheetItem(Long id, ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, ItemCouponSnapshot itemCoupon,
                            int quantity, List<ProductOptionSnapshot> optionSnapshots) {
-        Assert.notNull(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
-        Assert.notNull(productSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
-        Assert.notNull(priceSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
-        Assert.notNull(optionSnapshots, "주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
-
         this.id = id;
         this.productSnapshot = productSnapshot;
         this.priceSnapshot = priceSnapshot;
@@ -49,11 +44,17 @@ public class OrderSheetItem {
     }
 
     public static OrderSheetItem create(CreateOrderSheetItemContext context, IdGenerator idGenerator) {
+        Assert.notNull(idGenerator, "주문 항목(OrderSheetItem) 생성시 아이디 생성기는 필수이다.");
+        Long id = idGenerator.generate();
+        Assert.notNull(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
+
+        Assert.notNull(context.productSnapshot(), "주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
+        Assert.notNull(context.priceSnapshot(), "주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
+        Assert.notNull(context.optionSnapshots(), "주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
+
         if (context.quantity() <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
         }
-
-        Long id = idGenerator.generate();
 
         return OrderSheetItem.reconstitute()
                 .id(id)

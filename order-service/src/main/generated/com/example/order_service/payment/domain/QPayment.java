@@ -1,8 +1,7 @@
-package com.example.order_service.payment.domain.model;
+package com.example.order_service.payment.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import com.example.order_service.payment.domain.*;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;
@@ -17,7 +16,9 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QPayment extends EntityPathBase<Payment> {
 
-    private static final long serialVersionUID = 832165594L;
+    private static final long serialVersionUID = 1353827167L;
+
+    private static final PathInits INITS = PathInits.DIRECT2;
 
     public static final QPayment payment = new QPayment("payment");
 
@@ -26,23 +27,17 @@ public class QPayment extends EntityPathBase<Payment> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
-    public final StringPath failureCode = createString("failureCode");
+    public final QPaymentFailure failure;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final StringPath lastTransactionKey = createString("lastTransactionKey");
-
-    public final EnumPath<PaymentManualCheckReason> manualCheckReason = createEnum("manualCheckReason", PaymentManualCheckReason.class);
-
     public final EnumPath<PaymentMethod> method = createEnum("method", PaymentMethod.class);
 
-    public final StringPath orderNo = createString("orderNo");
+    public final NumberPath<Long> orderId = createNumber("orderId", Long.class);
 
     public final StringPath paymentKey = createString("paymentKey");
 
     public final ListPath<PaymentRecord, QPaymentRecord> paymentRecords = this.<PaymentRecord, QPaymentRecord>createList("paymentRecords", PaymentRecord.class, QPaymentRecord.class, PathInits.DIRECT2);
-
-    public final DateTimePath<java.time.LocalDateTime> refundPendingAt = createDateTime("refundPendingAt", java.time.LocalDateTime.class);
 
     public final EnumPath<PaymentStatus> status = createEnum("status", PaymentStatus.class);
 
@@ -54,15 +49,24 @@ public class QPayment extends EntityPathBase<Payment> {
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
     public QPayment(String variable) {
-        super(Payment.class, forVariable(variable));
+        this(Payment.class, forVariable(variable), INITS);
     }
 
     public QPayment(Path<? extends Payment> path) {
-        super(path.getType(), path.getMetadata());
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
     public QPayment(PathMetadata metadata) {
-        super(Payment.class, metadata);
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QPayment(PathMetadata metadata, PathInits inits) {
+        this(Payment.class, metadata, inits);
+    }
+
+    public QPayment(Class<? extends Payment> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.failure = inits.isInitialized("failure") ? new QPaymentFailure(forProperty("failure")) : null;
     }
 
 }

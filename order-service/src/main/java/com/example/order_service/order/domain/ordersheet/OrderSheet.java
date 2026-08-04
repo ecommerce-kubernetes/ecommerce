@@ -41,12 +41,6 @@ public class OrderSheet {
     @Builder(builderMethodName = "reconstitute")
     private OrderSheet(Long id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, CartCouponSnapshot cartCoupon,
                        Money usedPoints, LocalDateTime expiresAt) {
-        Assert.notNull(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
-        Assert.notNull(orderer, "주문서(OrderSheet) 생성시 주문자는 필수이다.");
-        Assert.notNull(items, "주문서(OrderSheet) 생성시 주문 항목은 필수이다.");
-        Assert.notNull(usedPoints, "주문서(OrderSheet) 생성시 적용 포인트 금액은 필수이다.");
-        Assert.notNull(expiresAt, "주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
-
         this.id = id;
         this.orderer = orderer;
         this.shippingAddress = shippingAddress;
@@ -57,13 +51,15 @@ public class OrderSheet {
     }
 
     public static OrderSheet create(CreateOrderSheetContext context, IdGenerator idGenerator) {
+        Assert.notNull(idGenerator, "주문서(OrderSheet) 생성시 아이디 생성기는 필수이다.");
+        Long id = idGenerator.generate();
+        Assert.notNull(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
+        Assert.notNull(context.orderer(), "주문서(OrderSheet) 생성시 주문자는 필수이다.");
+        Assert.notNull(context.expiresAt(), "주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
+
         if (context.items() == null || context.items().isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
-
-        Assert.notNull(idGenerator, "주문서(OrderSheet) 생성시 아이디 생성기는 필수이다.");
-
-        Long id = idGenerator.generate();
 
         List<OrderSheetItem> orderSheetItems = context.items().stream().map(itemCtx -> OrderSheetItem.create(itemCtx, idGenerator))
                 .toList();

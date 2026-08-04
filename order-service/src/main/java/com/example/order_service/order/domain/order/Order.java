@@ -53,14 +53,6 @@ public class Order extends BaseEntity {
     @Builder(access = AccessLevel.PRIVATE)
     private Order (Long id, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
                    AppliedCartCoupon appliedCartCoupon, OrderAmount orderAmount, OrderCancelInfo orderCancelInfo) {
-
-        Assert.notNull(id, "주문(Order) 생성시 아이디는 필수이다.");
-        Assert.notNull(status, "주문(Order) 생성시 주문 상태는 필수이다.");
-        Assert.hasText(orderName, "주문(Order) 생성시 주문 이름은 필수이다.");
-        Assert.notNull(orderer, "주문(Order) 생성시 주문자는 필수이다.");
-        Assert.notNull(shippingAddress, "주문(Order) 생성시 배송 정보는 필수이다.");
-        Assert.notNull(orderAmount, "주문(Order) 생성시 주문 가격 정보는 필수이다.");
-
         this.id = id;
         this.status = status;
         this.orderName = orderName;
@@ -72,13 +64,18 @@ public class Order extends BaseEntity {
     }
 
     public static Order create(CreateOrderContext context, IdGenerator idGenerator) {
-        if (context.items() == null || context.items().isEmpty()) {
-            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
-        }
-
         Assert.notNull(idGenerator, "주문(Order) 생성시 아이디 생성기는 필수이다.");
 
         Long id = idGenerator.generate();
+        Assert.notNull(id, "주문(Order) 생성시 아이디는 필수이다.");
+
+        Assert.notNull(context.orderer(), "주문(Order) 생성시 주문자는 필수이다.");
+        Assert.notNull(context.shippingAddress(), "주문(Order) 생성시 배송 정보는 필수이다.");
+        Assert.notNull(context.orderAmount(), "주문(Order) 생성시 주문 가격 정보는 필수이다.");
+
+        if (context.items() == null || context.items().isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
+        }
 
         String orderName = generateOrderName(context.items());
 

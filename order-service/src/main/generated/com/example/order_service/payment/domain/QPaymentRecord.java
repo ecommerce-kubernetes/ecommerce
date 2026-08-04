@@ -1,9 +1,7 @@
-package com.example.order_service.payment.domain.model;
+package com.example.order_service.payment.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import com.example.order_service.payment.domain.PaymentRecord;
-import com.example.order_service.payment.domain.TransactionType;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;
@@ -18,7 +16,7 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QPaymentRecord extends EntityPathBase<PaymentRecord> {
 
-    private static final long serialVersionUID = -300211253L;
+    private static final long serialVersionUID = -634464112L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
@@ -64,7 +62,7 @@ public class QPaymentRecord extends EntityPathBase<PaymentRecord> {
 
     public QPaymentRecord(Class<? extends PaymentRecord> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.payment = inits.isInitialized("payment") ? new QPayment(forProperty("payment")) : null;
+        this.payment = inits.isInitialized("payment") ? new QPayment(forProperty("payment"), inits.get("payment")) : null;
     }
 
 }
