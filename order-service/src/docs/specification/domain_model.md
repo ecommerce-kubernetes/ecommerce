@@ -220,6 +220,49 @@
 - 주문 항목을 생성할 때 상품 옵션 정보는 빈 목록일 수 있지만 `null`일 수 없다.
 - 주문 항목을 생성할 때 주문 항목 가격 정보가 필요하다.
 
+### 결제(Payment)
+
+주문에 대한 결제 정보를 저장하는 엔티티
+
+#### 속성
+
+| 필드명         | 타입             | 설명       |
+|-------------|----------------|----------|
+| id          | Long           | 결제 아이디   |
+| orderId     | Long           | 주문 아이디   |
+| userId      | Long           | 유저 아이디   |
+| status      | PaymentStatus  | 결제 상태    |
+| method      | PaymentMethod  | 결제 방식    |
+| paymentKey  | String         | 결제 키     |
+| totalAmount | Money          | 결제한 금액   |
+| approvedAt  | LocalDateTime  | 결제 승인 시간 |
+| failure     | PaymentFailure | 결제 실패 사유 |
+
+#### 행위
+
+#### 규칙
+
+### 결제 거래 내역(PaymentTransaction)
+
+결제에 대한 거래 내역을 저장하는 엔티티
+
+#### 속성
+
+| 필드명            | 타입              | 설명                    |
+|----------------|-----------------|-----------------------|
+| id             | Long            | 결제 내역 아이디             |
+| payment        | Payment         | 결제                    |
+| userId         | Long            | 유저 아이디                |
+| transactionKey | String          | 고유 거래 키               |
+| type           | TransactionType | 거래 종류                 |
+| amount         | Money           | 거래(승인 또는 취소)에서 변동된 금액 |
+| reason         | String          | 거래 발생 사유              |
+| occurredAt     | LocalDateTime   | 거래 발생 일시              |
+
+#### 행위
+
+#### 규칙
+
 ---
 
 ## 값 객체(VO)
@@ -409,6 +452,15 @@
 | lineTotal          | Money | 상품 판매가 총액      |
 | itemCouponDiscount | Money | 항목 상품 쿠폰 할인 금액 |
 | finalAmount        | Money | 항목 최종 결제 금액    |
+
+### 13. 결제 취소 사유(PaymentFailure)
+
+### 속성
+
+| 필드명     | 타입     | 설명     |
+|---------|--------|--------|
+| code    | String | 실패 코드  |
+| message | String | 실패 메시지 |
 
 --
 
