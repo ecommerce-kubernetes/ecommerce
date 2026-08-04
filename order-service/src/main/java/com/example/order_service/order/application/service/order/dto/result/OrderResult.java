@@ -1,11 +1,7 @@
 package com.example.order_service.order.application.service.order.dto.result;
 
-import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.order.OrderStatus;
-import com.example.order_service.order.domain.vo.Orderer;
-import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
-import com.example.order_service.order.domain.vo.ProductSnapshot;
-import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.domain.order.*;
+import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -19,36 +15,50 @@ public record OrderResult(
         Orderer orderer,
         ShippingAddress shippingAddress,
         List<OrderItemResult> orderItems,
-        PaymentSummary paymentSummary,
+        AppliedCartCoupon appliedCartCoupon,
+        OrderAmount orderAmount,
 
         LocalDateTime createdAt
-
 ) {
 
     @Builder
     public record OrderItemResult(
             Long orderItemId,
             ProductSnapshot product,
+            ProductPriceSnapshot productPrice,
             List<ProductOptionSnapshot> options,
+            AppliedItemCoupon appliedItemCoupon,
             int quantity,
-            ItemPayment itemPayment
+            OrderItemAmount orderItemAmount
     ) {
+        public static OrderItemResult from(OrderItem orderItem) {
+            return OrderItemResult.builder()
+                    .orderItemId(orderItem.getId())
+                    .product(orderItem.getProduct())
+                    .productPrice(orderItem.getProductPrice())
+                    .options(orderItem.getOptions())
+                    .appliedItemCoupon(orderItem.getAppliedItemCoupon())
+                    .quantity(orderItem.getQuantity())
+                    .orderItemAmount(orderItem.getOrderItemAmount())
+                    .build();
+        }
+
+        public static List<OrderItemResult> from(List<OrderItem> orderItems) {
+            return orderItems.stream().map(OrderItemResult::from).toList();
+        }
     }
 
-    @Builder
-    public record ItemPayment(
-            Money lineTotal,
-            Money couponDiscount,
-            Money finalItemAmount
-    ) {}
-
-    @Builder
-    public record PaymentSummary(
-            Money totalOriginalAmount,
-            Money totalItemDiscount,
-            Money totalItemCouponDiscount,
-            Money cartCouponDiscount,
-            Money usedPoints,
-            Money totalPaymentAmount
-    ) {}
+    public static OrderResult from(Order order) {
+        return OrderResult.builder()
+                .orderId(order.getId())
+                .status(order.getStatus())
+                .orderName(order.getOrderName())
+                .orderer(order.getOrderer())
+                .shippingAddress(order.getShippingAddress())
+                .orderItems(OrderItemResult.from(order.getOrderItems()))
+                .appliedCartCoupon(order.getAppliedCartCoupon())
+                .orderAmount(order.getOrderAmount())
+                .createdAt(order.getCreatedAt())
+                .build();
+    }
 }

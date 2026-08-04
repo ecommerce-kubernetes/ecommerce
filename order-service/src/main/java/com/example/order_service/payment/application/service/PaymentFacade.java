@@ -56,7 +56,7 @@ public class PaymentFacade {
         if (order.status() != OrderStatus.PENDING) {
             throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
         }
-        if (!order.paymentSummary().totalPaymentAmount().equals(command.amount())) {
+        if (!order.orderAmount().getTotalPaymentAmount().equals(command.amount())) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
         PaymentContext.Create context = mapper.toContext(command);
@@ -69,7 +69,7 @@ public class PaymentFacade {
                                                    PaymentCommand.Confirm command) {
         try {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderId().toString(), command.paymentKey(),
-                    order.paymentSummary().totalPaymentAmount());
+                    order.orderAmount().getTotalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
         } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();

@@ -1,6 +1,8 @@
 package com.example.order_service.order.api.web.dto.order.response;
 
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.domain.order.OrderAmount;
+import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -20,7 +22,7 @@ public record OrderResponse(
         OrdererResponse orderer,
         ShippingAddressResponse shippingAddress,
         List<OrderItemResponse> orderItems,
-        PaymentSummaryResponse paymentSummary,
+        OrderAmountResponse orderAmount,
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         LocalDateTime createdAt
@@ -67,7 +69,7 @@ public record OrderResponse(
             ProductInfo product,
             List<OptionInfo> options,
             Integer quantity,
-            ItemPaymentResponse itemPayment
+            OrderItemAmountResponse orderItemAmount
     ) {
         public static OrderItemResponse from(OrderResult.OrderItemResult result) {
             ProductInfo product = ProductInfo.from(result.product());
@@ -76,7 +78,7 @@ public record OrderResponse(
                     .product(product)
                     .options(OptionInfo.from(result.options()))
                     .quantity(result.quantity())
-                    .itemPayment(ItemPaymentResponse.from(result.itemPayment()))
+                    .orderItemAmount(OrderItemAmountResponse.from(result.orderItemAmount()))
                     .build();
         }
 
@@ -122,22 +124,26 @@ public record OrderResponse(
     }
 
     @Builder
-    public record ItemPaymentResponse(
+    public record OrderItemAmountResponse(
+            Long originalAmount,
+            Long itemDiscount,
             Long lineTotal,
             Long couponDiscount,
             Long finalItemAmount
     ) {
-        public static ItemPaymentResponse from(OrderResult.ItemPayment itemPayment) {
-            return ItemPaymentResponse.builder()
-                    .lineTotal(itemPayment.lineTotal().longValue())
-                    .couponDiscount(itemPayment.couponDiscount().longValue())
-                    .finalItemAmount(itemPayment.finalItemAmount().longValue())
+        public static OrderItemAmountResponse from(OrderItemAmount orderItemAmount) {
+            return OrderItemAmountResponse.builder()
+                    .originalAmount(orderItemAmount.getOriginalAmount().longValue())
+                    .itemDiscount(orderItemAmount.getItemDiscount().longValue())
+                    .lineTotal(orderItemAmount.getLineTotal().longValue())
+                    .couponDiscount(orderItemAmount.getItemCouponDiscount().longValue())
+                    .finalItemAmount(orderItemAmount.getFinalAmount().longValue())
                     .build();
         }
     }
 
     @Builder
-    public record PaymentSummaryResponse(
+    public record OrderAmountResponse(
             Long totalOriginalAmount,
             Long totalItemDiscount,
             Long totalItemCouponDiscount,
@@ -145,14 +151,14 @@ public record OrderResponse(
             Long usedPoints,
             Long totalPaymentAmount
     ) {
-        public static PaymentSummaryResponse from(OrderResult.PaymentSummary paymentSummary) {
-            return PaymentSummaryResponse.builder()
-                    .totalOriginalAmount(paymentSummary.totalOriginalAmount().longValue())
-                    .totalItemDiscount(paymentSummary.totalItemDiscount().longValue())
-                    .totalItemCouponDiscount(paymentSummary.totalItemCouponDiscount().longValue())
-                    .cartCouponDiscount(paymentSummary.cartCouponDiscount().longValue())
-                    .usedPoints(paymentSummary.usedPoints().longValue())
-                    .totalPaymentAmount(paymentSummary.totalPaymentAmount().longValue())
+        public static OrderAmountResponse from(OrderAmount orderAmount) {
+            return OrderAmountResponse.builder()
+                    .totalOriginalAmount(orderAmount.getTotalOriginalAmount().longValue())
+                    .totalItemDiscount(orderAmount.getTotalItemDiscount().longValue())
+                    .totalItemCouponDiscount(orderAmount.getTotalItemCouponDiscount().longValue())
+                    .cartCouponDiscount(orderAmount.getCartCouponDiscount().longValue())
+                    .usedPoints(orderAmount.getUsedPoints().longValue())
+                    .totalPaymentAmount(orderAmount.getTotalPaymentAmount().longValue())
                     .build();
         }
     }
@@ -160,7 +166,7 @@ public record OrderResponse(
     public static OrderResponse from(OrderResult result) {
         OrdererResponse orderer = OrdererResponse.from(result.orderer());
         ShippingAddressResponse shippingAddress = ShippingAddressResponse.from(result.shippingAddress());
-        PaymentSummaryResponse paymentSummary = PaymentSummaryResponse.from(result.paymentSummary());
+        OrderAmountResponse orderAmountResponse = OrderAmountResponse.from(result.orderAmount());
         return OrderResponse.builder()
                 .orderId(result.orderId())
                 .status(result.status().name())
@@ -168,7 +174,7 @@ public record OrderResponse(
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .orderItems(OrderItemResponse.from(result.orderItems()))
-                .paymentSummary(paymentSummary)
+                .orderAmount(orderAmountResponse)
                 .createdAt(result.createdAt())
                 .build();
     }

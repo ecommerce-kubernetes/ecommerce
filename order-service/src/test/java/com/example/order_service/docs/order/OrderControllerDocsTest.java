@@ -11,6 +11,8 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
+import com.example.order_service.order.domain.order.OrderAmount;
+import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
@@ -180,28 +182,24 @@ public class OrderControllerDocsTest extends RestDocSupport {
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1_XL_BLUE", "청바지", "product/product/jean.jpg");
         ProductOptionSnapshot option1 = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot option2 = ProductOptionSnapshot.of("색상", "BLUE");
-        OrderResult.ItemPayment itemPayment = OrderResult.ItemPayment.builder()
-                .lineTotal(Money.wons(27000L))
-                .couponDiscount(Money.wons(1000L))
-                .finalItemAmount(Money.wons(26000L))
-                .build();
+        OrderItemAmount orderItemAmount = OrderItemAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(27000L),
+                Money.wons(1000L),
+                Money.wons(26000L)
+        );
 
         OrderResult.OrderItemResult orderItem = OrderResult.OrderItemResult.builder()
                 .orderItemId(100L)
                 .product(product)
                 .options(List.of(option1, option2))
                 .quantity(3)
-                .itemPayment(itemPayment)
+                .orderItemAmount(orderItemAmount)
                 .build();
 
-        OrderResult.PaymentSummary paymentSummary = OrderResult.PaymentSummary.builder()
-                .totalOriginalAmount(Money.wons(30000L))
-                .totalItemDiscount(Money.wons(3000L))
-                .totalItemCouponDiscount(Money.wons(1000L))
-                .cartCouponDiscount(Money.wons(1000L))
-                .usedPoints(Money.wons(1000L))
-                .totalPaymentAmount(Money.wons(24000L))
-                .build();
+        OrderAmount orderAmount = OrderAmount.of(Money.wons(30000L), Money.wons(3000L), Money.wons(1000L), Money.wons(1000L),
+                Money.wons(1000L), Money.wons(24000L));
 
         return OrderResult.builder()
                 .orderId(1L)
@@ -210,7 +208,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .orderItems(List.of(orderItem))
-                .paymentSummary(paymentSummary)
+                .orderAmount(orderAmount)
                 .createdAt(LocalDateTime.now())
                 .build();
     }

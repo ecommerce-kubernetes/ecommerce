@@ -1,5 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
@@ -7,6 +8,7 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,9 @@ public class OrderQueryService {
     private final OrderSearchRepository orderSearchRepository;
 
     public OrderResult getOrder(Long orderId, Long userId) {
-        return null;
+        Order order = orderRepository.findByOrderIdAndOrdererId(orderId, userId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        return OrderResult.from(order);
     }
 
     public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
