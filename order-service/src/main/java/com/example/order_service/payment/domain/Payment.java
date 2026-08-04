@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,9 @@ public class Payment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
 
+    @Enumerated(EnumType.STRING)
+    private PaymentProvider provider;
+
     private String paymentKey;
 
     private Money totalAmount;
@@ -41,11 +45,33 @@ public class Payment extends BaseEntity {
     private List<PaymentRecord> paymentRecords = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment (Long id, Long orderId, PaymentStatus status, PaymentMethod method, String paymentKey, Money totalAmount, PaymentFailure failure) {
-
+    private Payment(Long id, Long orderId, Long userId, PaymentStatus status, PaymentMethod method, PaymentProvider provider, String paymentKey, Money totalAmount, PaymentFailure failure) {
+        this.id = id;
+        this.orderId = orderId;
+        this.userId = userId;
+        this.status = status;
+        this.method = method;
+        this.provider = provider;
+        this.paymentKey = paymentKey;
+        this.totalAmount = totalAmount;
+        this.failure = failure;
     }
+
     public static Payment create(CreatePaymentContext context, IdGenerator idGenerator) {
-        return null;
+        Assert.notNull(idGenerator, "결제 생성시 아이디 생성기는 필수이다.");
+        Long id = idGenerator.generate();
+        Assert.notNull(id, "결제 생성시 아이디는 필수이다.");
+        Assert.notNull(context.orderId(), "결제 생성시 주문 아이디는 필수이다.");
+        Assert.notNull(context.userId(), "결제 생성시 유저 아이디는 필수이다.");
+        Assert.notNull(context.totalAmount(), "결제 생성시 결제 금액은 필수이다.");
+
+        return Payment.builder()
+                .id(id)
+                .orderId(context.orderId())
+                .userId(context.userId())
+                .status(PaymentStatus.APPROVAL_PENDING)
+                .totalAmount(context.totalAmount())
+                .build();
     }
 
 }

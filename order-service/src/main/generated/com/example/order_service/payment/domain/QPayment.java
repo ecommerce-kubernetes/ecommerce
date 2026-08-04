@@ -39,6 +39,8 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public final ListPath<PaymentRecord, QPaymentRecord> paymentRecords = this.<PaymentRecord, QPaymentRecord>createList("paymentRecords", PaymentRecord.class, QPaymentRecord.class, PathInits.DIRECT2);
 
+    public final EnumPath<PaymentProvider> provider = createEnum("provider", PaymentProvider.class);
+
     public final EnumPath<PaymentStatus> status = createEnum("status", PaymentStatus.class);
 
     public final SimplePath<com.example.order_service.common.domain.vo.Money> totalAmount = createSimple("totalAmount", com.example.order_service.common.domain.vo.Money.class);

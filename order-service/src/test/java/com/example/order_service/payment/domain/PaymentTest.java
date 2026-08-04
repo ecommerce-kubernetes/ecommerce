@@ -113,6 +113,6 @@ class PaymentTest {
         //then
         assertThatThrownBy(() -> Payment.create(context, nullIdGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("결제 생성시 아이디는 필수이다");
+                .hasMessage("결제 생성시 아이디는 필수이다.");
     }
 }

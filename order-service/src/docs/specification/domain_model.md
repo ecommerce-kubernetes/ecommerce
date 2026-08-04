@@ -227,17 +227,18 @@
 
 #### 속성
 
-| 필드명         | 타입             | 설명       |
-|-------------|----------------|----------|
-| id          | Long           | 결제 아이디   |
-| orderId     | Long           | 주문 아이디   |
-| userId      | Long           | 유저 아이디   |
-| status      | PaymentStatus  | 결제 상태    |
-| method      | PaymentMethod  | 결제 방식    |
-| paymentKey  | String         | 결제 키     |
-| totalAmount | Money          | 결제한 금액   |
-| approvedAt  | LocalDateTime  | 결제 승인 시간 |
-| failure     | PaymentFailure | 결제 실패 사유 |
+| 필드명         | 타입              | 설명       |
+|-------------|-----------------|----------|
+| id          | Long            | 결제 아이디   |
+| orderId     | Long            | 주문 아이디   |
+| userId      | Long            | 유저 아이디   |
+| status      | PaymentStatus   | 결제 상태    |
+| method      | PaymentMethod   | 결제 방식    |
+| provider    | PaymentProvider | 결제사      |
+| paymentKey  | String          | 결제 키     |
+| totalAmount | Money           | 결제한 금액   |
+| approvedAt  | LocalDateTime   | 결제 승인 시간 |
+| failure     | PaymentFailure  | 결제 실패 사유 |
 
 #### 행위
 
@@ -269,6 +270,7 @@
 - 결제를 생성할 때 유저 아이디가 필요하다.
 - 결제를 생성할 때 결제 금액이 필요하다.
 - 생성된 결제는 승인대기(`APPROVAL_PENDING`) 상태이다.
+
 ---
 
 ## 값 객체(VO)
