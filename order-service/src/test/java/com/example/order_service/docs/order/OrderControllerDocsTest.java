@@ -217,18 +217,20 @@ public class OrderControllerDocsTest extends RestDocSupport {
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1_XL_BLUE", "청바지", "product/product/jean.jpg");
         ProductOptionSnapshot option1 = ProductOptionSnapshot.of("사이즈", "XL");
         ProductOptionSnapshot option2 = ProductOptionSnapshot.of("색상", "BLUE");
-        OrderSummaryResult.ItemPayment itemPayment = OrderSummaryResult.ItemPayment.builder()
-                .lineTotal(Money.wons(27000L))
-                .couponDiscount(Money.wons(1000L))
-                .finalItemAmount(Money.wons(26000L))
-                .build();
+        OrderItemAmount orderItemAmount = OrderItemAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(27000L),
+                Money.wons(1000L),
+                Money.wons(26000L)
+        );
 
         OrderSummaryResult.OrderItemResult orderItem = OrderSummaryResult.OrderItemResult.builder()
                 .orderItemId(100L)
                 .product(product)
                 .options(List.of(option1, option2))
                 .quantity(3)
-                .itemPayment(itemPayment)
+                .orderItemAmount(orderItemAmount)
                 .build();
 
         OrderSummaryResult orderSummary = OrderSummaryResult.builder()

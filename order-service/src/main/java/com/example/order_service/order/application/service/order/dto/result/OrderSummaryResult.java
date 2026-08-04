@@ -1,6 +1,7 @@
 package com.example.order_service.order.application.service.order.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -26,13 +27,6 @@ public record OrderSummaryResult(
             ProductSnapshot product,
             List<ProductOptionSnapshot> options,
             Integer quantity,
-            ItemPayment itemPayment
-    ) {}
-
-    @Builder
-    public record ItemPayment(
-            Money lineTotal,
-            Money couponDiscount,
-            Money finalItemAmount
+            OrderItemAmount orderItemAmount
     ) {}
 }

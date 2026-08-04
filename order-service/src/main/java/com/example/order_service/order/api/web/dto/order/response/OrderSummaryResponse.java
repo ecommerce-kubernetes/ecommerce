@@ -1,6 +1,7 @@
 package com.example.order_service.order.api.web.dto.order.response;
 
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
+import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -27,7 +28,7 @@ public record OrderSummaryResponse(
             ProductInfo product,
             List<OptionInfo> options,
             Integer quantity,
-            ItemPaymentResponse itemPayment
+            OrderItemAmountResponse orderItemAmount
     ) {
 
         public static OrderItemResponse from(OrderSummaryResult.OrderItemResult result) {
@@ -36,7 +37,7 @@ public record OrderSummaryResponse(
                     .product(ProductInfo.from(result.product()))
                     .options(OptionInfo.from(result.options()))
                     .quantity(result.quantity())
-                    .itemPayment(ItemPaymentResponse.from(result.itemPayment()))
+                    .orderItemAmount(OrderItemAmountResponse.from(result.orderItemAmount()))
                     .build();
         }
 
@@ -82,16 +83,20 @@ public record OrderSummaryResponse(
     }
 
     @Builder
-    public record ItemPaymentResponse(
+    public record OrderItemAmountResponse(
+            Long originalAmount,
+            Long itemDiscount,
             Long lineTotal,
             Long couponDiscount,
             Long finalItemAmount
     ) {
-        public static ItemPaymentResponse from(OrderSummaryResult.ItemPayment itemPayment) {
-            return ItemPaymentResponse.builder()
-                    .lineTotal(itemPayment.lineTotal().longValue())
-                    .couponDiscount(itemPayment.couponDiscount().longValue())
-                    .finalItemAmount(itemPayment.finalItemAmount().longValue())
+        public static OrderItemAmountResponse from(OrderItemAmount orderItemAmount) {
+            return OrderItemAmountResponse.builder()
+                    .originalAmount(orderItemAmount.getOriginalAmount().longValue())
+                    .itemDiscount(orderItemAmount.getItemDiscount().longValue())
+                    .lineTotal(orderItemAmount.getLineTotal().longValue())
+                    .couponDiscount(orderItemAmount.getItemCouponDiscount().longValue())
+                    .finalItemAmount(orderItemAmount.getFinalAmount().longValue())
                     .build();
         }
     }

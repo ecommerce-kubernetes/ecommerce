@@ -54,7 +54,7 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<PageDto<OrderSummaryResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                    @ModelAttribute OrderSearchCondition condition,
-                                                                   @PageableDefault(size = 20, page = 0) Pageable pageable) {
+                                                                   @PageableDefault(size = 20, page = 0, sort = {}) Pageable pageable) {
         OrderSearchCommand command = OrderSearchCommand.of(condition.getSort(), condition.getYear(), condition.getProductName(), pageable);
         Page<OrderSummaryResult> result = orderQueryService.getOrders(userPrincipal.getUserId(), command);
         PageDto<OrderSummaryResponse> response = PageDto.of(result, OrderSummaryResponse::from);

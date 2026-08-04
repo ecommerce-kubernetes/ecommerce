@@ -1,4 +1,4 @@
-package com.example.order_service.order.infrastructure.persistence;
+package com.example.order_service.order.infrastructure.adaptor.persistence;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.domain.order.Order;
@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 
-//TODO
 @Slf4j
 @Repository
 public class OrderQueryDslRepository implements OrderSearchRepository {
