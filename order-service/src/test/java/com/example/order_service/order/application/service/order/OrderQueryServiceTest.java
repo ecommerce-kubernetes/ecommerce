@@ -5,7 +5,9 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
@@ -19,14 +21,16 @@ import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @RecordApplicationEvents
 @IsolatedTest
@@ -67,6 +71,32 @@ public class OrderQueryServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("주문 목록을 조회한다.")
+    void getOrders() {
+        //given
+        IdGenerator idGenerator = new TsidGenerator();
+        CreateOrderContext orderContext1 = createOrderContext();
+        CreateOrderContext orderContext2 = createOrderContext();
+        Order order1 = Order.create(orderContext1, idGenerator);
+        Order order2 = Order.create(orderContext2, idGenerator);
+        Pageable pageable = PageRequest.of(0, 10);
+        OrderSearchCommand command = OrderSearchCommand.of("latest", null, null, pageable);
+        orderRepository.save(order1);
+        orderRepository.save(order2);
+        //when
+        Page<OrderSummaryResult> orders = orderQueryService.getOrders(1L, command);
+        //then
+        assertThat(orders.getNumber()).isEqualTo(0);
+        assertThat(orders.getTotalElements()).isEqualTo(2L);
+        assertThat(orders.getContent()).hasSize(2)
+                .extracting("orderId", "status")
+                .containsExactlyInAnyOrder(
+                        tuple(order1.getId(), order1.getStatus()),
+                        tuple(order2.getId(), order2.getStatus())
+                );
     }
 
     private CreateOrderContext createOrderContext() {

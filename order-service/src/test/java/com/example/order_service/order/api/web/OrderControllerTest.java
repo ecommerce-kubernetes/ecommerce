@@ -162,7 +162,7 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.shippingAddress.receiverName").value(result.shippingAddress().getReceiverName()))
                 .andExpect(jsonPath("$.orderItems").isNotEmpty())
                 .andExpect(jsonPath("$.orderItems[0].orderItemId").exists())
-                .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.orderAmount().getTotalPaymentAmount().longValue()));
+                .andExpect(jsonPath("$.orderAmount.totalPaymentAmount").value(result.orderAmount().getTotalPaymentAmount().longValue()));
     }
 
     @Test

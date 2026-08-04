@@ -4,17 +4,26 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Year;
+
 @Getter
 @Builder
 public class OrderSearchCommand {
-    private String sort;
-    private String year;
+    private OrderSortType sort;
+    private Year year;
     private String productName;
     private Pageable pageable;
 
-    public static OrderSearchCommand of(String sort, String year, String productName, Pageable pageable) {
+    public static OrderSearchCommand of(String sort, Year year, String productName, Pageable pageable) {
+        OrderSortType orderSortType = (sort == null) ? OrderSortType.LATEST :
+                switch (sort.toLowerCase()) {
+                    case "latest" -> OrderSortType.LATEST;
+                    case "oldest" -> OrderSortType.OLDEST;
+                    default -> OrderSortType.LATEST;
+                };
+
         return OrderSearchCommand.builder()
-                .sort(sort)
+                .sort(orderSortType)
                 .year(year)
                 .productName(productName)
                 .pageable(pageable)

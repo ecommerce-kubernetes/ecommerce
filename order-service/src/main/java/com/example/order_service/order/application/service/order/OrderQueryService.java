@@ -23,8 +23,6 @@ import java.util.List;
 public class OrderQueryService {
     private final OrderRepository orderRepository;
 
-    private final OrderSearchRepository orderSearchRepository;
-
     public OrderResult getOrder(Long orderId, Long userId) {
         Order order = orderRepository.findByOrderIdAndOrdererId(orderId, userId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
@@ -32,7 +30,8 @@ public class OrderQueryService {
     }
 
     public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
-        return null;
+        Page<Order> orders = orderRepository.searchOrders(userId, command);
+        return orders.map(OrderSummaryResult::from);
     }
 
     public OrderResultDeprecated.Detail getOrder(String orderNo) {
@@ -40,7 +39,6 @@ public class OrderQueryService {
     }
 
     public List<OrderResultDeprecated.Summary> getPendingOrdersBefore(LocalDateTime threshold, int size) {
-        List<Order> orders = orderSearchRepository.findOrdersBefore(threshold, size);
-        return orders.stream().map(OrderResultDeprecated.Summary::from).toList();
+        return null;
     }
 }
