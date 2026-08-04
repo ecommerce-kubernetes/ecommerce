@@ -3,7 +3,7 @@ package com.example.order_service.payment.application.external.mapper;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
-import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.PaymentStatus;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;

@@ -1,10 +1,10 @@
-package com.example.order_service.payment.domain.model;
+package com.example.order_service.payment.domain;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum PaymentStatus {
-    READY("승인 대기"),
+    APPROVAL_PENDING("승인 대기"),
     DONE("완료"),
     CANCELED("결제 취소"),
     PARTIAL_CANCELED("부분 취소"),

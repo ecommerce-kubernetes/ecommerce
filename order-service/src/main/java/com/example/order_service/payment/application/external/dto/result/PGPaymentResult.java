@@ -1,8 +1,8 @@
 package com.example.order_service.payment.application.external.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.payment.domain.model.PaymentMethod;
-import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.PaymentMethod;
+import com.example.order_service.payment.domain.PaymentStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

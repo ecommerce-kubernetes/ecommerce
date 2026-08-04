@@ -1,4 +1,4 @@
-package com.example.order_service.payment.domain.model;
+package com.example.order_service.payment.domain;
 
 import lombok.RequiredArgsConstructor;
 

@@ -189,6 +189,7 @@
 #### 규칙
 
 - 주문을 생성할때 주문 필수 정보(id, status, orderName, orderer, shippingAddress, orderItems, orderAmount, createdAt)가 필요하다.
+- 생성된 주문은 결제 대기(`PENDING`) 상태이다.
 
 ### 주문 항목(OrderItem)
 
@@ -252,7 +253,6 @@
 |----------------|-----------------|-----------------------|
 | id             | Long            | 결제 내역 아이디             |
 | payment        | Payment         | 결제                    |
-| userId         | Long            | 유저 아이디                |
 | transactionKey | String          | 고유 거래 키               |
 | type           | TransactionType | 거래 종류                 |
 | amount         | Money           | 거래(승인 또는 취소)에서 변동된 금액 |
@@ -261,8 +261,14 @@
 
 #### 행위
 
+- create(결제 생성): 결제를 생성한다.
+
 #### 규칙
 
+- 결제를 생성할 때 주문 번호가 필요하다.
+- 결제를 생성할 때 유저 아이디가 필요하다.
+- 결제를 생성할 때 결제 금액이 필요하다.
+- 생성된 결제는 승인대기(`APPROVAL_PENDING`) 상태이다.
 ---
 
 ## 값 객체(VO)

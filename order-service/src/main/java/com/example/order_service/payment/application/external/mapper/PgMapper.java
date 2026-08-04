@@ -3,7 +3,7 @@ package com.example.order_service.payment.application.external.mapper;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
-import com.example.order_service.payment.domain.model.PaymentMethod;
+import com.example.order_service.payment.domain.PaymentMethod;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

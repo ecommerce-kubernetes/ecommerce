@@ -6,7 +6,7 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
-import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPortException;
 import lombok.RequiredArgsConstructor;

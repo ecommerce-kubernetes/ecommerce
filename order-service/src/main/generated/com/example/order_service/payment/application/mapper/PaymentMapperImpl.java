@@ -3,7 +3,7 @@ package com.example.order_service.payment.application.mapper;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
-import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.PaymentStatus;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
