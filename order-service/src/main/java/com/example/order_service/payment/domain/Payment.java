@@ -65,11 +65,15 @@ public class Payment extends BaseEntity {
         Assert.notNull(context.userId(), "결제 생성시 유저 아이디는 필수이다.");
         Assert.notNull(context.totalAmount(), "결제 생성시 결제 금액은 필수이다.");
 
+        PaymentStatus status = context.totalAmount().equals(Money.ZERO)
+                ? PaymentStatus.DONE
+                : PaymentStatus.APPROVAL_PENDING;
+
         return Payment.builder()
                 .id(id)
                 .orderId(context.orderId())
                 .userId(context.userId())
-                .status(PaymentStatus.APPROVAL_PENDING)
+                .status(status)
                 .totalAmount(context.totalAmount())
                 .build();
     }
