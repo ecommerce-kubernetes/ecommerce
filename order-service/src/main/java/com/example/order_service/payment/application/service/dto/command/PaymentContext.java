@@ -7,6 +7,7 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
+@Deprecated
 @Builder
 public class PaymentContext {
 

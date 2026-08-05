@@ -1,7 +1,6 @@
-package com.example.order_service.payment.infrastructure.persistence;
+package com.example.order_service.payment.infrastructure.adaptor.persistence;
 
 import com.example.order_service.payment.domain.Payment;
-import com.example.order_service.payment.domain.repository.PaymentQueryRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
@@ -11,19 +10,17 @@ import java.util.List;
 
 
 @Repository
-public class PaymentQueryDslRepository implements PaymentQueryRepository {
+public class PaymentQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     public PaymentQueryDslRepository(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
-    @Override
     public List<Payment> findReadyPaymentsBefore(LocalDateTime threshold, int size) {
         return null;
     }
 
-    @Override
     public List<Payment> findRefundPendingPaymentsBefore(LocalDateTime threshold, int size) {
         return null;
     }

@@ -3,12 +3,13 @@ package com.example.order_service.payment.application.service.dto.result;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.payment.domain.Payment;
 import com.example.order_service.payment.domain.PaymentMethod;
-import com.example.order_service.payment.domain.PaymentRecord;
+import com.example.order_service.payment.domain.PaymentTransaction;
 import com.example.order_service.payment.domain.PaymentStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 
+@Deprecated
 public class PaymentResult {
 
     @Builder
@@ -40,14 +41,14 @@ public class PaymentResult {
             PaymentStatus status,
             LocalDateTime approvedAt
     ) {
-        public static PaymentApproval of(Payment payment, PaymentRecord paymentRecord) {
+        public static PaymentApproval of(Payment payment, PaymentTransaction paymentTransaction) {
             return PaymentApproval.builder()
                     .paymentKey(payment.getPaymentKey())
                     .orderNo(null)
                     .totalAmount(payment.getTotalAmount())
                     .method(payment.getMethod())
                     .status(payment.getStatus())
-                    .approvedAt(paymentRecord.getOccurredAt())
+                    .approvedAt(paymentTransaction.getOccurredAt())
                     .build();
         }
     }
@@ -60,13 +61,13 @@ public class PaymentResult {
             PaymentStatus status,
             LocalDateTime canceledAt
     ) {
-        public static PaymentCancel of(Payment payment, PaymentRecord paymentRecord) {
+        public static PaymentCancel of(Payment payment, PaymentTransaction paymentTransaction) {
             return PaymentCancel.builder()
                     .paymentKey(payment.getPaymentKey())
                     .orderNo(null)
-                    .canceledAmount(paymentRecord.getAmount())
+                    .canceledAmount(paymentTransaction.getAmount())
                     .status(payment.getStatus())
-                    .canceledAt(paymentRecord.getOccurredAt())
+                    .canceledAt(paymentTransaction.getOccurredAt())
                     .build();
         }
     }

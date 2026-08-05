@@ -39,10 +39,11 @@ public class Payment extends BaseEntity {
 
     private Money totalAmount;
 
+    @Embedded
     private PaymentFailure failure;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PaymentRecord> paymentRecords = new ArrayList<>();
+    private List<PaymentTransaction> paymentTransactions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
     private Payment(Long id, Long orderId, Long userId, PaymentStatus status, PaymentMethod method, PaymentProvider provider, String paymentKey, Money totalAmount, PaymentFailure failure) {

@@ -1,16 +1,12 @@
 package com.example.order_service.payment.application.service;
 
-import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.payment.application.event.PaymentCompleteEvent;
+import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.payment.application.port.PaymentRepository;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.Payment;
-import com.example.order_service.payment.domain.PaymentManualCheckReason;
-import com.example.order_service.payment.domain.PaymentRecord;
-import com.example.order_service.payment.domain.repository.PaymentRepository;
-import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +18,13 @@ import java.time.LocalDateTime;
 public class PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final IdGenerator idGenerator;
+
+    public Long create(CreatePaymentContext context) {
+        Payment payment = Payment.create(context, idGenerator);
+        Payment save = paymentRepository.save(payment);
+        return save.getId();
+    }
 
     public PaymentResult.Default create(PaymentContext.Create context) {
         return null;
