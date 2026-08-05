@@ -8,7 +8,7 @@ import com.example.order_service.payment.api.web.dto.request.PaymentCreateReques
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.support.RestDocSupport;
@@ -86,7 +86,7 @@ public class PaymentControllerDocsTest extends RestDocSupport {
                 .amount(10000L)
                 .build();
         HttpHeaders authHeader = createAuthHeader("ROLE_USER");
-        PaymentResult.PaymentApproval result = PaymentResult.PaymentApproval.builder()
+        PaymentResultDeprecated.PaymentApproval result = PaymentResultDeprecated.PaymentApproval.builder()
                 .paymentId(1L)
                 .paymentKey("paymentKey")
                 .orderNo("orderNo")

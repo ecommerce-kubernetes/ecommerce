@@ -3,7 +3,7 @@ package com.example.order_service.payment.application.service;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.application.port.PaymentRepository;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
-import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.Payment;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import lombok.RequiredArgsConstructor;
@@ -26,11 +26,11 @@ public class PaymentCommandService {
         return save.getId();
     }
 
-    public PaymentResult.Default create(PaymentContext.Create context) {
+    public PaymentResultDeprecated.Default create(PaymentContext.Create context) {
         return null;
     }
 
-    public PaymentResult.PaymentApproval approve(PaymentContext.Approval context) {
+    public PaymentResultDeprecated.PaymentApproval approve(PaymentContext.Approval context) {
         return null;
     }
 
@@ -42,7 +42,7 @@ public class PaymentCommandService {
 
     }
 
-    public PaymentResult.PaymentCancel cancel(PaymentContext.Cancellation context) {
+    public PaymentResultDeprecated.PaymentCancel cancel(PaymentContext.Cancellation context) {
         return null;
     }
 

@@ -7,7 +7,7 @@ import com.example.order_service.payment.api.web.dto.request.PaymentCreateReques
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -144,7 +144,7 @@ public class PaymentControllerTest {
             PaymentConfirmRequest request = Instancio.of(PaymentConfirmRequest.class)
                     .set(field("amount"), 1000L)
                     .create();
-            PaymentResult.PaymentApproval result = Instancio.create(PaymentResult.PaymentApproval.class);
+            PaymentResultDeprecated.PaymentApproval result = Instancio.create(PaymentResultDeprecated.PaymentApproval.class);
             given(paymentFacade.confirm(any())).willReturn(result);
             //when
             //then

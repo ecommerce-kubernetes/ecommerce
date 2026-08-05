@@ -8,11 +8,12 @@ import com.example.order_service.payment.application.external.PaymentGateway;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.mapper.PaymentMapper;
+import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPortException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class PaymentFacade {
     private final OrderQueryService orderQueryService;
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
+    private final PaymentOrderPort paymentOrderPort;
     private final PaymentMapper mapper;
     private final PaymentGateway paymentGateway;
     private final Clock clock;
@@ -37,7 +39,7 @@ public class PaymentFacade {
         return null;
     }
 
-    public PaymentResult.PaymentApproval confirm(PaymentCommand.Confirm command) {
+    public PaymentResultDeprecated.PaymentApproval confirm(PaymentCommand.Confirm command) {
         OrderResult order = orderQueryService.getOrder(1L, command.userId());
         if (order.status() != OrderStatus.PENDING) {
             throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
@@ -46,12 +48,12 @@ public class PaymentFacade {
             throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
         PaymentContext.Create context = mapper.toContext(command);
-        PaymentResult.Default payment = paymentCommandService.create(context);
+        PaymentResultDeprecated.Default payment = paymentCommandService.create(context);
         PGPaymentResult.Approval pgResult = confirmWithPg(payment, order, command);
         return approveWithFallback(payment, pgResult);
     }
 
-    private PGPaymentResult.Approval confirmWithPg(PaymentResult.Default payment, OrderResult order,
+    private PGPaymentResult.Approval confirmWithPg(PaymentResultDeprecated.Default payment, OrderResult order,
                                                    PaymentCommand.Confirm command) {
         try {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderId().toString(), command.paymentKey(),
@@ -84,8 +86,8 @@ public class PaymentFacade {
         }
     }
 
-    private PaymentResult.PaymentApproval approveWithFallback(PaymentResult.Default payment,
-                                                              PGPaymentResult.Approval pgResult) {
+    private PaymentResultDeprecated.PaymentApproval approveWithFallback(PaymentResultDeprecated.Default payment,
+                                                                        PGPaymentResult.Approval pgResult) {
         try {
             PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
             return paymentCommandService.approve(approvalContext);
@@ -148,7 +150,7 @@ public class PaymentFacade {
      * @param reason    취소 이유
      */
     public void revert(Long paymentId, String reason) {
-        PaymentResult.Default payment = paymentQueryService.getPayment(paymentId);
+        PaymentResultDeprecated.Default payment = null;
         LocalDateTime refundPendingAt = LocalDateTime.now(clock);
         paymentCommandService.changeRefundPending(payment.id(), refundPendingAt);
         try {

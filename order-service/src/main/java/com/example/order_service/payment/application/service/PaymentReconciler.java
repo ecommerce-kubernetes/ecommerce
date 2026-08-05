@@ -5,7 +5,7 @@ import com.example.order_service.payment.application.external.dto.command.PGPaym
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
-import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPortException;
@@ -43,14 +43,14 @@ public class PaymentReconciler {
      */
     public void reconcileReadyPayments() {
         LocalDateTime threshold = LocalDateTime.now(clock).minusMinutes(THRESHOLD_MINUTES);
-        List<PaymentResult.Default> payments = queryService.getReadyPaymentsBefore(threshold, CHUNK_SIZE);
+        List<PaymentResultDeprecated.Default> payments = queryService.getReadyPaymentsBefore(threshold, CHUNK_SIZE);
         processPayments(payments, "결제 승인 대사",
                 this::processSingleReadyPayment,
                 this::handleReadyPaymentError
         );
     }
 
-    private void processSingleReadyPayment(PaymentResult.Default payment) {
+    private void processSingleReadyPayment(PaymentResultDeprecated.Default payment) {
         PGPaymentResult.Inquiry inquire = paymentGateway.inquire(payment.paymentKey());
         switch (inquire.status()) {
             case ABORTED -> commandService.abort(payment.id(), inquire.failure().code());
@@ -65,7 +65,7 @@ public class PaymentReconciler {
         }
     }
 
-    private void handleReadyPaymentError(PaymentResult.Default payment, PaymentPortException e) {
+    private void handleReadyPaymentError(PaymentResultDeprecated.Default payment, PaymentPortException e) {
         PaymentErrorCode errorCode = e.errorCode();
         switch (errorCode) {
             case PAYMENT_PG_NOT_FOUND -> {
@@ -81,13 +81,13 @@ public class PaymentReconciler {
         }
     }
 
-    private void processPayments(List<PaymentResult.Default> payments, String taskName, Consumer<PaymentResult.Default> task,
-                                 BiConsumer<PaymentResult.Default, PaymentPortException> errorHandler) {
+    private void processPayments(List<PaymentResultDeprecated.Default> payments, String taskName, Consumer<PaymentResultDeprecated.Default> task,
+                                 BiConsumer<PaymentResultDeprecated.Default, PaymentPortException> errorHandler) {
         if (payments.isEmpty()) {
             return;
         }
 
-        for (PaymentResult.Default payment : payments) {
+        for (PaymentResultDeprecated.Default payment : payments) {
             try {
                 task.accept(payment);
                 Thread.sleep(THROTTLE_MS);
@@ -103,7 +103,7 @@ public class PaymentReconciler {
         }
     }
 
-    private void cancelDonePayment(PaymentResult.Default payment, String taskName, String reason, Consumer<PGPaymentResult.Cancellation> onSuccess,
+    private void cancelDonePayment(PaymentResultDeprecated.Default payment, String taskName, String reason, Consumer<PGPaymentResult.Cancellation> onSuccess,
                                    Runnable onManualCheck) {
         try {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
@@ -133,14 +133,14 @@ public class PaymentReconciler {
      */
     public void reconcileRefundPendingPayments() {
         LocalDateTime threshold = LocalDateTime.now(clock).minusMinutes(THRESHOLD_MINUTES);
-        List<PaymentResult.Default> payments = queryService.getRefundPendingPaymentsBefore(threshold, CHUNK_SIZE);
+        List<PaymentResultDeprecated.Default> payments = queryService.getRefundPendingPaymentsBefore(threshold, CHUNK_SIZE);
         processPayments(payments, "결제 환불 대사",
                 this::reconcileRefundPendingPayment,
                 this::reconcileRefundPendingErrorHandle
         );
     }
 
-    private void reconcileRefundPendingPayment(PaymentResult.Default payment) {
+    private void reconcileRefundPendingPayment(PaymentResultDeprecated.Default payment) {
         PGPaymentResult.Inquiry inquire = paymentGateway.inquire(payment.paymentKey());
         switch (inquire.status()) {
             case CANCELED -> {
@@ -162,7 +162,7 @@ public class PaymentReconciler {
         }
     }
 
-    private void reconcileRefundPendingErrorHandle(PaymentResult.Default payment, PaymentPortException e) {
+    private void reconcileRefundPendingErrorHandle(PaymentResultDeprecated.Default payment, PaymentPortException e) {
         PaymentErrorCode errorCode = e.errorCode();
         switch (errorCode) {
             case PAYMENT_PG_NOT_FOUND -> {

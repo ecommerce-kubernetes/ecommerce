@@ -9,7 +9,7 @@ import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +42,7 @@ public class PaymentController {
     public ResponseEntity<PaymentApprovalResponse> paymentConfirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                                   @RequestBody @Validated PaymentConfirmRequest request) {
         PaymentCommand.Confirm command = request.toCommand(userPrincipal.getUserId());
-        PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);
+        PaymentResultDeprecated.PaymentApproval confirm = paymentFacade.confirm(command);
         PaymentApprovalResponse response = PaymentApprovalResponse.from(confirm);
         return ResponseEntity.ok(response);
     }
