@@ -80,5 +80,4 @@ class CreateOrderSheetContextTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
     }
-
 }

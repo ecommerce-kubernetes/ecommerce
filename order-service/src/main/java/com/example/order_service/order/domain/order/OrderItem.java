@@ -69,12 +69,6 @@ public class OrderItem extends BaseEntity {
         Long id = idGenerator.generate();
         Assert.notNull(id, "주문 항목(OrderItem) 생성시 아이디는 필수이다.");
 
-        Assert.notNull(context.productSnapshot(), "주문 항목(OrderItem) 생성시 상품 정보는 필수이다.");
-        Assert.notNull(context.priceSnapshot(), "주문 항목(OrderItem) 생성시 상품 가격 정보는 필수이다.");
-        Assert.notNull(context.quantity(), "주문 항목(OrderItem) 생성시 주문 수량은 필수이다.");
-        Assert.notNull(context.options(), "주문 항목(OrderItem) 생성시 상품 옵션은 필수이다.");
-        Assert.notNull(context.orderItemAmount(), "주문 항목(OrderItem) 생성시 주문 항목 가격 정보는 필수이다.");
-
         if (context.quantity() <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
         }

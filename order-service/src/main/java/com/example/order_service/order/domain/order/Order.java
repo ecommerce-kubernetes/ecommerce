@@ -69,10 +69,6 @@ public class Order extends BaseEntity {
         Long id = idGenerator.generate();
         Assert.notNull(id, "주문(Order) 생성시 아이디는 필수이다.");
 
-        Assert.notNull(context.orderer(), "주문(Order) 생성시 주문자는 필수이다.");
-        Assert.notNull(context.shippingAddress(), "주문(Order) 생성시 배송 정보는 필수이다.");
-        Assert.notNull(context.orderAmount(), "주문(Order) 생성시 주문 가격 정보는 필수이다.");
-
         if (context.items() == null || context.items().isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
