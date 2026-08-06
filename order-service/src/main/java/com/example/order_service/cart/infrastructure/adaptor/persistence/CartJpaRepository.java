@@ -1,4 +1,4 @@
-package com.example.order_service.cart.infrastructure.adaptor;
+package com.example.order_service.cart.infrastructure.adaptor.persistence;
 
 import com.example.order_service.cart.domain.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.example.order_service.cart.infrastructure.adaptor;
+package com.example.order_service.cart.infrastructure.adaptor.client;
 
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
