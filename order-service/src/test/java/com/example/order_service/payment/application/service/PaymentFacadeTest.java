@@ -48,7 +48,6 @@ class PaymentFacadeTest {
 
         given(paymentOrderPort.getOrder(anyLong(), anyLong())).willReturn(orderResult);
         given(paymentCommandService.create(any(CreatePaymentContext.class))).willReturn(paymentId);
-        given()
         //when
         PaymentCreateResult result = paymentFacade.create(command);
         //then

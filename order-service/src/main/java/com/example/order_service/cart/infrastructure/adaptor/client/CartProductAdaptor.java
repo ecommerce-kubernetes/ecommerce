@@ -2,6 +2,7 @@ package com.example.order_service.cart.infrastructure.adaptor.client;
 
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
+import com.example.order_service.cart.exception.CartProductPortErrorCode;
 import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapper;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -34,13 +35,13 @@ public class CartProductAdaptor implements CartProductPort {
         try {
             return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 }
