@@ -1,7 +1,7 @@
 package com.example.order_service.order.infrastructure.adaptor.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.DefaultPortException;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.port.dto.OrderProductStatus;
 import com.example.order_service.order.application.port.dto.OrderProductsResult;
@@ -63,7 +63,7 @@ public class OrderProductPortMapper {
             case "STOP_SALE" -> OrderProductStatus.STOP_SALE;
             case "DELETED" -> OrderProductStatus.DELETED;
             case "PREPARING" -> OrderProductStatus.PREPARING;
-            case null, default -> throw new DefaultPortException(
+            case null, default -> throw new PortException(
                     OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR,
                     "UNSUPPORTED_STATUS",
                     "처리할 수 없는 상품 상태입니다"

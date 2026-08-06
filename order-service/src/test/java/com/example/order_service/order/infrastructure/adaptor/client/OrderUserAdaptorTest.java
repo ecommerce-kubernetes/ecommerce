@@ -1,12 +1,11 @@
 package com.example.order_service.order.infrastructure.adaptor.client;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.DefaultPortException;
-import com.example.order_service.order.exception.OrderUserPortErrorCode;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.infrastructure.gateway.UserGateway;
@@ -14,6 +13,7 @@ import com.example.order_service.order.application.port.dto.OrdererPointResult;
 import com.example.order_service.order.application.port.dto.OrdererProfileResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderUserPortErrorCode;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderUserPortMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +81,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderUserPortErrorCode.USER_CLIENT_ERROR);
     }
@@ -95,7 +95,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderUserPortErrorCode.USER_SERVER_ERROR);
     }
@@ -109,7 +109,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderUserPortErrorCode.USER_UNAVAILABLE_SERVER_ERROR);
     }
@@ -123,7 +123,7 @@ public class OrderUserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderUserPortErrorCode.USER_CIRCUIT_OPEN);
     }

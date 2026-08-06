@@ -2,9 +2,9 @@ package com.example.order_service.order.infrastructure.adaptor.client;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.service.CartQueryService;
-import com.example.order_service.order.exception.OrderCartPortErrorCode;
-import com.example.order_service.common.exception.DefaultPortException;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
+import com.example.order_service.order.exception.OrderCartPortErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,12 +56,14 @@ class OrderCartAdaptorTest {
     @DisplayName("장바구니 항목 조회중 예외가 발생하면 포트 예외로 변환된다.")
     void getCartItems_throw_exception() {
         //given
+        String errorCode = "장바구니 항목 조회중 예외 발생";
         given(cartQueryService.findCartItemsByCartItemIds(anyLong(), anyList()))
-                .willThrow(new RuntimeException("장바구니 항목 조회중 예외 발생"));
+                .willThrow(new RuntimeException(errorCode));
         //when
         //then
         assertThatThrownBy(() -> orderCartAdaptor.getCartItems(1L, List.of(1L, 2L)))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
+                .hasMessage(String.format("Port Error: [%s] %s", errorCode, "장바구니 상품 조회중 에러 발생"))
                 .extracting("errorCode")
                 .isEqualTo(OrderCartPortErrorCode.CART_SERVER_ERROR);
     }

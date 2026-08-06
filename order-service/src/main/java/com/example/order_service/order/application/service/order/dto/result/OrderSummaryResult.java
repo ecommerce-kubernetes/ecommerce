@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.service.order.dto.result;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.order.OrderItem;
 import com.example.order_service.order.domain.order.OrderItemAmount;

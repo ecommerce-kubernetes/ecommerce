@@ -3,7 +3,6 @@ package com.example.order_service.cart.infrastructure.adaptor.mapper;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartProductPortErrorCode;
-import com.example.order_service.common.exception.DefaultPortException;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
@@ -20,6 +19,7 @@ public interface CartProductPortMapper {
 
     @Mapping(target = "originalPrice", source = "unitPrice.originalPrice")
     @Mapping(target = "discountAmount", source = "unitPrice.discountAmount")
+    @Mapping(target = "discountRate", source = "unitPrice.discountRate")
     @Mapping(target = "discountedPrice", source = "unitPrice.discountedPrice")
     @Mapping(target = "status", source = "status")
     CartProductResult.CartProductDetail toCartProductDetail(ProductResponse.ProductDetail product);

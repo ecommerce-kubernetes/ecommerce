@@ -1,17 +1,17 @@
 package com.example.order_service.order.infrastructure.adaptor.client;
 
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.order.exception.OrderCouponPortErrorCode;
-import com.example.order_service.common.exception.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
 import com.example.order_service.order.application.port.OrderCouponPort;
 import com.example.order_service.order.application.port.dto.CartCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponsResult;
+import com.example.order_service.order.exception.OrderCouponPortErrorCode;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderCouponPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,13 +49,13 @@ public class OrderCouponAdaptor implements OrderCouponPort {
         try {
             return apiCall.get();
         } catch (ExternalClientException e) {
-            throw new DefaultPortException(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultPortException(OrderCouponPortErrorCode.COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultPortException(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultPortException(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         }
     }
 }

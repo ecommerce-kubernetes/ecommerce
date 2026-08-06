@@ -2,10 +2,10 @@ package com.example.order_service.order.infrastructure.adaptor.client;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.service.CartQueryService;
-import com.example.order_service.order.exception.OrderCartPortErrorCode;
-import com.example.order_service.common.exception.DefaultPortException;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.order.application.port.OrderCartPort;
 import com.example.order_service.order.application.port.dto.OrderCartItemsResult;
+import com.example.order_service.order.exception.OrderCartPortErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ public class OrderCartAdaptor implements OrderCartPort {
         try {
             return cartQueryService.findCartItemsByCartItemIds(userId, cartItemIds);
         } catch (Exception e) {
-            throw new DefaultPortException(OrderCartPortErrorCode.CART_SERVER_ERROR, "CART_ERROR", "장바구니 상품 조회중 에러 발생");
+            throw new PortException(OrderCartPortErrorCode.CART_SERVER_ERROR, e.getMessage(), "장바구니 상품 조회중 에러 발생");
         }
     }
 }

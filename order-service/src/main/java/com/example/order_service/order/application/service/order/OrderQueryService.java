@@ -7,7 +7,6 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.Order;
-import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

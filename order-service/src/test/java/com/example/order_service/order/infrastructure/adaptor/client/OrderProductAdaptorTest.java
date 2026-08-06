@@ -1,10 +1,10 @@
 package com.example.order_service.order.infrastructure.adaptor.client;
 
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.order.application.port.dto.OrderProductStatus;
@@ -90,8 +90,8 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .isInstanceOf(PortException.class)
+                .hasMessage(String.format("Port Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(OrderProductPortErrorCode.PRODUCT_SERVER_ERROR, code);
     }
@@ -108,8 +108,8 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .isInstanceOf(PortException.class)
+                .hasMessage(String.format("Port Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR, code);
     }
@@ -126,8 +126,8 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .isInstanceOf(PortException.class)
+                .hasMessage(String.format("Port Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(OrderProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, code);
     }
@@ -144,8 +144,8 @@ public class OrderProductAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(variantIds))
-                .isInstanceOf(DefaultPortException.class)
-                .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                .isInstanceOf(PortException.class)
+                .hasMessage(String.format("Port Error: [%s] %s", code, message))
                 .extracting("errorCode", "externalErrorCode")
                 .containsExactly(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, code);
     }

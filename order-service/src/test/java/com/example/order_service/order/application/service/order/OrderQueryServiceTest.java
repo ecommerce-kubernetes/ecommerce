@@ -11,7 +11,6 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
-import com.example.order_service.order.domain.repository.OrderRepositoryDeprecated;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;

@@ -2,8 +2,7 @@ package com.example.order_service.payment.infrastructure.adaptor.client;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.exception.DefaultPortException;
-import com.example.order_service.payment.exception.PaymentOrderPortErrorCode;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.order.OrderAmount;
@@ -11,6 +10,7 @@ import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderStatus;
+import com.example.order_service.payment.exception.PaymentOrderPortErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +69,7 @@ class PaymentOrderAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> paymentOrderAdaptor.getOrder(orderId, userId))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentOrderPortErrorCode.ORDER_CLIENT_ERROR);
     }
@@ -85,7 +85,7 @@ class PaymentOrderAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> paymentOrderAdaptor.getOrder(orderId, userId))
-                .isInstanceOf(DefaultPortException.class)
+                .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentOrderPortErrorCode.ORDER_SERVER_ERROR);
     }

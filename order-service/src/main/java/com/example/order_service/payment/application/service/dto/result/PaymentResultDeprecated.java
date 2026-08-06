@@ -3,8 +3,8 @@ package com.example.order_service.payment.application.service.dto.result;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.payment.domain.Payment;
 import com.example.order_service.payment.domain.PaymentMethod;
-import com.example.order_service.payment.domain.PaymentTransaction;
 import com.example.order_service.payment.domain.PaymentStatus;
+import com.example.order_service.payment.domain.PaymentTransaction;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
