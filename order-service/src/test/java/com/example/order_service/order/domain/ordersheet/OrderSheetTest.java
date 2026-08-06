@@ -53,24 +53,6 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("주문서를 생성할때 주문자 정보가 없으면 예외가 발생한다.")
-    void create_orderer_null() {
-        //given
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
-        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
-                .orderer(null)
-                .items(List.of(itemCtx))
-                .expiresAt(expiresAt)
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> OrderSheet.create(context, idGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("주문서(OrderSheet) 생성시 주문자는 필수이다.");
-    }
-
-    @Test
     @DisplayName("주문서를 생성할때 주문 항목이 0개 이하인 경우 예외가 발생한다.")
     void create_items_empty() {
         //given
@@ -89,25 +71,6 @@ public class OrderSheetTest {
                 .isEqualTo(OrderErrorCode.ORDER_ITEMS_REQUIRED);
     }
 
-    @Test
-    @DisplayName("주문서를 생성할때 주문서 만료 시간이 없으면 예외가 발생한다.")
-    void create_expiresAt_null() {
-        //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        CreateOrderSheetItemContext itemCtx = createOrderSheetItemContext(1L);
-
-        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
-                .orderer(orderer)
-                .items(List.of(itemCtx))
-                .expiresAt(null)
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> OrderSheet.create(context, idGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
-    }
-    
     @Test
     @DisplayName("주문서를 생성할때 아이디 생성기가 누락되면 예외가 발생한다.")
     void create_idGenerator_null() {

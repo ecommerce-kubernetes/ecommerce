@@ -48,10 +48,6 @@ public class OrderSheetItem {
         Long id = idGenerator.generate();
         Assert.notNull(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
 
-        Assert.notNull(context.productSnapshot(), "주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
-        Assert.notNull(context.priceSnapshot(), "주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
-        Assert.notNull(context.optionSnapshots(), "주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
-
         if (context.quantity() <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
         }

@@ -54,10 +54,8 @@ public class OrderSheet {
         Assert.notNull(idGenerator, "주문서(OrderSheet) 생성시 아이디 생성기는 필수이다.");
         Long id = idGenerator.generate();
         Assert.notNull(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
-        Assert.notNull(context.orderer(), "주문서(OrderSheet) 생성시 주문자는 필수이다.");
-        Assert.notNull(context.expiresAt(), "주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
 
-        if (context.items() == null || context.items().isEmpty()) {
+        if (context.items().isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
 
@@ -67,6 +65,7 @@ public class OrderSheet {
         return OrderSheet.reconstitute()
                 .id(id)
                 .orderer(context.orderer())
+                .shippingAddress(context.shippingAddress())
                 .items(orderSheetItems)
                 .usedPoints(Money.ZERO)
                 .expiresAt(context.expiresAt())

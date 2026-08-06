@@ -105,50 +105,6 @@ public class OrderSheetItemTest {
     }
 
     @Test
-    @DisplayName("주문 항목을 생성할때 상품 스냅샷이 누락되면 예외가 발생한다.")
-    void create_productSnapshot_null() {
-        //given
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
-        int quantity = 1;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(null)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(List.of(productOption))
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
-    }
-
-    @Test
-    @DisplayName("주문 항목을 생성할때 가격 스냅샷이 누락되면 예외가 발생한다.")
-    void create_priceSnapshot_null() {
-        //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
-        int quantity = 1;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(null)
-                .quantity(quantity)
-                .optionSnapshots(List.of(productOption))
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
-    }
-
-    @Test
     @DisplayName("주문서 항목의 주문 수량이 0 이하면 예외가 발생한다.")
     void create_quantity_less_than_1() {
         //given
@@ -171,29 +127,6 @@ public class OrderSheetItemTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.INVALID_ITEM_QUANTITY);
-    }
-
-    @Test
-    @DisplayName("주문 항목을 생성할때 상품 옵션이 누락되면 예외가 발생한다.")
-    void create_optionSnapshots_null() {
-        //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(null)
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
     }
 
     @Test

@@ -91,16 +91,12 @@ public class OrderSheetService {
                                         LocalDateTime expiresAt) {
         CreateOrderSheetContext createOrderSheetContext = CreateOrderSheetContext.builder()
                 .orderer(ordererProfile.orderer())
+                .shippingAddress(ordererProfile.defaultShippingAddress())
                 .items(orderSheetItemsContext)
                 .expiresAt(expiresAt)
                 .build();
 
-        OrderSheet orderSheet = OrderSheet.create(createOrderSheetContext, idGenerator);
-
-        if (ordererProfile.defaultShippingAddress() != null) {
-            orderSheet.changeShippingAddress(ordererProfile.defaultShippingAddress());
-        }
-        return orderSheet;
+        return OrderSheet.create(createOrderSheetContext, idGenerator);
     }
 
     private List<CreateOrderSheetItemContext> createDirectOrderSheetItemsContext(CreateDirectOrderSheetCommand command,
