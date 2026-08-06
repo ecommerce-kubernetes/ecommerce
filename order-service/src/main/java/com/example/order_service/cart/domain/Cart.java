@@ -1,6 +1,7 @@
 package com.example.order_service.cart.domain;
 
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
+import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
@@ -84,10 +85,10 @@ public class Cart extends BaseEntity {
                 .findFirst();
     }
 
-    public void updateItemQuantity(Long cartItemId, Integer quantity, int maxLimit) {
-        CartItem cartItem = findItemByCartItemId(cartItemId)
+    public void updateItemQuantity(UpdateCartItemContext context) {
+        CartItem cartItem = findItemByCartItemId(context.cartItemId())
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
-        cartItem.updateQuantity(quantity, maxLimit);
+        cartItem.updateQuantity(context.quantity(), context.maxLimit());
     }
 
     public void deleteItem(Long cartItemId) {

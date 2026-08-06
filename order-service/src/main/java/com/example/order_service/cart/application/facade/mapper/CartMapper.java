@@ -16,7 +16,6 @@ import java.util.Map;
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CartMapper {
 
-    @Mapping(target = "userId", source = "command.userId")
     @Mapping(target = "cartItemId", source = "cartItem.cartItemId")
     @Mapping(target = "quantity", source = "command.quantity")
     @Mapping(target = "maxLimit", source = "product.stock")

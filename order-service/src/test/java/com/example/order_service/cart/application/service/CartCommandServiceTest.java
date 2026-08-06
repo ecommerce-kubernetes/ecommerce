@@ -92,13 +92,12 @@ class CartCommandServiceTest {
         CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
 
         UpdateCartItemContext updateContext = UpdateCartItemContext.builder()
-                .userId(userId)
                 .cartItemId(item.getId())
                 .quantity(2)
                 .maxLimit(100)
                 .build();
         //when
-        cartCommandService.updateCartItemQuantity(updateContext);
+        cartCommandService.updateCartItemQuantity(userId, updateContext);
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
         CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
@@ -109,15 +108,15 @@ class CartCommandServiceTest {
     @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
     void updateCartItemQuantity_notFound_cart(){
         //given
+        Long userId = 1L;
         UpdateCartItemContext context = UpdateCartItemContext.builder()
-                .userId(1L)
                 .cartItemId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
         //when
         //then
-        assertThatThrownBy(() -> cartCommandService.updateCartItemQuantity(context))
+        assertThatThrownBy(() -> cartCommandService.updateCartItemQuantity(userId, context))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_NOT_FOUND);

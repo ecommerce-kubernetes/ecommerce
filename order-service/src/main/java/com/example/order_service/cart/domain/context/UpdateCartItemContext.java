@@ -5,7 +5,6 @@ import org.springframework.util.Assert;
 
 @Builder
 public record UpdateCartItemContext(
-        Long userId,
         Long cartItemId,
         Integer quantity,
         Integer maxLimit

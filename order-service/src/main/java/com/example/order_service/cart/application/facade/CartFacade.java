@@ -110,7 +110,7 @@ public class CartFacade {
         cartItemValidator.validatePurchasable(product);
 
         UpdateCartItemContext context = cartMapper.toUpdateContext(command, cartItem, product);
-        cartCommandService.updateCartItemQuantity(context);
+        cartCommandService.updateCartItemQuantity(command.userId(), context);
 
         return UpdateCartItemQuantityResult.from(cartItem);
     }

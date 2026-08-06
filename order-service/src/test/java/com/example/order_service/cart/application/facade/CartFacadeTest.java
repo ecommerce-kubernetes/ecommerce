@@ -12,6 +12,7 @@ import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
+import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import org.instancio.Instancio;
@@ -255,7 +256,7 @@ public class CartFacadeTest {
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
 
         doNothing().when(validator).validatePurchasable(any(CartProductResult.CartProductDetail.class));
-        doNothing().when(cartCommandService).updateCartItemQuantity(any());
+        doNothing().when(cartCommandService).updateCartItemQuantity(anyLong(), any(UpdateCartItemContext.class));
         //when
         UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
         //then

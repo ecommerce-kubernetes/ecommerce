@@ -32,10 +32,10 @@ public class CartCommandService {
                 .toList();
     }
 
-    public void updateCartItemQuantity(UpdateCartItemContext context) {
-        Cart cart = cartRepository.findByUserId(context.userId())
+    public void updateCartItemQuantity(Long userId, UpdateCartItemContext context) {
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
-        cart.updateItemQuantity(context.cartItemId(), context.quantity(), context.maxLimit());
+        cart.updateItemQuantity(context);
     }
 
     public void deleteCartItems(Long userId, List<Long> cartItemIds) {

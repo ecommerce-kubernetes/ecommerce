@@ -1,6 +1,7 @@
 package com.example.order_service.cart.domain;
 
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
+import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
@@ -204,8 +205,14 @@ public class CartTest {
                 .build();
         cart.addItems(context, idGenerator);
         CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
+
+        UpdateCartItemContext updateContext = UpdateCartItemContext.builder()
+                .cartItemId(cartItem.getId())
+                .quantity(5)
+                .maxLimit(100)
+                .build();
         //when
-        cart.updateItemQuantity(cartItem.getId(), 5, 100);
+        cart.updateItemQuantity(updateContext);
         //then
         CartItem item = cart.findItemByCartItemId(cartItem.getId()).orElseThrow();
         assertThat(item.getQuantity()).isEqualTo(5);
@@ -216,9 +223,14 @@ public class CartTest {
     void updateItemQuantity_notFound_cartItem() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
+        UpdateCartItemContext updateContext = UpdateCartItemContext.builder()
+                .cartItemId(999L)
+                .quantity(5)
+                .maxLimit(100)
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> cart.updateItemQuantity(999L, 3, 100))
+        assertThatThrownBy(() -> cart.updateItemQuantity(updateContext))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);

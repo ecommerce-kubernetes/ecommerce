@@ -82,7 +82,7 @@ public class CartMapperTest {
         UpdateCartItemContext context = cartMapper.toUpdateContext(command, cartItem, product);
         //then
         assertThat(context)
-                .extracting("userId", "cartItemId", "quantity", "maxLimit")
-                .containsExactly(userId, cartItemId, updateQuantity, product.stock());
+                .extracting( "cartItemId", "quantity", "maxLimit")
+                .containsExactly(cartItemId, updateQuantity, product.stock());
     }
 }
