@@ -1,4 +1,4 @@
-package com.example.order_service.common.exception.port;
+package com.example.order_service.order.exception;
 
 import com.example.order_service.common.exception.ErrorCode;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum CartPortErrorCode implements ErrorCode {
+public enum OrderCartPortErrorCode implements ErrorCode {
     CART_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CART_SERVER_ERROR", "장바구니 항목 조회중 에러가 발생했습니다.");
 
     private final HttpStatus status;

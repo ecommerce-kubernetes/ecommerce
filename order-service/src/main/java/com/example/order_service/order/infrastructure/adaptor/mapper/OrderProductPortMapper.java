@@ -1,7 +1,7 @@
 package com.example.order_service.order.infrastructure.adaptor.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.port.DefaultPortException;
+import com.example.order_service.common.exception.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.port.dto.OrderProductStatus;
 import com.example.order_service.order.application.port.dto.OrderProductsResult;

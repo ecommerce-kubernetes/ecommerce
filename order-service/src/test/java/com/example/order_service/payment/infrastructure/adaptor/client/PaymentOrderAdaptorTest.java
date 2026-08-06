@@ -2,8 +2,8 @@ package com.example.order_service.payment.infrastructure.adaptor.client;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.exception.port.DefaultPortException;
-import com.example.order_service.common.exception.port.OrderPortErrorCode;
+import com.example.order_service.common.exception.DefaultPortException;
+import com.example.order_service.payment.exception.PaymentOrderPortErrorCode;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.order.OrderAmount;
@@ -71,7 +71,7 @@ class PaymentOrderAdaptorTest {
         assertThatThrownBy(() -> paymentOrderAdaptor.getOrder(orderId, userId))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderPortErrorCode.ORDER_CLIENT_ERROR);
+                .isEqualTo(PaymentOrderPortErrorCode.ORDER_CLIENT_ERROR);
     }
 
     @Test
@@ -87,6 +87,6 @@ class PaymentOrderAdaptorTest {
         assertThatThrownBy(() -> paymentOrderAdaptor.getOrder(orderId, userId))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderPortErrorCode.ORDER_SERVER_ERROR);
+                .isEqualTo(PaymentOrderPortErrorCode.ORDER_SERVER_ERROR);
     }
 }

@@ -5,8 +5,8 @@ import com.example.order_service.common.exception.external.ExternalCircuitBreake
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.port.DefaultPortException;
-import com.example.order_service.common.exception.port.UserPortErrorCode;
+import com.example.order_service.common.exception.DefaultPortException;
+import com.example.order_service.order.exception.OrderUserPortErrorCode;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.infrastructure.gateway.UserGateway;
@@ -83,7 +83,7 @@ public class OrderUserAdaptorTest {
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(UserPortErrorCode.USER_CLIENT_ERROR);
+                .isEqualTo(OrderUserPortErrorCode.USER_CLIENT_ERROR);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class OrderUserAdaptorTest {
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(UserPortErrorCode.USER_SERVER_ERROR);
+                .isEqualTo(OrderUserPortErrorCode.USER_SERVER_ERROR);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class OrderUserAdaptorTest {
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(UserPortErrorCode.USER_UNAVAILABLE_SERVER_ERROR);
+                .isEqualTo(OrderUserPortErrorCode.USER_UNAVAILABLE_SERVER_ERROR);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class OrderUserAdaptorTest {
         assertThatThrownBy(() -> orderUserAdaptor.getOrdererProfile(userId))
                 .isInstanceOf(DefaultPortException.class)
                 .extracting("errorCode")
-                .isEqualTo(UserPortErrorCode.USER_CIRCUIT_OPEN);
+                .isEqualTo(OrderUserPortErrorCode.USER_CIRCUIT_OPEN);
     }
 
     private UserProfileResponse createProfileResponse(UserProfileResponse.ShippingAddressResponse defaultShippingAddress) {

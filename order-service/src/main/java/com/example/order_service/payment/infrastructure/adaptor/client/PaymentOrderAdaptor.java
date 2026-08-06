@@ -1,8 +1,8 @@
 package com.example.order_service.payment.infrastructure.adaptor.client;
 
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.exception.port.DefaultPortException;
-import com.example.order_service.common.exception.port.OrderPortErrorCode;
+import com.example.order_service.common.exception.DefaultPortException;
+import com.example.order_service.payment.exception.PaymentOrderPortErrorCode;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.order.OrderStatus;
@@ -39,9 +39,9 @@ public class PaymentOrderAdaptor implements PaymentOrderPort {
         try {
             return orderQueryService.getOrder(orderId, userId);
         } catch (BusinessException e) {
-            throw new DefaultPortException(OrderPortErrorCode.ORDER_CLIENT_ERROR, e.getErrorCode().name(), e.getMessage());
+            throw new DefaultPortException(PaymentOrderPortErrorCode.ORDER_CLIENT_ERROR, e.getErrorCode().name(), e.getMessage());
         } catch (Exception e) {
-            throw new DefaultPortException(OrderPortErrorCode.ORDER_SERVER_ERROR, "INTERNAL_SERVER_ERROR", e.getMessage());
+            throw new DefaultPortException(PaymentOrderPortErrorCode.ORDER_SERVER_ERROR, "INTERNAL_SERVER_ERROR", e.getMessage());
         }
     }
 

@@ -4,11 +4,12 @@ import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.exception.CartProductPortErrorCode;
 import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapper;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.exception.port.DefaultPortException;
+import com.example.order_service.common.exception.DefaultPortException;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +35,13 @@ public class CartProductAdaptor implements CartProductPort {
         try {
             return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
-            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultPortException(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 }

@@ -1,18 +1,12 @@
-package com.example.order_service.common.exception.port;
+package com.example.order_service.common.exception;
 
-import com.example.order_service.common.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter
 public class DefaultPortException extends PortException {
     private final ErrorCode errorCode;
     public DefaultPortException(ErrorCode errorCode, String externalErrorCode, String message) {
-        super(externalErrorCode, message);
+        super(errorCode, externalErrorCode, message);
         this.errorCode = errorCode;
-    }
-
-    @Override
-    public ErrorCode errorCode() {
-        return this.errorCode;
     }
 }
