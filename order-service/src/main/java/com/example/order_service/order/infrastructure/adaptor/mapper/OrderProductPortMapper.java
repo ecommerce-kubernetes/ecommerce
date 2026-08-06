@@ -2,13 +2,13 @@ package com.example.order_service.order.infrastructure.adaptor.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.port.DefaultPortException;
-import com.example.order_service.common.exception.port.ProductPortErrorCode;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.order.application.port.dto.OrderProductStatus;
 import com.example.order_service.order.application.port.dto.OrderProductsResult;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
+import com.example.order_service.order.exception.OrderProductPortErrorCode;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -64,7 +64,7 @@ public class OrderProductPortMapper {
             case "DELETED" -> OrderProductStatus.DELETED;
             case "PREPARING" -> OrderProductStatus.PREPARING;
             case null, default -> throw new DefaultPortException(
-                    ProductPortErrorCode.PRODUCT_CLIENT_ERROR,
+                    OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR,
                     "UNSUPPORTED_STATUS",
                     "처리할 수 없는 상품 상태입니다"
             );

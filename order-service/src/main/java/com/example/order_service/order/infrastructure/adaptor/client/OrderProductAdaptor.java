@@ -5,11 +5,11 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.common.exception.port.DefaultPortException;
-import com.example.order_service.common.exception.port.ProductPortErrorCode;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import com.example.order_service.order.application.port.OrderProductPort;
 import com.example.order_service.order.application.port.dto.OrderProductsResult;
+import com.example.order_service.order.exception.OrderProductPortErrorCode;
 import com.example.order_service.order.infrastructure.adaptor.mapper.OrderProductPortMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,13 +32,13 @@ public class OrderProductAdaptor implements OrderProductPort {
         try {
             return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(OrderProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(OrderProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultPortException(ProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new DefaultPortException(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 }
