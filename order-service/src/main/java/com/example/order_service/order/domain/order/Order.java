@@ -69,7 +69,7 @@ public class Order extends BaseEntity {
         Long id = idGenerator.generate();
         Assert.notNull(id, "주문(Order) 생성시 아이디는 필수이다.");
 
-        if (context.items() == null || context.items().isEmpty()) {
+        if (context.items().isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
 

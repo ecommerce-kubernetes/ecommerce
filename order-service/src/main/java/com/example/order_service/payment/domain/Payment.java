@@ -62,9 +62,6 @@ public class Payment extends BaseEntity {
         Assert.notNull(idGenerator, "결제 생성시 아이디 생성기는 필수이다.");
         Long id = idGenerator.generate();
         Assert.notNull(id, "결제 생성시 아이디는 필수이다.");
-        Assert.notNull(context.orderId(), "결제 생성시 주문 아이디는 필수이다.");
-        Assert.notNull(context.userId(), "결제 생성시 유저 아이디는 필수이다.");
-        Assert.notNull(context.totalAmount(), "결제 생성시 결제 금액은 필수이다.");
 
         PaymentStatus status = context.totalAmount().equals(Money.ZERO)
                 ? PaymentStatus.DONE
