@@ -5,6 +5,8 @@ import com.example.order_service.payment.domain.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class PaymentPersistenceAdaptor implements PaymentRepository {
@@ -14,5 +16,10 @@ public class PaymentPersistenceAdaptor implements PaymentRepository {
     @Override
     public Payment save(Payment payment) {
         return paymentJpaRepository.save(payment);
+    }
+
+    @Override
+    public Optional<Payment> findByIdAndUserId(Long paymentId, Long userId) {
+        return paymentJpaRepository.findByIdAndUserId(paymentId, userId);
     }
 }
