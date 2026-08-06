@@ -1,7 +1,7 @@
 package com.example.order_service.cart.domain.context;
 
-import com.mysema.commons.lang.Assert;
 import lombok.Builder;
+import org.springframework.util.Assert;
 
 import java.util.List;
 
