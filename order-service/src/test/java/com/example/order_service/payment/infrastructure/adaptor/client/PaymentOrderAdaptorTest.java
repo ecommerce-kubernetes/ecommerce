@@ -59,7 +59,7 @@ class PaymentOrderAdaptorTest {
     }
 
     @Test
-    @DisplayName("주문 조회시 클라이언트 오류가 발생하면 예외가 발생한다.")
+    @DisplayName("주문 조회시 주문을 찾을 수 없는 경우 예외가 발생한다.")
     void getOrder_client_error() {
         //given
         Long orderId = 1L;
@@ -71,7 +71,7 @@ class PaymentOrderAdaptorTest {
         assertThatThrownBy(() -> paymentOrderAdaptor.getOrder(orderId, userId))
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
-                .isEqualTo(PaymentOrderPortErrorCode.ORDER_CLIENT_ERROR);
+                .isEqualTo(PaymentOrderPortErrorCode.ORDER_NOT_FOUND);
     }
 
     @Test

@@ -39,7 +39,13 @@ public class PaymentOrderAdaptor implements PaymentOrderPort {
         try {
             return orderQueryService.getOrder(orderId, userId);
         } catch (BusinessException e) {
-            throw new PortException(PaymentOrderPortErrorCode.ORDER_CLIENT_ERROR, e.getErrorCode().name(), e.getMessage());
+            String errorCode = e.getErrorCode().name();
+
+            PaymentOrderPortErrorCode code = switch (errorCode) {
+                case "ORDER_NOT_FOUND" -> PaymentOrderPortErrorCode.ORDER_NOT_FOUND;
+                default -> PaymentOrderPortErrorCode.ORDER_CLIENT_ERROR;
+            };
+            throw new PortException(code, e.getErrorCode().name(), e.getMessage());
         } catch (Exception e) {
             throw new PortException(PaymentOrderPortErrorCode.ORDER_SERVER_ERROR, "INTERNAL_SERVER_ERROR", e.getMessage());
         }
