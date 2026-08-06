@@ -8,6 +8,9 @@ import com.example.order_service.common.util.TsidGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -18,7 +21,7 @@ public class CartTest {
 
     @Test
     @DisplayName("장바구니를 생성한다.")
-    void create(){
+    void create() {
         //given
         Long userId = 1L;
         //when
@@ -30,7 +33,7 @@ public class CartTest {
 
     @Test
     @DisplayName("장바구니를 생성할때 유저 아이디가 누락되면 예외가 발생한다.")
-    void create_userId_null(){
+    void create_userId_null() {
         //given
         //when
         //then
@@ -61,7 +64,7 @@ public class CartTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("장바구니 생성시 장바구니 아이디는 필수 입니다.");
     }
-    
+
     @Test
     @DisplayName("여러 항목을 장바구니에 추가한다")
     void addItems() {
@@ -100,7 +103,7 @@ public class CartTest {
         //given
         Cart cart = Cart.create(1L, idGenerator);
         AddCartItemsContext context = AddCartItemsContext.builder()
-                .items(null)
+                .items(Collections.emptyList())
                 .build();
         //when
         //then
@@ -117,13 +120,23 @@ public class CartTest {
         Cart cart = Cart.create(1L, idGenerator);
         Long productVariantId = 1L;
         int quantity = 3;
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(productVariantId)
+                .quantity(quantity)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
         //when
-        CartItem cartItem = cart.addItem(productVariantId, quantity, 100, idGenerator);
+        cart.addItems(context, idGenerator);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
-        assertThat(cartItem)
+        assertThat(cart.getCartItems())
                 .extracting("productVariantId", "quantity")
-                .containsExactly(productVariantId, quantity);
+                .containsExactly(
+                        tuple(productVariantId, quantity)
+                );
     }
 
     @Test
@@ -132,14 +145,24 @@ public class CartTest {
         //given
         Cart cart = Cart.create(1L, idGenerator);
         Long productVariantId = 1L;
-        cart.addItem(productVariantId, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(productVariantId)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+        cart.addItems(context, idGenerator);
         //when
-        CartItem cartItem = cart.addItem(productVariantId, 2, 100, idGenerator);
+        cart.addItems(context, idGenerator);
         //then
         assertThat(cart.getCartItems()).hasSize(1);
-        assertThat(cartItem)
+        assertThat(cart.getCartItems())
                 .extracting("productVariantId", "quantity")
-                .containsExactly(productVariantId, 5);
+                .containsExactly(
+                        tuple(productVariantId, 6)
+                );
     }
 
     @Test
@@ -147,12 +170,20 @@ public class CartTest {
     void addItemExceedCartSize() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        for (long i = 0; i < 20L; i++) {
-            cart.addItem(i, 3, 100, idGenerator);
-        }
+        AddCartItemsContext maxContext = createMaxAddCartItemContext();
+        cart.addItems(maxContext, idGenerator);
+
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(100L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> cart.addItem(999L, 3, 100, idGenerator))
+        assertThatThrownBy(() -> cart.addItems(context, idGenerator))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
@@ -160,10 +191,18 @@ public class CartTest {
 
     @Test
     @DisplayName("항목 수량을 변경한다")
-    void updateItemQuantity(){
+    void updateItemQuantity() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+        cart.addItems(context, idGenerator);
         CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
         //when
         cart.updateItemQuantity(cartItem.getId(), 5, 100);
@@ -174,7 +213,7 @@ public class CartTest {
 
     @Test
     @DisplayName("항목을 찾을 수 없으면 예외가 발생한다")
-    void updateItemQuantity_notFound_cartItem(){
+    void updateItemQuantity_notFound_cartItem() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
         //when
@@ -187,10 +226,18 @@ public class CartTest {
 
     @Test
     @DisplayName("항목을 삭제한다")
-    void deleteItem(){
+    void deleteItem() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+        cart.addItems(context, idGenerator);
         CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
         //when
         cart.deleteItem(cartItem.getId());
@@ -200,7 +247,7 @@ public class CartTest {
 
     @Test
     @DisplayName("항목을 찾을 수 없으면 예외가 발생한다")
-    void deleteItem_notFound_cartItem(){
+    void deleteItem_notFound_cartItem() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
         //when
@@ -209,5 +256,20 @@ public class CartTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+    }
+
+    private AddCartItemsContext createMaxAddCartItemContext() {
+        List<AddCartItemsContext.Item> list = new ArrayList<>();
+        for (long i = 0; i <20; i++) {
+            AddCartItemsContext.Item item = AddCartItemsContext.Item.builder()
+                    .productVariantId(i)
+                    .quantity(3)
+                    .maxLimit(100)
+                    .build();
+            list.add(item);
+        }
+        return AddCartItemsContext.builder()
+                .items(list)
+                .build();
     }
 }

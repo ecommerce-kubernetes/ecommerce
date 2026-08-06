@@ -1,5 +1,6 @@
 package com.example.order_service.cart.domain;
 
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
@@ -31,22 +32,20 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-    public static CartItem create(Long productVariantId, int quantity, int maxLimit, IdGenerator idGenerator) {
+    public static CartItem create(AddCartItemsContext.Item itemCtx, IdGenerator idGenerator) {
         Assert.notNull(idGenerator, "아이디 생성기는 필수 입니다.");
-        Assert.notNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
-
         Long id = idGenerator.generate();
         Assert.notNull(id, "장바구니 항목 생성시 식별자는 필수입니다.");
 
-        if (quantity <= 0) {
+        if (itemCtx.quantity() <= 0) {
             throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
 
-        if (maxLimit < quantity) {
+        if (itemCtx.maxLimit() < itemCtx.quantity()) {
             throw new BusinessException(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
         }
 
-        return new CartItem(id, productVariantId, quantity);
+        return new CartItem(id, itemCtx.productVariantId(), itemCtx.quantity());
     }
 
     public void addQuantity(int quantity, int maxLimit) {

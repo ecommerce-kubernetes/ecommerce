@@ -48,24 +48,24 @@ public class Cart extends BaseEntity {
             throw new BusinessException(CartErrorCode.CART_ITEMS_REQUIRED);
         }
         return context.items().stream()
-                .map(item -> addItem(item.productVariantId(), item.quantity(), item.maxLimit(), idGenerator))
+                .map(item -> addItem(item, idGenerator))
                 .toList();
     }
 
-    public CartItem addItem(Long productVariantId, int quantity, int maxLimit, IdGenerator idGenerator) {
+    private CartItem addItem(AddCartItemsContext.Item itemCtx, IdGenerator idGenerator) {
         if (this.cartItems.size() >= 20) {
             throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
 
-        Optional<CartItem> existing = findItemByProductVariantId(productVariantId);
+        Optional<CartItem> existing = findItemByProductVariantId(itemCtx.productVariantId());
 
         if (existing.isPresent()) {
             CartItem cartItem = existing.get();
-            cartItem.addQuantity(quantity, maxLimit);
+            cartItem.addQuantity(itemCtx.quantity(), itemCtx.maxLimit());
             return cartItem;
         }
 
-        CartItem cartItem = CartItem.create(productVariantId, quantity, maxLimit, idGenerator);
+        CartItem cartItem = CartItem.create(itemCtx, idGenerator);
         this.cartItems.add(cartItem);
         cartItem.setCart(this);
 

@@ -78,19 +78,27 @@ class CartCommandServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
 
         CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
 
-        UpdateCartItemContext context = UpdateCartItemContext.builder()
+        UpdateCartItemContext updateContext = UpdateCartItemContext.builder()
                 .userId(userId)
                 .cartItemId(item.getId())
                 .quantity(2)
                 .maxLimit(100)
                 .build();
         //when
-        cartCommandService.updateCartItemQuantity(context);
+        cartCommandService.updateCartItemQuantity(updateContext);
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
         CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
@@ -122,8 +130,22 @@ class CartCommandServiceTest {
         Long userId = 1L;
 
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
-        cart.addItem(2L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx1 = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext.Item itemCtx2 = AddCartItemsContext.Item.builder()
+                .productVariantId(2L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx1, itemCtx2))
+                .build();
+
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
 
         CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();

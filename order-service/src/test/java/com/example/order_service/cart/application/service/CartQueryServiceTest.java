@@ -4,6 +4,7 @@ import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
@@ -34,8 +35,21 @@ class CartQueryServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 2, 100, idGenerator);
-        cart.addItem(2L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx1 = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(2)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext.Item itemCtx2 = AddCartItemsContext.Item.builder()
+                .productVariantId(2L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx1, itemCtx2))
+                .build();
+
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
         //when
         List<CartItemData> cartItems = cartQueryService.findCartItems(userId);
@@ -70,8 +84,21 @@ class CartQueryServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
-        cart.addItem(2L, 2, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx1 = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext.Item itemCtx2 = AddCartItemsContext.Item.builder()
+                .productVariantId(2L)
+                .quantity(2)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx1, itemCtx2))
+                .build();
+
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
         //when
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(userId, List.of(1L));
@@ -90,7 +117,17 @@ class CartQueryServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
         //when
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(userId, List.of(1L, 2L));
@@ -120,8 +157,22 @@ class CartQueryServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
-        cart.addItem(2L, 2, 100, idGenerator);
+
+        AddCartItemsContext.Item itemCtx1 = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext.Item itemCtx2 = AddCartItemsContext.Item.builder()
+                .productVariantId(2L)
+                .quantity(2)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx1, itemCtx2))
+                .build();
+
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
 
         CartItem cartItem1 = cart.findItemByProductVariantId(1L).orElseThrow();
@@ -144,7 +195,15 @@ class CartQueryServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
 
         CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
@@ -174,7 +233,15 @@ class CartQueryServiceTest {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        cart.addItem(1L, 3, 100, idGenerator);
+        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .maxLimit(100)
+                .build();
+        AddCartItemsContext context = AddCartItemsContext.builder()
+                .items(List.of(itemCtx))
+                .build();
+        cart.addItems(context, idGenerator);
         cartRepository.save(cart);
         CartItem cartItem = cart.findItemByProductVariantId(1L).orElseThrow();
         //when
