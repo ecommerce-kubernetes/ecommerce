@@ -4,7 +4,7 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
@@ -26,15 +26,14 @@ public interface CartMapper {
             CartProductResult.CartProductDetail product
     );
 
-    default CreateCartItemsContext toCreateContext(AddCartItemsCommand command, Map<Long, CartProductResult.CartProductDetail> productMap) {
+    default AddCartItemsContext toCreateContext(AddCartItemsCommand command, Map<Long, CartProductResult.CartProductDetail> productMap) {
         if (command == null) return null;
 
-        List<CreateCartItemsContext.Item> items = command.items().stream()
+        List<AddCartItemsContext.Item> items = command.items().stream()
                 .map(item -> toCreateContextItem(item, productMap.get(item.productVariantId())))
                 .toList();
 
-        return CreateCartItemsContext.builder()
-                .userId(command.userId())
+        return AddCartItemsContext.builder()
                 .items(items)
                 .build();
     }
@@ -42,5 +41,5 @@ public interface CartMapper {
     @Mapping(target = "productVariantId", source = "item.productVariantId")
     @Mapping(target = "quantity", source = "item.quantity")
     @Mapping(target = "maxLimit", source = "product.stock")
-    CreateCartItemsContext.Item toCreateContextItem(AddCartItemsCommand.Item item, CartProductResult.CartProductDetail product);
+    AddCartItemsContext.Item toCreateContextItem(AddCartItemsCommand.Item item, CartProductResult.CartProductDetail product);
 }

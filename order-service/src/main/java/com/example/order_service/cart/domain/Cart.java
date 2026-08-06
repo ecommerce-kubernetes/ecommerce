@@ -1,6 +1,6 @@
 package com.example.order_service.cart.domain;
 
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
@@ -43,8 +43,8 @@ public class Cart extends BaseEntity {
         return new Cart(id, userId);
     }
 
-    public List<CartItem> addItems(CreateCartItemsContext context, IdGenerator idGenerator) {
-        if (context.items() == null || context.items().isEmpty()) {
+    public List<CartItem> addItems(AddCartItemsContext context, IdGenerator idGenerator) {
+        if (context.items().isEmpty()) {
             throw new BusinessException(CartErrorCode.CART_ITEMS_REQUIRED);
         }
         return context.items().stream()

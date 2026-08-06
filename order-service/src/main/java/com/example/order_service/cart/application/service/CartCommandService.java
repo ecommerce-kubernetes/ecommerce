@@ -3,7 +3,7 @@ package com.example.order_service.cart.application.service;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
@@ -21,9 +21,9 @@ public class CartCommandService {
     private final CartRepository cartRepository;
     private final IdGenerator idGenerator;
 
-    public List<Long> addCartItems(CreateCartItemsContext context) {
-        Cart cart = cartRepository.findByUserId(context.userId())
-                .orElseGet(() -> Cart.create(context.userId(), idGenerator));
+    public List<Long> addCartItems(Long userId, AddCartItemsContext context) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseGet(() -> Cart.create(userId, idGenerator));
 
         List<CartItem> addedItems = cart.addItems(context, idGenerator);
         cartRepository.save(cart);

@@ -11,7 +11,7 @@ import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +40,8 @@ public class CartFacade {
                 .toList();
         cartItemValidator.validatePurchasable(targetProducts);
 
-        CreateCartItemsContext context = cartMapper.toCreateContext(command, productDataMap);
-        List<Long> cartItems = cartCommandService.addCartItems(context);
+        AddCartItemsContext context = cartMapper.toCreateContext(command, productDataMap);
+        List<Long> cartItems = cartCommandService.addCartItems(command.userId(), context);
 
         return AddCartItemsResult.from(cartItems);
     }

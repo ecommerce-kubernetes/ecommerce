@@ -3,7 +3,7 @@ package com.example.order_service.cart.application.service;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.domain.Cart;
 import com.example.order_service.cart.domain.CartItem;
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
@@ -35,17 +35,16 @@ class CartCommandServiceTest {
     void addCartItems_not_exist_cart(){
         //given
         Long userId = 1L;
-        CreateCartItemsContext.Item item = CreateCartItemsContext.Item.builder()
+        AddCartItemsContext.Item item = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
-        CreateCartItemsContext command = CreateCartItemsContext.builder()
-                .userId(userId)
+        AddCartItemsContext context = AddCartItemsContext.builder()
                 .items(List.of(item))
                 .build();
         //when
-        List<Long> cartItemIds = cartCommandService.addCartItems(command);
+        List<Long> cartItemIds = cartCommandService.addCartItems(userId, context);
         //then
         assertThat(cartItemIds).hasSize(1);
 
@@ -57,18 +56,17 @@ class CartCommandServiceTest {
     void addCartItems_exist_cart(){
         //given
         Long userId = 1L;
-        CreateCartItemsContext.Item item = CreateCartItemsContext.Item.builder()
+        AddCartItemsContext.Item item = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .maxLimit(100)
                 .build();
-        CreateCartItemsContext command = CreateCartItemsContext.builder()
-                .userId(userId)
+        AddCartItemsContext context = AddCartItemsContext.builder()
                 .items(List.of(item))
                 .build();
         cartRepository.save(Cart.create(userId, idGenerator));
         //when
-        List<Long> cartItemIds = cartCommandService.addCartItems(command);
+        List<Long> cartItemIds = cartCommandService.addCartItems(userId, context);
         //then
         assertThat(cartItemIds).hasSize(1);
         assertThat(cartItemIds).allSatisfy(cartItemId -> assertThat(cartItemId).isNotNull());

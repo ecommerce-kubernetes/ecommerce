@@ -4,7 +4,7 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -45,10 +45,8 @@ public class CartMapperTest {
 
         Map<Long, CartProductResult.CartProductDetail> productMap = Map.of(productVariantId, product);
         //when
-        CreateCartItemsContext createContext = cartMapper.toCreateContext(command, productMap);
+        AddCartItemsContext createContext = cartMapper.toCreateContext(command, productMap);
         //then
-        assertThat(createContext.userId()).isEqualTo(userId);
-
         assertThat(createContext.items()).hasSize(1);
         assertThat(createContext.items())
                 .extracting("productVariantId", "quantity", "maxLimit")

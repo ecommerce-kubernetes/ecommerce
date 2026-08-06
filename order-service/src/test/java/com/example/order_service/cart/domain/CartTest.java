@@ -1,6 +1,6 @@
 package com.example.order_service.cart.domain;
 
-import com.example.order_service.cart.domain.context.CreateCartItemsContext;
+import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
@@ -67,15 +67,14 @@ public class CartTest {
     void addItems() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        CreateCartItemsContext context = CreateCartItemsContext.builder()
-                .userId(1L)
+        AddCartItemsContext context = AddCartItemsContext.builder()
                 .items(List.of(
-                        CreateCartItemsContext.Item.builder()
+                        AddCartItemsContext.Item.builder()
                                 .productVariantId(1L)
                                 .quantity(2)
                                 .maxLimit(100)
                                 .build(),
-                        CreateCartItemsContext.Item.builder()
+                        AddCartItemsContext.Item.builder()
                                 .productVariantId(2L)
                                 .quantity(3)
                                 .maxLimit(100)
@@ -100,8 +99,7 @@ public class CartTest {
     void addItems_items_null() {
         //given
         Cart cart = Cart.create(1L, idGenerator);
-        CreateCartItemsContext context = CreateCartItemsContext.builder()
-                .userId(1L)
+        AddCartItemsContext context = AddCartItemsContext.builder()
                 .items(null)
                 .build();
         //when
