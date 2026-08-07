@@ -31,7 +31,7 @@ class PaymentTest {
         assertThat(payment.getUserId()).isEqualTo(1L);
         assertThat(payment.getTotalAmount()).isEqualTo(Money.wons(10000L));
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVAL_PENDING);
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.READY);
     }
     
     @Test

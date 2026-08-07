@@ -66,7 +66,7 @@ public class Payment extends BaseEntity {
 
         PaymentStatus status = context.totalAmount().equals(Money.ZERO)
                 ? PaymentStatus.DONE
-                : PaymentStatus.APPROVAL_PENDING;
+                : PaymentStatus.READY;
 
         return Payment.builder()
                 .id(id)

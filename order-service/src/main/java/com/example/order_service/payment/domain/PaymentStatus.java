@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum PaymentStatus {
+    READY("준비"),
     APPROVAL_PENDING("승인 대기"),
     DONE("완료"),
     CANCELED("결제 취소"),
