@@ -5,6 +5,7 @@ import com.example.order_service.payment.application.port.PaymentRepository;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.Payment;
+import com.example.order_service.payment.domain.context.ApprovePendingContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,10 @@ public class PaymentCommandService {
         Payment payment = Payment.create(context, idGenerator);
         Payment save = paymentRepository.save(payment);
         return save.getId();
+    }
+
+    public void approvePending(Long paymentId, Long userId, ApprovePendingContext context) {
+
     }
 
     public PaymentResultDeprecated.Default create(PaymentContext.Create context) {

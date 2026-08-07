@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
+import com.example.order_service.payment.domain.context.ApprovePendingContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -91,10 +92,19 @@ class PaymentTest {
         //given
         CreatePaymentContext context = createPaymentContext();
         Payment payment = Payment.create(context, idGenerator);
+
+        PaymentProvider provider = PaymentProvider.TOSS;
+        ApprovePendingContext approveContext = ApprovePendingContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(provider)
+                .paymentKey("paymentKey")
+                .build();
         //when
-        payment.approvePending(Money.wons(1000L));
+        payment.approvePending(approveContext);
         //then
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVAL_PENDING);
+        assertThat(payment.getProvider()).isEqualTo(provider);
+        assertThat(payment.getPaymentKey()).isEqualTo("paymentKey");
     }
 
     @Test
@@ -107,9 +117,16 @@ class PaymentTest {
                 .totalAmount(Money.ZERO)
                 .build();
         Payment payment = Payment.create(context, idGenerator);
+
+        PaymentProvider provider = PaymentProvider.TOSS;
+        ApprovePendingContext approveContext = ApprovePendingContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(provider)
+                .paymentKey("paymentKey")
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> payment.approvePending(Money.ZERO))
+        assertThatThrownBy(() -> payment.approvePending(approveContext))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_NOT_READY);
@@ -121,9 +138,16 @@ class PaymentTest {
         //given
         CreatePaymentContext context = createPaymentContext();
         Payment payment = Payment.create(context, idGenerator);
+
+        PaymentProvider provider = PaymentProvider.TOSS;
+        ApprovePendingContext approveContext = ApprovePendingContext.builder()
+                .amount(Money.wons(2000L))
+                .provider(provider)
+                .paymentKey("paymentKey")
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> payment.approvePending(Money.wons(2000L)))
+        assertThatThrownBy(() -> payment.approvePending(approveContext))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);

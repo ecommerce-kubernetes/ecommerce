@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.payment.domain.context.ApprovePendingContext;
 import com.example.order_service.payment.domain.context.ConfirmPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -79,14 +80,18 @@ public class Payment extends BaseEntity {
                 .build();
     }
 
-    public void approvePending(Money amount) {
+    public void approvePending(ApprovePendingContext context) {
         if (!this.status.equals(PaymentStatus.READY)) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_READY);
         }
-        if (!this.totalAmount.equals(amount)) {
+
+        if (!this.totalAmount.equals(context.amount())) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
+
         this.status = PaymentStatus.APPROVAL_PENDING;
+        this.provider = context.provider();
+        this.paymentKey = context.paymentKey();
     }
 
     public void confirm(ConfirmPaymentContext context, IdGenerator idGenerator) {
