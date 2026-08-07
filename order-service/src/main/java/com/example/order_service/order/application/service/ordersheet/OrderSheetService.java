@@ -38,37 +38,30 @@ public class OrderSheetService {
     private final OrderCartPort orderCartPort;
     private final OrderValidator orderValidator;
     private final PointUsagePolicy pointUsagePolicy;
+    private final OrderSheetContextFactory contextFactory;
     private final OrderSheetRepository repository;
     private final IdGenerator idGenerator;
     private final Clock clock;
 
     public OrderSheetCreateResult createCartOrderSheet(CreateCartOrderSheetCommand command) {
         OrdererProfileResult ordererProfile = orderUserPort.getOrdererProfile(command.userId());
-
         OrderCartItemsResult cartItems = orderCartPort.getCartItems(command.userId(), command.cartItemIds());
-
         orderValidator.validateMissingCartItems(command.cartItemIds(), cartItems);
 
         List<Long> orderVariantIds = cartItems.toProductVariantIds();
         OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
-
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
-        List<CreateOrderSheetItemContext> orderSheetItems = createCartOrderSheetItemsContext(cartItems, productsMap);
+
+        cartItems.items().forEach(item ->
+                orderValidator.validateOrderable(productsMap.get(item.productVariantId()), item.quantity()));
 
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes());
-        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems, expiresAt);
+        CreateOrderSheetContext createContext = contextFactory.createForCart(ordererProfile, cartItems, products, expiresAt);
 
+        OrderSheet orderSheet = OrderSheet.create(createContext, idGenerator);
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
-        return OrderSheetCreateResult.from(savedOrderSheet);
-    }
 
-    private List<CreateOrderSheetItemContext> createCartOrderSheetItemsContext(OrderCartItemsResult cartItems,
-                                                                               Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        return cartItems.items().stream().map(cartItem -> createOrderSheetItemContext(
-                cartItem.productVariantId(),
-                cartItem.quantity(),
-                productsMap
-        )).toList();
+        return OrderSheetCreateResult.from(savedOrderSheet);
     }
 
     public OrderSheetCreateResult createDirectOrderSheet(CreateDirectOrderSheetCommand command) {
@@ -76,50 +69,17 @@ public class OrderSheetService {
 
         List<Long> orderVariantIds = command.toItemVariantIds();
         OrderProductsResult products = orderProductPort.getProducts(orderVariantIds);
-
         Map<Long, OrderProductsResult.OrderProductDetail> productsMap = products.getProductsMap();
-        List<CreateOrderSheetItemContext> orderSheetItems = createDirectOrderSheetItemsContext(command, productsMap);
+
+        command.items().forEach(item ->
+                orderValidator.validateOrderable(productsMap.get(item.productVariantId()), item.quantity()));
 
         LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(orderSheetProperties.ttlMinutes());
-        OrderSheet orderSheet = createOrderSheet(ordererProfile, orderSheetItems, expiresAt);
+        CreateOrderSheetContext directContext = contextFactory.createForDirect(ordererProfile, command, products, expiresAt);
 
+        OrderSheet orderSheet = OrderSheet.create(directContext, idGenerator);
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetCreateResult.from(savedOrderSheet);
-    }
-
-    private OrderSheet createOrderSheet(OrdererProfileResult ordererProfile, List<CreateOrderSheetItemContext> orderSheetItemsContext,
-                                        LocalDateTime expiresAt) {
-        CreateOrderSheetContext createOrderSheetContext = CreateOrderSheetContext.builder()
-                .orderer(ordererProfile.orderer())
-                .shippingAddress(ordererProfile.defaultShippingAddress())
-                .items(orderSheetItemsContext)
-                .expiresAt(expiresAt)
-                .build();
-
-        return OrderSheet.create(createOrderSheetContext, idGenerator);
-    }
-
-    private List<CreateOrderSheetItemContext> createDirectOrderSheetItemsContext(CreateDirectOrderSheetCommand command,
-                                                                                 Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        return command.items().stream().map(orderVariant -> createOrderSheetItemContext(
-                orderVariant.productVariantId(),
-                orderVariant.quantity(),
-                productsMap
-        )).toList();
-    }
-
-    private CreateOrderSheetItemContext createOrderSheetItemContext(Long productVariantId, int quantity,
-                                                                    Map<Long, OrderProductsResult.OrderProductDetail> productsMap) {
-        OrderProductsResult.OrderProductDetail product = productsMap.get(productVariantId);
-
-        orderValidator.validateOrderable(product, quantity);
-
-        return CreateOrderSheetItemContext.builder()
-                .productSnapshot(product.productSnapshot())
-                .priceSnapshot(product.priceSnapshot())
-                .quantity(quantity)
-                .optionSnapshots(product.options())
-                .build();
     }
 
     public OrderSheetResult getOrderSheet(Long orderSheetId, Long userId) {

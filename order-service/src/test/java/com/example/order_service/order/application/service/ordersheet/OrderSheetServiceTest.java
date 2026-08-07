@@ -71,6 +71,8 @@ public class OrderSheetServiceTest {
     private OrderValidator orderValidator;
     @Spy
     private IdGenerator idGenerator = new TsidGenerator();
+    @Spy
+    private OrderSheetContextFactory contextFactory;
 
     @Test
     @DisplayName("장바구니 주문서 생성")
