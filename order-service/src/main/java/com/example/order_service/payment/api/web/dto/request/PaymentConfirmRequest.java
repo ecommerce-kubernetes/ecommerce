@@ -2,6 +2,7 @@ package com.example.order_service.payment.api.web.dto.request;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
+import com.example.order_service.payment.domain.PaymentProvider;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,6 +24,7 @@ public record PaymentConfirmRequest(
                 .userId(userId)
                 .paymentKey(paymentKey)
                 .amount(Money.wons(amount))
+                .provider(PaymentProvider.from(provider))
                 .build();
     }
 }
