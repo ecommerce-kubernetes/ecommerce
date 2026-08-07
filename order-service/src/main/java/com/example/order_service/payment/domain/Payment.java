@@ -3,6 +3,7 @@ package com.example.order_service.payment.domain;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.payment.domain.context.ConfirmPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -76,4 +77,7 @@ public class Payment extends BaseEntity {
                 .build();
     }
 
+    public void confirm(ConfirmPaymentContext context, IdGenerator idGenerator) {
+
+    }
 }
