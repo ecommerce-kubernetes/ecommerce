@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.facade;
+package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;

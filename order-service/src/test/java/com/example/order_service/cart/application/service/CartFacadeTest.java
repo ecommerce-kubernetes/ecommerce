@@ -1,16 +1,13 @@
-package com.example.order_service.cart.application.facade;
+package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.*;
-import com.example.order_service.cart.application.facade.mapper.CartMapper;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
-import com.example.order_service.cart.application.service.CartCommandService;
-import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import com.example.order_service.cart.exception.CartErrorCode;
@@ -20,7 +17,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -48,7 +44,7 @@ public class CartFacadeTest {
     @Mock
     private CartItemValidator validator;
     @Spy
-    private CartMapper cartMapper = Mappers.getMapper(CartMapper.class);
+    private CartContextFactory cartContextFactory;
 
 
     @Test

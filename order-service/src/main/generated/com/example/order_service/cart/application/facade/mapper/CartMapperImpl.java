@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.facade.mapper;
+package com.example.order_service.cart.application.service.mapper;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;

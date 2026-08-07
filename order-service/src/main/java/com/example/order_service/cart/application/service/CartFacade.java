@@ -1,16 +1,13 @@
-package com.example.order_service.cart.application.facade;
+package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.*;
-import com.example.order_service.cart.application.facade.mapper.CartMapper;
 import com.example.order_service.cart.application.port.CartProductPort;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
-import com.example.order_service.cart.application.service.CartCommandService;
-import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +25,7 @@ public class CartFacade {
     private final CartProductPort cartProductPort;
     private final CartQueryService cartQueryService;
     private final CartItemValidator cartItemValidator;
-    private final CartMapper cartMapper;
+    private final CartContextFactory contextFactory;
 
     public AddCartItemsResult addItems(AddCartItemsCommand command) {
         List<Long> variantIds = command.toProductVariantIds();
@@ -40,7 +37,7 @@ public class CartFacade {
                 .toList();
         cartItemValidator.validatePurchasable(targetProducts);
 
-        AddCartItemsContext context = cartMapper.toCreateContext(command, productDataMap);
+        AddCartItemsContext context = contextFactory.toAddCartItemsContext(command, productDataMap);
         List<Long> cartItems = cartCommandService.addCartItems(command.userId(), context);
 
         return AddCartItemsResult.from(cartItems);
@@ -109,7 +106,7 @@ public class CartFacade {
         CartProductResult.CartProductDetail product = productsMap.get(cartItem.productVariantId());
         cartItemValidator.validatePurchasable(product);
 
-        UpdateCartItemContext context = cartMapper.toUpdateContext(command, cartItem, product);
+        UpdateCartItemContext context = contextFactory.toUpdateContext(command, cartItem, product);
         cartCommandService.updateCartItemQuantity(command.userId(), context);
 
         return UpdateCartItemQuantityResult.from(cartItem);

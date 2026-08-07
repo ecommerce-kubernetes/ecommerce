@@ -1,6 +1,6 @@
 package com.example.order_service.cart.listener;
 
-import com.example.order_service.cart.application.facade.CartFacade;
+import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.cart.listener.event.CartEventListener;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

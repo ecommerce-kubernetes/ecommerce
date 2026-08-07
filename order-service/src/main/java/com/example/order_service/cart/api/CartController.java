@@ -13,7 +13,7 @@ import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
-import com.example.order_service.cart.application.facade.CartFacade;
+import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.common.security.model.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

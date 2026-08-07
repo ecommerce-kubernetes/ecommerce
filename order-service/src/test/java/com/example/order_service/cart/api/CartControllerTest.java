@@ -9,7 +9,7 @@ import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
-import com.example.order_service.cart.application.facade.CartFacade;
+import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;

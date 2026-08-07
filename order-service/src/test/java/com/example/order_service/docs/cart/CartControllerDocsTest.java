@@ -7,7 +7,7 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.*;
-import com.example.order_service.cart.application.facade.CartFacade;
+import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;

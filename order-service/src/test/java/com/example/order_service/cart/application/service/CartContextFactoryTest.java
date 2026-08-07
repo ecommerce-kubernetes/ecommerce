@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.facade.mapper;
+package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
@@ -9,7 +9,6 @@ import com.example.order_service.cart.domain.context.UpdateCartItemContext;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.Map;
@@ -18,13 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.instancio.Select.field;
 
-public class CartMapperTest {
+class CartContextFactoryTest {
 
-    private final CartMapper cartMapper = Mappers.getMapper(CartMapper.class);
+    private final CartContextFactory cartContextFactory = new CartContextFactory();
 
     @Test
-    @DisplayName("장바구니 추가 context 매핑 테스트")
-    void toCreateContext() {
+    @DisplayName("장바구니 상품 추가 컨텍스트를 생성한다.")
+    void toAddCartItemsContext() {
         //given
         Long userId = 1L;
         Long productVariantId = 1L;
@@ -45,10 +44,10 @@ public class CartMapperTest {
 
         Map<Long, CartProductResult.CartProductDetail> productMap = Map.of(productVariantId, product);
         //when
-        AddCartItemsContext createContext = cartMapper.toCreateContext(command, productMap);
+        AddCartItemsContext context = cartContextFactory.toAddCartItemsContext(command, productMap);
         //then
-        assertThat(createContext.items()).hasSize(1);
-        assertThat(createContext.items())
+        assertThat(context.items()).hasSize(1);
+        assertThat(context.items())
                 .extracting("productVariantId", "quantity", "maxLimit")
                 .containsExactly(
                         tuple(productVariantId, quantity, product.stock())
@@ -56,7 +55,7 @@ public class CartMapperTest {
     }
 
     @Test
-    @DisplayName("수량 변경 context 매핑 테스트")
+    @DisplayName("수량 변경 컨텍스트를 생성한다.")
     void toUpdateContext() {
         //given
         Long cartItemId = 1L;
@@ -79,7 +78,7 @@ public class CartMapperTest {
                 .set(field("productVariantId"), productVariantId)
                 .create();
         //when
-        UpdateCartItemContext context = cartMapper.toUpdateContext(command, cartItem, product);
+        UpdateCartItemContext context = cartContextFactory.toUpdateContext(command, cartItem, product);
         //then
         assertThat(context)
                 .extracting( "cartItemId", "quantity", "maxLimit")
