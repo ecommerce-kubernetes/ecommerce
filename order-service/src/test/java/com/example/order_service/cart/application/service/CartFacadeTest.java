@@ -41,7 +41,7 @@ public class CartFacadeTest {
     private CartCommandService cartCommandService;
     @Mock
     private CartQueryService cartQueryService;
-    @Mock
+    @Spy
     private CartItemValidator validator;
     @Spy
     private CartContextFactory cartContextFactory;
@@ -55,7 +55,6 @@ public class CartFacadeTest {
         CartProductResult productData = createProductList(1L, CartProductStatus.ON_SALE, 100);
 
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
-        doNothing().when(validator).validatePurchasable(anyList());
         given(cartCommandService.addCartItems(anyLong(), any(AddCartItemsContext.class))).willReturn(List.of(1L));
         //when
         AddCartItemsResult result = cartFacade.addItems(addCommand);

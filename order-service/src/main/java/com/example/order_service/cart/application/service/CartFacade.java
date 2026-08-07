@@ -30,12 +30,10 @@ public class CartFacade {
     public AddCartItemsResult addItems(AddCartItemsCommand command) {
         List<Long> variantIds = command.toProductVariantIds();
         CartProductResult productData = cartProductPort.getProducts(variantIds);
-
         Map<Long, CartProductResult.CartProductDetail> productDataMap = productData.toMap();
-        List<CartProductResult.CartProductDetail> targetProducts = command.items().stream()
-                .map(item -> productDataMap.get(item.productVariantId()))
-                .toList();
-        cartItemValidator.validatePurchasable(targetProducts);
+
+        command.items().forEach(item ->
+                cartItemValidator.validatePurchasable(productDataMap.get(item.productVariantId())));
 
         AddCartItemsContext context = contextFactory.toAddCartItemsContext(command, productData);
         List<Long> cartItems = cartCommandService.addCartItems(command.userId(), context);

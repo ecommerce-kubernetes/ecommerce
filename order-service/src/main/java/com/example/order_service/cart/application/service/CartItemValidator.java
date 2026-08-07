@@ -19,10 +19,4 @@ public class CartItemValidator {
             throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
         }
     }
-
-    public void validatePurchasable(List<CartProductResult.CartProductDetail> products) {
-        for (CartProductResult.CartProductDetail product : products) {
-            validatePurchasable(product);
-        }
-    }
 }
