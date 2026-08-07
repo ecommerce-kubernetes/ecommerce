@@ -11,8 +11,10 @@ import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
+import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
+import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
@@ -50,6 +52,10 @@ public class PaymentFacade {
 
         PaymentResult payment = paymentQueryService.getPayment(paymentId, command.userId());
         return PaymentCreateResult.from(payment, order);
+    }
+
+    public PaymentConfirmResult confirm(PaymentConfirmCommand command) {
+        return null;
     }
 
     public PaymentResultDeprecated.PaymentApproval confirm(PaymentCommand.Confirm command) {

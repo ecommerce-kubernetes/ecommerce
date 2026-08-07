@@ -7,7 +7,9 @@ import com.example.order_service.payment.api.web.dto.response.PaymentApprovalRes
 import com.example.order_service.payment.api.web.dto.response.PaymentCreateResponse;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
+import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
+import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,12 +37,13 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/confirm")
+    @PostMapping("/{paymentId}/confirm")
     public ResponseEntity<PaymentApprovalResponse> paymentConfirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                                  @PathVariable("paymentId") Long paymentId,
                                                                                   @RequestBody @Validated PaymentConfirmRequest request) {
-        PaymentCommand.Confirm command = request.toCommand(userPrincipal.getUserId());
-        PaymentResultDeprecated.PaymentApproval confirm = paymentFacade.confirm(command);
-        PaymentApprovalResponse response = PaymentApprovalResponse.from(confirm);
+        PaymentConfirmCommand command = request.toCommand(paymentId, userPrincipal.getUserId());
+        PaymentConfirmResult result = paymentFacade.confirm(command);
+        PaymentApprovalResponse response = PaymentApprovalResponse.from(result);
         return ResponseEntity.ok(response);
     }
 }

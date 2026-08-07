@@ -6,18 +6,15 @@ import com.example.order_service.payment.api.web.PaymentController;
 import com.example.order_service.payment.api.web.dto.request.PaymentConfirmRequest;
 import com.example.order_service.payment.api.web.dto.request.PaymentCreateRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
+import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
+import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
-import com.example.order_service.payment.domain.PaymentMethod;
-import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
-import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -80,25 +77,20 @@ public class PaymentControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 결제를 승인한다")
     void paymentConfirm() throws Exception {
         //given
+        Long paymentId = 1L;
         PaymentConfirmRequest request = PaymentConfirmRequest.builder()
-                .orderId(1L)
                 .paymentKey("paymentKey")
                 .amount(10000L)
+                .provider("TOSS")
                 .build();
         HttpHeaders authHeader = createAuthHeader("ROLE_USER");
-        PaymentResultDeprecated.PaymentApproval result = PaymentResultDeprecated.PaymentApproval.builder()
+        PaymentConfirmResult result = PaymentConfirmResult.builder()
                 .paymentId(1L)
-                .paymentKey("paymentKey")
-                .orderNo("orderNo")
-                .totalAmount(Money.wons(10000L))
-                .method(PaymentMethod.CARD)
-                .status(PaymentStatus.DONE)
-                .approvedAt(LocalDateTime.now())
                 .build();
-        given(paymentFacade.confirm(any())).willReturn(result);
+        given(paymentFacade.confirm(any(PaymentConfirmCommand.class))).willReturn(result);
         //when
         //then
-        mockMvc.perform(post("/payments/confirm")
+        mockMvc.perform(post("/payments/{paymentId}/confirm", paymentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(authHeader)
                         .content(objectMapper.writeValueAsString(request)))
@@ -113,8 +105,8 @@ public class PaymentControllerDocsTest extends RestDocSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        requestFields(PaymentDescriptor.getConfirmRequest()),
-                        responseFields(PaymentDescriptor.getApprovalResponse())
+                        requestFields(PaymentDescriptor.confirmRequest()),
+                        responseFields(PaymentDescriptor.confirmResponse())
                 ));
     }
 

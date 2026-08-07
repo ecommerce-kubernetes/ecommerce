@@ -1,6 +1,7 @@
 package com.example.order_service.payment.api.web.dto.request;
 
-import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
+import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,15 +9,20 @@ import lombok.Builder;
 
 @Builder
 public record PaymentConfirmRequest(
-        @NotNull(message = "{payment.orderId.notNull}")
-        Long orderId,
         @NotBlank(message = "{payment.paymentKey.notBlank}")
         String paymentKey,
         @NotNull(message = "{payment.amount.notNull}")
         @Min(value = 1, message = "{payment.amount.min}")
-        Long amount
+        Long amount,
+        @NotBlank(message = "{payment.provider.notBlank}")
+        String provider
 ) {
-    public static PaymentCommand.Confirm toCommand(Long userId) {
-        return null;
+    public PaymentConfirmCommand toCommand(Long paymentId, Long userId) {
+        return PaymentConfirmCommand.builder()
+                .paymentId(paymentId)
+                .userId(userId)
+                .paymentKey(paymentKey)
+                .amount(Money.wons(amount))
+                .build();
     }
 }
