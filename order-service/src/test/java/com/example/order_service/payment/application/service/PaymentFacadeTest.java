@@ -1,7 +1,6 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderStatus;
@@ -10,16 +9,15 @@ import com.example.order_service.payment.application.service.dto.result.PaymentC
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
-import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -36,6 +34,10 @@ class PaymentFacadeTest {
     private PaymentCommandService paymentCommandService;
     @Mock
     private PaymentQueryService paymentQueryService;
+    @Spy
+    private PaymentValidator validator;
+    @Spy
+    private PaymentContextFactory contextFactory;
 
     @Test
     @DisplayName("결제를 생성한다.")
@@ -67,27 +69,6 @@ class PaymentFacadeTest {
         assertThat(result.status()).isEqualTo(PaymentStatus.APPROVAL_PENDING);
         assertThat(result.orderId()).isEqualTo(1L);
         assertThat(result.totalAmount()).isEqualTo(Money.wons(10000L));
-    }
-
-    @Test
-    @DisplayName("주문이 결제 대기 상태가 아니라면 예외가 발생한다.")
-    void create_orderStatus_not_pending() {
-        //given
-        Long paymentId = 1L;
-        PaymentCreateCommand command = PaymentCreateCommand.builder()
-                .userId(1L)
-                .orderId(1L)
-                .build();
-
-        PaymentOrderResult order = createPaymentOrderResult(PaymentOrderStatus.CANCELED);
-
-        given(paymentOrderPort.getOrder(anyLong(), anyLong())).willReturn(order);
-        //when
-        //then
-        assertThatThrownBy(() -> paymentFacade.create(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(PaymentErrorCode.ORDER_NOT_PENDING);
     }
 
     private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {

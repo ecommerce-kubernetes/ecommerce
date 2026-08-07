@@ -1,6 +1,5 @@
 package com.example.order_service.payment.application.service;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
@@ -11,7 +10,6 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
-import com.example.order_service.payment.application.port.dto.PaymentOrderStatus;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
@@ -36,29 +34,22 @@ public class PaymentFacade {
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
     private final PaymentOrderPort paymentOrderPort;
+    private final PaymentValidator paymentValidator;
+    private final PaymentContextFactory contextFactory;
     private final PaymentMapper mapper;
     private final PaymentGateway paymentGateway;
     private final Clock clock;
 
     public PaymentCreateResult create(PaymentCreateCommand command) {
         PaymentOrderResult order = paymentOrderPort.getOrder(command.orderId(), command.userId());
-        if (!order.status().equals(PaymentOrderStatus.PENDING)) {
-            throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
-        }
 
-        CreatePaymentContext context = createPaymentContext(order.orderId(), command.userId(), order.totalAmount());
+        paymentValidator.validateOrderPending(order.status());
+
+        CreatePaymentContext context = contextFactory.create(order.orderId(), command.userId(), order.totalAmount());
         Long paymentId = paymentCommandService.create(context);
 
         PaymentResult payment = paymentQueryService.getPayment(paymentId, command.userId());
         return PaymentCreateResult.from(payment, order);
-    }
-
-    private CreatePaymentContext createPaymentContext(Long orderId, Long userId, Money totalAmount) {
-        return CreatePaymentContext.builder()
-                .orderId(orderId)
-                .userId(userId)
-                .totalAmount(totalAmount)
-                .build();
     }
 
     public PaymentResultDeprecated.PaymentApproval confirm(PaymentCommand.Confirm command) {

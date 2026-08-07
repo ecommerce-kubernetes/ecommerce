@@ -6,8 +6,6 @@ import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class CartItemValidator {
 
