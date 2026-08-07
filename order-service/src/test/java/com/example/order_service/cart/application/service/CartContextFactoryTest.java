@@ -42,9 +42,11 @@ class CartContextFactoryTest {
                 .set(field("productVariantId"), productVariantId)
                 .create();
 
-        Map<Long, CartProductResult.CartProductDetail> productMap = Map.of(productVariantId, product);
+        CartProductResult products = CartProductResult.builder()
+                .products(List.of(product))
+                .build();
         //when
-        AddCartItemsContext context = cartContextFactory.toAddCartItemsContext(command, productMap);
+        AddCartItemsContext context = cartContextFactory.toAddCartItemsContext(command, products);
         //then
         assertThat(context.items()).hasSize(1);
         assertThat(context.items())

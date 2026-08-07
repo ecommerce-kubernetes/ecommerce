@@ -14,8 +14,8 @@ import java.util.Map;
 @Component
 public class CartContextFactory {
 
-    public AddCartItemsContext toAddCartItemsContext(AddCartItemsCommand command, Map<Long, CartProductResult.CartProductDetail> productsMap) {
-
+    public AddCartItemsContext toAddCartItemsContext(AddCartItemsCommand command, CartProductResult products) {
+        Map<Long, CartProductResult.CartProductDetail> productsMap = products.toMap();
         List<AddCartItemsContext.Item> items = command.items().stream()
                 .map(item -> toAddItemContext(item, productsMap.get(item.productVariantId()))).toList();
         return AddCartItemsContext.builder()
