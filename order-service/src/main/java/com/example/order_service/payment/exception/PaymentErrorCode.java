@@ -36,8 +36,9 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_TOSS_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOSS_SERVER_ERROR", "토스 서버 오류"),
 
     ORDER_NOT_PENDING(HttpStatus.CONFLICT, "ORDER_NOT_PENDING", "결제를 진행할 수 없는 주문 입니다"),
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_003", "존재하지 않은 결제 정보입니다"),
-    PAYMENT_AMOUNT_MISMATCH(HttpStatus.CONFLICT, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_NOT_FOUND", "존재하지 않은 결제 정보입니다"),
+    PAYMENT_NOT_READY(HttpStatus.CONFLICT, "PAYMENT_NOT_READY", "승인할 수 없는 결제입니다."),
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.CONFLICT, "PAYMENT_AMOUNT_MISMATCH", "결제 금액이 승인 요청 금액과 일치하지 않습니다."),
     PG_APPROVAL_AMOUNT_MISMATCH(HttpStatus.INTERNAL_SERVER_ERROR, "PG_APPROVAL_AMOUNT_MISMATCH", "PG 승인 금액이 일치하지 않습니다"),
     PAYMENT_AUTO_CANCELED(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_AUTO_CANCELED", "시스템 오류로 인해 결제가 취소되었습니다"),
     PAYMENT_REFUND_PENDING(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다");

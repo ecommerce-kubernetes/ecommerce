@@ -1,9 +1,11 @@
 package com.example.order_service.payment.domain;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +18,7 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 생성한다.")
-    void create(){
+    void create() {
         //given
         CreatePaymentContext context = CreatePaymentContext.builder()
                 .orderId(1L)
@@ -33,7 +35,7 @@ class PaymentTest {
 
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.READY);
     }
-    
+
     @Test
     @DisplayName("결제 금액이 0원인 경우 결제 상태는 완료이다.")
     void create_totalAmount_zero() {
@@ -51,7 +53,7 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 생성할 때 아이디 생성기가 누락되면 예외가 발생한다.")
-    void create_idGenerator_null(){
+    void create_idGenerator_null() {
         //given
         CreatePaymentContext context = CreatePaymentContext.builder()
                 .orderId(1L)
@@ -67,7 +69,7 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제 생성시 아이디가 누락되면 예외가 발생한다.")
-    void create_id_null(){
+    void create_id_null() {
         //given
         CreatePaymentContext context = CreatePaymentContext.builder()
                 .orderId(1L)
@@ -81,5 +83,57 @@ class PaymentTest {
         assertThatThrownBy(() -> Payment.create(context, nullIdGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("결제 생성시 아이디는 필수이다.");
+    }
+
+    @Test
+    @DisplayName("결제를 승인 대기로 변경한다.")
+    void approvePending() {
+        //given
+        CreatePaymentContext context = createPaymentContext();
+        Payment payment = Payment.create(context, idGenerator);
+        //when
+        payment.approvePending(Money.wons(1000L));
+        //then
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVAL_PENDING);
+    }
+
+    @Test
+    @DisplayName("결제를 승인 대기로 변경할 때 결제가 준비 상태가 아니면 예외가 발생한다.")
+    void approvePending_payment_not_ready() {
+        //given
+        CreatePaymentContext context = CreatePaymentContext.builder()
+                .orderId(1L)
+                .userId(1L)
+                .totalAmount(Money.ZERO)
+                .build();
+        Payment payment = Payment.create(context, idGenerator);
+        //when
+        //then
+        assertThatThrownBy(() -> payment.approvePending(Money.ZERO))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_READY);
+    }
+
+    @Test
+    @DisplayName("결제를 승인 대기로 변경할 때 결제 가격이 일치하지 않으면 예외가 발생한다.")
+    void approvePending_totalAmount_missMatch() {
+        //given
+        CreatePaymentContext context = createPaymentContext();
+        Payment payment = Payment.create(context, idGenerator);
+        //when
+        //then
+        assertThatThrownBy(() -> payment.approvePending(Money.wons(2000L)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
+    }
+
+    private CreatePaymentContext createPaymentContext() {
+        return CreatePaymentContext.builder()
+                .orderId(1L)
+                .userId(1L)
+                .totalAmount(Money.wons(1000L))
+                .build();
     }
 }
