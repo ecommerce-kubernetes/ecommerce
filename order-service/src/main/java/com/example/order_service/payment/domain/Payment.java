@@ -4,7 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.payment.domain.context.ApprovePendingContext;
+import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.ConfirmPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -80,7 +80,7 @@ public class Payment extends BaseEntity {
                 .build();
     }
 
-    public void approvePending(ApprovePendingContext context) {
+    public void approvePending(ApprovePendingPaymentContext context) {
         if (!this.status.equals(PaymentStatus.READY)) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_READY);
         }

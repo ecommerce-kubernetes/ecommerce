@@ -4,7 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
-import com.example.order_service.payment.domain.context.ApprovePendingContext;
+import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -94,7 +94,7 @@ class PaymentTest {
         Payment payment = Payment.create(context, idGenerator);
 
         PaymentProvider provider = PaymentProvider.TOSS;
-        ApprovePendingContext approveContext = ApprovePendingContext.builder()
+        ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
                 .amount(Money.wons(1000L))
                 .provider(provider)
                 .paymentKey("paymentKey")
@@ -119,7 +119,7 @@ class PaymentTest {
         Payment payment = Payment.create(context, idGenerator);
 
         PaymentProvider provider = PaymentProvider.TOSS;
-        ApprovePendingContext approveContext = ApprovePendingContext.builder()
+        ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
                 .amount(Money.wons(1000L))
                 .provider(provider)
                 .paymentKey("paymentKey")
@@ -140,7 +140,7 @@ class PaymentTest {
         Payment payment = Payment.create(context, idGenerator);
 
         PaymentProvider provider = PaymentProvider.TOSS;
-        ApprovePendingContext approveContext = ApprovePendingContext.builder()
+        ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
                 .amount(Money.wons(2000L))
                 .provider(provider)
                 .paymentKey("paymentKey")

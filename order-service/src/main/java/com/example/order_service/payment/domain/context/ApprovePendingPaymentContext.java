@@ -6,13 +6,13 @@ import lombok.Builder;
 import org.springframework.util.Assert;
 
 @Builder
-public record ApprovePendingContext(
+public record ApprovePendingPaymentContext(
         Money amount,
         PaymentProvider provider,
         String paymentKey
 ) {
 
-    public ApprovePendingContext {
+    public ApprovePendingPaymentContext {
         Assert.notNull(amount, "결제 승인 대기시 승인 금액은 필수이다.");
         Assert.notNull(provider, "결제 승인 대기시 결제사는 필수이다.");
         Assert.hasText(paymentKey, "결제 승인 대기시 결제 키는 필수이다.");

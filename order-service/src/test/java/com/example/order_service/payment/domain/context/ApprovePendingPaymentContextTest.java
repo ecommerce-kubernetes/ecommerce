@@ -6,9 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
-class ApprovePendingContextTest {
+class ApprovePendingPaymentContextTest {
 
     @Test
     @DisplayName("승인 금액이 누락되면 예외가 발생한다.")
@@ -16,7 +15,7 @@ class ApprovePendingContextTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> ApprovePendingContext.builder()
+        assertThatThrownBy(() -> ApprovePendingPaymentContext.builder()
                 .amount(null)
                 .provider(PaymentProvider.TOSS)
                 .paymentKey("paymentKey")
@@ -32,7 +31,7 @@ class ApprovePendingContextTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> ApprovePendingContext.builder()
+        assertThatThrownBy(() -> ApprovePendingPaymentContext.builder()
                 .amount(Money.wons(1000L))
                 .provider(null)
                 .paymentKey("paymentKey")
@@ -47,7 +46,7 @@ class ApprovePendingContextTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> ApprovePendingContext.builder()
+        assertThatThrownBy(() -> ApprovePendingPaymentContext.builder()
                 .amount(Money.wons(1000L))
                 .provider(PaymentProvider.TOSS)
                 .paymentKey(null)
