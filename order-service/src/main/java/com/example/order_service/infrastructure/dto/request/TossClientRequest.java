@@ -2,6 +2,7 @@ package com.example.order_service.infrastructure.dto.request;
 
 import lombok.Builder;
 
+@Deprecated
 public class TossClientRequest {
 
     @Builder

@@ -5,6 +5,7 @@ import lombok.Builder;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@Deprecated
 public class TossClientResponse {
 
     @Builder

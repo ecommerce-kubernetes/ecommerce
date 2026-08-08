@@ -25,9 +25,7 @@ public class PaymentGateway {
     private final PgErrorTranslator errorTranslator;
 
     public PGPaymentResult.Approval confirm(PGPaymentCommand.Confirm command) {
-        TossClientResponse.Confirm confirm = executeExternalCall(() ->
-                tossGateway.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue()));
-        return pgMapper.toResult(confirm);
+        return null;
     }
 
     public PGPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {

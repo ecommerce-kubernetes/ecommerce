@@ -2,7 +2,9 @@ package com.example.order_service.infrastructure.gateway;
 
 import com.example.order_service.infrastructure.client.TossFeignClient;
 import com.example.order_service.infrastructure.dto.request.TossClientRequest;
+import com.example.order_service.infrastructure.dto.request.TossConfirmRequest;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +27,12 @@ public class TossGateway {
     private final ExternalExceptionTranslator translator;
 
     @CircuitBreaker(name = "tossPaymentService", fallbackMethod = "confirmPaymentFallback")
-    public TossClientResponse.Confirm confirmPayment(String orderId, String paymentKey, Long amount) {
-        TossClientRequest.Confirm request = TossClientRequest.Confirm.of(orderId, paymentKey, amount);
+    public TossConfirmResponse confirmPayment(Long orderId, String paymentKey, Long amount) {
+        TossConfirmRequest request = TossConfirmRequest.of(orderId, paymentKey, amount);
         return client.confirmPayment(request);
     }
 
-    private TossClientResponse.Confirm confirmPaymentFallback(String orderId, String paymentKey, Long amount, Throwable throwable) throws Throwable {
+    private TossConfirmResponse confirmPaymentFallback(Long orderId, String paymentKey, Long amount, Throwable throwable) throws Throwable {
         throw translator.translate("TOSS-PAYMENTS", throwable);
     }
 

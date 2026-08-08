@@ -2,7 +2,9 @@ package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.infrastructure.config.TossFeignConfig;
 import com.example.order_service.infrastructure.dto.request.TossClientRequest;
+import com.example.order_service.infrastructure.dto.request.TossConfirmRequest;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface TossFeignClient {
 
     @PostMapping("/v1/payments/confirm")
-    TossClientResponse.Confirm confirmPayment(@RequestBody TossClientRequest.Confirm request);
+    TossConfirmResponse confirmPayment(@RequestBody TossConfirmRequest request);
 
     @PostMapping("/v1/payments/{paymentKey}/cancel")
     TossClientResponse.Cancel cancelPayment(@PathVariable("paymentKey") String paymentKey,
