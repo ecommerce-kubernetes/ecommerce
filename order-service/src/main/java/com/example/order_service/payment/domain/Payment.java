@@ -5,7 +5,7 @@ import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
-import com.example.order_service.payment.domain.context.ConfirmPaymentContext;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import jakarta.persistence.*;
@@ -94,7 +94,9 @@ public class Payment extends BaseEntity {
         this.paymentKey = context.paymentKey();
     }
 
-    public void confirm(ConfirmPaymentContext context, IdGenerator idGenerator) {
-
+    public void approve(ApprovePaymentContext context, IdGenerator idGenerator) {
+        if (!this.status.equals(PaymentStatus.APPROVAL_PENDING)) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVE_PENDING);
+        }
     }
 }

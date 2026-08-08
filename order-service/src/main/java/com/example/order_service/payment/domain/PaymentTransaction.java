@@ -45,7 +45,7 @@ public class PaymentTransaction extends BaseEntity {
         this.occurredAt = occurredAt;
     }
 
-    public static PaymentTransaction createConfirm(String transactionKey, Money amount, LocalDateTime occurredAt, IdGenerator idGenerator) {
+    public static PaymentTransaction createApproval(String transactionKey, Money amount, LocalDateTime occurredAt, IdGenerator idGenerator) {
         Assert.notNull(idGenerator, "결제 승인시 아이디 생성기는 필수이다.");
         Long id = idGenerator.generate();
         Assert.notNull(id, "결제 승인시 아이디는 필수이다.");

@@ -10,18 +10,17 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 class PaymentTransactionTest {
     private IdGenerator idGenerator = new TsidGenerator();
 
     @Test
     @DisplayName("결제 승인 내역을 생성한다.")
-    void createConfirm() {
+    void createApproval() {
         //given
         LocalDateTime occurredAt = LocalDateTime.now();
         //when
-        PaymentTransaction transaction = PaymentTransaction.createConfirm("transactionKey", Money.wons(1000L),
+        PaymentTransaction transaction = PaymentTransaction.createApproval("transactionKey", Money.wons(1000L),
                 occurredAt, idGenerator);
         //then
         assertThat(transaction)
@@ -33,11 +32,11 @@ class PaymentTransactionTest {
 
     @Test
     @DisplayName("결제 승인 내역 생성시 아이디 생성기가 누락되면 예외가 발생한다.")
-    void createConfirm_idGenerator_null() {
+    void createApproval_idGenerator_null() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> PaymentTransaction.createConfirm(
+        assertThatThrownBy(() -> PaymentTransaction.createApproval(
                 "transactionKey",
                 Money.wons(1000L),
                 LocalDateTime.now(),
@@ -48,12 +47,12 @@ class PaymentTransactionTest {
 
     @Test
     @DisplayName("결제 승인 내역 생성시 아이디가 누락되면 예외가 발생한다.")
-    void createConfirm_id_null() {
+    void createApproval_id_null() {
         //given
         IdGenerator nullIdGenerator = () -> null;
         //when
         //then
-        assertThatThrownBy(() -> PaymentTransaction.createConfirm(
+        assertThatThrownBy(() -> PaymentTransaction.createApproval(
                 "transactionKey",
                 Money.wons(1000L),
                 LocalDateTime.now(),

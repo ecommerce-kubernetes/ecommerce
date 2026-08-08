@@ -4,11 +4,14 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -151,6 +154,34 @@ class PaymentTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
+    }
+
+    @Test
+    @DisplayName("")
+    void approve() {
+        //given
+        //when
+        //then
+    }
+
+    @Test
+    @DisplayName("결제를 승인할때 승인 대기 상태가 아니면 예외가 발생한다.")
+    void approve_payment_not_approvePending() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> payment.approve(approveContext, idGenerator))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_APPROVE_PENDING);
     }
 
     private CreatePaymentContext createPaymentContext() {
