@@ -59,4 +59,8 @@ public class PaymentTransaction extends BaseEntity {
                 .occurredAt(occurredAt)
                 .build();
     }
+
+    void setPayment(Payment payment) {
+        this.payment = payment;
+    }
 }

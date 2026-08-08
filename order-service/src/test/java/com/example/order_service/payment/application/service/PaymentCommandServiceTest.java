@@ -4,9 +4,8 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.application.port.PaymentRepository;
-import com.example.order_service.payment.domain.Payment;
-import com.example.order_service.payment.domain.PaymentProvider;
-import com.example.order_service.payment.domain.PaymentStatus;
+import com.example.order_service.payment.domain.*;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -16,8 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.*;
 
 @IsolatedTest
 @Transactional
@@ -74,6 +74,58 @@ class PaymentCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> paymentCommandService.approvePending(999L, 999L, approvePendingContext))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("결제를 승인한다.")
+    void approve() {
+        //given
+        CreatePaymentContext createContext = createContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(10000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(10000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+
+        payment.approvePending(approvePendingContext);
+        paymentRepository.save(payment);
+        //when
+        paymentCommandService.approve(payment.getId(), 1L, approveContext);
+        //then
+        Payment findPayment = paymentRepository.findByIdAndUserId(payment.getId(), 1L).orElseThrow();
+        assertThat(findPayment.getStatus()).isEqualTo(PaymentStatus.DONE);
+        assertThat(findPayment.getMethod()).isEqualTo(PaymentMethod.CARD);
+        assertThat(findPayment.getPaymentTransactions()).hasSize(1)
+                .extracting("type", "amount")
+                .containsExactly(
+                        tuple(TransactionType.PAYMENT, Money.wons(10000L))
+                );
+    }
+
+    @Test
+    @DisplayName("결제를 승인할 때 결제를 찾을 수 없으면 예외가 발생한다.")
+    void approve_notFound_Payment() {
+        //given
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(10000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> paymentCommandService.approve(999L, 1L, approveContext))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);

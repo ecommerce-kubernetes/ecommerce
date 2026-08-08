@@ -98,5 +98,20 @@ public class Payment extends BaseEntity {
         if (!this.status.equals(PaymentStatus.APPROVAL_PENDING)) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVE_PENDING);
         }
+
+        if (!this.totalAmount.equals(context.amount())) {
+            throw new BusinessException(PaymentErrorCode.APPROVAL_AMOUNT_MISMATCH);
+        }
+
+        this.status = PaymentStatus.DONE;
+        this.method = context.method();
+        PaymentTransaction transaction = PaymentTransaction.createApproval(context.transactionKey(), context.amount(),
+                context.occurredAt(), idGenerator);
+        addTransaction(transaction);
+    }
+
+    private void addTransaction(PaymentTransaction transaction) {
+        this.paymentTransactions.add(transaction);
+        transaction.setPayment(this);
     }
 }

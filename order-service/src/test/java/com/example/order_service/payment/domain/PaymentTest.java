@@ -157,11 +157,30 @@ class PaymentTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("결제를 승인한다.")
     void approve() {
         //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+        payment.approvePending(approvePendingContext);
         //when
+        payment.approve(approveContext, idGenerator);
         //then
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.DONE);
+        assertThat(payment.getMethod()).isEqualTo(PaymentMethod.CARD);
+        assertThat(payment.getPaymentTransactions()).hasSize(1);
     }
 
     @Test
@@ -182,6 +201,35 @@ class PaymentTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_NOT_APPROVE_PENDING);
+    }
+
+    @Test
+    @DisplayName("결제를 승인할 때 승인 금액이 일치하지 않으면 예외가 발생한다.")
+    void approve_missMatch_totalAmount() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        payment.approvePending(approvePendingContext);
+
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(2000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> payment.approve(approveContext, idGenerator))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.APPROVAL_AMOUNT_MISMATCH);
     }
 
     private CreatePaymentContext createPaymentContext() {

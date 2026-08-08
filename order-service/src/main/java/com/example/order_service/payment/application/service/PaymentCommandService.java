@@ -6,6 +6,7 @@ import com.example.order_service.payment.application.port.PaymentRepository;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.Payment;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -33,6 +34,12 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.approvePending(context);
+    }
+
+    public void approve(Long paymentId, Long userId, ApprovePaymentContext context) {
+        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.approve(context, idGenerator);
     }
 
     public PaymentResultDeprecated.Default create(PaymentContext.Create context) {
