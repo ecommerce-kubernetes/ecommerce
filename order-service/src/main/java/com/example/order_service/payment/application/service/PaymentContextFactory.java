@@ -1,6 +1,8 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.payment.domain.PaymentProvider;
+import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +14,14 @@ public class PaymentContextFactory {
                 .orderId(orderId)
                 .userId(userId)
                 .totalAmount(totalAmount)
+                .build();
+    }
+
+    public ApprovePendingPaymentContext approvePending(Money amount, PaymentProvider provider, String paymentKey) {
+        return ApprovePendingPaymentContext.builder()
+                .amount(amount)
+                .provider(provider)
+                .paymentKey(paymentKey)
                 .build();
     }
 }
