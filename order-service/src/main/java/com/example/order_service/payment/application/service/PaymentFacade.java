@@ -9,6 +9,8 @@ import com.example.order_service.payment.application.external.dto.command.PGPaym
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
+import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
@@ -18,6 +20,7 @@ import com.example.order_service.payment.application.service.dto.result.PaymentC
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
+import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPortException;
@@ -36,6 +39,7 @@ public class PaymentFacade {
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
     private final PaymentOrderPort paymentOrderPort;
+    private final PaymentPGPort paymentPGPort;
     private final PaymentValidator paymentValidator;
     private final PaymentContextFactory contextFactory;
     private final PaymentMapper mapper;
@@ -54,9 +58,15 @@ public class PaymentFacade {
         return PaymentCreateResult.from(payment, order);
     }
 
-    public PaymentConfirmResult confirm(PaymentConfirmCommand command) {
+    public PaymentConfirmResult approve(PaymentConfirmCommand command) {
+        ApprovePendingPaymentContext approvePendingContext = contextFactory.approvePending(command.amount(), command.provider(), command.paymentKey());
+        paymentCommandService.approvePending(command.paymentId(), command.userId(), approvePendingContext);
+
+        PaymentResult payment = paymentQueryService.getPayment(command.paymentId(), command.userId());
+        paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());
         return null;
     }
+
 
     public PaymentResultDeprecated.PaymentApproval confirm(PaymentCommand.Confirm command) {
         OrderResult order = orderQueryService.getOrder(1L, command.userId());

@@ -6,12 +6,10 @@ import com.example.order_service.payment.api.web.dto.request.PaymentCreateReques
 import com.example.order_service.payment.api.web.dto.response.PaymentApprovalResponse;
 import com.example.order_service.payment.api.web.dto.response.PaymentCreateResponse;
 import com.example.order_service.payment.application.service.PaymentFacade;
-import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +40,7 @@ public class PaymentController {
                                                                                   @PathVariable("paymentId") Long paymentId,
                                                                                   @RequestBody @Validated PaymentConfirmRequest request) {
         PaymentConfirmCommand command = request.toCommand(paymentId, userPrincipal.getUserId());
-        PaymentConfirmResult result = paymentFacade.confirm(command);
+        PaymentConfirmResult result = paymentFacade.approve(command);
         PaymentApprovalResponse response = PaymentApprovalResponse.from(result);
         return ResponseEntity.ok(response);
     }

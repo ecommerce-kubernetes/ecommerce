@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class PaymentGateway {
     private final TossGateway tossGateway;
     private final PgMapper pgMapper;

@@ -87,7 +87,7 @@ public class PaymentControllerDocsTest extends RestDocSupport {
         PaymentConfirmResult result = PaymentConfirmResult.builder()
                 .paymentId(1L)
                 .build();
-        given(paymentFacade.confirm(any(PaymentConfirmCommand.class))).willReturn(result);
+        given(paymentFacade.approve(any(PaymentConfirmCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/payments/{paymentId}/confirm", paymentId)

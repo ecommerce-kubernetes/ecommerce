@@ -9,13 +9,11 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
-import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -145,7 +143,7 @@ public class PaymentControllerTest {
                 .set(field("provider"), "TOSS")
                 .create();
         PaymentConfirmResult result = Instancio.create(PaymentConfirmResult.class);
-        given(paymentFacade.confirm(any(PaymentConfirmCommand.class))).willReturn(result);
+        given(paymentFacade.approve(any(PaymentConfirmCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/payments/{paymentId}/confirm", paymentId)

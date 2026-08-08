@@ -8,6 +8,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Deprecated
 public class PGPaymentResult {
 
     @Builder
