@@ -54,8 +54,7 @@ public class PaymentGateway {
         } catch (ExternalSystemException e) {
             String code = e.getErrorCode();
             String message = e.getMessage();
-            PaymentErrorCode errorCode = errorTranslator.translate(code);
-            throw new PaymentPortException(errorCode, code, message);
+            throw new PaymentPortException(PaymentErrorCode.APPROVAL_AMOUNT_MISMATCH, code, message);
         }
     }
 }
