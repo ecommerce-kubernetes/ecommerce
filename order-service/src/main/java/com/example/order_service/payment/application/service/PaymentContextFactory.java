@@ -1,10 +1,14 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Component
 public class PaymentContextFactory {
@@ -22,6 +26,15 @@ public class PaymentContextFactory {
                 .amount(amount)
                 .provider(provider)
                 .paymentKey(paymentKey)
+                .build();
+    }
+
+    public ApprovePaymentContext approve(PaymentMethod method, String transactionKey, Money amount, LocalDateTime occurredAt) {
+        return ApprovePaymentContext.builder()
+                .method(method)
+                .transactionKey(transactionKey)
+                .amount(amount)
+                .occurredAt(occurredAt)
                 .build();
     }
 }

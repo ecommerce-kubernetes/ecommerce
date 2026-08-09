@@ -1,6 +1,8 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.exception.ErrorCode;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.order.OrderStatus;
@@ -10,6 +12,7 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
@@ -20,9 +23,12 @@ import com.example.order_service.payment.application.service.dto.result.PaymentC
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.PaymentFailure;
+import com.example.order_service.payment.domain.PaymentMethod;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import com.example.order_service.payment.exception.PaymentPortException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +77,7 @@ public class PaymentFacade {
         try {
             paymentCommandService.approvePending(payment.paymentId(), payment.userId(), approvePendingContext);
         } catch (BusinessException e) {
-            if (e.getErrorCode().equals(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH)){
+            if (e.getErrorCode().equals(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH)) {
                 PaymentFailure failure = PaymentFailure.of(e.getErrorCode().name(), e.getErrorCode().getMessage());
                 paymentCommandService.abort(command.paymentId(), command.userId(), failure);
             }
@@ -86,8 +92,6 @@ public class PaymentFacade {
             결제 수단 위반 -> 망 취소 진행 후 ABORT 변경
                 망 취소 실패시 APPROVAL_PENDING 유지
          */
-        paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());
-        return null;
 
         // 3. post pg (PG 결과를 저장하여 승인처리)
         /*
@@ -97,6 +101,29 @@ public class PaymentFacade {
             DB 장애 -> 망 취소 진행 후 ABORT 변경
                 망취소 실패시 APPROVAL_PENDING 유지
          */
+        try {
+            PGConfirmResult confirm = paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());
+            if (confirm.method().equals(PaymentMethod.VIRTUAL_ACCOUNT)) {
+                paymentPGPort.netCancel(payment.paymentKey(), "지원하지 않는 결제 방법으로 인한 망 취소", payment.provider());
+                return null;
+            }
+            ApprovePaymentContext approve = contextFactory.approve(confirm.method(), confirm.transactionKey(), confirm.amount(), confirm.approvedAt());
+            paymentCommandService.approve(payment.paymentId(), payment.userId(), approve);
+            return null;
+        } catch (PortException e) {
+            if (e.getErrorCode().equals(PaymentPGPortErrorCode.PG_INSUFFICIENT_BALANCE) ||
+                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_METHOD_REJECTED) ||
+                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_POLICY_RESTRICTED) ||
+                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_INVALID_REQUEST) ||
+                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_ALREADY_PROCESSED) ||
+                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_NOT_FOUND) ||
+                    e.getErrorCode().equals(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER)) {
+                PaymentFailure failure = PaymentFailure.of(e.getErrorCode().getCode(), e.getErrorCode().getMessage());
+                paymentCommandService.abort(payment.paymentId(), payment.userId(), failure);
+            }
+        }
+
+        return null;
     }
 
 
@@ -171,7 +198,8 @@ public class PaymentFacade {
         } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
-                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR:
+                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN,
+                     PAYMENT_PG_AUTH_ERROR:
                     log.warn("[망취소] PG 응답 불명. 대사 처리 대기. paymentKey = {}", paymentKey);
                     return false;
                 case PAYMENT_PG_ALREADY_CANCELED:
@@ -222,9 +250,11 @@ public class PaymentFacade {
         } catch (PaymentPortException e) {
             PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
-                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR ->
+                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN,
+                     PAYMENT_PG_AUTH_ERROR ->
                         log.warn("[SAGA 환불 지연] 통신 장애로 인한 결제 취소 지연. 스케줄러 대기 paymentKey = {}", payment.paymentKey(), e);
-                case PAYMENT_PG_ALREADY_CANCELED -> log.info("[SAGA 환불 멱등성] 이미 결제가 취소됨. 확실한 취소 내역 동기화를 위해 환불 대사 스케줄러로 위임 paymentKey = {}", payment.paymentKey());
+                case PAYMENT_PG_ALREADY_CANCELED ->
+                        log.info("[SAGA 환불 멱등성] 이미 결제가 취소됨. 확실한 취소 내역 동기화를 위해 환불 대사 스케줄러로 위임 paymentKey = {}", payment.paymentKey());
                 default -> log.error("[SAGA 환불 거절] PG사 거절. 수동 환불 처리 필요. paymentKey = {}", payment.paymentKey(), e);
             }
         } catch (Exception e) {
