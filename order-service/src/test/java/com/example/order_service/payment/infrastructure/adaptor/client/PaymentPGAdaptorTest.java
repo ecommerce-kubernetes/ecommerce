@@ -18,10 +18,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentPGAdaptorTest {
@@ -39,7 +39,7 @@ class PaymentPGAdaptorTest {
 
     @Test
     @DisplayName("결제사 프로세서를 찾아 결제 승인을 위임한다.")
-    void confirm(){
+    void confirm() {
         //given
         Long orderId = 1L;
         String paymentKey = "paymentKey";
@@ -64,7 +64,7 @@ class PaymentPGAdaptorTest {
 
     @Test
     @DisplayName("결제사 프로세서를 찾을 수 없으면 예외가 발생한다.")
-    void confirm_notFound_processor(){
+    void confirm_notFound_processor() {
         //given
         Long orderId = 1L;
         String paymentKey = "paymentKey";
@@ -76,5 +76,20 @@ class PaymentPGAdaptorTest {
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER);
+    }
+
+    @Test
+    @DisplayName("결제사 프로세서를 찾아 망취소를 위임한다.")
+    void netCancel() {
+        //given
+        String paymentKey = "paymentKey";
+        String cancelReason = "망취소";
+        PaymentProvider provider = PaymentProvider.TOSS;
+
+        willDoNothing().given(tossPGProcessor).netCancel(anyString(), anyString());
+        //when
+        //then
+        assertThatCode(() -> paymentPGAdaptor.netCancel(paymentKey, cancelReason, provider))
+                .doesNotThrowAnyException();
     }
 }

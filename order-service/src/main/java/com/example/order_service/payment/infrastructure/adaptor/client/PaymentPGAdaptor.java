@@ -30,6 +30,12 @@ public class PaymentPGAdaptor implements PaymentPGPort {
         return processor.confirm(orderId, paymentKey, amount);
     }
 
+    @Override
+    public void netCancel(String paymentKey, String cancelReason, PaymentProvider provider) {
+        PGProcessor processor = getProcessor(provider);
+        processor.netCancel(paymentKey, cancelReason);
+    }
+
     private PGProcessor getProcessor(PaymentProvider provider) {
         PGProcessor pgProcessor = pgProcessorMap.get(provider);
         if (pgProcessor == null) {

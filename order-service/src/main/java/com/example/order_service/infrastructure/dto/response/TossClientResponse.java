@@ -9,23 +9,6 @@ import java.util.List;
 public class TossClientResponse {
 
     @Builder
-    public record Confirm(
-            String status,
-            Long totalAmount,
-            String method,
-            String lastTransactionKey,
-            OffsetDateTime approvedAt
-    ) {
-    }
-
-    @Builder
-    public record Cancel(
-            String status,
-            List<CancelReceipt> cancels
-    ) {
-    }
-
-    @Builder
     public record Inquiry(
             String paymentKey,
             String orderId,

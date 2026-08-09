@@ -2,9 +2,10 @@ package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
-import com.example.order_service.infrastructure.dto.request.TossClientRequest;
+import com.example.order_service.infrastructure.dto.request.TossCancelRequest;
 import com.example.order_service.infrastructure.dto.request.TossConfirmRequest;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -100,7 +101,7 @@ public class TossFeignClientTest {
 
     @Test
     @DisplayName("토스 페이먼츠에서 클라이언트 오류 응답 반환시 클라이언트 예외를 던진다")
-    void tossPayment_thrown_client_error_response() throws JsonProcessingException {
+    void confirmPayment_thrown_client_error_response() throws JsonProcessingException {
         //given
         TossConfirmRequest request = Instancio.create(TossConfirmRequest.class);
         String expectedRequestBody = objectMapper.writeValueAsString(request);
@@ -127,7 +128,7 @@ public class TossFeignClientTest {
 
     @Test
     @DisplayName("토스 페이먼츠에서 서버 오류 응답 반환시 서버 예외를 던진다")
-    void tossPayment_thrown_server_error_response() throws JsonProcessingException {
+    void confirmPayment_thrown_server_error_response() throws JsonProcessingException {
         //given
         TossConfirmRequest request = Instancio.create(TossConfirmRequest.class);
         String expectedRequestBody = objectMapper.writeValueAsString(request);
@@ -153,18 +154,14 @@ public class TossFeignClientTest {
                 .isEqualTo("FAILED_PAYMENT_INTERNAL_SYSTEM_PROCESSING");
     }
 
-    @Nested
-    @DisplayName("결제 취소")
-    class Cancel {
-
-        @Test
-        @DisplayName("토스 결제 취소를 요청한다")
-        void cancelPayment() throws JsonProcessingException {
-            //given
-            String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
-            TossClientRequest.Cancel request = Instancio.create(TossClientRequest.Cancel.class);
-            String expectedRequestBody = objectMapper.writeValueAsString(request);
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("토스 결제 취소를 요청한다")
+    void cancelPayment() throws JsonProcessingException {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        TossCancelRequest request = Instancio.create(TossCancelRequest.class);
+        String expectedRequestBody = objectMapper.writeValueAsString(request);
+        String mockJsonResponse = """
                     {
                         "status": "CANCELED",
                         "cancels": [
@@ -177,33 +174,33 @@ public class TossFeignClientTest {
                         ]
                     }
                     """;
-            stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
-                    .withRequestBody(equalToJson(expectedRequestBody))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(mockJsonResponse)));
-            //when
-            TossClientResponse.Cancel response = client.cancelPayment(paymentKey, request);
-            //then
-            assertThat(response.status()).isEqualTo("CANCELED");
-            TossClientResponse.CancelReceipt cancel = response.cancels().getFirst();
+        stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
+                .withRequestBody(equalToJson(expectedRequestBody))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        TossCancelResponse response = client.cancelPayment(paymentKey, request);
+        //then
+        assertThat(response.status()).isEqualTo("CANCELED");
+        TossCancelResponse.CancelReceipt cancel = response.cancels().getFirst();
 
-            assertThat(cancel.transactionKey()).isEqualTo("090A796806E726BBB929F4A2CA7DB9A7");
-            assertThat(cancel.cancelReason()).isEqualTo("테스트 결제 취소");
-            assertThat(cancel.cancelAmount()).isEqualTo(1000L);
-            assertThat(cancel.canceledAt())
-                    .isEqualTo(OffsetDateTime.parse("2024-02-13T12:20:23+09:00"));
-        }
+        assertThat(cancel.transactionKey()).isEqualTo("090A796806E726BBB929F4A2CA7DB9A7");
+        assertThat(cancel.cancelReason()).isEqualTo("테스트 결제 취소");
+        assertThat(cancel.cancelAmount()).isEqualTo(1000L);
+        assertThat(cancel.canceledAt())
+                .isEqualTo(OffsetDateTime.parse("2024-02-13T12:20:23+09:00"));
+    }
 
-        @Test
-        @DisplayName("토스 결제 취소를 요청할때 헤더에 시크릿 키를 포함하여 요청한다")
-        void cancelPayment_header_contain_auth_key() throws JsonProcessingException {
-            //given
-            String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
-            TossClientRequest.Cancel request = Instancio.create(TossClientRequest.Cancel.class);
-            String expectedRequestBody = objectMapper.writeValueAsString(request);
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("토스 결제 취소를 요청할때 헤더에 시크릿 키를 포함하여 요청한다")
+    void cancelPayment_header_contain_auth_key() throws JsonProcessingException {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        TossCancelRequest request = Instancio.create(TossCancelRequest.class);
+        String expectedRequestBody = objectMapper.writeValueAsString(request);
+        String mockJsonResponse = """
                     {
                         "status": "CANCELED",
                         "cancels": [
@@ -216,75 +213,74 @@ public class TossFeignClientTest {
                         ]
                     }
                     """;
-            stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
-                    .withRequestBody(equalToJson(expectedRequestBody))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(mockJsonResponse)));
-            //when
-            client.cancelPayment(paymentKey, request);
-            //then
-            verify(postRequestedFor(urlMatching("/v1/payments/" + paymentKey + "/cancel"))
-                    .withHeader("Authorization", matching("Basic .*")));
-        }
+        stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
+                .withRequestBody(equalToJson(expectedRequestBody))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        client.cancelPayment(paymentKey, request);
+        //then
+        verify(postRequestedFor(urlMatching("/v1/payments/" + paymentKey + "/cancel"))
+                .withHeader("Authorization", matching("Basic .*")));
+    }
 
-        @Test
-        @DisplayName("토스 페이먼츠에서 클라이언트 오류 응답 반환시 클라이언트 예외를 던진다")
-        void tossPayment_thrown_client_error_response() throws JsonProcessingException {
-            //given
-            String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
-            TossClientRequest.Cancel request = Instancio.create(TossClientRequest.Cancel.class);
-            String expectedRequestBody = objectMapper.writeValueAsString(request);
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("토스 페이먼츠에서 클라이언트 오류 응답 반환시 클라이언트 예외를 던진다")
+    void cancelPayment_thrown_client_error_response() throws JsonProcessingException {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        TossCancelRequest request = Instancio.create(TossCancelRequest.class);
+        String expectedRequestBody = objectMapper.writeValueAsString(request);
+        String mockJsonResponse = """
                     {
                         "code": "ALREADY_CANCELED_PAYMENT",
                         "message": "이미 취소된 결제 입니다."
                     }
                     """;
-            stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
-                    .withRequestBody(equalToJson(expectedRequestBody))
-                    .willReturn(aResponse()
-                            .withStatus(400)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.cancelPayment(paymentKey, request))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("이미 취소된 결제 입니다.")
-                    .extracting("errorCode")
-                    .isEqualTo("ALREADY_CANCELED_PAYMENT");
-        }
+        stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
+                .withRequestBody(equalToJson(expectedRequestBody))
+                .willReturn(aResponse()
+                        .withStatus(400)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        //then
+        assertThatThrownBy(() -> client.cancelPayment(paymentKey, request))
+                .isInstanceOf(ExternalClientException.class)
+                .hasMessage("이미 취소된 결제 입니다.")
+                .extracting("errorCode")
+                .isEqualTo("ALREADY_CANCELED_PAYMENT");
+    }
 
-        @Test
-        @DisplayName("토스 페이먼츠에서 서버 오류 응답 반환시 서버 예외를 던진다")
-        void tossPayment_thrown_server_error_response() throws JsonProcessingException {
-            //given
-            String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
-            TossClientRequest.Cancel request = Instancio.create(TossClientRequest.Cancel.class);
-            String expectedRequestBody = objectMapper.writeValueAsString(request);
-            String mockJsonResponse = """
+    @Test
+    @DisplayName("토스 페이먼츠에서 서버 오류 응답 반환시 서버 예외를 던진다")
+    void cancelPayment_thrown_server_error_response() throws JsonProcessingException {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        TossCancelRequest request = Instancio.create(TossCancelRequest.class);
+        String expectedRequestBody = objectMapper.writeValueAsString(request);
+        String mockJsonResponse = """
                     {
                         "code": "FAILED_REFUND_PROCESS",
                         "message": "은행 응답시간 지연이나 일시적인 오류로 환불요청에 실패했습니다."
                     }
                     """;
 
-            stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
-                    .withRequestBody(equalToJson(expectedRequestBody))
-                    .willReturn(aResponse()
-                            .withStatus(500)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.cancelPayment(paymentKey, request))
-                    .isInstanceOf(ExternalServerException.class)
-                    .hasMessage("은행 응답시간 지연이나 일시적인 오류로 환불요청에 실패했습니다.")
-                    .extracting("errorCode")
-                    .isEqualTo("FAILED_REFUND_PROCESS");
-        }
+        stubFor(post(urlEqualTo("/v1/payments/" + paymentKey + "/cancel"))
+                .withRequestBody(equalToJson(expectedRequestBody))
+                .willReturn(aResponse()
+                        .withStatus(500)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        //then
+        assertThatThrownBy(() -> client.cancelPayment(paymentKey, request))
+                .isInstanceOf(ExternalServerException.class)
+                .hasMessage("은행 응답시간 지연이나 일시적인 오류로 환불요청에 실패했습니다.")
+                .extracting("errorCode")
+                .isEqualTo("FAILED_REFUND_PROCESS");
     }
 
     @Nested

@@ -5,6 +5,7 @@ import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import com.example.order_service.infrastructure.gateway.TossGateway;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
@@ -30,6 +31,24 @@ public class TossPGProcessor implements PGProcessor {
     private TossConfirmResponse executeConfirm(Long orderId, String paymentKey, Money amount) {
         try {
             return tossGateway.confirmPayment(orderId, paymentKey, amount.longValue());
+        } catch (ExternalSystemUnavailableException e) {
+            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
+        } catch (ExternalCircuitBreakerException e) {
+            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN, "TOSS_CIRCUIT_OPEN", "토스 서킷 열림");
+        } catch (ExternalSystemException e) {
+            PaymentPGPortErrorCode code = translator.translate(e.getErrorCode());
+            throw new PortException(code, e.getErrorCode(), e.getMessage());
+        }
+    }
+
+    @Override
+    public void netCancel(String paymentKey, String cancelReason) {
+        executeNetCancel(paymentKey, cancelReason);
+    }
+
+    private void executeNetCancel(String paymentKey, String cancelReason) {
+        try {
+            tossGateway.cancelPayment(paymentKey, cancelReason, null);
         } catch (ExternalSystemUnavailableException e) {
             throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
         } catch (ExternalCircuitBreakerException e) {

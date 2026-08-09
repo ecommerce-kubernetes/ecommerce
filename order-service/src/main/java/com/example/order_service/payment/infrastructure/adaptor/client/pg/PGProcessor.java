@@ -7,4 +7,5 @@ import com.example.order_service.payment.domain.PaymentProvider;
 public interface PGProcessor {
     PaymentProvider getSupportedProvider();
     PGConfirmResult confirm(Long orderId, String paymentKey, Money amount);
+    void netCancel(String paymentKey, String cancelReason);
 }
