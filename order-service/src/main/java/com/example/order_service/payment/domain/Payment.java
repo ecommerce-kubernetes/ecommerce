@@ -110,6 +110,16 @@ public class Payment extends BaseEntity {
         addTransaction(transaction);
     }
 
+    public void abort(PaymentFailure failure) {
+        Assert.notNull(failure, "결제 실패시 실패 사유는 필수입니다.");
+
+        if (!this.status.equals(PaymentStatus.READY) && !this.status.equals(PaymentStatus.APPROVAL_PENDING)) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_CANNOT_ABORT);
+        }
+
+        this.status = PaymentStatus.ABORTED;
+    }
+
     private void addTransaction(PaymentTransaction transaction) {
         this.paymentTransactions.add(transaction);
         transaction.setPayment(this);

@@ -1,18 +1,24 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
+import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderStatus;
+import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,11 +27,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +43,8 @@ class PaymentFacadeTest {
 
     @Mock
     private PaymentOrderPort paymentOrderPort;
+    @Mock
+    private PaymentPGPort paymentPGPort;
     @Mock
     private PaymentCommandService paymentCommandService;
     @Mock
@@ -89,13 +98,49 @@ class PaymentFacadeTest {
                 .provider(PaymentProvider.TOSS)
                 .build();
 
+        PGConfirmResult pgResult = PGConfirmResult.builder()
+                .status(PaymentPGStatus.DONE)
+                .amount(Money.wons(1000L))
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .approvedAt(LocalDateTime.now())
+                .build();
+
         willDoNothing()
                 .given(paymentCommandService)
                 .approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
+        given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
+                .willReturn(pgResult);
         //when
         PaymentConfirmResult result = paymentFacade.approve(command);
         //then
         assertThat(result.paymentId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("결제 승인시 지원하지 않는 결제사인 경우 예외가 발생한다.")
+    void approve_unsupportedProvider() {
+        //given
+        PaymentConfirmCommand command = PaymentConfirmCommand.builder()
+                .paymentId(1L)
+                .userId(1L)
+                .paymentKey("paymentKey")
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.KAKAO)
+                .build();
+
+        willDoNothing()
+                .given(paymentCommandService)
+                .approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
+
+        given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
+                .willThrow(new PortException(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER, "UNSUPPORTED_PROVIDER", "지원하지 않는 결제사"));
+        //when
+        //then
+        assertThatThrownBy(() -> paymentFacade.approve(command))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER);
     }
 
     private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {

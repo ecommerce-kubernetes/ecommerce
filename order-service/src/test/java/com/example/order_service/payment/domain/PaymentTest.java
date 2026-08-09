@@ -232,6 +232,78 @@ class PaymentTest {
                 .isEqualTo(PaymentErrorCode.APPROVAL_AMOUNT_MISMATCH);
     }
 
+    @Test
+    @DisplayName("결제를 실패 처리한다.")
+    void abort() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        PaymentFailure failure = PaymentFailure.of("UNSUPPORTED_PROVIDER", "지원하지 않는 결제사 입니다.");
+
+        payment.approvePending(approvePendingContext);
+        //when
+        payment.abort(failure);
+        //then
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
+    }
+
+    @Test
+    @DisplayName("결제를 실패 처리할때 결제 상태가 준비 또는 승인 대기가 아니면 예외가 발생한다.")
+    void abort_not_ready_or_approval_pending() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+
+        PaymentFailure failure = PaymentFailure.of("UNSUPPORTED_PROVIDER", "지원하지 않는 결제사 입니다.");
+
+        payment.approvePending(approvePendingContext);
+        payment.approve(approveContext, idGenerator);
+        //when
+        //then
+        assertThatThrownBy(() -> payment.abort(failure))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_CANNOT_ABORT);
+    }
+
+    @Test
+    @DisplayName("결제를 실패 처리할때 실패 사유가 누락되면 예외가 발생한다.")
+    void abort_failure_null() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        payment.approvePending(approvePendingContext);
+        //when
+        //then
+        assertThatThrownBy(() -> payment.abort(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("결제 실패시 실패 사유는 필수입니다.");
+    }
+
     private CreatePaymentContext createPaymentContext() {
         return CreatePaymentContext.builder()
                 .orderId(1L)

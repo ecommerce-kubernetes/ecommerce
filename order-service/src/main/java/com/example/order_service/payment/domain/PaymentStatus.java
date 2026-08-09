@@ -9,8 +9,7 @@ public enum PaymentStatus {
     DONE("완료"),
     CANCELED("결제 취소"),
     PARTIAL_CANCELED("부분 취소"),
-    ABORTED("결제 승인 실패"),
-    WAITING_FOR_DEPOSIT("입금 대기"),
+    ABORTED("결제 실패"),
     MANUAL_CHECK("수동 점검"),
     REFUND_PENDING("결제 취소 대기");
     private final String description;
