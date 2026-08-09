@@ -131,6 +131,36 @@ class PaymentCommandServiceTest {
                 .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
     }
 
+    @Test
+    @DisplayName("결제를 실패 처리한다.")
+    void abort() {
+        //given
+        CreatePaymentContext context = createContext();
+        Payment payment = Payment.create(context, idGenerator);
+        paymentRepository.save(payment);
+
+        PaymentFailure failure = PaymentFailure.of("EXPIRED", "결제 시간이 초과되었습니다.");
+        //when
+        paymentCommandService.abort(payment.getId(), 1L, failure);
+        //then
+        Payment findPayment = paymentRepository.findByIdAndUserId(payment.getId(), 1L).orElseThrow();
+        assertThat(findPayment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
+        assertThat(findPayment.getFailure()).isEqualTo(failure);
+    }
+
+    @Test
+    @DisplayName("결제를 실패 처리할때 결제를 찾을 수 없으면 예외가 발생한다.")
+    void abort_notFound_payment() {
+        //given
+        PaymentFailure failure = PaymentFailure.of("EXPIRED", "결제 시간이 초과되었습니다.");
+        //when
+        //then
+        assertThatThrownBy(() -> paymentCommandService.abort(999L, 1L, failure))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
+    }
+
     private CreatePaymentContext createContext() {
         return CreatePaymentContext.builder()
                 .orderId(1L)

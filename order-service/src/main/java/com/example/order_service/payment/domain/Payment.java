@@ -118,6 +118,7 @@ public class Payment extends BaseEntity {
         }
 
         this.status = PaymentStatus.ABORTED;
+        this.failure = failure;
     }
 
     private void addTransaction(PaymentTransaction transaction) {

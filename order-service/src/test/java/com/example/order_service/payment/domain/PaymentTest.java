@@ -251,6 +251,7 @@ class PaymentTest {
         payment.abort(failure);
         //then
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
+        assertThat(payment.getFailure()).isEqualTo(failure);
     }
 
     @Test
