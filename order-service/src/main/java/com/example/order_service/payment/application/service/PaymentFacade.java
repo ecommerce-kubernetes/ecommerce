@@ -20,6 +20,7 @@ import com.example.order_service.payment.application.service.dto.result.PaymentC
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
+import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -60,7 +61,16 @@ public class PaymentFacade {
 
     public PaymentConfirmResult approve(PaymentConfirmCommand command) {
         ApprovePendingPaymentContext approvePendingContext = contextFactory.approvePending(command.amount(), command.provider(), command.paymentKey());
-        paymentCommandService.approvePending(command.paymentId(), command.userId(), approvePendingContext);
+
+        try {
+            paymentCommandService.approvePending(command.paymentId(), command.userId(), approvePendingContext);
+        } catch (BusinessException e) {
+            if (e.getErrorCode().equals(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH)){
+                PaymentFailure failure = PaymentFailure.of(e.getErrorCode().name(), e.getErrorCode().getMessage());
+                paymentCommandService.abort(command.paymentId(), command.userId(), failure);
+            }
+            throw e;
+        }
 
         PaymentResult payment = paymentQueryService.getPayment(command.paymentId(), command.userId());
         paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());

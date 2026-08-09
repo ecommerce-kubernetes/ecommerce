@@ -1,6 +1,7 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
@@ -13,11 +14,13 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,6 +121,30 @@ class PaymentFacadeTest {
     }
 
     @Test
+    @DisplayName("승인 금액이 결제 금액과 동일하지 않으면 결제를 실패 처리하고 예외가 발생한다.")
+    void approve_payment_misMatch_amount() {
+        //given
+        PaymentConfirmCommand command = PaymentConfirmCommand.builder()
+                .paymentId(1L)
+                .userId(1L)
+                .paymentKey("paymentKey")
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .build();
+
+        willThrow(new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH))
+                .given(paymentCommandService).approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
+        //when
+        //then
+        assertThatThrownBy(() -> paymentFacade.approve(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
+
+        verify(paymentCommandService).abort(anyLong(), anyLong(), any(PaymentFailure.class));
+    }
+
+    @Test
     @DisplayName("결제 승인시 지원하지 않는 결제사인 경우 예외가 발생한다.")
     void approve_unsupportedProvider() {
         //given
@@ -141,6 +168,8 @@ class PaymentFacadeTest {
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER);
+
+        verify(paymentCommandService).abort(anyLong(), anyLong(), any());
     }
 
     private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {
