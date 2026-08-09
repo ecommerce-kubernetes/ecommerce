@@ -2,7 +2,6 @@ package com.example.order_service.payment.application.external.mapper;
 
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import com.example.order_service.payment.infrastructure.adaptor.client.pg.PGErrorTranslator;
-import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentFacadeTest {
@@ -132,6 +131,15 @@ class PaymentFacadeTest {
                 .provider(PaymentProvider.TOSS)
                 .build();
 
+        PaymentResult paymentResult = PaymentResult.builder()
+                .paymentId(1L)
+                .orderId(1L)
+                .userId(1L)
+                .status(PaymentStatus.READY)
+                .totalAmount(Money.wons(1000L))
+                .build();
+
+        given(paymentQueryService.getPayment(anyLong(), anyLong())).willReturn(paymentResult);
         willThrow(new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH))
                 .given(paymentCommandService).approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
         //when

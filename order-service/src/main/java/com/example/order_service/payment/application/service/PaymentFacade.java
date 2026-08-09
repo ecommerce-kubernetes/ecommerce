@@ -10,7 +10,6 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
-import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
@@ -60,10 +59,17 @@ public class PaymentFacade {
     }
 
     public PaymentConfirmResult approve(PaymentConfirmCommand command) {
+        // 1. prePG (PG 호출 전 결제 승인 대기 변경)
+        /*
+            로직 에러 -> READY 유지,
+            상태 이상 -> 기존 상태 유지,
+            DB 장애 -> READY 유지,
+            금액 검증 실패 -> ABORT 변경
+         */
+        PaymentResult payment = paymentQueryService.getPayment(command.paymentId(), command.userId());
         ApprovePendingPaymentContext approvePendingContext = contextFactory.approvePending(command.amount(), command.provider(), command.paymentKey());
-
         try {
-            paymentCommandService.approvePending(command.paymentId(), command.userId(), approvePendingContext);
+            paymentCommandService.approvePending(payment.paymentId(), payment.userId(), approvePendingContext);
         } catch (BusinessException e) {
             if (e.getErrorCode().equals(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH)){
                 PaymentFailure failure = PaymentFailure.of(e.getErrorCode().name(), e.getErrorCode().getMessage());
@@ -72,9 +78,25 @@ public class PaymentFacade {
             throw e;
         }
 
-        PaymentResult payment = paymentQueryService.getPayment(command.paymentId(), command.userId());
+        // 2. pg (PG를 호출하여 처리결과를 매핑)
+        /*
+            지원하지 않는 결제사 -> ABORT 변경
+            명시적 결제 실패 -> ABORT 변경
+            PG 호출 상태 불명 -> APPROVAL_PENDING 유지
+            결제 수단 위반 -> 망 취소 진행 후 ABORT 변경
+                망 취소 실패시 APPROVAL_PENDING 유지
+         */
         paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());
         return null;
+
+        // 3. post pg (PG 결과를 저장하여 승인처리)
+        /*
+            승인 성공 -> DONE 변경
+            도메인 금액 검증 실패 -> 망 취소 진행 후 ABORT 변경
+                망취소 실패시 APPROVAL_PENDING 유지
+            DB 장애 -> 망 취소 진행 후 ABORT 변경
+                망취소 실패시 APPROVAL_PENDING 유지
+         */
     }
 
 

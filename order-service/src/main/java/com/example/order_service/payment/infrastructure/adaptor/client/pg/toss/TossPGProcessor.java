@@ -2,7 +2,9 @@ package com.example.order_service.payment.infrastructure.adaptor.client.pg.toss;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
-import com.example.order_service.common.exception.external.*;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
+import com.example.order_service.common.exception.external.ExternalSystemException;
+import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import com.example.order_service.infrastructure.gateway.TossGateway;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
@@ -10,7 +12,6 @@ import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import com.example.order_service.payment.infrastructure.adaptor.client.pg.PGProcessor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 
 @Component
