@@ -63,11 +63,7 @@ public class OrderProductPortMapper {
             case "STOP_SALE" -> OrderProductStatus.STOP_SALE;
             case "DELETED" -> OrderProductStatus.DELETED;
             case "PREPARING" -> OrderProductStatus.PREPARING;
-            case null, default -> throw new PortException(
-                    OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR,
-                    "UNSUPPORTED_STATUS",
-                    "처리할 수 없는 상품 상태입니다"
-            );
+            case null, default -> OrderProductStatus.UNKNOWN;
         };
     }
 }

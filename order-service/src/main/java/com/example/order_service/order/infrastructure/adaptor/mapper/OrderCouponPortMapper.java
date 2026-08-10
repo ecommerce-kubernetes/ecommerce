@@ -86,11 +86,7 @@ public class OrderCouponPortMapper {
         return switch (couponStatus) {
             case "AVAILABLE" -> OrderCouponStatus.AVAILABLE;
             case "USED" -> OrderCouponStatus.USED;
-            case null, default -> throw new PortException(
-                    OrderCouponPortErrorCode.COUPON_CLIENT_ERROR,
-                    "UNSUPPORTED_STATUS",
-                    "처리할 수 없는 쿠폰 상태 입니다."
-            );
+            case null, default -> OrderCouponStatus.UNKNOWN;
         };
     }
 }

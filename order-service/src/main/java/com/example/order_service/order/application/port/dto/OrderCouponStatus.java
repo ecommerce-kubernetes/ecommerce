@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum OrderCouponStatus {
     AVAILABLE("사용 가능"),
-    USED("사용됨");
+    USED("사용됨"),
+    UNKNOWN("알 수 없음");
     private final String description;
 }
