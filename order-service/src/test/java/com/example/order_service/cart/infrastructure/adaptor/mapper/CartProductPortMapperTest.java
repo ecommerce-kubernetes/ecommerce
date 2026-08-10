@@ -3,8 +3,6 @@ package com.example.order_service.cart.infrastructure.adaptor.mapper;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.mapper.MoneyMapper;
-import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -17,8 +15,8 @@ import static org.assertj.core.api.BDDAssertions.tuple;
 import static org.instancio.Select.field;
 
 public class CartProductPortMapperTest {
-    private MoneyMapper moneyMapper = new MoneyMapperImpl();
-    private CartProductPortMapper cartProductPortMapper = new CartProductPortMapperImpl(moneyMapper);
+
+    private final CartProductPortMapper cartProductPortMapper = new CartProductPortMapper();
 
     @Test
     @DisplayName("장바구니 상품 조회 결과 매핑")

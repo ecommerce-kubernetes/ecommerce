@@ -2,41 +2,55 @@ package com.example.order_service.cart.infrastructure.adaptor.mapper;
 
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
-import com.example.order_service.cart.exception.CartProductPortErrorCode;
-import com.example.order_service.common.exception.PortException;
-import com.example.order_service.common.mapper.MoneyMapper;
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
-import org.mapstruct.InjectionStrategy;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.NullValueMappingStrategy;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-        uses = {MoneyMapper.class}, nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
-public interface CartProductPortMapper {
+import java.util.List;
 
-    CartProductResult toCartProductResult(ProductResponse response);
+@Component
+public class CartProductPortMapper {
 
-    @Mapping(target = "originalPrice", source = "unitPrice.originalPrice")
-    @Mapping(target = "discountAmount", source = "unitPrice.discountAmount")
-    @Mapping(target = "discountRate", source = "unitPrice.discountRate")
-    @Mapping(target = "discountedPrice", source = "unitPrice.discountedPrice")
-    @Mapping(target = "status", source = "status")
-    CartProductResult.CartProductDetail toCartProductDetail(ProductResponse.ProductDetail product);
+    public CartProductResult toCartProductResult(ProductResponse response) {
+        List<CartProductResult.CartProductDetail> products = response.products().stream().map(this::toCartProductDetail).toList();
+        return CartProductResult.builder()
+                .products(products)
+                .build();
+    }
 
-    CartProductResult.ProductOption toOption(ProductResponse.ProductOption option);
+    private CartProductResult.CartProductDetail toCartProductDetail(ProductResponse.ProductDetail product) {
+        List<CartProductResult.ProductOption> options = product.options().stream().map(this::toCartProductOption).toList();
+        CartProductStatus status = toCartProductStatus(product.status());
+        return CartProductResult.CartProductDetail.builder()
+                .productId(product.productId())
+                .productVariantId(product.productVariantId())
+                .status(status)
+                .stock(product.stock())
+                .sku(product.sku())
+                .productName(product.productName())
+                .thumbnail(product.thumbnail())
+                .originalPrice(Money.wons(product.unitPrice().originalPrice()))
+                .discountRate(product.unitPrice().discountRate())
+                .discountAmount(Money.wons(product.unitPrice().discountAmount()))
+                .discountedPrice(Money.wons(product.unitPrice().discountedPrice()))
+                .options(options)
+                .build();
+    }
 
-    default CartProductStatus toProductStatus(String productStatus) {
-        return switch (productStatus) {
+    private CartProductResult.ProductOption toCartProductOption(ProductResponse.ProductOption option) {
+        return CartProductResult.ProductOption.builder()
+                .optionTypeName(option.optionTypeName())
+                .optionValueName(option.optionValueName())
+                .build();
+    }
+
+    private CartProductStatus toCartProductStatus(String status) {
+        return switch (status) {
+            case "PREPARING" -> CartProductStatus.PREPARING;
             case "ON_SALE" -> CartProductStatus.ON_SALE;
             case "STOP_SALE" -> CartProductStatus.STOP_SALE;
             case "DELETED" -> CartProductStatus.DELETED;
-            case "PREPARING" -> CartProductStatus.PREPARING;
-            case null, default -> throw new PortException(
-                    CartProductPortErrorCode.PRODUCT_CLIENT_ERROR,
-                    "UNSUPPORTED_STATUS",
-                    "처리할 수 없는 상품 상태입니다"
-            );
+            default -> CartProductStatus.UNKNOWN;
         };
     }
 }

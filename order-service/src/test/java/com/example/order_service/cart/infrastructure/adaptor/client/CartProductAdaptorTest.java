@@ -4,15 +4,12 @@ import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartProductPortErrorCode;
 import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapper;
-import com.example.order_service.cart.infrastructure.adaptor.mapper.CartProductPortMapperImpl;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.common.mapper.MoneyMapper;
-import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
 import org.junit.jupiter.api.DisplayName;
@@ -39,9 +36,7 @@ class CartProductAdaptorTest {
     @Mock
     private ProductGateway productGateway;
     @Spy
-    private MoneyMapper moneyMapper = new MoneyMapperImpl();
-    @Spy
-    private CartProductPortMapper cartProductPortMapper = new CartProductPortMapperImpl(moneyMapper);
+    private CartProductPortMapper cartProductPortMapper;
 
     @Test
     @DisplayName("상품을 조회한다")
