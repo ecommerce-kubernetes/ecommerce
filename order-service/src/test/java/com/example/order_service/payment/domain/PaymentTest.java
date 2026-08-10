@@ -136,6 +136,30 @@ class PaymentTest {
     }
 
     @Test
+    @DisplayName("결제를 승인 대기로 변경할때 지원하지 않는 결제사인 경우 예외가 발생한다.")
+    void approvePending_unsupported_provider() {
+        //given
+        CreatePaymentContext context = CreatePaymentContext.builder()
+                .orderId(1L)
+                .userId(1L)
+                .totalAmount(Money.ZERO)
+                .build();
+        Payment payment = Payment.create(context, idGenerator);
+        PaymentProvider provider = PaymentProvider.KAKAO;
+        ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(provider)
+                .paymentKey("paymentKey")
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> payment.approvePending(approveContext))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_READY);
+    }
+
+    @Test
     @DisplayName("결제를 승인 대기로 변경할 때 결제 가격이 일치하지 않으면 예외가 발생한다.")
     void approvePending_totalAmount_missMatch() {
         //given

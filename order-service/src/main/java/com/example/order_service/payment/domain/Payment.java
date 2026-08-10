@@ -85,6 +85,10 @@ public class Payment extends BaseEntity {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_READY);
         }
 
+        if (!context.provider().equals(PaymentProvider.TOSS)) {
+            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_PROVIDER);
+        }
+
         if (!this.totalAmount.equals(context.amount())) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }

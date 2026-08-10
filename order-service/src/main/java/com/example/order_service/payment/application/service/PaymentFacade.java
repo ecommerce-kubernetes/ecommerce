@@ -60,15 +60,7 @@ public class PaymentFacade {
 
     private void approvePendingPayment(PaymentResult payment, PaymentConfirmCommand command) {
         ApprovePendingPaymentContext approvePendingContext = contextFactory.approvePending(command.amount(), command.provider(), command.paymentKey());
-        try {
-            paymentCommandService.approvePending(payment.paymentId(), payment.userId(), approvePendingContext);
-        } catch (BusinessException e) {
-            if (e.getErrorCode().equals(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH)) {
-                PaymentFailure failure = PaymentFailure.of(e.getErrorCode().name(), e.getErrorCode().getMessage());
-                paymentCommandService.abort(command.paymentId(), command.userId(), failure);
-            }
-            throw e;
-        }
+        paymentCommandService.approvePending(payment.paymentId(), payment.userId(), approvePendingContext);
     }
 
     private PGConfirmResult confirmPG(PaymentResult payment, PaymentConfirmCommand command) {
