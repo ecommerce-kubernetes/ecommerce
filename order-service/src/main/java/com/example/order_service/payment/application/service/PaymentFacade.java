@@ -2,6 +2,7 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.exception.PortException;
+import com.example.order_service.payment.application.port.PaymentEventPort;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
@@ -16,6 +17,7 @@ import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.domain.event.PaymentApprovedEvent;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class PaymentFacade {
     private final PaymentQueryService paymentQueryService;
     private final PaymentOrderPort paymentOrderPort;
     private final PaymentPGPort paymentPGPort;
+    private final PaymentEventPort paymentEventPort;
     private final PaymentValidator paymentValidator;
     private final PGErrorPolicy pgErrorPolicy;
     private final PaymentContextFactory contextFactory;
@@ -54,6 +57,8 @@ public class PaymentFacade {
         PGConfirmResult confirmResult = confirmPG(payment, command);
 
         approvePayment(confirmResult, payment, command);
+
+        publishApproved(payment);
 
         return PaymentConfirmResult.of(payment.paymentId());
     }
@@ -98,5 +103,10 @@ public class PaymentFacade {
         } catch (PortException e) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);
         }
+    }
+
+    private void publishApproved(PaymentResult payment) {
+        PaymentApprovedEvent approvedEvent = PaymentApprovedEvent.of(payment.paymentId(), payment.orderId(), payment.userId());
+        paymentEventPort.publishApproved(approvedEvent);
     }
 }
