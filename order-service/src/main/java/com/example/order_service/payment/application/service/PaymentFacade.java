@@ -24,6 +24,7 @@ import com.example.order_service.payment.application.service.dto.result.PaymentR
 import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.PaymentMethod;
+import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
@@ -41,7 +42,6 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class PaymentFacade {
-    private final OrderQueryService orderQueryService;
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
     private final PaymentOrderPort paymentOrderPort;
@@ -92,24 +92,9 @@ public class PaymentFacade {
             결제 수단 위반 -> 망 취소 진행 후 ABORT 변경
                 망 취소 실패시 APPROVAL_PENDING 유지
          */
-
-        // 3. post pg (PG 결과를 저장하여 승인처리)
-        /*
-            승인 성공 -> DONE 변경
-            도메인 금액 검증 실패 -> 망 취소 진행 후 ABORT 변경
-                망취소 실패시 APPROVAL_PENDING 유지
-            DB 장애 -> 망 취소 진행 후 ABORT 변경
-                망취소 실패시 APPROVAL_PENDING 유지
-         */
+        PGConfirmResult confirm;
         try {
-            PGConfirmResult confirm = paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());
-            if (confirm.method().equals(PaymentMethod.VIRTUAL_ACCOUNT)) {
-                paymentPGPort.netCancel(payment.paymentKey(), "지원하지 않는 결제 방법으로 인한 망 취소", payment.provider());
-                return null;
-            }
-            ApprovePaymentContext approve = contextFactory.approve(confirm.method(), confirm.transactionKey(), confirm.amount(), confirm.approvedAt());
-            paymentCommandService.approve(payment.paymentId(), payment.userId(), approve);
-            return null;
+            confirm = paymentPGPort.confirm(payment.orderId(), payment.paymentKey(), payment.totalAmount(), payment.provider());
         } catch (PortException e) {
             if (e.getErrorCode().equals(PaymentPGPortErrorCode.PG_INSUFFICIENT_BALANCE) ||
                     e.getErrorCode().equals(PaymentPGPortErrorCode.PG_METHOD_REJECTED) ||
@@ -121,111 +106,42 @@ public class PaymentFacade {
                 PaymentFailure failure = PaymentFailure.of(e.getErrorCode().getCode(), e.getErrorCode().getMessage());
                 paymentCommandService.abort(payment.paymentId(), payment.userId(), failure);
             }
+
+            throw e;
         }
 
-        return null;
-    }
-
-
-    public PaymentResultDeprecated.PaymentApproval confirm(PaymentCommand.Confirm command) {
-        OrderResult order = orderQueryService.getOrder(1L, command.userId());
-        if (order.status() != OrderStatus.PENDING) {
-            throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
-        }
-        if (!order.orderAmount().getTotalPaymentAmount().equals(command.amount())) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
-        }
-        PaymentContext.Create context = mapper.toContext(command);
-        PaymentResultDeprecated.Default payment = paymentCommandService.create(context);
-        PGPaymentResult.Approval pgResult = confirmWithPg(payment, order, command);
-        return approveWithFallback(payment, pgResult);
-    }
-
-    private PGPaymentResult.Approval confirmWithPg(PaymentResultDeprecated.Default payment, OrderResult order,
-                                                   PaymentCommand.Confirm command) {
+        // 3. post pg (PG 결과를 저장하여 승인처리)
+        /*
+            승인 성공 -> DONE 변경
+            도메인 금액 검증 실패 -> 망 취소 진행 후 ABORT 변경
+                망취소 실패시 APPROVAL_PENDING 유지
+            DB 장애 -> 망 취소 진행 후 ABORT 변경
+                망취소 실패시 APPROVAL_PENDING 유지
+         */
         try {
-            PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderId().toString(), command.paymentKey(),
-                    order.orderAmount().getTotalPaymentAmount());
-            return paymentGateway.confirm(gatewayCommand);
-        } catch (PaymentPortException e) {
-            PaymentErrorCode errorCode = e.errorCode();
-            switch (errorCode) {
-                case PAYMENT_PG_SERVER_ERROR,
-                     PAYMENT_PG_UNAVAILABLE_ERROR,
-                     PAYMENT_PG_CIRCUIT_OPEN,
-                     PAYMENT_PG_AUTH_ERROR:
-                    log.warn("[결제 승인 지연] PG 응답 불명. 대사 처리 대기. paymentId = {}", payment.id(), e);
-                    throw e;
-                case PAYMENT_PG_INSUFFICIENT_BALANCE,
-                     PAYMENT_PG_METHOD_REJECTED,
-                     PAYMENT_PG_POLICY_RESTRICTED,
-                     PAYMENT_PG_INVALID_REQUEST,
-                     PAYMENT_PG_ALREADY_PROCESSED,
-                     PAYMENT_PG_NOT_FOUND,
-                     PAYMENT_PG_ALREADY_CANCELED:
-                    log.info("[결제 승인 거절] PG사 거절. paymentId = {}, 사유 = {}", payment.id(), errorCode);
-                    abortPayment(payment.id(), errorCode.getCode());
-                    throw e;
-                default:
-                    throw new IllegalStateException(
-                            "Unhandled PaymentErrorCode : " + errorCode
-                    );
+            if (confirm.method() == PaymentMethod.VIRTUAL_ACCOUNT) {
+                throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
             }
-        }
-    }
 
-    private PaymentResultDeprecated.PaymentApproval approveWithFallback(PaymentResultDeprecated.Default payment,
-                                                                        PGPaymentResult.Approval pgResult) {
-        try {
-            PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
-            return paymentCommandService.approve(approvalContext);
+            ApprovePaymentContext approve = contextFactory.approve(confirm.method(), confirm.transactionKey(), confirm.amount(), confirm.approvedAt());
+            paymentCommandService.approve(payment.paymentId(), payment.userId(), approve);
+
+            return null;
         } catch (Exception e) {
-            boolean isCanceled = attemptNetworkCancel(payment.paymentKey());
-            if (isCanceled) {
-                abortPayment(payment.id(), "NET-CANCEL");
-                throw new BusinessException(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
-            } else {
-                throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);
-            }
+            executeNetworkCancelAndAbort(payment.paymentKey(), payment.paymentId(), payment.userId(), payment.provider(), "시스템 장애 또는 비즈니스 룰 위반으로 인한 자동 망취소");
+            throw e;
         }
     }
 
-    private boolean attemptNetworkCancel(String paymentKey) {
+    private void executeNetworkCancelAndAbort(String paymentKey, Long paymentId, Long userId, PaymentProvider provider, String reason) {
         try {
-            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
-            paymentGateway.cancel(cancelCommand);
-            return true;
-        } catch (PaymentPortException e) {
-            PaymentErrorCode errorCode = e.errorCode();
-            switch (errorCode) {
-                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN,
-                     PAYMENT_PG_AUTH_ERROR:
-                    log.warn("[망취소] PG 응답 불명. 대사 처리 대기. paymentKey = {}", paymentKey);
-                    return false;
-                case PAYMENT_PG_ALREADY_CANCELED:
-                    return true;
-                default:
-                    log.info("[망취소] PG사 거절. paymentKey = {}", paymentKey);
-                    return false;
-            }
-        }
-    }
+           paymentPGPort.netCancel(paymentKey, reason, provider);
 
-    /**
-     * [NOTE]
-     * 내부 DB의 결제 상태를 ABORT로 변경
-     * [의도적인 예외 삼킴(Swallowing) 로직 포함]
-     * 이미 PG사 통신에서 실패가 확정되어 금전적 피해가 없는 안전한 상태
-     * 여기서 DB 업데이트 실패로 인해 예외를 밖으로 던지게 되면,
-     * 원래의 비즈니스 에러가 DB 시스템 에러로 덮어씌워짐
-     * 따라서 DB 갱신에 실패하더라도 예외를 삼키고 원래의 에러 흐름을 유지
-     * READY 상태의 Payment는 대사 스케줄러가 정리
-     */
-    private void abortPayment(Long paymentId, String reason) {
-        try {
-            paymentCommandService.abort(paymentId, reason);
-        } catch (Exception e) {
-            log.error("결제 ABORT 변경 실패 paymentId = {}, reason = {}", paymentId, reason, e);
+            PaymentFailure failure = PaymentFailure.of("NETWORK_CANCEL", reason);
+            paymentCommandService.abort(paymentId, userId, failure);
+
+        } catch (PortException e) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);
         }
     }
 
