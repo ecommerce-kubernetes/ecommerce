@@ -154,6 +154,72 @@ class OrderTest {
                 .isEqualTo(OrderErrorCode.ORDER_ITEMS_REQUIRED);
     }
 
+    @Test
+    @DisplayName("주문을 결제 상태로 변경한다.")
+    void paid() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
+                "12345", "서울시 테헤란로 123", "123동 1234호");
+        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
+        OrderAmount orderAmount = OrderAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(24000L)
+        );
+        CreateOrderItemContext orderItemContext = createOrderItemContext();
+        CreateOrderContext context = CreateOrderContext.builder()
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .appliedCartCoupon(appliedCartCoupon)
+                .items(List.of(orderItemContext))
+                .orderAmount(orderAmount)
+                .build();
+        Order order = Order.create(context, idGenerator);
+        //when
+        order.paid();
+        //then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+    }
+
+    //TODO 이후 주문 상태 변경 메서드 추가시 given 수정
+    @Test
+    @DisplayName("주문을 결제 상태로 변경할 때 주문의 상태가 결제 대기가 아니면 예외가 발생한다.")
+    void paid_not_pending() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
+                "12345", "서울시 테헤란로 123", "123동 1234호");
+        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
+        OrderAmount orderAmount = OrderAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(24000L)
+        );
+        CreateOrderItemContext orderItemContext = createOrderItemContext();
+        CreateOrderContext context = CreateOrderContext.builder()
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .appliedCartCoupon(appliedCartCoupon)
+                .items(List.of(orderItemContext))
+                .orderAmount(orderAmount)
+                .build();
+        Order order = Order.create(context, idGenerator);
+        order.paid();
+        //when
+        //then
+        assertThatThrownBy(order::paid)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_CANNOT_PAID);
+    }
+
     private CreateOrderItemContext createOrderItemContext() {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));

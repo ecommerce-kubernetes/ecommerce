@@ -185,11 +185,13 @@
 #### 행위
 
 - create(주문 생성): 주문을 생성한다.
+- paid(주문 결제): 주문을 결제 상태로 변경한다.
 
 #### 규칙
 
 - 주문을 생성할때 주문 필수 정보(id, status, orderName, orderer, shippingAddress, orderItems, orderAmount, createdAt)가 필요하다.
 - 생성된 주문은 결제 대기(`PENDING`) 상태이다.
+- 주문을 결제 상태로 변경할때 주문의 상태는 결제 대기(`PENDING`) 상태여야 한다.
 
 ### 주문 항목(OrderItem)
 

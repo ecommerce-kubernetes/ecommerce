@@ -109,4 +109,10 @@ public class Order extends BaseEntity {
         orderItem.setOrder(this);
     }
 
+    public void paid() {
+        if (!this.status.equals(OrderStatus.PENDING)) {
+            throw new BusinessException(OrderErrorCode.ORDER_CANNOT_PAID);
+        }
+        this.status = OrderStatus.PAID;
+    }
 }
