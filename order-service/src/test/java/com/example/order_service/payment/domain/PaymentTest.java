@@ -204,6 +204,35 @@ class PaymentTest {
     }
 
     @Test
+    @DisplayName("결제를 승인할때 지원하지 않는 결제 방식인 경우 예외가 발생한다.")
+    void approve_unsupported_method() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        payment.approvePending(approvePendingContext);
+
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.VIRTUAL_ACCOUNT)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> payment.approve(approveContext, idGenerator))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
+    }
+
+    @Test
     @DisplayName("결제를 승인할 때 승인 금액이 일치하지 않으면 예외가 발생한다.")
     void approve_missMatch_totalAmount() {
         //given

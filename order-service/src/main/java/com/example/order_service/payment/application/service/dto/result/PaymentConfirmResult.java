@@ -6,4 +6,9 @@ import lombok.Builder;
 public record PaymentConfirmResult(
         Long paymentId
 ) {
+    public static PaymentConfirmResult of(Long paymentId) {
+        return PaymentConfirmResult.builder()
+                .paymentId(paymentId)
+                .build();
+    }
 }

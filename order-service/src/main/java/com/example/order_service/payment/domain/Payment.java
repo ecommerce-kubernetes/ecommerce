@@ -99,6 +99,10 @@ public class Payment extends BaseEntity {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVE_PENDING);
         }
 
+        if (context.method().equals(PaymentMethod.VIRTUAL_ACCOUNT)){
+            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
+        }
+
         if (!this.totalAmount.equals(context.amount())) {
             throw new BusinessException(PaymentErrorCode.APPROVAL_AMOUNT_MISMATCH);
         }
