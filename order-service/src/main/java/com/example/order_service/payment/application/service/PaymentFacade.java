@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,8 +31,8 @@ public class PaymentFacade {
     private final PaymentOrderPort paymentOrderPort;
     private final PaymentPGPort paymentPGPort;
     private final PaymentValidator paymentValidator;
+    private final PGErrorPolicy pgErrorPolicy;
     private final PaymentContextFactory contextFactory;
-    private final Clock clock;
 
     public PaymentCreateResult create(PaymentCreateCommand command) {
         PaymentOrderResult order = paymentOrderPort.getOrder(command.orderId(), command.userId());
@@ -77,14 +75,8 @@ public class PaymentFacade {
         try {
             return paymentPGPort.confirm(payment.orderId(), command.paymentKey(), payment.totalAmount(), command.provider());
         } catch (PortException e) {
-            if (e.getErrorCode().equals(PaymentPGPortErrorCode.PG_INSUFFICIENT_BALANCE) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_METHOD_REJECTED) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_POLICY_RESTRICTED) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_INVALID_REQUEST) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_NOT_FOUND) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_AUTH_ERROR) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER) ||
-                    e.getErrorCode().equals(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN)) {
+            PaymentPGPortErrorCode errorCode = (PaymentPGPortErrorCode) e.getErrorCode();
+            if (pgErrorPolicy.isAbortTargetOnApprove(errorCode)) {
                 PaymentFailure failure = PaymentFailure.of(e.getErrorCode().getCode(), e.getErrorCode().getMessage());
                 paymentCommandService.abort(payment.paymentId(), payment.userId(), failure);
             }
@@ -94,10 +86,12 @@ public class PaymentFacade {
 
     private void approvePayment(PGConfirmResult confirmResult, PaymentResult payment, PaymentConfirmCommand command) {
         try {
-            ApprovePaymentContext approve = contextFactory.approve(confirmResult.method(), confirmResult.transactionKey(), confirmResult.amount(), confirmResult.approvedAt());
+            ApprovePaymentContext approve = contextFactory.approve(confirmResult.method(), confirmResult.transactionKey(),
+                    confirmResult.amount(), confirmResult.approvedAt());
             paymentCommandService.approve(payment.paymentId(), payment.userId(), approve);
         } catch (Exception e) {
-            executeNetworkCancelAndAbort(command.paymentKey(), payment.paymentId(), payment.userId(), command.provider(), "시스템 장애 또는 비즈니스 룰 위반으로 인한 자동 망취소");
+            executeNetworkCancelAndAbort(command.paymentKey(), payment.paymentId(), payment.userId(), command.provider(),
+                    "시스템 장애 또는 비즈니스 룰 위반으로 인한 자동 망취소");
             throw e;
         }
     }

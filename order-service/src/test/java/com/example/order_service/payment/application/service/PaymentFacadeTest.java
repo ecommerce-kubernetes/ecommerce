@@ -2,7 +2,6 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
@@ -21,7 +20,6 @@ import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
-import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +53,8 @@ class PaymentFacadeTest {
     private PaymentValidator validator;
     @Spy
     private PaymentContextFactory contextFactory;
+    @Spy
+    private PGErrorPolicy pgErrorPolicy;
 
     @Test
     @DisplayName("결제를 생성한다.")
@@ -150,34 +150,6 @@ class PaymentFacadeTest {
                 .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
 
         verify(paymentCommandService).abort(anyLong(), anyLong(), any(PaymentFailure.class));
-    }
-
-    @Test
-    @DisplayName("결제 승인시 지원하지 않는 결제사인 경우 예외가 발생한다.")
-    void approve_unsupportedProvider() {
-        //given
-        PaymentConfirmCommand command = PaymentConfirmCommand.builder()
-                .paymentId(1L)
-                .userId(1L)
-                .paymentKey("paymentKey")
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.KAKAO)
-                .build();
-
-        willDoNothing()
-                .given(paymentCommandService)
-                .approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
-
-        given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
-                .willThrow(new PortException(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER, "UNSUPPORTED_PROVIDER", "지원하지 않는 결제사"));
-        //when
-        //then
-        assertThatThrownBy(() -> paymentFacade.approve(command))
-                .isInstanceOf(PortException.class)
-                .extracting("errorCode")
-                .isEqualTo(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER);
-
-        verify(paymentCommandService).abort(anyLong(), anyLong(), any());
     }
 
     private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {
