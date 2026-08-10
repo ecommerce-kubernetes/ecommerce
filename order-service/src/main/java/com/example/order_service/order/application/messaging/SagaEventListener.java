@@ -48,6 +48,6 @@ public class SagaEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPaymentRefound(OrderSagaFailedEvent event) {
-        paymentFacade.revert(event.getPaymentId(), event.getCode());
+
     }
 }

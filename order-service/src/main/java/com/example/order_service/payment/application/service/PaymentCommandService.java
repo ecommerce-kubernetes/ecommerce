@@ -3,8 +3,6 @@ package com.example.order_service.payment.application.service;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.application.port.PaymentRepository;
-import com.example.order_service.payment.application.service.dto.command.PaymentContext;
-import com.example.order_service.payment.application.service.dto.result.PaymentResultDeprecated;
 import com.example.order_service.payment.domain.Payment;
 import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
@@ -14,8 +12,6 @@ import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -47,33 +43,5 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.abort(failure);
-    }
-
-    public PaymentResultDeprecated.Default create(PaymentContext.Create context) {
-        return null;
-    }
-
-    public PaymentResultDeprecated.PaymentApproval approve(PaymentContext.Approval context) {
-        return null;
-    }
-
-    public void abort(Long id, String failureCode) {
-
-    }
-
-    public void changeRefundPending(Long id, LocalDateTime refundPendingAt) {
-
-    }
-
-    public PaymentResultDeprecated.PaymentCancel cancel(PaymentContext.Cancellation context) {
-        return null;
-    }
-
-    public void changeApprovalManualCheck(Long id) {
-
-    }
-
-    public void changeRefundManualCheck(Long id) {
-
     }
 }

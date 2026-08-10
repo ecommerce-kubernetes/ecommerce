@@ -1,6 +1,5 @@
 package com.example.order_service.payment.api.scheduler;
 
-import com.example.order_service.payment.application.service.PaymentReconciler;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -10,8 +9,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PaymentReconciliationScheduler {
 
-    private final PaymentReconciler paymentReconciler;
-
     @Scheduled(initialDelay = 10000, fixedDelay = 60000)
     @SchedulerLock(
             name = "paymentApprovalReconciliationLock",
@@ -19,7 +16,7 @@ public class PaymentReconciliationScheduler {
             lockAtMostFor = "PT5M"
     )
     public void runPaymentApprovalReconciliation() {
-        paymentReconciler.reconcileReadyPayments();
+
     }
 
     @Scheduled(initialDelay = 20000, fixedDelay = 180000)
@@ -29,6 +26,6 @@ public class PaymentReconciliationScheduler {
             lockAtMostFor = "PT5M"
     )
     public void runPaymentRefundReconciliation(){
-        paymentReconciler.reconcileRefundPendingPayments();
+
     }
 }
