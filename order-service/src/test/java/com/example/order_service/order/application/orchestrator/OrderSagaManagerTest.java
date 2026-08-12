@@ -1,7 +1,6 @@
 package com.example.order_service.order.application.orchestrator;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.application.messaging.SagaEventListener;
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.order.OrderItem;
@@ -47,8 +46,6 @@ class OrderSagaManagerTest {
     private OrderSagaInstanceRepository sagaRepository;
     @MockitoSpyBean
     private OrderSagaService orderSagaService;
-    @MockitoBean
-    private SagaEventListener sagaEventListener;
 
     @AfterEach
     void cleanUp() {

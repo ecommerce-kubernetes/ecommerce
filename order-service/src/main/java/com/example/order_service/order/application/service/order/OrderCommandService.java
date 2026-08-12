@@ -23,6 +23,10 @@ public class OrderCommandService {
         return save.getId();
     }
 
+    public void changePaid(Long orderId) {
+
+    }
+
     public void changePaid(String orderNo) {
     }
 

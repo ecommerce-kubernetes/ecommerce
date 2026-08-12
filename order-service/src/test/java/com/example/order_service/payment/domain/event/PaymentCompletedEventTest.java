@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class PaymentApprovedEventTest {
+class PaymentCompletedEventTest {
 
     @Test
     @DisplayName("결제 승인 이벤트 생성시 결제 아이디가 누락되면 예외가 발생한다.")
@@ -13,7 +13,7 @@ class PaymentApprovedEventTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> PaymentApprovedEvent.builder()
+        assertThatThrownBy(() -> PaymentCompletedEvent.builder()
                 .paymentId(null)
                 .orderId(1L)
                 .userId(1L)
@@ -28,7 +28,7 @@ class PaymentApprovedEventTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> PaymentApprovedEvent.builder()
+        assertThatThrownBy(() -> PaymentCompletedEvent.builder()
                 .paymentId(1L)
                 .orderId(null)
                 .userId(1L)
@@ -43,7 +43,7 @@ class PaymentApprovedEventTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> PaymentApprovedEvent.builder()
+        assertThatThrownBy(() -> PaymentCompletedEvent.builder()
                 .paymentId(1L)
                 .orderId(1L)
                 .userId(null)

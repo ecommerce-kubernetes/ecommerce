@@ -7,7 +7,7 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
-import com.example.order_service.payment.domain.event.PaymentApprovedEvent;
+import com.example.order_service.payment.domain.event.PaymentCompletedEvent;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -72,13 +72,18 @@ public class Payment extends BaseAggregateRoot {
                 ? PaymentStatus.DONE
                 : PaymentStatus.READY;
 
-        return Payment.builder()
+        Payment payment = Payment.builder()
                 .id(id)
                 .orderId(context.orderId())
                 .userId(context.userId())
                 .status(status)
                 .totalAmount(context.totalAmount())
                 .build();
+
+        if (payment.status.equals(PaymentStatus.DONE)) {
+            payment.registerCompleteEvent();
+        }
+        return payment;
     }
 
     public void approvePending(ApprovePendingPaymentContext context) {
@@ -117,6 +122,8 @@ public class Payment extends BaseAggregateRoot {
         PaymentTransaction transaction = PaymentTransaction.createApproval(context.transactionKey(), context.amount(),
                 context.occurredAt(), idGenerator);
         addTransaction(transaction);
+
+        registerCompleteEvent();
     }
 
     public void abort(PaymentFailure failure) {
@@ -135,9 +142,8 @@ public class Payment extends BaseAggregateRoot {
         transaction.setPayment(this);
     }
 
-    private void done() {
-        PaymentApprovedEvent event = PaymentApprovedEvent.of(this.id, this.orderId, this.userId);
-        this.status = PaymentStatus.DONE;
+    private void registerCompleteEvent() {
+        PaymentCompletedEvent event = PaymentCompletedEvent.of(this.id, this.orderId, this.userId);
         registerEvent(event);
     }
 }

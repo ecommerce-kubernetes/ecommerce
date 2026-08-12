@@ -37,6 +37,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.approve(context, idGenerator);
+        paymentRepository.save(payment);
     }
 
     public void abort(Long paymentId, Long userId, PaymentFailure failure) {

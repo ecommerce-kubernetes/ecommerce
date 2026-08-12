@@ -8,11 +8,14 @@ import com.example.order_service.payment.domain.*;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.domain.event.PaymentCompletedEvent;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -21,6 +24,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @IsolatedTest
 @Transactional
+@RecordApplicationEvents
 class PaymentCommandServiceTest {
 
     @Autowired
@@ -31,6 +35,9 @@ class PaymentCommandServiceTest {
     @Autowired
     private PaymentRepository paymentRepository;
 
+    @Autowired
+    private ApplicationEvents events;
+
     @Test
     @DisplayName("결제를 생성한다.")
     void create() {
@@ -40,6 +47,22 @@ class PaymentCommandServiceTest {
         Long id = paymentCommandService.create(context);
         //then
         assertThat(id).isNotNull();
+    }
+
+    @Test
+    @DisplayName("생성된 결제가 승인 완료라면 이벤트가 발행된다.")
+    void create_done() {
+        //given
+        CreatePaymentContext context = CreatePaymentContext.builder()
+                .userId(1L)
+                .orderId(1L)
+                .totalAmount(Money.ZERO)
+                .build();
+        //when
+        paymentCommandService.create(context);
+        //then
+        long eventCount = events.stream(PaymentCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
     }
 
     @Test
@@ -111,6 +134,9 @@ class PaymentCommandServiceTest {
                 .containsExactly(
                         tuple(TransactionType.PAYMENT, Money.wons(10000L))
                 );
+
+        long eventCount = events.stream(PaymentCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
     }
 
     @Test
