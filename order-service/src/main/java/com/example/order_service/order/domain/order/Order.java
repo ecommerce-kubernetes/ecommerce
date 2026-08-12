@@ -1,10 +1,12 @@
 package com.example.order_service.order.domain.order;
 
+import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
+import com.example.order_service.order.domain.order.event.OrderPaidEvent;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -22,7 +24,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "orders")
-public class Order extends BaseEntity {
+public class Order extends BaseAggregateRoot {
 
     @Id
     private Long id;
@@ -114,5 +116,11 @@ public class Order extends BaseEntity {
             throw new BusinessException(OrderErrorCode.ORDER_CANNOT_PAID);
         }
         this.status = OrderStatus.PAID;
+        registerPaidEvent();
+    }
+
+    private void registerPaidEvent() {
+        OrderPaidEvent event = OrderPaidEvent.of(this.getId());
+        registerEvent(event);
     }
 }

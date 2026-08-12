@@ -1,29 +1,37 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
+import com.example.order_service.order.domain.order.event.OrderPaidEvent;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.payment.domain.event.PaymentCompletedEvent;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @IsolatedTest
 @Transactional
+@RecordApplicationEvents
 public class OrderCommandServiceTest {
 
     @Autowired
@@ -31,6 +39,9 @@ public class OrderCommandServiceTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private ApplicationEvents events;
 
     @Test
     @DisplayName("주문을 저장한다")
@@ -54,6 +65,32 @@ public class OrderCommandServiceTest {
         orderCommandService.changePaid(order.getId());
         //then
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+    }
+
+    @Test
+    @DisplayName("주문을 결제 완료로 변경할때 주문을 찾을 수 없는 경우 예외가 발생한다.")
+    void changePaid_notFound_order() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderCommandService.changePaid(999L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("주문을 결제 완료로 변경되면 주문 결제 완료 이벤트가 발행된다.")
+    void changePaid_publish_event() {
+        //given
+        IdGenerator idGenerator = new TsidGenerator();
+        CreateOrderContext context = createOrderContext();
+        Order order = orderRepository.save(Order.create(context, idGenerator));
+        //when
+        orderCommandService.changePaid(order.getId());
+        //then
+        long eventCount = events.stream(OrderPaidEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
     }
 
     private CreateOrderContext createOrderContext() {

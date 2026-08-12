@@ -29,6 +29,7 @@ public class OrderCommandService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
         order.paid();
+        orderRepository.save(order);
     }
 
     public void changePaid(String orderNo) {
