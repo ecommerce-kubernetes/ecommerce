@@ -1,13 +1,13 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.cart.api.CartController;
-import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
-import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
-import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
-import com.example.order_service.cart.application.dto.result.*;
+import com.example.order_service.cart.adaptor.in.web.CartController;
+import com.example.order_service.cart.adaptor.in.web.dto.request.AddCartItemsRequest;
+import com.example.order_service.cart.adaptor.in.web.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.service.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.service.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.result.*;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;

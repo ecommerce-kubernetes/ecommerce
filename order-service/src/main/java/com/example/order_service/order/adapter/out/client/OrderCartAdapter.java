@@ -1,6 +1,6 @@
 package com.example.order_service.order.adapter.out.client;
 
-import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.application.service.dto.data.CartItemData;
 import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.order.application.port.OrderCartPort;
