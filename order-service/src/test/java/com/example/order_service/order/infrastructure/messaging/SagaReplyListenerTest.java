@@ -1,7 +1,7 @@
 package com.example.order_service.order.infrastructure.messaging;
 
 import com.example.order_service.order.application.orchestrator.OrderSagaManager;
-import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaStep;
 import com.example.order_service.order.infrastructure.messaging.dto.SagaReplyMessage;
 import com.example.order_service.order.infrastructure.messaging.dto.SagaResult;
 import com.example.order_service.support.annotation.MockRedis;

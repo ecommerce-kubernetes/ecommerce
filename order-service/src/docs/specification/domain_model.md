@@ -304,7 +304,6 @@
 |---------------|---------------|----------|
 | id            | Long          | 사가 아이디   |
 | orderId       | Long          | 주문 아이디   |
-| step          | SagaStep      | 사가 단계    |
 | status        | SagaStatus    | 사가 상태    |
 | payload       | SagaPayload   | 주문 자원    |
 | version       | Long          | 낙관적 락 버전 |

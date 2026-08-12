@@ -1,6 +1,10 @@
 package com.example.order_service.saga.domain;
 
 import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.tmp.OrderSagaInstance;
+import com.example.order_service.saga.domain.tmp.SagaStatus;
+import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaStepHistory;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
