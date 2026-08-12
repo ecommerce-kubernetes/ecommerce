@@ -1,4 +1,4 @@
-package com.example.order_service.order.api.scheduler;
+package com.example.order_service.order.adapter.in.scheduler;
 
 import com.example.order_service.order.application.service.order.OrderCleanupProcessor;
 import lombok.RequiredArgsConstructor;

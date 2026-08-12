@@ -1,4 +1,4 @@
-package com.example.order_service.payment.api.scheduler;
+package com.example.order_service.payment.adapter.in.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
