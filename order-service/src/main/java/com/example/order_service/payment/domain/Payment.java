@@ -1,12 +1,13 @@
 package com.example.order_service.payment.domain;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.domain.event.PaymentApprovedEvent;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -21,7 +22,7 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Payment extends BaseEntity {
+public class Payment extends BaseAggregateRoot {
 
     @Id
     private Long id;
@@ -132,5 +133,11 @@ public class Payment extends BaseEntity {
     private void addTransaction(PaymentTransaction transaction) {
         this.paymentTransactions.add(transaction);
         transaction.setPayment(this);
+    }
+
+    private void done() {
+        PaymentApprovedEvent event = PaymentApprovedEvent.of(this.id, this.orderId, this.userId);
+        this.status = PaymentStatus.DONE;
+        registerEvent(event);
     }
 }
