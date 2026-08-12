@@ -7,10 +7,10 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaCommand;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
-import com.example.order_service.saga.domain.tmp.SagaStatus;
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.saga.domain.tmp.StepResult;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import com.example.order_service.order.infrastructure.messaging.dto.SagaReplyMessage;
 import com.example.order_service.order.infrastructure.messaging.dto.SagaResult;
 import lombok.RequiredArgsConstructor;
@@ -41,21 +41,21 @@ public class OrderSagaManager {
     public void startSaga(String orderNo, Long paymentId) {
         orderCommandService.changePaid(orderNo);
         OrderResultDeprecated.Detail order = orderQueryService.getOrder(orderNo);
-        SagaPayload payload = createPayload(order);
+        SagaPayloadDeprecated payload = createPayload(order);
         OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         orderSagaService.createSaga(command);
     }
 
-    private SagaPayload createPayload(OrderResultDeprecated.Detail order) {
+    private SagaPayloadDeprecated createPayload(OrderResultDeprecated.Detail order) {
         List<Long> itemCouponIds = order.items().stream()
                 .map(item -> item.itemCoupon().getItemCouponId())
                 .filter(java.util.Objects::nonNull)
                 .toList();
-        SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(order.usedPoints());
-        SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(order.cartCoupon().getCartCouponId(), itemCouponIds);
-        List<SagaPayload.ItemPayload> itemPayloads = order.items().stream().map(item -> SagaPayload.ItemPayload
+        SagaPayloadDeprecated.PointPayload pointPayload = SagaPayloadDeprecated.PointPayload.of(order.usedPoints());
+        SagaPayloadDeprecated.CouponPayload couponPayload = SagaPayloadDeprecated.CouponPayload.of(order.cartCoupon().getCartCouponId(), itemCouponIds);
+        List<SagaPayloadDeprecated.ItemPayload> itemPayloads = order.items().stream().map(item -> SagaPayloadDeprecated.ItemPayload
                 .of(item.product().getProductVariantId(), item.quantity())).toList();
-        return SagaPayload.of(order.orderer().getUserId(), itemPayloads, couponPayload, pointPayload);
+        return SagaPayloadDeprecated.of(order.orderer().getUserId(), itemPayloads, couponPayload, pointPayload);
     }
 
     /**
@@ -86,7 +86,7 @@ public class OrderSagaManager {
         OrderSagaCommand.RecordHistory historyCommand = OrderSagaCommand.RecordHistory.of(
                 saga.orderNo(), StepResult.COMPLETED, saga.currentStep(), message.getCode()
         );
-        SagaPayload payload = saga.payload();
+        SagaPayloadDeprecated payload = saga.payload();
         switch (saga.currentStep()) {
             case INVENTORY_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
@@ -126,7 +126,7 @@ public class OrderSagaManager {
         OrderSagaCommand.RecordHistory historyCommand = OrderSagaCommand.RecordHistory.of(
                 saga.orderNo(), StepResult.FAILED, saga.currentStep(), message.getCode()
         );
-        SagaPayload payload = saga.payload();
+        SagaPayloadDeprecated payload = saga.payload();
         switch (saga.currentStep()) {
             case INVENTORY_DEDUCT_PENDING -> {
                 orderCommandService.changeFailed(saga.orderNo(), saga.causeCode());
@@ -151,7 +151,7 @@ public class OrderSagaManager {
     @Transactional
     public void timeoutSaga(Long sagaId) {
         OrderSagaResult.Default saga = orderSagaService.getSaga(sagaId);
-        if (saga.status() != SagaStatus.STARTED && saga.status() != SagaStatus.COMPENSATING) {
+        if (saga.status() != SagaStatus.PROCESSING && saga.status() != SagaStatus.COMPENSATING) {
             log.info("SAGA 타임아웃 처리 중단: 이미 완료되거나 종료된 인스턴스 sagaId={}", sagaId);
             return;
         }

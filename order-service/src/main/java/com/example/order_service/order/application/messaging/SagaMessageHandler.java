@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.messaging;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.SagaStep;
 
 /**
  * SAGA 메시지 핸들러 인터페이스

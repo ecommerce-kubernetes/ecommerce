@@ -1,9 +1,9 @@
 package com.example.order_service.order.application.event;
 
 import com.example.order_service.saga.domain.tmp.OrderSagaInstance;
-import com.example.order_service.saga.domain.tmp.SagaStatus;
-import com.example.order_service.saga.domain.tmp.SagaStep;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,7 +15,7 @@ public class OrderSagaProcessEvent {
     private String orderNo;
     private SagaStatus status;
     private SagaStep step;
-    private SagaPayload payload;
+    private SagaPayloadDeprecated payload;
 
     public static OrderSagaProcessEvent from(OrderSagaInstance instance) {
         return OrderSagaProcessEvent.builder()

@@ -1,8 +1,8 @@
 package com.example.order_service.order.infrastructure.messaging.dto;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
-import com.example.order_service.saga.domain.tmp.SagaStep;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -21,7 +21,7 @@ public class CouponMessage {
             Long cartCouponId,
             List<Long> itemCouponIds
     ) {
-        public static CouponInfo from(SagaPayload.CouponPayload payload) {
+        public static CouponInfo from(SagaPayloadDeprecated.CouponPayload payload) {
             return CouponInfo.builder()
                     .cartCouponId(payload.getCartCouponId())
                     .itemCouponIds(payload.getItemCouponIds())

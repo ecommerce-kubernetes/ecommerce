@@ -1,7 +1,8 @@
 package com.example.order_service.saga.domain.tmp;
 
 import com.example.order_service.common.entity.BaseEntity;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -27,7 +28,7 @@ public class OrderSagaInstance extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SagaStatus status;
     @Embedded
-    private SagaPayload payload;
+    private SagaPayloadDeprecated payload;
     @Version
     private Long version;
 
@@ -35,7 +36,7 @@ public class OrderSagaInstance extends BaseEntity {
     private List<SagaStepHistory> histories = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderSagaInstance(String orderNo, Long paymentId, SagaStep currentStep, SagaStatus status, SagaPayload payload) {
+    private OrderSagaInstance(String orderNo, Long paymentId, SagaStep currentStep, SagaStatus status, SagaPayloadDeprecated payload) {
         this.orderNo = orderNo;
         this.paymentId = paymentId;
         this.currentStep = currentStep;
@@ -43,12 +44,12 @@ public class OrderSagaInstance extends BaseEntity {
         this.payload = payload;
     }
 
-    public static OrderSagaInstance create(String orderNo, Long paymentId, SagaStep currentStep, SagaPayload payload) {
+    public static OrderSagaInstance create(String orderNo, Long paymentId, SagaStep currentStep, SagaPayloadDeprecated payload) {
         return OrderSagaInstance.builder()
                 .orderNo(orderNo)
                 .paymentId(paymentId)
                 .currentStep(currentStep)
-                .status(SagaStatus.STARTED)
+                .status(SagaStatus.PROCESSING)
                 .payload(payload)
                 .build();
     }

@@ -300,16 +300,35 @@
 
 #### 속성
 
-| 필드명           | 타입            | 설명       |
-|---------------|---------------|----------|
-| id            | Long          | 사가 아이디   |
-| orderId       | Long          | 주문 아이디   |
-| status        | SagaStatus    | 사가 상태    |
-| payload       | SagaPayload   | 주문 자원    |
-| version       | Long          | 낙관적 락 버전 |
-| failureReason | String        | 실패 사유    |
-| createdAt     | LocalDateTime | 생성일      |
-| updatedAt     | LocalDateTime | 수정일      |
+| 필드명           | 타입               | 설명       |
+|---------------|------------------|----------|
+| id            | Long             | 사가 아이디   |
+| orderId       | Long             | 주문 아이디   |
+| status        | SagaStatus       | 사가 상태    |
+| currentStep   | SagaStep         | 현재 진행 단계 |
+| payload       | OrderSagaPayload | 주문 자원    |
+| failureReason | String           | 실패 사유    |
+| version       | Long             | 낙관적 락 버전 |
+| createdAt     | LocalDateTime    | 생성일      |
+| updatedAt     | LocalDateTime    | 수정일      |
+
+#### 행위
+
+#### 규칙
+
+### 주문 사가 작업(OrderSagaExecution)
+
+#### 속성
+
+| 필드명       | 타입              | 설명          |
+|-----------|-----------------|-------------|
+| id        | Long            | 작업 아이디      |
+| orderSaga | OrderSaga       | 주문 사가 아이디   |
+| status    | ExecutionStatus | 주문 사가 작업 상태 |
+| type      | ExecutionType   | 작업 종류       |
+| step      | SagaStep        | 사가 스텝       |
+| createdAt | LocalDateTime   | 생성일         |
+| updatedAt | LocalDateTime   | 수정일         |
 
 ---
 
@@ -509,6 +528,17 @@
 |---------|--------|--------|
 | code    | String | 실패 코드  |
 | message | String | 실패 메시지 |
+
+### 14. 주문 사가 페이로드(OrderSagaPayload)
+
+### 속성
+
+| 필드명         | 타입              | 설명       |
+|-------------|-----------------|----------|
+| userId      | Long            | 유저 아이디   |
+| orderLines  | List<OrderLine> | 주문 항목    |
+| usedCoupons | UsedCoupons     | 사용 쿠폰 정보 |
+| usedPoints  | Money           | 사용 포인트   |
 
 --
 

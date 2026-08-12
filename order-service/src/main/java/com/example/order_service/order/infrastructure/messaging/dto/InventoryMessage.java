@@ -1,8 +1,8 @@
 package com.example.order_service.order.infrastructure.messaging.dto;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
-import com.example.order_service.saga.domain.tmp.SagaStep;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -21,14 +21,14 @@ public class InventoryMessage {
             Long productVariantId,
             Integer quantity
     ) {
-        public static Item from(SagaPayload.ItemPayload payload) {
+        public static Item from(SagaPayloadDeprecated.ItemPayload payload) {
             return Item.builder()
                     .productVariantId(payload.getProductVariantId())
                     .quantity(payload.getQuantity())
                     .build();
         }
 
-        public static List<Item> from(List<SagaPayload.ItemPayload> payloads) {
+        public static List<Item> from(List<SagaPayloadDeprecated.ItemPayload> payloads) {
             return payloads.stream().map(Item::from).toList();
         }
     }

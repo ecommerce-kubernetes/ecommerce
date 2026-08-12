@@ -1,9 +1,9 @@
 package com.example.order_service.order.application.service.saga.dto;
 
 import com.example.order_service.saga.domain.tmp.OrderSagaInstance;
-import com.example.order_service.saga.domain.tmp.SagaStatus;
-import com.example.order_service.saga.domain.tmp.SagaStep;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import lombok.Builder;
 
 public class OrderSagaResult {
@@ -14,7 +14,7 @@ public class OrderSagaResult {
             String orderNo,
             SagaStep currentStep,
             SagaStatus status,
-            SagaPayload payload,
+            SagaPayloadDeprecated payload,
             String causeCode
     ) {
         public static Default from(OrderSagaInstance instance) {

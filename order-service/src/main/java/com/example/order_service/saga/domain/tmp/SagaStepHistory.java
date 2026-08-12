@@ -1,6 +1,7 @@
 package com.example.order_service.saga.domain.tmp;
 
 import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.saga.domain.SagaStep;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.example.order_service.order.infrastructure.messaging.dto;
 
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.SagaStep;
 import lombok.Builder;
 import lombok.Getter;
 

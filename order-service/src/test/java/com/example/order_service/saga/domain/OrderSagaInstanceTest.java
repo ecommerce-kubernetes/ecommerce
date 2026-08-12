@@ -1,9 +1,7 @@
 package com.example.order_service.saga.domain;
 
-import com.example.order_service.order.domain.vo.SagaPayload;
 import com.example.order_service.saga.domain.tmp.OrderSagaInstance;
-import com.example.order_service.saga.domain.tmp.SagaStatus;
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import com.example.order_service.saga.domain.tmp.SagaStepHistory;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -20,18 +18,18 @@ class OrderSagaInstanceTest {
         String orderNo = "orderNo";
         Long paymentId = 1L;
         SagaStep step = SagaStep.INVENTORY_RESTORE_PENDING;
-        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
+        SagaPayloadDeprecated sagaPayloadDeprecated = Instancio.create(SagaPayloadDeprecated.class);
         //when
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayloadDeprecated);
         //then
         assertThat(instance)
                 .extracting("orderNo", "paymentId", "currentStep", "status")
                 .containsExactly(
-                        orderNo, paymentId, step, SagaStatus.STARTED
+                        orderNo, paymentId, step, SagaStatus.PROCESSING
                 );
         assertThat(instance.getPayload())
                 .usingRecursiveComparison()
-                .isEqualTo(sagaPayload);
+                .isEqualTo(sagaPayloadDeprecated);
     }
 
     @Test
@@ -41,8 +39,8 @@ class OrderSagaInstanceTest {
         String orderNo = "orderNo";
         Long paymentId = 1L;
         SagaStep step = SagaStep.INVENTORY_RESTORE_PENDING;
-        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        SagaPayloadDeprecated sagaPayloadDeprecated = Instancio.create(SagaPayloadDeprecated.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayloadDeprecated);
 
         SagaStepHistory history = Instancio.create(SagaStepHistory.class);
         //when
@@ -59,15 +57,15 @@ class OrderSagaInstanceTest {
         Long paymentId = 1L;
         SagaStep step = SagaStep.INVENTORY_DEDUCT_PENDING;
         SagaStep nextStep = SagaStep.COUPON_USE_PENDING;
-        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        SagaPayloadDeprecated sagaPayloadDeprecated = Instancio.create(SagaPayloadDeprecated.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayloadDeprecated);
         //when
         instance.proceedTo(nextStep);
         //then
         assertThat(instance)
                 .extracting("status", "currentStep")
                 .containsExactly(
-                        SagaStatus.STARTED, SagaStep.COUPON_USE_PENDING
+                        SagaStatus.PROCESSING, SagaStep.COUPON_USE_PENDING
                 );
     }
 
@@ -79,8 +77,8 @@ class OrderSagaInstanceTest {
         Long paymentId = 1L;
         SagaStep step = SagaStep.COUPON_USE_PENDING;
         SagaStep nextStep = SagaStep.INVENTORY_RESTORE_PENDING;
-        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        SagaPayloadDeprecated sagaPayloadDeprecated = Instancio.create(SagaPayloadDeprecated.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayloadDeprecated);
         //when
         instance.compensateTo(nextStep);
         //then
@@ -98,8 +96,8 @@ class OrderSagaInstanceTest {
         String orderNo = "orderNo";
         Long paymentId = 1L;
         SagaStep step = SagaStep.INVENTORY_RESTORE_PENDING;
-        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        SagaPayloadDeprecated sagaPayloadDeprecated = Instancio.create(SagaPayloadDeprecated.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayloadDeprecated);
         //when
         instance.complete();
         //then
@@ -117,8 +115,8 @@ class OrderSagaInstanceTest {
         String orderNo = "orderNo";
         Long paymentId = 1L;
         SagaStep step = SagaStep.INVENTORY_RESTORE_PENDING;
-        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        SagaPayloadDeprecated sagaPayloadDeprecated = Instancio.create(SagaPayloadDeprecated.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayloadDeprecated);
         //when
         instance.failed();
         //then

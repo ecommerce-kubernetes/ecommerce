@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.messaging;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
-import com.example.order_service.saga.domain.tmp.SagaStatus;
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.support.annotation.MockRedis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,7 +90,7 @@ class SagaMessageDispatcherTest {
             SagaMessage message = Instancio.of(SagaMessage.class)
                     .set(field("sagaId"), sagaId)
                     .set(field("orderNo"), orderNo)
-                    .set(field("status"), SagaStatus.STARTED)
+                    .set(field("status"), SagaStatus.PROCESSING)
                     .set(field("step"), SagaStep.INVENTORY_DEDUCT_PENDING)
                     .create();
             //when
@@ -147,7 +147,7 @@ class SagaMessageDispatcherTest {
             SagaMessage message = Instancio.of(SagaMessage.class)
                     .set(field("sagaId"), sagaId)
                     .set(field("orderNo"), orderNo)
-                    .set(field("status"), SagaStatus.STARTED)
+                    .set(field("status"), SagaStatus.PROCESSING)
                     .set(field("step"), SagaStep.COUPON_USE_PENDING)
                     .create();
             //when
@@ -204,7 +204,7 @@ class SagaMessageDispatcherTest {
             SagaMessage message = Instancio.of(SagaMessage.class)
                     .set(field("sagaId"), sagaId)
                     .set(field("orderNo"), orderNo)
-                    .set(field("status"), SagaStatus.STARTED)
+                    .set(field("status"), SagaStatus.PROCESSING)
                     .set(field("step"), SagaStep.POINTS_DEDUCT_PENDING)
                     .create();
             //when

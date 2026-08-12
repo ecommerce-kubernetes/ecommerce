@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.service.saga.dto;
 
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.saga.domain.tmp.StepResult;
-import com.example.order_service.order.domain.vo.SagaPayload;
+import com.example.order_service.saga.domain.tmp.SagaPayloadDeprecated;
 import lombok.Builder;
 
 public class OrderSagaCommand {
@@ -12,9 +12,9 @@ public class OrderSagaCommand {
             String orderNo,
             Long paymentId,
             SagaStep step,
-            SagaPayload payload
+            SagaPayloadDeprecated payload
     ) {
-        public static Create of(String orderNo, Long paymentId, SagaStep step, SagaPayload payload) {
+        public static Create of(String orderNo, Long paymentId, SagaStep step, SagaPayloadDeprecated payload) {
             return Create.builder()
                     .orderNo(orderNo)
                     .paymentId(paymentId)

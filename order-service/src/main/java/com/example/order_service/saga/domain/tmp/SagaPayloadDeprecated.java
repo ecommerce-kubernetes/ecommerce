@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.vo;
+package com.example.order_service.saga.domain.tmp;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.util.ItemPayloadListConverter;
@@ -13,11 +13,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@Deprecated
 @Getter
 @Embeddable
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SagaPayload {
+public class SagaPayloadDeprecated {
     private Long userId;
     @Convert(converter = ItemPayloadListConverter.class)
     private List<ItemPayload> items;
@@ -26,8 +27,8 @@ public class SagaPayload {
     @Embedded
     private PointPayload points;
 
-    public static SagaPayload of(Long userId, List<ItemPayload> items, CouponPayload coupon, PointPayload points) {
-        return new SagaPayload(userId, items, coupon, points);
+    public static SagaPayloadDeprecated of(Long userId, List<ItemPayload> items, CouponPayload coupon, PointPayload points) {
+        return new SagaPayloadDeprecated(userId, items, coupon, points);
     }
 
     @Getter

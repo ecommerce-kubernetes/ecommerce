@@ -8,8 +8,8 @@ import com.example.order_service.order.application.service.saga.dto.OrderSagaCom
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
 import com.example.order_service.order.domain.repository.OrderSagaInstanceRepository;
 import com.example.order_service.saga.domain.tmp.OrderSagaInstance;
-import com.example.order_service.saga.domain.tmp.SagaStatus;
-import com.example.order_service.saga.domain.tmp.SagaStep;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.saga.domain.tmp.SagaStepHistory;
 import com.example.order_service.order.exception.SagaErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -150,7 +150,7 @@ public class OrderSagaService {
     }
 
     public List<OrderSagaResult.Default> getSagasBefore(LocalDateTime threshold, int size) {
-        List<SagaStatus> targetStatuses = List.of(SagaStatus.STARTED, SagaStatus.COMPENSATING);
+        List<SagaStatus> targetStatuses = List.of(SagaStatus.PROCESSING, SagaStatus.COMPENSATING);
 
         PageRequest limit = PageRequest.of(0, size);
 
