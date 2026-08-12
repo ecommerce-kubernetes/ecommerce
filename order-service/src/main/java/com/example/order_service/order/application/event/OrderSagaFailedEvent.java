@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
+@Deprecated
 public class OrderSagaFailedEvent {
     private String orderNo;
     private Long paymentId;

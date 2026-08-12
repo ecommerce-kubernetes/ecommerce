@@ -15,7 +15,7 @@ import com.example.order_service.order.domain.ordersheet.context.CreateOrderShee
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
+import com.example.order_service.order.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

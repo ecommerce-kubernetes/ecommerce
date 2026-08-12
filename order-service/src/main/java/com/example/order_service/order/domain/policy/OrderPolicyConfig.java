@@ -1,6 +1,6 @@
 package com.example.order_service.order.domain.policy;
 
-import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
+import com.example.order_service.order.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

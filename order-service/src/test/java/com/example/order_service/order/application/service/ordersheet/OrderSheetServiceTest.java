@@ -20,7 +20,7 @@ import com.example.order_service.order.domain.ordersheet.context.CreateOrderShee
 import com.example.order_service.order.domain.policy.*;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
+import com.example.order_service.order.config.OrderSheetProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -2,8 +2,8 @@ package com.example.order_service.docs.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderDescriptor;
-import com.example.order_service.order.api.web.OrderController;
-import com.example.order_service.order.api.web.dto.order.request.OrderCreateRequest;
+import com.example.order_service.order.adapter.in.web.OrderController;
+import com.example.order_service.order.adapter.in.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;

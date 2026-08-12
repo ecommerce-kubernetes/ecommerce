@@ -9,6 +9,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
+@Deprecated
 public class OrderSagaProcessEvent {
     private Long sagaId;
     private String orderNo;

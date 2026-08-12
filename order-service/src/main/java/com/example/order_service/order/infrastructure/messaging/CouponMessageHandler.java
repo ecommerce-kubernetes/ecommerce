@@ -3,7 +3,7 @@ package com.example.order_service.order.infrastructure.messaging;
 import com.example.order_service.order.application.messaging.SagaMessageHandler;
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
 import com.example.order_service.order.domain.saga.SagaStep;
-import com.example.order_service.order.infrastructure.config.SagaProperties;
+import com.example.order_service.order.config.SagaProperties;
 import com.example.order_service.order.infrastructure.messaging.dto.CouponMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
