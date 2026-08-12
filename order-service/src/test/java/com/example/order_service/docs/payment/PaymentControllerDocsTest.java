@@ -2,9 +2,9 @@ package com.example.order_service.docs.payment;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.PaymentDescriptor;
-import com.example.order_service.payment.api.web.PaymentController;
-import com.example.order_service.payment.api.web.dto.request.PaymentConfirmRequest;
-import com.example.order_service.payment.api.web.dto.request.PaymentCreateRequest;
+import com.example.order_service.payment.adapter.in.web.PaymentController;
+import com.example.order_service.payment.adapter.in.web.dto.request.PaymentConfirmRequest;
+import com.example.order_service.payment.adapter.in.web.dto.request.PaymentCreateRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
