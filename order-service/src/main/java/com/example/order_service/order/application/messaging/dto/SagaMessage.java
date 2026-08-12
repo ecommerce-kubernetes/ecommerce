@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.messaging.dto;
 
 import com.example.order_service.order.application.event.OrderSagaProcessEvent;
-import com.example.order_service.order.domain.saga.SagaStatus;
-import com.example.order_service.order.domain.saga.SagaStep;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import lombok.Builder;
 import lombok.Getter;

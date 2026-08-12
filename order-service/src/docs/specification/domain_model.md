@@ -11,6 +11,7 @@
 - **주문서(OrderSheet) :** 주문 생성 전 쿠폰 적용 및 포인트 적용 등 할인 정책 관리와 배송 정보, 주문 예상 금액을 계산하여 저장하는 임시 주문.
 - **주문(Order)  :** 사용자의 최종 구매 확정 내역 및 상태 관리
 - **결제(Payment) :** 해당 주문의 결제 정보, PG 사의 결제 정보 및 상태 관리
+- **사가(Saga) :** 주문의 자원을 감소시키기 위한 정보를 관리
 
 ## 엔티티
 
@@ -292,6 +293,24 @@
 - 결제 승인 내역 저장: 결제 승인 내역을 저장한다.
 
 #### 규칙
+
+### 주문 사가(OrderSaga)
+
+주문 자원 정보를 저장하는 엔티티
+
+#### 속성
+
+| 필드명           | 타입            | 설명       |
+|---------------|---------------|----------|
+| id            | Long          | 사가 아이디   |
+| orderId       | Long          | 주문 아이디   |
+| step          | SagaStep      | 사가 단계    |
+| status        | SagaStatus    | 사가 상태    |
+| payload       | SagaPayload   | 주문 자원    |
+| version       | Long          | 낙관적 락 버전 |
+| failureReason | String        | 실패 사유    |
+| createdAt     | LocalDateTime | 생성일      |
+| updatedAt     | LocalDateTime | 수정일      |
 
 ---
 

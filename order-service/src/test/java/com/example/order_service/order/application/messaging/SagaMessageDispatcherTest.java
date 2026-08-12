@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.messaging;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
-import com.example.order_service.order.domain.saga.SagaStatus;
-import com.example.order_service.order.domain.saga.SagaStep;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.support.annotation.MockRedis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

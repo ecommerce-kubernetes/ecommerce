@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.service.saga.dto;
 
-import com.example.order_service.order.domain.saga.SagaStep;
-import com.example.order_service.order.domain.saga.StepResult;
+import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.StepResult;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import lombok.Builder;
 

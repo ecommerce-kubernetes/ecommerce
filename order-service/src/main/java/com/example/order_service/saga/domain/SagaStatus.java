@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.saga;
+package com.example.order_service.saga.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -7,9 +7,9 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaCommand;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
-import com.example.order_service.order.domain.saga.SagaStatus;
-import com.example.order_service.order.domain.saga.SagaStep;
-import com.example.order_service.order.domain.saga.StepResult;
+import com.example.order_service.saga.domain.SagaStatus;
+import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.StepResult;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import com.example.order_service.order.infrastructure.messaging.dto.SagaReplyMessage;
 import com.example.order_service.order.infrastructure.messaging.dto.SagaResult;

@@ -1,7 +1,7 @@
 package com.example.order_service.order.domain.repository;
 
-import com.example.order_service.order.domain.saga.OrderSagaInstance;
-import com.example.order_service.order.domain.saga.SagaStatus;
+import com.example.order_service.saga.domain.OrderSagaInstance;
+import com.example.order_service.saga.domain.SagaStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

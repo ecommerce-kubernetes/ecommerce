@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.saga;
+package com.example.order_service.saga.domain;
 
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.order.domain.vo.SagaPayload;
