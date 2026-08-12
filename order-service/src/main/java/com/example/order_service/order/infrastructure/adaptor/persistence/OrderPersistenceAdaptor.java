@@ -17,6 +17,11 @@ public class OrderPersistenceAdaptor implements OrderRepository {
     private final OrderQueryDslRepository orderQueryDslRepository;
 
     @Override
+    public Optional<Order> findById(Long orderId) {
+        return orderJpaRepository.findById(orderId);
+    }
+
+    @Override
     public Optional<Order> findByOrderIdAndOrdererId(Long orderId, Long ordererId) {
         return orderJpaRepository.findByIdAndOrderer_UserId(orderId, ordererId);
     }

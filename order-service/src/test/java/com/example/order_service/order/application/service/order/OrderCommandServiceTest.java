@@ -1,11 +1,10 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
-import com.example.order_service.order.domain.order.AppliedCartCoupon;
-import com.example.order_service.order.domain.order.AppliedItemCoupon;
-import com.example.order_service.order.domain.order.OrderAmount;
-import com.example.order_service.order.domain.order.OrderItemAmount;
+import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
 import com.example.order_service.order.domain.vo.Orderer;
@@ -42,6 +41,19 @@ public class OrderCommandServiceTest {
         Long orderId = orderCommandService.saveOrder(context);
         //then
         assertThat(orderId).isNotNull();
+    }
+
+    @Test
+    @DisplayName("주문을 결제 완료로 변경한다.")
+    void changePaid() {
+        //given
+        IdGenerator idGenerator = new TsidGenerator();
+        CreateOrderContext context = createOrderContext();
+        Order order = orderRepository.save(Order.create(context, idGenerator));
+        //when
+        orderCommandService.changePaid(order.getId());
+        //then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
     }
 
     private CreateOrderContext createOrderContext() {

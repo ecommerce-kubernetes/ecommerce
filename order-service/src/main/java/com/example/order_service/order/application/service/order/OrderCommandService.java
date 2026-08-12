@@ -1,9 +1,11 @@
 package com.example.order_service.order.application.service.order;
 
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,9 @@ public class OrderCommandService {
     }
 
     public void changePaid(Long orderId) {
-
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        order.paid();
     }
 
     public void changePaid(String orderNo) {

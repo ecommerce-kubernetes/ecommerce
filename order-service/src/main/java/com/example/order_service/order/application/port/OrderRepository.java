@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.Optional;
 
 public interface OrderRepository {
+    Optional<Order> findById(Long orderId);
     Optional<Order> findByOrderIdAndOrdererId(Long orderId, Long ordererId);
     Order save(Order order);
     Page<Order> searchOrders(Long ordererId, OrderSearchCommand command);
