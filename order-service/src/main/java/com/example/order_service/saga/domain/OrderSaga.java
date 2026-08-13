@@ -77,36 +77,16 @@ public class OrderSaga extends BaseAggregateRoot {
 
         execution.success();
 
-        nextStep(idGenerator);
-    }
-
-    public void failStep(Long executionId, String failureReason, IdGenerator idGenerator) {
-        OrderSagaExecution execution = getExecution(executionId);
-
-        execution.fail();
-
-        nextCompensate(idGenerator);
-        this.failureReason = failureReason;
-    }
-
-    private OrderSagaExecution getExecution(Long executionId) {
-        return this.orderSagaExecutions.stream()
-                .filter(execution -> execution.getId().equals(executionId))
-                .findFirst()
-                .orElseThrow(() -> new ExecutionNotFoundException("사가 작업을 칮을 수 없습니다 executionId: " + executionId));
-    }
-
-    private void nextStep(IdGenerator idGenerator) {
         if (this.currentStep.equals(SagaStep.INVENTORY)) {
             if (payload.hasCoupons()) {
-                OrderSagaExecution execution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.COUPON);
-                addExecution(execution);
+                OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.COUPON);
+                addExecution(nextExecution);
 
                 this.currentStep = SagaStep.COUPON;
             } else {
                 if (!payload.usedPoints().equals(Money.ZERO)) {
-                    OrderSagaExecution execution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.POINT);
-                    addExecution(execution);
+                    OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.POINT);
+                    addExecution(nextExecution);
 
                     this.currentStep = SagaStep.POINT;
                 } else {
@@ -116,8 +96,8 @@ public class OrderSaga extends BaseAggregateRoot {
             }
         } else if (this.currentStep.equals(SagaStep.COUPON)) {
             if (!payload.usedPoints().equals(Money.ZERO)) {
-                OrderSagaExecution execution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.POINT);
-                addExecution(execution);
+                OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.POINT);
+                addExecution(nextExecution);
 
                 this.currentStep = SagaStep.POINT;
             } else {
@@ -130,7 +110,11 @@ public class OrderSaga extends BaseAggregateRoot {
         }
     }
 
-    private void nextCompensate(IdGenerator idGenerator) {
+    public void failForward(Long executionId, String failureReason, IdGenerator idGenerator) {
+        OrderSagaExecution execution = getExecution(executionId);
+
+        execution.fail();
+
         Set<SagaStep> alreadyCompensatedSteps = this.orderSagaExecutions.stream()
                 .filter(exec -> exec.getType() == ExecutionType.COMPENSATE)
                 .map(OrderSagaExecution::getStep)
@@ -147,12 +131,22 @@ public class OrderSaga extends BaseAggregateRoot {
         }
 
         if (target != null) {
-            OrderSagaExecution execution = OrderSagaExecution.create(idGenerator, ExecutionType.COMPENSATE, SagaStep.POINT);
-            addExecution(execution);
+            OrderSagaExecution rollBackExecution = OrderSagaExecution.create(idGenerator, ExecutionType.COMPENSATE, target.getStep());
+            addExecution(rollBackExecution);
+            this.status = SagaStatus.COMPENSATING;
         } else {
             this.status = SagaStatus.FAILED;
         }
+        this.failureReason = failureReason;
     }
+
+    private OrderSagaExecution getExecution(Long executionId) {
+        return this.orderSagaExecutions.stream()
+                .filter(execution -> execution.getId().equals(executionId))
+                .findFirst()
+                .orElseThrow(() -> new ExecutionNotFoundException("사가 작업을 칮을 수 없습니다 executionId: " + executionId));
+    }
+
 
     private void addExecution(OrderSagaExecution execution) {
         this.orderSagaExecutions.add(execution);

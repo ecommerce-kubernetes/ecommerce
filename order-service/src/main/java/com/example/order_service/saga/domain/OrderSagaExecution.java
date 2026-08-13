@@ -49,7 +49,7 @@ public class OrderSagaExecution extends BaseEntity {
         return OrderSagaExecution.builder()
                 .id(id)
                 .status(ExecutionStatus.PENDING)
-                .type(ExecutionType.FORWARD)
+                .type(type)
                 .step(step)
                 .build();
     }
