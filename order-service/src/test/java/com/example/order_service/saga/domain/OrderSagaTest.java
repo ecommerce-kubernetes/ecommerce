@@ -95,7 +95,7 @@ class OrderSagaTest {
 
     @Test
     @DisplayName("재고 차감 작업을 완료하고 쿠폰을 사용한 경우 쿠폰 스텝을 진행한다.")
-    void completeStep_success_inventory_and_UsedCoupon() {
+    void completeForward_success_inventory_and_UsedCoupon() {
         //given
         OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
                 .cartCouponId(1L)
@@ -113,7 +113,7 @@ class OrderSagaTest {
 
         OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
         //when
-        orderSaga.completeStep(execution.getId(), idGenerator);
+        orderSaga.completeForward(execution.getId(), idGenerator);
         //then
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.COUPON);
         assertThat(orderSaga.getOrderSagaExecutions()).hasSize(2)
@@ -126,7 +126,7 @@ class OrderSagaTest {
 
     @Test
     @DisplayName("재고 차감 작업을 완료하고 쿠폰을 사용하지 않은 경우 포인트를 사용했으면 포인트 스텝을 진행한다.")
-    void completeStep_success_inventory_and_notUsedCoupon_and_usedPoints() {
+    void completeForward_success_inventory_and_notUsedCoupon_and_usedPoints() {
         //given
         OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
                 .cartCouponId(null)
@@ -143,7 +143,7 @@ class OrderSagaTest {
         OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
         OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
         //when
-        orderSaga.completeStep(execution.getId(), idGenerator);
+        orderSaga.completeForward(execution.getId(), idGenerator);
         //then
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.POINT);
         assertThat(orderSaga.getOrderSagaExecutions()).hasSize(2)
@@ -156,7 +156,7 @@ class OrderSagaTest {
 
     @Test
     @DisplayName("재고 차감 작업을 완료하고 쿠폰과 포인트를 사용하지 않았다면 사가를 완료한다.")
-    void completeStep_success_inventory_notUsedCoupon_and_usedPoint_zero() {
+    void completeForward_success_inventory_notUsedCoupon_and_not_usedPoints() {
         //given
         OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
                 .cartCouponId(null)
@@ -172,7 +172,7 @@ class OrderSagaTest {
         OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
         OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
         //when
-        orderSaga.completeStep(execution.getId(), idGenerator);
+        orderSaga.completeForward(execution.getId(), idGenerator);
         //then
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPLETE);
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
@@ -184,8 +184,112 @@ class OrderSagaTest {
     }
 
     @Test
+    @DisplayName("쿠폰 무료화를 완료하고 포인트를 사용했다면 포인트 스텝을 진행한다.")
+    void completeForward_success_coupon_and_usedPoint(){
+        //given
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(Collections.emptyList())
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
+        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
+                .orderId(1L)
+                .payload(payload)
+                .build();
+        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
+        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
+
+        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
+        //when
+        orderSaga.completeForward(couponExecution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.PROCESSING);
+        assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.POINT);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(3)
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.COUPON),
+                        tuple(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.POINT)
+                );
+    }
+
+    @Test
+    @DisplayName("쿠폰 무효화를 완료하고 포인트를 사용하지 않았으면 사가를 완료한다.")
+    void completeForward_success_coupon_and_notUsedPoints(){
+        //given
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(Collections.emptyList())
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.ZERO);
+
+        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
+                .orderId(1L)
+                .payload(payload)
+                .build();
+        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
+        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
+
+        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
+        //when
+        orderSaga.completeForward(couponExecution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPLETE);
+        assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(2)
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.COUPON)
+                );
+    }
+
+    @Test
+    @DisplayName("포인트 차감을 완료하면 사가를 완료 한다.")
+    void completeForward_success_point(){
+        //given
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(Collections.emptyList())
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
+        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
+                .orderId(1L)
+                .payload(payload)
+                .build();
+        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
+        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
+
+        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
+        orderSaga.completeForward(couponExecution.getId(), idGenerator);
+
+        OrderSagaExecution pointExecution = orderSaga.getOrderSagaExecutions().get(2);
+        //when
+        orderSaga.completeForward(pointExecution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPLETE);
+        assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(3)
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.COUPON),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.POINT)
+                );
+    }
+
+    @Test
     @DisplayName("스텝을 완료할때 작업을 찾을 수 없으면 예외가 발생한다.")
-    void completeStep_notFound_execution() {
+    void completeForward_notFound_execution() {
         //given
         OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
                 .cartCouponId(1L)
@@ -201,7 +305,7 @@ class OrderSagaTest {
         OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
         //when
         //then
-        assertThatThrownBy(() -> orderSaga.completeStep(999L, idGenerator))
+        assertThatThrownBy(() -> orderSaga.completeForward(999L, idGenerator))
                 .isInstanceOf(ExecutionNotFoundException.class);
     }
 

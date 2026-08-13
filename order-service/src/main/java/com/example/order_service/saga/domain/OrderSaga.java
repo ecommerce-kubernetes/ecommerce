@@ -72,7 +72,7 @@ public class OrderSaga extends BaseAggregateRoot {
         return orderSaga;
     }
 
-    public void completeStep(Long executionId, IdGenerator idGenerator) {
+    public void completeForward(Long executionId, IdGenerator idGenerator) {
         OrderSagaExecution execution = getExecution(executionId);
 
         execution.success();
