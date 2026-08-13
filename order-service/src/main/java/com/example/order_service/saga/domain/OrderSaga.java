@@ -1,6 +1,5 @@
 package com.example.order_service.saga.domain;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
@@ -74,40 +73,16 @@ public class OrderSaga extends BaseAggregateRoot {
 
     public void completeForward(Long executionId, IdGenerator idGenerator) {
         OrderSagaExecution execution = getExecution(executionId);
-
         execution.success();
 
-        if (this.currentStep.equals(SagaStep.INVENTORY)) {
-            if (payload.hasCoupons()) {
-                OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.COUPON);
-                addExecution(nextExecution);
+        SagaStep nextStep = determineNextForwardStep(this.currentStep, this.payload);
 
-                this.currentStep = SagaStep.COUPON;
-            } else {
-                if (!payload.usedPoints().equals(Money.ZERO)) {
-                    OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.POINT);
-                    addExecution(nextExecution);
-
-                    this.currentStep = SagaStep.POINT;
-                } else {
-                    this.currentStep = SagaStep.END;
-                    this.status = SagaStatus.COMPLETE;
-                }
-            }
-        } else if (this.currentStep.equals(SagaStep.COUPON)) {
-            if (!payload.usedPoints().equals(Money.ZERO)) {
-                OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.POINT);
-                addExecution(nextExecution);
-
-                this.currentStep = SagaStep.POINT;
-            } else {
-                this.currentStep = SagaStep.END;
-                this.status = SagaStatus.COMPLETE;
-            }
-        } else if (this.currentStep.equals(SagaStep.POINT)) {
-            this.status = SagaStatus.COMPLETE;
-            this.currentStep = SagaStep.END;
+        if (nextStep == SagaStep.END) {
+            completeSaga();
+            return;
         }
+
+        transitToForwardStep(nextStep, idGenerator);
     }
 
     public void failForward(Long executionId, String failureReason, IdGenerator idGenerator) {
@@ -147,9 +122,30 @@ public class OrderSaga extends BaseAggregateRoot {
                 .orElseThrow(() -> new ExecutionNotFoundException("사가 작업을 칮을 수 없습니다 executionId: " + executionId));
     }
 
-
     private void addExecution(OrderSagaExecution execution) {
         this.orderSagaExecutions.add(execution);
         execution.setOrderSaga(this);
+    }
+
+    private SagaStep determineNextForwardStep(SagaStep currentStep, OrderSagaPayload payload) {
+        return switch (currentStep) {
+            case INVENTORY -> payload.hasCoupons() ? SagaStep.COUPON :
+                    payload.hasPoints() ? SagaStep.POINT : SagaStep.END;
+
+            case COUPON -> payload.hasPoints() ? SagaStep.POINT : SagaStep.END;
+
+            case POINT, END -> SagaStep.END;
+        };
+    }
+
+    private void completeSaga() {
+        this.currentStep = SagaStep.END;
+        this.status = SagaStatus.COMPLETE;
+    }
+
+    private void transitToForwardStep(SagaStep nextStep, IdGenerator idGenerator) {
+        OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, nextStep);
+        addExecution(nextExecution);
+        this.currentStep = nextStep;
     }
 }

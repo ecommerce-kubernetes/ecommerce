@@ -4,7 +4,6 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
-import com.example.order_service.order.application.service.order.dto.result.OrderResultDeprecated;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.Order;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -12,9 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +27,5 @@ public class OrderQueryService {
     public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
         Page<Order> orders = orderRepository.searchOrders(userId, command);
         return orders.map(OrderSummaryResult::from);
-    }
-
-    public OrderResultDeprecated.Detail getOrder(String orderNo) {
-        return null;
-    }
-
-    public List<OrderResultDeprecated.Summary> getPendingOrdersBefore(LocalDateTime threshold, int size) {
-        return null;
     }
 }

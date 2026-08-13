@@ -37,4 +37,8 @@ public record OrderSagaPayload(
         boolean hasItemCoupons = this.usedCoupons.itemCouponIds != null && !this.usedCoupons.itemCouponIds.isEmpty();
         return hasCartCoupon || hasItemCoupons;
     }
+
+    public boolean hasPoints() {
+        return !usedPoints.equals(Money.ZERO);
+    }
 }
