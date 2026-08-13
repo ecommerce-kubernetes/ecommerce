@@ -192,18 +192,7 @@ class OrderSagaTest {
     @DisplayName("스텝을 완료할때 작업을 찾을 수 없으면 예외가 발생한다.")
     void completeForward_notFound_execution() {
         //given
-        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
-                .cartCouponId(1L)
-                .itemCouponIds(List.of(2L, 3L))
-                .build();
-
-        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
-
-        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
-                .orderId(1L)
-                .payload(payload)
-                .build();
-        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().build();
         //when
         //then
         assertThatThrownBy(() -> orderSaga.completeForward(999L, idGenerator))
