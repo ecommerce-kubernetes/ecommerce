@@ -110,6 +110,7 @@ public class OrderSaga extends BaseAggregateRoot {
 
                     this.currentStep = SagaStep.POINT;
                 } else {
+                    this.currentStep = SagaStep.END;
                     this.status = SagaStatus.COMPLETE;
                 }
             }
@@ -120,10 +121,12 @@ public class OrderSaga extends BaseAggregateRoot {
 
                 this.currentStep = SagaStep.POINT;
             } else {
+                this.currentStep = SagaStep.END;
                 this.status = SagaStatus.COMPLETE;
             }
         } else if (this.currentStep.equals(SagaStep.POINT)) {
             this.status = SagaStatus.COMPLETE;
+            this.currentStep = SagaStep.END;
         }
     }
 

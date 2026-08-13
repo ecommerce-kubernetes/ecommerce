@@ -8,6 +8,7 @@ import com.example.order_service.saga.exception.ExecutionNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -20,7 +21,13 @@ class OrderSagaTest {
     @DisplayName("주문 사가를 생성한다.")
     void create(){
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
@@ -45,7 +52,13 @@ class OrderSagaTest {
     @DisplayName("주문 사가 생성시 아이디 생성기가 누락되면 예외가 발생한다.")
     void create_idGenerator_null(){
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
@@ -61,7 +74,13 @@ class OrderSagaTest {
     @DisplayName("주문 사가 생성시 아이디가 누락되면 예외가 발생한다.")
     void create_id_null(){
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
@@ -75,14 +94,21 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("스텝을 완료한다.")
-    void completeStep() {
+    @DisplayName("재고 차감 작업을 완료하고 쿠폰을 사용한 경우 쿠폰 스텝을 진행한다.")
+    void completeStep_success_inventory_and_UsedCoupon() {
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
                 .build();
+
         OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
 
         OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
@@ -99,10 +125,75 @@ class OrderSagaTest {
     }
 
     @Test
+    @DisplayName("재고 차감 작업을 완료하고 쿠폰을 사용하지 않은 경우 포인트를 사용했으면 포인트 스텝을 진행한다.")
+    void completeStep_success_inventory_and_notUsedCoupon_and_usedPoints() {
+        //given
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(null)
+                .itemCouponIds(Collections.emptyList())
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
+        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
+                .orderId(1L)
+                .payload(payload)
+                .build();
+
+        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
+        //when
+        orderSaga.completeStep(execution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.POINT);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(2)
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.POINT)
+                );
+    }
+
+    @Test
+    @DisplayName("재고 차감 작업을 완료하고 쿠폰과 포인트를 사용하지 않았다면 사가를 완료한다.")
+    void completeStep_success_inventory_notUsedCoupon_and_usedPoint_zero() {
+        //given
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(null)
+                .itemCouponIds(Collections.emptyList())
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.ZERO);
+
+        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
+                .orderId(1L)
+                .payload(payload)
+                .build();
+        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
+        //when
+        orderSaga.completeStep(execution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPLETE);
+        assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(1)
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY)
+                );
+    }
+
+    @Test
     @DisplayName("스텝을 완료할때 작업을 찾을 수 없으면 예외가 발생한다.")
     void completeStep_notFound_execution() {
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
@@ -118,7 +209,13 @@ class OrderSagaTest {
     @DisplayName("스텝을 실패 처리 한다.")
     void failStep() {
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
@@ -141,7 +238,13 @@ class OrderSagaTest {
     @DisplayName("스텝을 실패처리할 때 작업을 찾을 수 없으면 예외가 발생한다.")
     void failStep_notFound_execution() {
         //given
-        OrderSagaPayload payload = createPayload();
+        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
+                .cartCouponId(1L)
+                .itemCouponIds(List.of(2L, 3L))
+                .build();
+
+        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
+
         CreateOrderSagaContext context = CreateOrderSagaContext.builder()
                 .orderId(1L)
                 .payload(payload)
@@ -153,22 +256,17 @@ class OrderSagaTest {
                 .isInstanceOf(ExecutionNotFoundException.class);
     }
 
-    private OrderSagaPayload createPayload() {
+    private OrderSagaPayload createPayload(OrderSagaPayload.UsedCoupons usedCoupons, Money usedPoints) {
         OrderSagaPayload.OrderLine line = OrderSagaPayload.OrderLine.builder()
                 .productVariantId(1L)
                 .quantity(3)
-                .build();
-
-        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
-                .cartCouponId(1L)
-                .itemCouponIds(List.of(1L, 2L))
                 .build();
 
         return OrderSagaPayload.builder()
                 .userId(1L)
                 .orderLines(List.of(line))
                 .usedCoupons(usedCoupons)
-                .usedPoints(Money.wons(1000L))
+                .usedPoints(usedPoints)
                 .build();
     }
 }

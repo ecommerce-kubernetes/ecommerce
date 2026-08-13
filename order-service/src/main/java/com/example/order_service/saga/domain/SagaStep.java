@@ -12,11 +12,11 @@ public enum SagaStep {
     COUPON_RESTORE_PENDING("쿠폰 복구"),
     POINTS_DEDUCT_PENDING("포인트 감소"),
     POINTS_RESTORE_PENDING("포인트 복구"),
-    END("완료"),
 
     INVENTORY("재고"),
     COUPON("쿠폰"),
-    POINT("포인트");
+    POINT("포인트"),
+    END("완료");
 
     private final String description;
 }

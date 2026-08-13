@@ -34,7 +34,7 @@ public record OrderSagaPayload(
 
     public boolean hasCoupons() {
         boolean hasCartCoupon = this.usedCoupons.cartCouponId != null;
-        boolean hasItemCoupons = this.usedCoupons.itemCouponIds != null && !usedCoupons.itemCouponIds.isEmpty();
+        boolean hasItemCoupons = this.usedCoupons.itemCouponIds != null && !this.usedCoupons.itemCouponIds.isEmpty();
         return hasCartCoupon || hasItemCoupons;
     }
 }
