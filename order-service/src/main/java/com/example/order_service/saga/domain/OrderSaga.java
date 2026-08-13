@@ -84,6 +84,9 @@ public class OrderSaga extends BaseAggregateRoot {
         OrderSagaExecution execution = getExecution(executionId);
 
         execution.fail();
+
+        nextCompensate(idGenerator);
+        this.failureReason = failureReason;
     }
 
     private OrderSagaExecution getExecution(Long executionId) {
