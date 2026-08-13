@@ -315,6 +315,7 @@
 #### 행위
 
 - create(주문 사가 생성): 주문 사가를 생성한다.
+- completeStep(스텝을 완료한다): 주문 사가 스텝을 완료한다
 
 #### 규칙
 
@@ -322,6 +323,7 @@
 - 주문 사가를 생성할때 페이로드는 필수이다.
 - 주문 사가를 생성하면 상태는 PROCESSING, 단계는 INVENTORY 이다.
 - 주문 사가를 생성하면 사가 작업(SagaExecution) 을 추가한다.
+- 주문 사가 스텝을 완료하면 해당 execution의 상태를 완료 처리한다.
 
 ### 주문 사가 작업(OrderSagaExecution)
 
@@ -336,6 +338,18 @@
 | step      | SagaStep        | 사가 스텝       |
 | createdAt | LocalDateTime   | 생성일         |
 | updatedAt | LocalDateTime   | 수정일         |
+
+#### 행위
+
+- create(작업 생성): 사가 작업을 생성한다.
+- complete(작업 완료): 사가 작업을 완료한다.
+- fail(작업 실패): 사가 작업을 실패로 변경한다.
+
+#### 규칙
+
+- 사가 작업을 생성할때 상태는 PENDING, 타입은 FORWARD 이다.
+- 사가 작업을 완료할때 상태는 FAIL일 수 없다.
+- 사가 작업을 실패할때 상태는 SUCCESS일 수 없다.
 
 ---
 

@@ -6,5 +6,5 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ExecutionType {
-    FORWARD
+    FORWARD, COMPENSATE
 }

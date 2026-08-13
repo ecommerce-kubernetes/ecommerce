@@ -2,6 +2,7 @@ package com.example.order_service.saga.domain;
 
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.saga.exception.InvalidSagaStateException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -38,7 +39,7 @@ public class OrderSagaExecution extends BaseEntity {
         this.step = step;
     }
 
-    public static OrderSagaExecution create(IdGenerator idGenerator, SagaStep step){
+    public static OrderSagaExecution create(IdGenerator idGenerator, ExecutionType type, SagaStep step) {
         Assert.notNull(idGenerator, "주문 사가 작업 생성시 아이디 생성기는 필수이다.");
         Assert.notNull(step, "주문 사가 작업 생성시 사가 단계는 필수이다.");
         Long id = idGenerator.generate();
@@ -53,7 +54,23 @@ public class OrderSagaExecution extends BaseEntity {
                 .build();
     }
 
-    void setOrderSaga(OrderSaga orderSaga){
+    public void success() {
+        if (this.status.equals(ExecutionStatus.FAIL)) {
+            throw new InvalidSagaStateException("작업을 성공으로 변경할 수 없습니다. current: " + this.status.name());
+        }
+
+        this.status = ExecutionStatus.SUCCESS;
+    }
+
+    public void fail() {
+        if (this.status.equals(ExecutionStatus.SUCCESS)) {
+            throw new InvalidSagaStateException("작업을 실패로 변경할 수 없습니다. current: " + this.status.name());
+        }
+
+        this.status = ExecutionStatus.FAIL;
+    }
+
+    void setOrderSaga(OrderSaga orderSaga) {
         this.orderSaga = orderSaga;
     }
 }

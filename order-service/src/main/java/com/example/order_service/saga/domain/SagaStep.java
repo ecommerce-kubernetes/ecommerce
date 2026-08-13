@@ -14,7 +14,9 @@ public enum SagaStep {
     POINTS_RESTORE_PENDING("포인트 복구"),
     END("완료"),
 
-    INVENTORY("재고");
+    INVENTORY("재고"),
+    COUPON("쿠폰"),
+    POINT("포인트");
 
     private final String description;
 }

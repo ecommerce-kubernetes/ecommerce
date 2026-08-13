@@ -31,4 +31,10 @@ public record OrderSagaPayload(
     public OrderSagaPayload {
         Assert.notEmpty(orderLines, "페이로드의 주문 상품은 필수이다.");
     }
+
+    public boolean hasCoupons() {
+        boolean hasCartCoupon = this.usedCoupons.cartCouponId != null;
+        boolean hasItemCoupons = this.usedCoupons.itemCouponIds != null && !usedCoupons.itemCouponIds.isEmpty();
+        return hasCartCoupon || hasItemCoupons;
+    }
 }
