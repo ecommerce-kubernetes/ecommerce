@@ -2,12 +2,12 @@ package com.example.order_service.saga.domain.fixture;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.saga.domain.OrderSaga;
-import com.example.order_service.saga.domain.OrderSagaPayload;
+import com.example.order_service.saga.domain.*;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class OrderSagaFixtureBuilder {
 
@@ -16,7 +16,8 @@ public class OrderSagaFixtureBuilder {
     private boolean hasCoupon = false;
     private Money usedPoints = Money.ZERO;
 
-    private IdGenerator idGenerator = () -> 100L;
+    private AtomicLong idSeq = new AtomicLong(100L);
+    private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     public static OrderSagaFixtureBuilder given() {
         return new OrderSagaFixtureBuilder();
@@ -30,6 +31,25 @@ public class OrderSagaFixtureBuilder {
     public OrderSagaFixtureBuilder withPoints(long amount){
         this.usedPoints = Money.wons(amount);
         return this;
+    }
+
+    public OrderSaga buildAndForwardTo(SagaStep step) {
+        OrderSaga saga = this.build();
+
+        while (saga.getCurrentStep() != step) {
+            if (saga.getCurrentStep() == SagaStep.END) {
+                break;
+            }
+
+            OrderSagaExecution pendingExecution = saga.getOrderSagaExecutions().stream()
+                    .filter(exec -> exec.getStep() == saga.getCurrentStep() && exec.getStatus() == ExecutionStatus.PENDING)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("step: " + saga.getCurrentStep()));
+
+            saga.completeForward(pendingExecution.getId(), this.idGenerator);
+        }
+
+        return saga;
     }
 
     public OrderSagaFixtureBuilder withIdGenerator(IdGenerator idGenerator) {

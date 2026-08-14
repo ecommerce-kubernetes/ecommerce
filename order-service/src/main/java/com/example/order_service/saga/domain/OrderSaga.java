@@ -115,6 +115,15 @@ public class OrderSaga extends BaseAggregateRoot {
         this.failureReason = failureReason;
     }
 
+    public OrderSagaExecution getExecution(ExecutionStatus status, ExecutionType type, SagaStep step) {
+        return this.orderSagaExecutions.stream()
+                .filter(exec -> exec.getType() == type)
+                .filter(exec -> exec.getStatus() == status)
+                .filter(exec -> exec.getStep() == step)
+                .findFirst()
+                .orElseThrow(() -> new ExecutionNotFoundException("작업을 찾을 수 없습니다."));
+    }
+
     private OrderSagaExecution getExecution(Long executionId) {
         return this.orderSagaExecutions.stream()
                 .filter(execution -> execution.getId().equals(executionId))

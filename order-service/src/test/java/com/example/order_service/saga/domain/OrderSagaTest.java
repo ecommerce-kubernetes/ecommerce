@@ -64,11 +64,11 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("재고 차감 작업을 완료하고 쿠폰을 사용한 경우 쿠폰 스텝을 진행한다.")
-    void completeForward_success_inventory_and_UsedCoupon() {
+    @DisplayName("재고 차감 완료 후 쿠폰을 사용했다면 쿠폰 스텝으로 이동한다.")
+    void completeForward_afterInventory_whenCouponUsed_thenMoveToCouponStep() {
         //given
-        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().build();
-        OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndForwardTo(SagaStep.INVENTORY);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
         //when
         orderSaga.completeForward(execution.getId(), idGenerator);
         //then
@@ -82,11 +82,11 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("재고 차감 작업을 완료하고 쿠폰을 사용하지 않은 경우 포인트를 사용했으면 포인트 스텝을 진행한다.")
-    void completeForward_success_inventory_and_notUsedCoupon_and_usedPoints() {
+    @DisplayName("재고 차감 완료 후 쿠폰을 사용하지 않고 포인트를 사용했다면 포인트 스텝으로 이동한다.")
+    void completeForward_afterInventory_whenNoCouponAndPointUsed_thenMoveToPointStep() {
         //given
-        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withPoints(1000L).build();
-        OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withPoints(1000L).buildAndForwardTo(SagaStep.INVENTORY);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
         //when
         orderSaga.completeForward(execution.getId(), idGenerator);
         //then
@@ -100,11 +100,11 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("재고 차감 작업을 완료하고 쿠폰과 포인트를 사용하지 않았다면 사가를 완료한다.")
-    void completeForward_success_inventory_notUsedCoupon_and_not_usedPoints() {
+    @DisplayName("재고 차감 완료 후 쿠폰과 포인트를 모두 사용하지 않았다면 사가를 완료한다.")
+    void completeForward_afterInventory_whenNoCouponAndNoPointUsed_thenComplete() {
         //given
-        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().build();
-        OrderSagaExecution execution = orderSaga.getOrderSagaExecutions().getFirst();
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().buildAndForwardTo(SagaStep.INVENTORY);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
         //when
         orderSaga.completeForward(execution.getId(), idGenerator);
         //then
@@ -118,16 +118,14 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("쿠폰 무료화를 완료하고 포인트를 사용했다면 포인트 스텝을 진행한다.")
-    void completeForward_success_coupon_and_usedPoint(){
+    @DisplayName("쿠폰 무효화 후 포인트를 사용했다면 포인트 스텝으로 이동한다.")
+    void completeForward_afterCoupon_whenUsedPoint_thenMoveToPointStep(){
         //given
-        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().withPoints(1000L).build();
-        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
-        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
-
-        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().withPoints(1000L)
+                .buildAndForwardTo(SagaStep.COUPON);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.COUPON);
         //when
-        orderSaga.completeForward(couponExecution.getId(), idGenerator);
+        orderSaga.completeForward(execution.getId(), idGenerator);
         //then
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.PROCESSING);
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.POINT);
@@ -141,16 +139,14 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("쿠폰 무효화를 완료하고 포인트를 사용하지 않았으면 사가를 완료한다.")
-    void completeForward_success_coupon_and_notUsedPoints(){
+    @DisplayName("쿠폰 무효화 후 포인트를 사용하지 않았다면 사가를 완료한다.")
+    void completeForward_afterCoupon_whenNotUsedPoint_thenComplete(){
         //given
-        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().build();
-        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
-        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndForwardTo(SagaStep.COUPON);
 
-        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.COUPON);
         //when
-        orderSaga.completeForward(couponExecution.getId(), idGenerator);
+        orderSaga.completeForward(execution.getId(), idGenerator);
         //then
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPLETE);
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
@@ -164,26 +160,19 @@ class OrderSagaTest {
 
     @Test
     @DisplayName("포인트 차감을 완료하면 사가를 완료 한다.")
-    void completeForward_success_point(){
+    void completeForward_afterPoint_thenComplete(){
         //given
-        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withPoints(1000).build();
-        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
-        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
-
-        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
-        orderSaga.completeForward(couponExecution.getId(), idGenerator);
-
-        OrderSagaExecution pointExecution = orderSaga.getOrderSagaExecutions().get(2);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withPoints(1000).buildAndForwardTo(SagaStep.POINT);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.POINT);
         //when
-        orderSaga.completeForward(pointExecution.getId(), idGenerator);
+        orderSaga.completeForward(execution.getId(), idGenerator);
         //then
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPLETE);
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
-        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(3)
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(2)
                 .extracting("status", "type", "step")
                 .containsExactly(
                         tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
-                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.COUPON),
                         tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.POINT)
                 );
     }
