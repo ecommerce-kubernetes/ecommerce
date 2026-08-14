@@ -9,6 +9,7 @@ public enum SagaStatus {
     PROCESSING("진행중"),
     COMPENSATING("보상 트랜잭션 진행중"),
     COMPLETE("사가 완료"),
+    ABORT("사가 철회"),
     FAILED("사가 실패");
     private final String description;
 }

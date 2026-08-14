@@ -197,7 +197,7 @@ class OrderSagaTest {
         //when
         orderSaga.failForward(execution.getId(), "재고 부족", idGenerator);
         //then
-        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.ABORT);
         assertThat(orderSaga.getOrderSagaExecutions())
                 .extracting("status", "type", "step")
                 .containsExactly(
@@ -283,7 +283,7 @@ class OrderSagaTest {
         //when
         orderSaga.completeCompensate(execution.getId(), idGenerator);
         //then
-        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.ABORT);
         assertThat(orderSaga.getOrderSagaExecutions())
                 .extracting("status", "type", "step")
                 .containsExactly(
@@ -311,6 +311,26 @@ class OrderSagaTest {
                         tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.POINT),
                         tuple(ExecutionStatus.SUCCESS, ExecutionType.COMPENSATE, SagaStep.COUPON),
                         tuple(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY)
+                );
+    }
+
+    @Test
+    @DisplayName("복구 실패시 사가를 실패한다.")
+    void failCompensate() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
+        //when
+        orderSaga.failCompensate(execution.getId());
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
+        assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.END);
+        assertThat(orderSaga.getOrderSagaExecutions())
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.COUPON),
+                        tuple(ExecutionStatus.FAIL, ExecutionType.COMPENSATE, SagaStep.INVENTORY)
                 );
     }
 

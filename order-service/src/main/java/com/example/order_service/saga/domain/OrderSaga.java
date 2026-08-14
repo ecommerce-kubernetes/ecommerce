@@ -73,6 +73,11 @@ public class OrderSaga extends BaseAggregateRoot {
 
     public void completeForward(Long executionId, IdGenerator idGenerator) {
         OrderSagaExecution execution = getExecution(executionId);
+
+        if (execution.getStatus() == ExecutionStatus.SUCCESS) {
+            return;
+        }
+
         execution.success();
 
         SagaStep nextStep = determineNextForwardStep(this.currentStep, this.payload);
@@ -88,6 +93,10 @@ public class OrderSaga extends BaseAggregateRoot {
     public void failForward(Long executionId, String failureReason, IdGenerator idGenerator) {
         OrderSagaExecution execution = getExecution(executionId);
 
+        if (execution.getStatus() == ExecutionStatus.FAIL) {
+            return;
+        }
+
         execution.fail();
 
         this.failureReason = failureReason;
@@ -95,7 +104,7 @@ public class OrderSaga extends BaseAggregateRoot {
         OrderSagaExecution rollbackExecution = nextRollbackTarget();
 
         if (rollbackExecution == null) {
-            failSaga();
+            abortSaga();
             return;
         }
 
@@ -105,16 +114,32 @@ public class OrderSaga extends BaseAggregateRoot {
     public void completeCompensate(Long executionId, IdGenerator idGenerator) {
         OrderSagaExecution execution = getExecution(executionId);
 
+        if (execution.getStatus() == ExecutionStatus.SUCCESS) {
+            return;
+        }
+
         execution.success();
 
         OrderSagaExecution rollbackExecution = nextRollbackTarget();
 
         if (rollbackExecution == null) {
-            failSaga();
+            abortSaga();
             return;
         }
 
         transitToCompensateStep(rollbackExecution.getStep(), idGenerator);
+    }
+
+    public void failCompensate(Long executionId) {
+        OrderSagaExecution execution = getExecution(executionId);
+
+        if (execution.getStatus() == ExecutionStatus.FAIL) {
+            return;
+        }
+
+        execution.fail();
+
+        failSaga();
     }
 
     public OrderSagaExecution getExecution(ExecutionStatus status, ExecutionType type, SagaStep step) {
@@ -157,6 +182,11 @@ public class OrderSaga extends BaseAggregateRoot {
     private void failSaga() {
         this.currentStep = SagaStep.END;
         this.status = SagaStatus.FAILED;
+    }
+
+    private void abortSaga() {
+        this.currentStep = SagaStep.END;
+        this.status = SagaStatus.ABORT;
     }
 
     private void transitToForwardStep(SagaStep nextStep, IdGenerator idGenerator) {
