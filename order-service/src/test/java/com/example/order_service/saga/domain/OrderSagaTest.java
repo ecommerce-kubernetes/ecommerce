@@ -179,7 +179,7 @@ class OrderSagaTest {
 
     @Test
     @DisplayName("스텝을 완료할때 작업을 찾을 수 없으면 예외가 발생한다.")
-    void completeForward_notFound_execution() {
+    void completeForward_whenExecutionNotFound_thenThrowException() {
         //given
         OrderSaga orderSaga = OrderSagaFixtureBuilder.given().build();
         //when
@@ -189,31 +189,49 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("포인트 차감 실패 처리 후 쿠폰을 무효화했다면 쿠폰 보상을 진행한다.")
-    void failForward_fail_point_and_couponUsed() {
+    @DisplayName("재고 차감 실패 후 사가는 실패된다.")
+    void failForward_afterInventory_thenFail() {
         //given
-        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
-                .cartCouponId(1L)
-                .itemCouponIds(List.of(2L, 3L))
-                .build();
-
-        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
-
-        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
-                .orderId(1L)
-                .payload(payload)
-                .build();
-        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
-
-        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
-        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
-
-        OrderSagaExecution couponExecution = orderSaga.getOrderSagaExecutions().get(1);
-        orderSaga.completeForward(couponExecution.getId(), idGenerator);
-
-        OrderSagaExecution pointExecution = orderSaga.getOrderSagaExecutions().get(2);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().buildAndForwardTo(SagaStep.INVENTORY);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
         //when
-        orderSaga.failForward(pointExecution.getId(), "보유 포인트 부족", idGenerator);
+        orderSaga.failForward(execution.getId(), "재고 부족", idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
+        assertThat(orderSaga.getOrderSagaExecutions())
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.INVENTORY)
+                );
+    }
+
+    @Test
+    @DisplayName("쿠폰 무효화 실패 후 재고 보상을 진행한다.")
+    void failForward_afterCoupon_thenMoveToInventoryCompensate(){
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndForwardTo(SagaStep.COUPON);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.COUPON);
+        //when
+        orderSaga.failForward(execution.getId(), "쿠폰 만료", idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
+        assertThat(orderSaga.getOrderSagaExecutions())
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.COUPON),
+                        tuple(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY)
+                );
+    }
+
+    @Test
+    @DisplayName("포인트 차감 실패후 쿠폰을 무효화 했다면 쿠폰 보상을 진행한다.")
+    void failForward_afterPoint_whenCouponUsed_thenMoveToCouponCompensate() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().withPoints(1000L).buildAndForwardTo(SagaStep.POINT);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.POINT);
+        //when
+        orderSaga.failForward(execution.getId(), "포인트 부족", idGenerator);
         //then
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
         assertThat(orderSaga.getOrderSagaExecutions())
@@ -227,28 +245,13 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("포인트 차감 실패 처리 후 쿠폰을 사용하지 않았다면 재고 복구를 진행한다.")
-    void failForward_fail_point_and_coupon_not_used(){
+    @DisplayName("포인트 차감 실패 후 쿠폰을 무효화 하지 않았다면 재고 보상을 진행한다.")
+    void failForward_afterPoint_whenNoCoupon_thenMoveToInventoryCompensate() {
         //given
-        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
-                .cartCouponId(null)
-                .itemCouponIds(Collections.emptyList())
-                .build();
-
-        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
-
-        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
-                .orderId(1L)
-                .payload(payload)
-                .build();
-        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
-
-        OrderSagaExecution inventoryExecution = orderSaga.getOrderSagaExecutions().getFirst();
-        orderSaga.completeForward(inventoryExecution.getId(), idGenerator);
-
-        OrderSagaExecution pointExecution = orderSaga.getOrderSagaExecutions().get(1);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withPoints(1000L).buildAndForwardTo(SagaStep.POINT);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.POINT);
         //when
-        orderSaga.failForward(pointExecution.getId(), "보유 포인트 부족", idGenerator);
+        orderSaga.failForward(execution.getId(), "포인트 부족", idGenerator);
         //then
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
         assertThat(orderSaga.getOrderSagaExecutions())
@@ -261,55 +264,14 @@ class OrderSagaTest {
     }
 
     @Test
-    @DisplayName("쿠폰 무효화 실패 처리후 재고 복구를 진행한다.")
-    void failForward_fail_coupon(){
+    @DisplayName("스텝을 실패할 때 작업을 찾을 수 없으면 예외가 발생한다.")
+    void failForward_whenExecutionNotFound_thenThrowException() {
         //given
-        //when
-        //then
-    }
-
-    @Test
-    @DisplayName("재고 감소 실패 처리후 사가를 실패 처리한다.")
-    void failForward_fail_inventory(){
-        //given
-        //when
-        //then
-    }
-
-    @Test
-    @DisplayName("스텝을 실패처리할 때 작업을 찾을 수 없으면 예외가 발생한다.")
-    void failForward_notFound_execution() {
-        //given
-        OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
-                .cartCouponId(1L)
-                .itemCouponIds(List.of(2L, 3L))
-                .build();
-
-        OrderSagaPayload payload = createPayload(usedCoupons, Money.wons(1000L));
-
-        CreateOrderSagaContext context = CreateOrderSagaContext.builder()
-                .orderId(1L)
-                .payload(payload)
-                .build();
-        OrderSaga orderSaga = OrderSaga.create(context, idGenerator);
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().buildAndForwardTo(SagaStep.INVENTORY);
         //when
         //then
         assertThatThrownBy(() -> orderSaga.failForward(999L, "재고 감소 실패", idGenerator))
                 .isInstanceOf(ExecutionNotFoundException.class);
-    }
-
-    private OrderSagaPayload createPayload(OrderSagaPayload.UsedCoupons usedCoupons, Money usedPoints) {
-        OrderSagaPayload.OrderLine line = OrderSagaPayload.OrderLine.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-
-        return OrderSagaPayload.builder()
-                .userId(1L)
-                .orderLines(List.of(line))
-                .usedCoupons(usedCoupons)
-                .usedPoints(usedPoints)
-                .build();
     }
 
     private CreateOrderSagaContext createContext() {
