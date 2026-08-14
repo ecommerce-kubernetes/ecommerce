@@ -90,29 +90,31 @@ public class OrderSaga extends BaseAggregateRoot {
 
         execution.fail();
 
-        Set<SagaStep> alreadyCompensatedSteps = this.orderSagaExecutions.stream()
-                .filter(exec -> exec.getType() == ExecutionType.COMPENSATE)
-                .map(OrderSagaExecution::getStep)
-                .collect(Collectors.toSet());
-
-        OrderSagaExecution target = null;
-        for (int i = this.orderSagaExecutions.size() - 1; i >= 0; i--) {
-            OrderSagaExecution exec = this.orderSagaExecutions.get(i);
-            if (exec.getType() == ExecutionType.FORWARD &&
-                    exec.getStatus() == ExecutionStatus.SUCCESS &&
-                    !alreadyCompensatedSteps.contains(exec.getStep())) {
-                target = exec;
-            }
-        }
-
-        if (target != null) {
-            OrderSagaExecution rollBackExecution = OrderSagaExecution.create(idGenerator, ExecutionType.COMPENSATE, target.getStep());
-            addExecution(rollBackExecution);
-            this.status = SagaStatus.COMPENSATING;
-        } else {
-            this.status = SagaStatus.FAILED;
-        }
         this.failureReason = failureReason;
+
+        OrderSagaExecution rollbackExecution = nextRollbackTarget();
+
+        if (rollbackExecution == null) {
+            failSaga();
+            return;
+        }
+
+        transitToCompensateStep(rollbackExecution.getStep(), idGenerator);
+    }
+
+    public void completeCompensate(Long executionId, IdGenerator idGenerator) {
+        OrderSagaExecution execution = getExecution(executionId);
+
+        execution.success();
+
+        OrderSagaExecution rollbackExecution = nextRollbackTarget();
+
+        if (rollbackExecution == null) {
+            failSaga();
+            return;
+        }
+
+        transitToCompensateStep(rollbackExecution.getStep(), idGenerator);
     }
 
     public OrderSagaExecution getExecution(ExecutionStatus status, ExecutionType type, SagaStep step) {
@@ -152,9 +154,39 @@ public class OrderSaga extends BaseAggregateRoot {
         this.status = SagaStatus.COMPLETE;
     }
 
+    private void failSaga() {
+        this.currentStep = SagaStep.END;
+        this.status = SagaStatus.FAILED;
+    }
+
     private void transitToForwardStep(SagaStep nextStep, IdGenerator idGenerator) {
         OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, nextStep);
         addExecution(nextExecution);
         this.currentStep = nextStep;
+    }
+
+    private void transitToCompensateStep(SagaStep nextStep, IdGenerator idGenerator) {
+        OrderSagaExecution rollbackExecution = OrderSagaExecution.create(idGenerator, ExecutionType.COMPENSATE, nextStep);
+        addExecution(rollbackExecution);
+        this.currentStep = nextStep;
+        this.status = SagaStatus.COMPENSATING;
+    }
+
+    private OrderSagaExecution nextRollbackTarget() {
+        Set<SagaStep> alreadyCompensatedSteps = this.orderSagaExecutions.stream()
+                .filter(exec -> exec.getType() == ExecutionType.COMPENSATE)
+                .map(OrderSagaExecution::getStep)
+                .collect(Collectors.toSet());
+
+        for (int i = this.orderSagaExecutions.size() - 1; i >= 0; i--) {
+            OrderSagaExecution execution = this.orderSagaExecutions.get(i);
+            if (execution.getType() == ExecutionType.FORWARD &&
+                    execution.getStatus() == ExecutionStatus.SUCCESS &&
+                    !alreadyCompensatedSteps.contains(execution.getStep())) {
+                return execution;
+            }
+        }
+
+        return null;
     }
 }

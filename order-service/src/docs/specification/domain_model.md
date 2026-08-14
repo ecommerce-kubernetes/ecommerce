@@ -315,7 +315,9 @@
 #### 행위
 
 - create(주문 사가 생성): 주문 사가를 생성한다.
-- completeStep(스텝을 완료한다): 주문 사가 스텝을 완료한다
+- completeForward(스텝을 완료한다): 주문 사가 스텝을 완료한다
+- failForward(스텝을 실패한다): 주문 사가 스텝을 실패 처리한다.
+- completeCompensate(보상을 완료한다: 주문사가 보상을 완료한다.
 
 #### 규칙
 

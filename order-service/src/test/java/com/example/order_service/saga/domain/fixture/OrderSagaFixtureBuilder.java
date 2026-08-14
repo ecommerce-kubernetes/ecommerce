@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.saga.domain.*;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
+import org.springframework.security.core.parameters.P;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +51,14 @@ public class OrderSagaFixtureBuilder {
         }
 
         return saga;
+    }
+
+    public OrderSaga buildAndFailAt(SagaStep failStep, String failureReason) {
+        OrderSaga orderSaga = this.buildAndForwardTo(failStep);
+
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, failStep);
+        orderSaga.failForward(execution.getId(), failureReason, this.idGenerator);
+        return orderSaga;
     }
 
     public OrderSagaFixtureBuilder withIdGenerator(IdGenerator idGenerator) {

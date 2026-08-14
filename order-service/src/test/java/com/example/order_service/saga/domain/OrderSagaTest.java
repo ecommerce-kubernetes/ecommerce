@@ -274,6 +274,46 @@ class OrderSagaTest {
                 .isInstanceOf(ExecutionNotFoundException.class);
     }
 
+    @Test
+    @DisplayName("재고 복구 후 사가는 실패한다.")
+    void completeCompensate_afterInventory_thenFail() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
+        //when
+        orderSaga.completeCompensate(execution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
+        assertThat(orderSaga.getOrderSagaExecutions())
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.COUPON),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.COMPENSATE, SagaStep.INVENTORY)
+                );
+    }
+
+    @Test
+    @DisplayName("쿠폰 복구 후 재고 복구를 진행한다.")
+    void completeCompensate_afterCoupon_thenMoveToInventoryCompensate() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().withPoints(1000).buildAndFailAt(SagaStep.POINT, "포인트 부족");
+
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.COUPON);
+        //when
+        orderSaga.completeCompensate(execution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getOrderSagaExecutions())
+                .extracting("status", "type", "step")
+                .containsExactly(
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.INVENTORY),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.FORWARD, SagaStep.COUPON),
+                        tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.POINT),
+                        tuple(ExecutionStatus.SUCCESS, ExecutionType.COMPENSATE, SagaStep.COUPON),
+                        tuple(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY)
+                );
+    }
+
     private CreateOrderSagaContext createContext() {
         OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
                 .cartCouponId(1L)
