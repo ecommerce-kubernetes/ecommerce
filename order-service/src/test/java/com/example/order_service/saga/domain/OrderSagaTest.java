@@ -187,10 +187,25 @@ class OrderSagaTest {
         assertThatThrownBy(() -> orderSaga.completeForward(999L, idGenerator))
                 .isInstanceOf(ExecutionNotFoundException.class);
     }
+    
+    @Test
+    @DisplayName("완료된 정방향 작업을 다시 완료해도 중복 처리되지 않는다")
+    void completeForward_idempotency() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndForwardTo(SagaStep.INVENTORY);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
+
+        orderSaga.completeForward(execution.getId(), idGenerator);
+        int expectedSize = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.completeForward(execution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(expectedSize);
+    }
 
     @Test
-    @DisplayName("재고 차감 실패 후 사가는 실패된다.")
-    void failForward_afterInventory_thenFail() {
+    @DisplayName("재고 차감 실패 후 사가는 철회된다.")
+    void failForward_afterInventory_thenAbort() {
         //given
         OrderSaga orderSaga = OrderSagaFixtureBuilder.given().buildAndForwardTo(SagaStep.INVENTORY);
         OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
@@ -276,7 +291,7 @@ class OrderSagaTest {
 
     @Test
     @DisplayName("재고 복구 후 사가는 실패한다.")
-    void completeCompensate_afterInventory_thenFail() {
+    void completeCompensate_afterInventory_thenAbort() {
         //given
         OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
         OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
@@ -315,6 +330,17 @@ class OrderSagaTest {
     }
 
     @Test
+    @DisplayName("복구할 작업을 찾을 수 없으면 예외가 발생한다.")
+    void completeCompensate_whenExecutionNotFound_thenThrowException() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        //when
+        //then
+        assertThatThrownBy(() -> orderSaga.completeCompensate(999L, idGenerator))
+                .isInstanceOf(ExecutionNotFoundException.class);
+    }
+
+    @Test
     @DisplayName("복구 실패시 사가를 실패한다.")
     void failCompensate() {
         //given
@@ -332,6 +358,17 @@ class OrderSagaTest {
                         tuple(ExecutionStatus.FAIL, ExecutionType.FORWARD, SagaStep.COUPON),
                         tuple(ExecutionStatus.FAIL, ExecutionType.COMPENSATE, SagaStep.INVENTORY)
                 );
+    }
+
+    @Test
+    @DisplayName("복구를 실패할때 실패할 작업을 찾을 수 없으면 예외가 발생한다.")
+    void failCompensate_whenExecutionNotFound_thenThrowException() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        //when
+        //then
+        assertThatThrownBy(() -> orderSaga.failCompensate(999L))
+                .isInstanceOf(ExecutionNotFoundException.class);
     }
 
     private CreateOrderSagaContext createContext() {
