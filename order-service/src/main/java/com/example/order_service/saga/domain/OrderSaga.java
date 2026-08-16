@@ -4,7 +4,7 @@ import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.OrderSagaPayloadConverter;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
-import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
+import com.example.order_service.saga.domain.event.*;
 import com.example.order_service.saga.exception.ExecutionNotFoundException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -203,6 +203,8 @@ public class OrderSaga extends BaseAggregateRoot {
         OrderSagaExecution nextExecution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, nextStep);
         addExecution(nextExecution);
         this.currentStep = nextStep;
+
+        registerForwardEvent(nextStep, nextExecution.getId());
     }
 
     private void transitToCompensateStep(SagaStep nextStep, IdGenerator idGenerator) {
@@ -210,6 +212,8 @@ public class OrderSaga extends BaseAggregateRoot {
         addExecution(rollbackExecution);
         this.currentStep = nextStep;
         this.status = SagaStatus.COMPENSATING;
+
+        registerCompensateEvent(nextStep, rollbackExecution.getId());
     }
 
     private OrderSagaExecution nextRollbackTarget() {
@@ -228,5 +232,44 @@ public class OrderSaga extends BaseAggregateRoot {
         }
 
         return null;
+    }
+
+    private void registerForwardEvent(SagaStep step, Long executionId) {
+        switch (step) {
+            case COUPON -> UsedCouponEvent.builder()
+                    .orderId(this.orderId)
+                    .executionId(executionId)
+                    .userId(this.getPayload().userId())
+                    .coupons(this.payload.usedCoupons())
+                    .build();
+
+            case POINT -> UsedPointEvent.builder()
+                    .orderId(this.orderId)
+                    .executionId(executionId)
+                    .userId(this.getPayload().userId())
+                    .usedPoints(this.payload.usedPoints())
+                    .build();
+
+            case INVENTORY, END -> {}
+        }
+    }
+
+    private void registerCompensateEvent(SagaStep step, Long executionId) {
+        switch (step) {
+            case COUPON -> RestoreCouponEvent.builder()
+                    .orderId(this.orderId)
+                    .executionId(executionId)
+                    .userId(this.getPayload().userId())
+                    .coupons(this.payload.usedCoupons())
+                    .build();
+
+            case INVENTORY -> RestoreInventoryEvent.builder()
+                    .orderId(this.orderId)
+                    .executionId(executionId)
+                    .orderLines(payload.orderLines())
+                    .build();
+
+            case POINT, END -> {}
+        }
     }
 }
