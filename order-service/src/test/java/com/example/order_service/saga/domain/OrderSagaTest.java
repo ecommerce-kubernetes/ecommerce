@@ -288,6 +288,22 @@ class OrderSagaTest {
         assertThatThrownBy(() -> orderSaga.failForward(999L, "재고 감소 실패", idGenerator))
                 .isInstanceOf(ExecutionNotFoundException.class);
     }
+    
+    @Test
+    @DisplayName("실패한 정방향 작업을 다시 실패해도 중복 처리 되지 않는")
+    void failForward_idempotency() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().withPoints(1000L).buildAndForwardTo(SagaStep.POINT);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.POINT);
+
+        orderSaga.failForward(execution.getId(), "포인트 부족", idGenerator);
+        int expectedSize = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.failForward(execution.getId(), "포인트 부족", idGenerator);
+        //then
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(expectedSize);
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
+    }
 
     @Test
     @DisplayName("재고 복구 후 사가는 실패한다.")
@@ -341,6 +357,22 @@ class OrderSagaTest {
     }
 
     @Test
+    @DisplayName("완료된 롤백을 다시 완료 처리해도 중복 처리 되지 않는다")
+    void completeCompensate_idempotency() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
+
+        orderSaga.completeCompensate(execution.getId(), idGenerator);
+        int expectedSize = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.completeCompensate(execution.getId(), idGenerator);
+        //then
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(expectedSize);
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.ABORT);
+    }
+
+    @Test
     @DisplayName("복구 실패시 사가를 실패한다.")
     void failCompensate() {
         //given
@@ -369,6 +401,22 @@ class OrderSagaTest {
         //then
         assertThatThrownBy(() -> orderSaga.failCompensate(999L))
                 .isInstanceOf(ExecutionNotFoundException.class);
+    }
+    
+    @Test
+    @DisplayName("실패한 롤백 작업을 다시 실패 처리해도 중복 처리 되지 않는다")
+    void failCompensate_idempotency() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
+
+        orderSaga.failCompensate(execution.getId());
+        int expectedSize = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.failCompensate(execution.getId());
+        //then
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(expectedSize);
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
     }
 
     private CreateOrderSagaContext createContext() {
