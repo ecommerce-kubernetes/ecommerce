@@ -119,7 +119,7 @@ public class Order extends BaseAggregateRoot {
     }
 
     private void registerPaidEvent() {
-        OrderPaidEvent event = OrderPaidEvent.of(this.getId());
+        OrderPaidEvent event = OrderPaidEvent.from(this);
         registerEvent(event);
     }
 }

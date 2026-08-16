@@ -32,13 +32,4 @@ public class OrderCommandService {
         orderRepository.save(order);
     }
 
-    public void changePaid(String orderNo) {
-    }
-
-    public void changeCompleted(String orderNo) {
-    }
-
-    public void changeFailed(String orderNo, String reason) {
-    }
-
 }
