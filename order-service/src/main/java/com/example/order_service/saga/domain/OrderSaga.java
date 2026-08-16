@@ -4,6 +4,7 @@ import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.OrderSagaPayloadConverter;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
+import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.saga.exception.ExecutionNotFoundException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -70,6 +71,12 @@ public class OrderSaga extends BaseAggregateRoot {
 
         OrderSagaExecution execution = OrderSagaExecution.create(idGenerator, ExecutionType.FORWARD, SagaStep.INVENTORY);
         orderSaga.addExecution(execution);
+
+        orderSaga.registerEvent(ReduceInventoryEvent.builder()
+                .orderId(orderSaga.getOrderId())
+                .executionId(execution.getId())
+                .orderLines(context.payload().orderLines())
+                .build());
 
         return orderSaga;
     }

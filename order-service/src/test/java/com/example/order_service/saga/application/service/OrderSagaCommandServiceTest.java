@@ -7,10 +7,13 @@ import com.example.order_service.saga.domain.OrderSagaPayload;
 import com.example.order_service.saga.domain.SagaStatus;
 import com.example.order_service.saga.domain.SagaStep;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
+import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @IsolatedTest
 @Transactional
+@RecordApplicationEvents
 class OrderSagaCommandServiceTest {
 
     @Autowired
@@ -27,6 +31,9 @@ class OrderSagaCommandServiceTest {
 
     @Autowired
     private OrderSagaRepository orderSagaRepository;
+
+    @Autowired
+    private ApplicationEvents events;
 
     @Test
     @DisplayName("주문 사가를 생성한다.")
@@ -41,6 +48,18 @@ class OrderSagaCommandServiceTest {
         assertThat(orderSaga.getId()).isNotNull();
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.PROCESSING);
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.INVENTORY);
+    }
+
+    @Test
+    @DisplayName("주문 사가를 생성하면 재고 차감 이벤트가 발행된다.")
+    void createOrderSaga_thenPublishReduceInventoryEvent() {
+        //given
+        CreateOrderSagaContext context = createContext();
+        //when
+        orderSagaCommandService.createOrderSaga(context);
+        //then
+        long eventCount = events.stream(ReduceInventoryEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
     }
 
     private CreateOrderSagaContext createContext() {
