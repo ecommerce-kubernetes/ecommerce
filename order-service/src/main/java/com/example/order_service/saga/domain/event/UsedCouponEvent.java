@@ -9,5 +9,5 @@ public record UsedCouponEvent(
         Long executionId,
         Long userId,
         OrderSagaPayload.UsedCoupons coupons
-) {
+) implements SagaEvent {
 }

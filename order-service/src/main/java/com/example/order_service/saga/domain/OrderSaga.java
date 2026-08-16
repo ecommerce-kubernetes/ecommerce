@@ -236,19 +236,19 @@ public class OrderSaga extends BaseAggregateRoot {
 
     private void registerForwardEvent(SagaStep step, Long executionId) {
         switch (step) {
-            case COUPON -> UsedCouponEvent.builder()
+            case COUPON -> registerEvent(UsedCouponEvent.builder()
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .userId(this.getPayload().userId())
                     .coupons(this.payload.usedCoupons())
-                    .build();
+                    .build());
 
-            case POINT -> UsedPointEvent.builder()
+            case POINT -> registerEvent(UsedPointEvent.builder()
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .userId(this.getPayload().userId())
                     .usedPoints(this.payload.usedPoints())
-                    .build();
+                    .build());
 
             case INVENTORY, END -> {}
         }
@@ -256,18 +256,18 @@ public class OrderSaga extends BaseAggregateRoot {
 
     private void registerCompensateEvent(SagaStep step, Long executionId) {
         switch (step) {
-            case COUPON -> RestoreCouponEvent.builder()
+            case COUPON -> registerEvent(RestoreCouponEvent.builder()
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .userId(this.getPayload().userId())
                     .coupons(this.payload.usedCoupons())
-                    .build();
+                    .build());
 
-            case INVENTORY -> RestoreInventoryEvent.builder()
+            case INVENTORY -> registerEvent(RestoreInventoryEvent.builder()
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .orderLines(payload.orderLines())
-                    .build();
+                    .build());
 
             case POINT, END -> {}
         }

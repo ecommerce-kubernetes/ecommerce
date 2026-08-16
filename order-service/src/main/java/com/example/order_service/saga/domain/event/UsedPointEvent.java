@@ -9,5 +9,5 @@ public record UsedPointEvent(
         Long executionId,
         Long userId,
         Money usedPoints
-) {
+) implements SagaEvent {
 }

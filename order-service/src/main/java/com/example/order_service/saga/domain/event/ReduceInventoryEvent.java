@@ -10,5 +10,5 @@ public record ReduceInventoryEvent(
         Long orderId,
         Long executionId,
         List<OrderSagaPayload.OrderLine> orderLines
-) {
+) implements SagaEvent {
 }
