@@ -1,7 +1,6 @@
 package com.example.order_service.order.domain.order;
 
 import com.example.order_service.common.entity.BaseAggregateRoot;
-import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;

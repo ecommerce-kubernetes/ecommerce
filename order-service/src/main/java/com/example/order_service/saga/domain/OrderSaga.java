@@ -2,6 +2,7 @@ package com.example.order_service.saga.domain;
 
 import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.util.IdGenerator;
+import com.example.order_service.common.util.OrderSagaPayloadConverter;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.exception.ExecutionNotFoundException;
 import jakarta.persistence.*;
@@ -30,9 +31,11 @@ public class OrderSaga extends BaseAggregateRoot {
 
     private SagaStep currentStep;
 
+    @Convert(converter = OrderSagaPayloadConverter.class)
+    @Column(columnDefinition = "TEXT")
     private OrderSagaPayload payload;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "orderSagaExecution", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "orderSaga", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderSagaExecution> orderSagaExecutions = new ArrayList<>();
 
     private String failureReason;
