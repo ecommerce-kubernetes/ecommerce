@@ -73,6 +73,7 @@ public class OrderSaga extends BaseAggregateRoot {
         orderSaga.addExecution(execution);
 
         orderSaga.registerEvent(ReduceInventoryEvent.builder()
+                .sagaId(orderSaga.getId())
                 .orderId(orderSaga.getOrderId())
                 .executionId(execution.getId())
                 .orderLines(context.payload().orderLines())
@@ -250,7 +251,8 @@ public class OrderSaga extends BaseAggregateRoot {
                     .usedPoints(this.payload.usedPoints())
                     .build());
 
-            case INVENTORY, END -> {}
+            case INVENTORY, END -> {
+            }
         }
     }
 
@@ -264,12 +266,14 @@ public class OrderSaga extends BaseAggregateRoot {
                     .build());
 
             case INVENTORY -> registerEvent(RestoreInventoryEvent.builder()
+                    .sagaId(this.id)
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .orderLines(payload.orderLines())
                     .build());
 
-            case POINT, END -> {}
+            case POINT, END -> {
+            }
         }
     }
 }

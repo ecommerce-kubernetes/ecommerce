@@ -5,6 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record UsedCouponEvent(
+        Long sagaId,
         Long orderId,
         Long executionId,
         Long userId,

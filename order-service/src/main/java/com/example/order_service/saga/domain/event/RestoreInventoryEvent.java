@@ -7,6 +7,7 @@ import java.util.List;
 
 @Builder
 public record RestoreInventoryEvent(
+        Long sagaId,
         Long orderId,
         Long executionId,
         List<OrderSagaPayload.OrderLine> orderLines
