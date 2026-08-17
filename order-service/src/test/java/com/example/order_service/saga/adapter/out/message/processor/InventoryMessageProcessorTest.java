@@ -1,5 +1,6 @@
 package com.example.order_service.saga.adapter.out.message.processor;
 
+import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.domain.OrderSagaPayload;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.saga.domain.event.RestoreInventoryEvent;
@@ -52,7 +53,7 @@ class InventoryMessageProcessorTest {
 
         assertThat(capturedMessage.getHeaders().get(KafkaHeaders.KEY)).isEqualTo("1");
         assertThat(capturedMessage.getHeaders().get("X-Saga-Id")).isEqualTo(1L);
-        assertThat(capturedMessage.getHeaders().get("X-Event-Type")).isEqualTo("ReduceInventoryCommand");
+        assertThat(capturedMessage.getHeaders().get("X-Command-Type")).isEqualTo(SagaCommandType.REDUCE_INVENTORY.name());
         assertThat(capturedMessage.getHeaders().containsKey(KafkaHeaders.TOPIC)).isTrue();
 
         String payload = capturedMessage.getPayload();
@@ -74,7 +75,7 @@ class InventoryMessageProcessorTest {
 
         assertThat(capturedMessage.getHeaders().get(KafkaHeaders.KEY)).isEqualTo("1");
         assertThat(capturedMessage.getHeaders().get("X-Saga-Id")).isEqualTo(1L);
-        assertThat(capturedMessage.getHeaders().get("X-Event-Type")).isEqualTo("RestoreInventoryCommand");
+        assertThat(capturedMessage.getHeaders().get("X-Command-Type")).isEqualTo(SagaCommandType.RESTORE_INVENTORY.name());
         assertThat(capturedMessage.getHeaders().containsKey(KafkaHeaders.TOPIC)).isTrue();
 
         String payload = capturedMessage.getPayload();

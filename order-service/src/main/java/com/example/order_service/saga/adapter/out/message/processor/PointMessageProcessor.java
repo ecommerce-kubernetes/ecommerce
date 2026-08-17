@@ -2,6 +2,7 @@ package com.example.order_service.saga.adapter.out.message.processor;
 
 import com.example.order_service.saga.adapter.out.message.processor.dto.InventoryMessagePayload;
 import com.example.order_service.saga.adapter.out.message.processor.dto.PointMessagePayload;
+import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.config.SagaTopicProperties;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.saga.domain.event.SagaEvent;
@@ -33,13 +34,13 @@ public class PointMessageProcessor implements SagaMessageProcessor{
     public void process(SagaEvent event) {
         if (event instanceof UsedPointEvent reduceEvent) {
             PointMessagePayload payload = PointMessagePayload.from(reduceEvent);
-            sendKafkaMessage(event, payload, "UsedPointCommand");
+            sendKafkaMessage(event, payload, SagaCommandType.USE_POINT);
         }
     }
 
-    private void sendKafkaMessage(SagaEvent event, PointMessagePayload payload, String eventType) {
+    private void sendKafkaMessage(SagaEvent event, PointMessagePayload payload, SagaCommandType commandType) {
         String jsonPayload = toJson(payload);
-        Message<String> kafkaMessage = createKafkaMessage(event, jsonPayload, eventType);
+        Message<String> kafkaMessage = createKafkaMessage(event, jsonPayload, commandType);
         kafkaTemplate.send(kafkaMessage);
     }
 
@@ -51,13 +52,13 @@ public class PointMessageProcessor implements SagaMessageProcessor{
         }
     }
 
-    private Message<String> createKafkaMessage(SagaEvent event, String payload, String eventType) {
+    private Message<String> createKafkaMessage(SagaEvent event, String payload, SagaCommandType commandType) {
         return MessageBuilder
                 .withPayload(payload)
                 .setHeader(KafkaHeaders.TOPIC, topic.productSagaCommand())
                 .setHeader(KafkaHeaders.KEY, String.valueOf(event.orderId()))
                 .setHeader("X-Saga-Id", event.sagaId())
-                .setHeader("X-Event-Type", eventType)
+                .setHeader("X-Command-Type", commandType.name())
                 .build();
     }
 }

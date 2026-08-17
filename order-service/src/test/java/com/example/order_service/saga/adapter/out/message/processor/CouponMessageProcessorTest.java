@@ -1,5 +1,6 @@
 package com.example.order_service.saga.adapter.out.message.processor;
 
+import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.domain.OrderSagaPayload;
 import com.example.order_service.saga.domain.event.RestoreCouponEvent;
 import com.example.order_service.saga.domain.event.UsedCouponEvent;
@@ -19,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -53,7 +53,7 @@ class CouponMessageProcessorTest {
 
         assertThat(capturedMessage.getHeaders().get(KafkaHeaders.KEY)).isEqualTo("1");
         assertThat(capturedMessage.getHeaders().get("X-Saga-Id")).isEqualTo(1L);
-        assertThat(capturedMessage.getHeaders().get("X-Event-Type")).isEqualTo("UsedCouponCommand");
+        assertThat(capturedMessage.getHeaders().get("X-Command-Type")).isEqualTo(SagaCommandType.USE_COUPON.name());
         assertThat(capturedMessage.getHeaders().containsKey(KafkaHeaders.TOPIC)).isTrue();
 
         String payload = capturedMessage.getPayload();
@@ -76,7 +76,7 @@ class CouponMessageProcessorTest {
 
         assertThat(capturedMessage.getHeaders().get(KafkaHeaders.KEY)).isEqualTo("1");
         assertThat(capturedMessage.getHeaders().get("X-Saga-Id")).isEqualTo(1L);
-        assertThat(capturedMessage.getHeaders().get("X-Event-Type")).isEqualTo("RestoreCouponCommand");
+        assertThat(capturedMessage.getHeaders().get("X-Command-Type")).isEqualTo(SagaCommandType.RESTORE_COUPON.name());
         assertThat(capturedMessage.getHeaders().containsKey(KafkaHeaders.TOPIC)).isTrue();
 
         String payload = capturedMessage.getPayload();

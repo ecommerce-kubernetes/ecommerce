@@ -1,6 +1,7 @@
 package com.example.order_service.saga.adapter.out.message.processor;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.domain.event.UsedPointEvent;
 import com.example.order_service.support.annotation.MockRedis;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +51,7 @@ class PointMessageProcessorTest {
 
         assertThat(capturedMessage.getHeaders().get(KafkaHeaders.KEY)).isEqualTo("1");
         assertThat(capturedMessage.getHeaders().get("X-Saga-Id")).isEqualTo(1L);
-        assertThat(capturedMessage.getHeaders().get("X-Event-Type")).isEqualTo("UsedPointCommand");
+        assertThat(capturedMessage.getHeaders().get("X-Command-Type")).isEqualTo(SagaCommandType.USE_POINT.name());
         assertThat(capturedMessage.getHeaders().containsKey(KafkaHeaders.TOPIC)).isTrue();
 
         String payload = capturedMessage.getPayload();

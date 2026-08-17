@@ -2,6 +2,7 @@ package com.example.order_service.saga.adapter.out.message.processor;
 
 import com.example.order_service.saga.adapter.out.message.processor.dto.CouponMessagePayload;
 import com.example.order_service.saga.adapter.out.message.processor.dto.InventoryMessagePayload;
+import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.config.SagaTopicProperties;
 import com.example.order_service.saga.domain.event.*;
 import com.example.order_service.saga.exception.MessageSerializationException;
@@ -32,15 +33,15 @@ public class CouponMessageProcessor implements SagaMessageProcessor {
     public void process(SagaEvent event) {
         if (event instanceof UsedCouponEvent usedEvent) {
             CouponMessagePayload payload = CouponMessagePayload.from(usedEvent);
-            sendKafkaMessage(event, payload, "UsedCouponCommand");
+            sendKafkaMessage(event, payload, SagaCommandType.USE_COUPON);
 
         } else if (event instanceof RestoreCouponEvent restoreEvent) {
             CouponMessagePayload payload = CouponMessagePayload.from(restoreEvent);
-            sendKafkaMessage(event, payload, "RestoreCouponCommand");
+            sendKafkaMessage(event, payload, SagaCommandType.RESTORE_COUPON);
         }
     }
 
-    private void sendKafkaMessage(SagaEvent event, CouponMessagePayload payload, String eventType) {
+    private void sendKafkaMessage(SagaEvent event, CouponMessagePayload payload, SagaCommandType eventType) {
         String jsonPayload = toJson(payload);
         Message<String> kafkaMessage = createKafkaMessage(event, jsonPayload, eventType);
         kafkaTemplate.send(kafkaMessage);
@@ -54,13 +55,13 @@ public class CouponMessageProcessor implements SagaMessageProcessor {
         }
     }
 
-    private Message<String> createKafkaMessage(SagaEvent event, String payload, String eventType) {
+    private Message<String> createKafkaMessage(SagaEvent event, String payload, SagaCommandType commandType) {
         return MessageBuilder
                 .withPayload(payload)
                 .setHeader(KafkaHeaders.TOPIC, topic.couponSagaCommand())
                 .setHeader(KafkaHeaders.KEY, String.valueOf(event.orderId()))
                 .setHeader("X-Saga-Id", event.sagaId())
-                .setHeader("X-Event-Type", eventType)
+                .setHeader("X-Command-Type", commandType.name())
                 .build();
     }
 }

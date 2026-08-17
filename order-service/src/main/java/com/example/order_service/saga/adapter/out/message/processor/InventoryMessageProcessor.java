@@ -1,6 +1,7 @@
 package com.example.order_service.saga.adapter.out.message.processor;
 
 import com.example.order_service.saga.adapter.out.message.processor.dto.InventoryMessagePayload;
+import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.config.SagaTopicProperties;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.saga.domain.event.RestoreInventoryEvent;
@@ -33,15 +34,15 @@ public class InventoryMessageProcessor implements SagaMessageProcessor {
     public void process(SagaEvent event) {
         if (event instanceof ReduceInventoryEvent reduceEvent) {
             InventoryMessagePayload payload = InventoryMessagePayload.from(reduceEvent);
-            sendKafkaMessage(event, payload, "ReduceInventoryCommand");
+            sendKafkaMessage(event, payload, SagaCommandType.REDUCE_INVENTORY);
 
         } else if (event instanceof RestoreInventoryEvent restoreEvent) {
             InventoryMessagePayload payload = InventoryMessagePayload.from(restoreEvent);
-            sendKafkaMessage(event, payload, "RestoreInventoryCommand");
+            sendKafkaMessage(event, payload, SagaCommandType.RESTORE_INVENTORY);
         }
     }
 
-    private void sendKafkaMessage(SagaEvent event, InventoryMessagePayload payload, String eventType) {
+    private void sendKafkaMessage(SagaEvent event, InventoryMessagePayload payload, SagaCommandType eventType) {
         String jsonPayload = toJson(payload);
         Message<String> kafkaMessage = createKafkaMessage(event, jsonPayload, eventType);
         kafkaTemplate.send(kafkaMessage);
@@ -55,13 +56,13 @@ public class InventoryMessageProcessor implements SagaMessageProcessor {
         }
     }
 
-    private Message<String> createKafkaMessage(SagaEvent event, String payload, String eventType) {
+    private Message<String> createKafkaMessage(SagaEvent event, String payload, SagaCommandType commandType) {
         return MessageBuilder
                 .withPayload(payload)
                 .setHeader(KafkaHeaders.TOPIC, topic.productSagaCommand())
                 .setHeader(KafkaHeaders.KEY, String.valueOf(event.orderId()))
                 .setHeader("X-Saga-Id", event.sagaId())
-                .setHeader("X-Event-Type", eventType)
+                .setHeader("X-Command-Type", commandType.name())
                 .build();
     }
 }
