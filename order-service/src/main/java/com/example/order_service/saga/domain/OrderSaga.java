@@ -238,6 +238,7 @@ public class OrderSaga extends BaseAggregateRoot {
     private void registerForwardEvent(SagaStep step, Long executionId) {
         switch (step) {
             case COUPON -> registerEvent(UsedCouponEvent.builder()
+                    .sagaId(this.id)
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .userId(this.getPayload().userId())
@@ -245,6 +246,7 @@ public class OrderSaga extends BaseAggregateRoot {
                     .build());
 
             case POINT -> registerEvent(UsedPointEvent.builder()
+                    .sagaId(this.id)
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .userId(this.getPayload().userId())
@@ -259,6 +261,7 @@ public class OrderSaga extends BaseAggregateRoot {
     private void registerCompensateEvent(SagaStep step, Long executionId) {
         switch (step) {
             case COUPON -> registerEvent(RestoreCouponEvent.builder()
+                    .sagaId(this.id)
                     .orderId(this.orderId)
                     .executionId(executionId)
                     .userId(this.getPayload().userId())
