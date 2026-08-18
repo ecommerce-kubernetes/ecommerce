@@ -2,12 +2,11 @@ package com.example.order_service.saga.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.saga.application.port.OrderSagaRepository;
-import com.example.order_service.saga.domain.OrderSaga;
-import com.example.order_service.saga.domain.OrderSagaPayload;
-import com.example.order_service.saga.domain.SagaStatus;
-import com.example.order_service.saga.domain.SagaStep;
+import com.example.order_service.saga.domain.*;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
+import com.example.order_service.saga.domain.event.UsedCouponEvent;
+import com.example.order_service.saga.exception.SagaNotFoundException;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @IsolatedTest
 @Transactional
@@ -36,7 +35,7 @@ class OrderSagaCommandServiceTest {
     private ApplicationEvents events;
 
     @Test
-    @DisplayName("주문 사가를 생성한다.")
+    @DisplayName("주문 사가를 생성하고 재고 차감 이벤트를 발행한다.")
     void createOrderSaga() {
         //given
         CreateOrderSagaContext context = createContext();
@@ -48,18 +47,35 @@ class OrderSagaCommandServiceTest {
         assertThat(orderSaga.getId()).isNotNull();
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.PROCESSING);
         assertThat(orderSaga.getCurrentStep()).isEqualTo(SagaStep.INVENTORY);
+
+        long eventCount = events.stream(ReduceInventoryEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("주문 사가를 생성하면 재고 차감 이벤트가 발행된다.")
-    void createOrderSaga_thenPublishReduceInventoryEvent() {
+    @DisplayName("주문 사가 작업을 성공후 다음 스텝 이벤트를 발행한다.")
+    void completeForward() {
         //given
         CreateOrderSagaContext context = createContext();
+        Long orderSagaId = orderSagaCommandService.createOrderSaga(context);
+
+        OrderSaga orderSaga = orderSagaRepository.findById(orderSagaId).orElseThrow();
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
         //when
-        orderSagaCommandService.createOrderSaga(context);
+        orderSagaCommandService.completeForward(orderSagaId, execution.getId());
         //then
-        long eventCount = events.stream(ReduceInventoryEvent.class).count();
+        long eventCount = events.stream(UsedCouponEvent.class).count();
         assertThat(eventCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("주문 사가를 찾을 수 없는 경우 예외가 발생한다.")
+    void completeForward_whenNotFoundSaga_thenThrownException() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaCommandService.completeForward(999L, 1L))
+                .isInstanceOf(SagaNotFoundException.class);
     }
 
     private CreateOrderSagaContext createContext() {

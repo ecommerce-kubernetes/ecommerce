@@ -55,7 +55,7 @@ public class PointMessageProcessor implements SagaMessageProcessor{
     private Message<String> createKafkaMessage(SagaEvent event, String payload, SagaCommandType commandType) {
         return MessageBuilder
                 .withPayload(payload)
-                .setHeader(KafkaHeaders.TOPIC, topic.productSagaCommand())
+                .setHeader(KafkaHeaders.TOPIC, topic.userSagaCommand())
                 .setHeader(KafkaHeaders.KEY, String.valueOf(event.orderId()))
                 .setHeader("X-Saga-Id", event.sagaId())
                 .setHeader("X-Command-Type", commandType.name())

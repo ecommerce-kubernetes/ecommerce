@@ -188,11 +188,24 @@ public class OrderSaga extends BaseAggregateRoot {
     private void completeSaga() {
         this.currentStep = SagaStep.END;
         this.status = SagaStatus.COMPLETE;
+
+        SagaSuccessEvent successEvent = SagaSuccessEvent.builder()
+                .orderId(this.orderId)
+                .build();
+
+        registerEvent(successEvent);
     }
 
     private void failSaga() {
         this.currentStep = SagaStep.END;
         this.status = SagaStatus.FAILED;
+
+        SagaFailedEvent failedEvent = SagaFailedEvent.builder()
+                .orderId(this.orderId)
+                .failureReason(this.failureReason)
+                .build();
+
+        registerEvent(failedEvent);
     }
 
     private void abortSaga() {
