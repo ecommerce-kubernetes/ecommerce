@@ -6,6 +6,7 @@ import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
+import com.example.order_service.payment.application.service.dto.command.PaymentCancelCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
@@ -56,6 +57,10 @@ public class PaymentFacade {
         approvePayment(confirmResult, payment, command);
 
         return PaymentConfirmResult.of(payment.paymentId());
+    }
+
+    public void cancel(PaymentCancelCommand command) {
+
     }
 
     private void approvePendingPayment(PaymentResult payment, PaymentConfirmCommand command) {
