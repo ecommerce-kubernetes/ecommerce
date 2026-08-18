@@ -49,9 +49,14 @@ public class CartItem {
     }
 
     public void addQuantity(int quantity, int maxLimit) {
+        if (quantity <= 0) {
+            throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
+        }
+
         if (maxLimit < this.quantity + quantity) {
             throw new BusinessException(CartErrorCode.QUANTITY_EXCEED_MAX_LIMIT);
         }
+
         this.quantity = this.quantity + quantity;
     }
 

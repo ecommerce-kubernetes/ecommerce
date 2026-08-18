@@ -1,6 +1,7 @@
 package com.example.order_service.cart.domain;
 
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
+import com.example.order_service.cart.domain.fixture.CartItemFixtureBuilder;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
@@ -103,12 +104,7 @@ public class CartItemTest {
     @DisplayName("수량을 추가한다")
     void addQuantity(){
         //given
-        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        CartItem cartItem = CartItem.create(itemCtx, idGenerator);
+        CartItem cartItem = CartItemFixtureBuilder.given().withQuantity(3).build();
         //when
         cartItem.addQuantity(2, 10);
         //then
@@ -116,15 +112,23 @@ public class CartItemTest {
     }
 
     @Test
+    @DisplayName("수량을 추가할때 추가할 수량이 1보다 작으면 예외가 발생한다.")
+    void addQuantity_whenQuantityLessThanOne_thenThrownException() {
+        //given
+        CartItem cartItem = CartItemFixtureBuilder.given().withQuantity(3).build();
+        //when
+        //then
+        assertThatThrownBy(() -> cartItem.addQuantity(-1, 10))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
+    }
+
+    @Test
     @DisplayName("수량이 최대 한계치를 초과하면 예외가 발생한다")
     void addQuantity_whenQuantityExceedMaxLimit_thenThrownException(){
         //given
-        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        CartItem cartItem = CartItem.create(itemCtx, idGenerator);
+        CartItem cartItem = CartItemFixtureBuilder.given().withQuantity(3).build();
         //when
         //then
         assertThatThrownBy(() -> cartItem.addQuantity(10, 10))
@@ -137,12 +141,7 @@ public class CartItemTest {
     @DisplayName("장바구니 항목의 수량을 변경한다")
     void updateQuantity(){
         //given
-        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        CartItem cartItem = CartItem.create(itemCtx, idGenerator);
+        CartItem cartItem = CartItemFixtureBuilder.given().withQuantity(3).build();
         //when
         cartItem.updateQuantity(5, 100);
         //then
@@ -153,12 +152,7 @@ public class CartItemTest {
     @DisplayName("항목 수량을 수정할때 상품 수량이 1보다 작으면 예외가 발생한다.")
     void updateQuantity_whenQuantityLessThanOne_thenThrownException(){
         //given
-        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        CartItem cartItem = CartItem.create(itemCtx, idGenerator);
+        CartItem cartItem = CartItemFixtureBuilder.given().withQuantity(3).build();
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(0, 100))
@@ -171,12 +165,7 @@ public class CartItemTest {
     @DisplayName("수량을 변경할때 수량이 최대 한계치를 초과하는 경우 예외가 발생한다.")
     void updateQuantity_whenQuantityExceedMaxLimit_thenThrownException(){
         //given
-        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        CartItem cartItem = CartItem.create(itemCtx, idGenerator);
+        CartItem cartItem = CartItemFixtureBuilder.given().withQuantity(3).build();
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(50, 10))

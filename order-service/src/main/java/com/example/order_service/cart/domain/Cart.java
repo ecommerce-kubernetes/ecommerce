@@ -54,16 +54,16 @@ public class Cart extends BaseEntity {
     }
 
     private CartItem addItem(AddCartItemsContext.Item itemCtx, IdGenerator idGenerator) {
-        if (this.cartItems.size() >= 20) {
-            throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
-        }
-
         Optional<CartItem> existing = findItemByProductVariantId(itemCtx.productVariantId());
 
         if (existing.isPresent()) {
             CartItem cartItem = existing.get();
             cartItem.addQuantity(itemCtx.quantity(), itemCtx.maxLimit());
             return cartItem;
+        }
+
+        if (this.cartItems.size() >= 20) {
+            throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
 
         CartItem cartItem = CartItem.create(itemCtx, idGenerator);
