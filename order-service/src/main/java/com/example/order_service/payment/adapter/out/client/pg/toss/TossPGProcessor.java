@@ -7,10 +7,10 @@ import com.example.order_service.common.exception.external.ExternalSystemExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import com.example.order_service.infrastructure.gateway.TossGateway;
+import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
-import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

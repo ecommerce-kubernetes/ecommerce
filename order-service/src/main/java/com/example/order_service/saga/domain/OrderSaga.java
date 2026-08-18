@@ -5,7 +5,8 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.OrderSagaPayloadConverter;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.domain.event.*;
-import com.example.order_service.saga.exception.ExecutionNotFoundException;
+import com.example.order_service.saga.exception.SagaErrorCode;
+import com.example.order_service.saga.exception.SagaSystemException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -159,14 +160,14 @@ public class OrderSaga extends BaseAggregateRoot {
                 .filter(exec -> exec.getStatus() == status)
                 .filter(exec -> exec.getStep() == step)
                 .findFirst()
-                .orElseThrow(() -> new ExecutionNotFoundException("작업을 찾을 수 없습니다."));
+                .orElseThrow(() -> new SagaSystemException(SagaErrorCode.NOT_FOUND_EXECUTION));
     }
 
     private OrderSagaExecution getExecution(Long executionId) {
         return this.orderSagaExecutions.stream()
                 .filter(execution -> execution.getId().equals(executionId))
                 .findFirst()
-                .orElseThrow(() -> new ExecutionNotFoundException("사가 작업을 칮을 수 없습니다 executionId: " + executionId));
+                .orElseThrow(() -> new SagaSystemException(SagaErrorCode.NOT_FOUND_EXECUTION));
     }
 
     private void addExecution(OrderSagaExecution execution) {

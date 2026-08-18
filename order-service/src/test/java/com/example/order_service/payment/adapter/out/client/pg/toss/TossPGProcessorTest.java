@@ -9,9 +9,6 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
 import com.example.order_service.infrastructure.gateway.TossGateway;
-import com.example.order_service.payment.adapter.out.client.pg.toss.TossErrorTranslator;
-import com.example.order_service.payment.adapter.out.client.pg.toss.TossPGMapper;
-import com.example.order_service.payment.adapter.out.client.pg.toss.TossPGProcessor;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;

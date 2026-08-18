@@ -9,12 +9,12 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.infrastructure.gateway.UserGateway;
+import com.example.order_service.order.adapter.out.client.mapper.OrderUserAdaptorMapper;
 import com.example.order_service.order.application.port.dto.OrdererPointResult;
 import com.example.order_service.order.application.port.dto.OrdererProfileResult;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderUserPortErrorCode;
-import com.example.order_service.order.adapter.out.client.mapper.OrderUserAdaptorMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,11 +1,13 @@
 package com.example.order_service.saga.adapter.out.message.processor;
 
 import com.example.order_service.saga.adapter.out.message.processor.dto.CouponMessagePayload;
-import com.example.order_service.saga.adapter.out.message.processor.dto.InventoryMessagePayload;
 import com.example.order_service.saga.adapter.out.message.processor.dto.SagaCommandType;
 import com.example.order_service.saga.config.SagaTopicProperties;
-import com.example.order_service.saga.domain.event.*;
-import com.example.order_service.saga.exception.MessageSerializationException;
+import com.example.order_service.saga.domain.event.RestoreCouponEvent;
+import com.example.order_service.saga.domain.event.SagaEvent;
+import com.example.order_service.saga.domain.event.UsedCouponEvent;
+import com.example.order_service.saga.exception.SagaErrorCode;
+import com.example.order_service.saga.exception.SagaSystemException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +53,7 @@ public class CouponMessageProcessor implements SagaMessageProcessor {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
-            throw new MessageSerializationException("쿠폰 사가 메시지 직렬화 실패.");
+            throw new SagaSystemException(SagaErrorCode.SAGA_MESSAGE_SERIALIZATION_FAILED);
         }
     }
 

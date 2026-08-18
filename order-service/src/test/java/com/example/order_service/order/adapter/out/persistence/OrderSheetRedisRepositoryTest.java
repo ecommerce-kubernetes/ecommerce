@@ -2,7 +2,6 @@ package com.example.order_service.order.adapter.out.persistence;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.order.adapter.out.persistence.OrderSheetRedisRepository;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;

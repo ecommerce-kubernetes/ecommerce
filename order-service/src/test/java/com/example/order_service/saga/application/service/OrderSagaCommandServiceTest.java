@@ -6,7 +6,8 @@ import com.example.order_service.saga.domain.*;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.saga.domain.event.UsedCouponEvent;
-import com.example.order_service.saga.exception.SagaNotFoundException;
+import com.example.order_service.saga.exception.SagaErrorCode;
+import com.example.order_service.saga.exception.SagaSystemException;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,7 +76,9 @@ class OrderSagaCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaCommandService.completeForward(999L, 1L))
-                .isInstanceOf(SagaNotFoundException.class);
+                .isInstanceOf(SagaSystemException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.NOT_FOUND_SAGA);
     }
 
     private CreateOrderSagaContext createContext() {

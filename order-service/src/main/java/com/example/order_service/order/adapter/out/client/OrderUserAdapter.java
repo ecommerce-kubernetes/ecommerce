@@ -6,11 +6,11 @@ import com.example.order_service.common.exception.external.*;
 import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
 import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import com.example.order_service.infrastructure.gateway.UserGateway;
+import com.example.order_service.order.adapter.out.client.mapper.OrderUserAdaptorMapper;
 import com.example.order_service.order.application.port.OrderUserPort;
 import com.example.order_service.order.application.port.dto.OrdererPointResult;
 import com.example.order_service.order.application.port.dto.OrdererProfileResult;
 import com.example.order_service.order.exception.OrderUserPortErrorCode;
-import com.example.order_service.order.adapter.out.client.mapper.OrderUserAdaptorMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

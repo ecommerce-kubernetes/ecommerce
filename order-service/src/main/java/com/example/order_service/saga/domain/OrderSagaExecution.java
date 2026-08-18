@@ -2,7 +2,8 @@ package com.example.order_service.saga.domain;
 
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.saga.exception.InvalidSagaStateException;
+import com.example.order_service.saga.exception.SagaErrorCode;
+import com.example.order_service.saga.exception.SagaSystemException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -56,7 +57,7 @@ public class OrderSagaExecution extends BaseEntity {
 
     public void success() {
         if (this.status.equals(ExecutionStatus.FAIL)) {
-            throw new InvalidSagaStateException("작업을 성공으로 변경할 수 없습니다. current: " + this.status.name());
+            throw new SagaSystemException(SagaErrorCode.ALREADY_FAILED_EXECUTION);
         }
 
         this.status = ExecutionStatus.SUCCESS;
@@ -64,7 +65,7 @@ public class OrderSagaExecution extends BaseEntity {
 
     public void fail() {
         if (this.status.equals(ExecutionStatus.SUCCESS)) {
-            throw new InvalidSagaStateException("작업을 실패로 변경할 수 없습니다. current: " + this.status.name());
+            throw new SagaSystemException(SagaErrorCode.ALREADY_SUCCEED_EXECUTION);
         }
 
         this.status = ExecutionStatus.FAIL;

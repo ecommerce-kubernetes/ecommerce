@@ -6,7 +6,8 @@ import com.example.order_service.saga.config.SagaTopicProperties;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
 import com.example.order_service.saga.domain.event.RestoreInventoryEvent;
 import com.example.order_service.saga.domain.event.SagaEvent;
-import com.example.order_service.saga.exception.MessageSerializationException;
+import com.example.order_service.saga.exception.SagaErrorCode;
+import com.example.order_service.saga.exception.SagaSystemException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class InventoryMessageProcessor implements SagaMessageProcessor {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
-            throw new MessageSerializationException("재고 사가 메시지 직렬화 실패.");
+            throw new SagaSystemException(SagaErrorCode.SAGA_MESSAGE_SERIALIZATION_FAILED);
         }
     }
 

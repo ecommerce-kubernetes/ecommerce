@@ -11,6 +11,7 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.order.application.service.validator.OrderValidator;
+import com.example.order_service.order.config.OrderSheetProperties;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
@@ -20,7 +21,6 @@ import com.example.order_service.order.domain.ordersheet.context.CreateOrderShee
 import com.example.order_service.order.domain.policy.*;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.config.OrderSheetProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

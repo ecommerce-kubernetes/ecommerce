@@ -8,10 +8,10 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.dto.response.coupon.CartCouponResponse;
 import com.example.order_service.infrastructure.dto.response.coupon.ItemCouponsResponse;
 import com.example.order_service.infrastructure.gateway.CouponGateway;
+import com.example.order_service.order.adapter.out.client.mapper.OrderCouponAdaptorMapper;
 import com.example.order_service.order.application.port.dto.CartCouponResult;
 import com.example.order_service.order.application.port.dto.ItemCouponsResult;
 import com.example.order_service.order.exception.OrderCouponPortErrorCode;
-import com.example.order_service.order.adapter.out.client.mapper.OrderCouponAdaptorMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

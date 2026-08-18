@@ -5,11 +5,11 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.domain.fixture.OrderSagaFixtureBuilder;
-import com.example.order_service.saga.exception.ExecutionNotFoundException;
+import com.example.order_service.saga.exception.SagaErrorCode;
+import com.example.order_service.saga.exception.SagaSystemException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -185,7 +185,9 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.completeForward(999L, idGenerator))
-                .isInstanceOf(ExecutionNotFoundException.class);
+                .isInstanceOf(SagaSystemException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
     
     @Test
@@ -286,7 +288,9 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.failForward(999L, "재고 감소 실패", idGenerator))
-                .isInstanceOf(ExecutionNotFoundException.class);
+                .isInstanceOf(SagaSystemException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
     
     @Test
@@ -353,7 +357,9 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.completeCompensate(999L, idGenerator))
-                .isInstanceOf(ExecutionNotFoundException.class);
+                .isInstanceOf(SagaSystemException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
 
     @Test
@@ -400,7 +406,9 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.failCompensate(999L))
-                .isInstanceOf(ExecutionNotFoundException.class);
+                .isInstanceOf(SagaSystemException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
     
     @Test

@@ -1,6 +1,5 @@
 package com.example.order_service.order.adapter.in.listener;
 
-import com.example.order_service.order.adapter.in.listener.PaymentEventListener;
 import com.example.order_service.order.application.service.order.OrderCommandService;
 import com.example.order_service.payment.domain.event.PaymentCompletedEvent;
 import org.junit.jupiter.api.DisplayName;

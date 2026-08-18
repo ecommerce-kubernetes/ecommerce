@@ -2,7 +2,6 @@ package com.example.order_service.cart.adaptor.out.client.mapper;
 
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
-import com.example.order_service.cart.adaptor.out.client.mapper.CartProductAdapterMapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
 import org.instancio.Instancio;

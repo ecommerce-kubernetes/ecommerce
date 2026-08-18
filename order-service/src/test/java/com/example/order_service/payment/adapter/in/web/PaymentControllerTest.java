@@ -2,7 +2,6 @@ package com.example.order_service.payment.adapter.in.web;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.payment.adapter.in.web.PaymentController;
 import com.example.order_service.payment.adapter.in.web.dto.request.PaymentConfirmRequest;
 import com.example.order_service.payment.adapter.in.web.dto.request.PaymentCreateRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;

@@ -3,7 +3,7 @@ package com.example.order_service.order.adapter.out.client.mapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
-import com.example.order_service.order.adapter.out.client.mapper.OrderSheetRedisMapper;
+import com.example.order_service.order.adapter.out.persistence.entity.OrderSheetRedisEntity;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.OrderSheet;
@@ -15,7 +15,6 @@ import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.*;
-import com.example.order_service.order.adapter.out.persistence.entity.OrderSheetRedisEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

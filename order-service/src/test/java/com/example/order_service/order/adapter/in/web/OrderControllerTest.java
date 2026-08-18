@@ -1,7 +1,6 @@
 package com.example.order_service.order.adapter.in.web;
 
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.order.adapter.in.web.OrderController;
 import com.example.order_service.order.adapter.in.web.dto.order.request.OrderCreateRequest;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;

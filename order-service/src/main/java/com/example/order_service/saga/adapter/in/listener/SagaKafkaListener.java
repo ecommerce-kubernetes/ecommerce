@@ -3,8 +3,6 @@ package com.example.order_service.saga.adapter.in.listener;
 import com.example.order_service.saga.adapter.in.listener.dto.SagaReplyMessagePayload;
 import com.example.order_service.saga.adapter.in.listener.dto.SagaReplyType;
 import com.example.order_service.saga.application.service.OrderSagaCommandService;
-import com.example.order_service.saga.config.SagaTopicProperties;
-import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;

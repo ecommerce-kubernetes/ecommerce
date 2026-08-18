@@ -2,7 +2,6 @@ package com.example.order_service.payment.adapter.out.client.pg.toss;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
-import com.example.order_service.payment.adapter.out.client.pg.toss.TossPGMapper;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;

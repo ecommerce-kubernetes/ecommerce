@@ -2,11 +2,11 @@ package com.example.order_service.payment.adapter.out.client;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
+import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
-import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
