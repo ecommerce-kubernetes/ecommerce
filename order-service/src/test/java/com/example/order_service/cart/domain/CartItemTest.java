@@ -33,8 +33,8 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("아이디 생성기가 없으면 예외가 발생한다.")
-    void create_idGenerator_null() {
+    @DisplayName("아이디 생성기가 누락되면 예외가 발생한다.")
+    void create_whenIdGeneratorIsNull_thenThrownException() {
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
@@ -49,8 +49,8 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("아이디가 누락되면 예외가 발생한다.")
-    void create_id_null() {
+    @DisplayName("아이디 생성기가 null 아이디를 생성하면 예외가 발생한다.")
+    void create_whenIdGeneratorGenerateNullId_thenThrownException() {
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
@@ -66,8 +66,8 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("수량이 1미만인 항목은 생성할 수 없다")
-    void create_quantity_less_than_1(){
+    @DisplayName("장바구니 항목을 생성할때 수량이 1보다 작으면 예외가 발생한다.")
+    void create_whenQuantityLessThanOne_thenThrownException(){
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
@@ -83,8 +83,8 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("수량이 최대 한계치를 초과하면 예외가 발생한다")
-    void create_quantity_exceed_maxLimit(){
+    @DisplayName("장바구니 항목을 생성할 때 수량이 최대 한계치를 초과하면 예외가 발생한다.")
+    void create_whenQuantityExceedMaxLimit_thenThrownException(){
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
@@ -117,7 +117,7 @@ public class CartItemTest {
 
     @Test
     @DisplayName("수량이 최대 한계치를 초과하면 예외가 발생한다")
-    void addQuantity_quantity_exceed_maxLimit(){
+    void addQuantity_whenQuantityExceedMaxLimit_thenThrownException(){
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
@@ -150,8 +150,8 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("항목 수량을 수정할때 상품 수량을 1 미만으로 변경할 수 없다")
-    void updateQuantityWhenQuantityLessThan1(){
+    @DisplayName("항목 수량을 수정할때 상품 수량이 1보다 작으면 예외가 발생한다.")
+    void updateQuantity_whenQuantityLessThanOne_thenThrownException(){
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
@@ -168,8 +168,8 @@ public class CartItemTest {
     }
 
     @Test
-    @DisplayName("항목 수량을 수정할때 최대 한계치를 초과할 수 없다.")
-    void updateQuantity_quantity_exceed_maxLimit(){
+    @DisplayName("수량을 변경할때 수량이 최대 한계치를 초과하는 경우 예외가 발생한다.")
+    void updateQuantity_whenQuantityExceedMaxLimit_thenThrownException(){
         //given
         AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
                 .productVariantId(1L)
