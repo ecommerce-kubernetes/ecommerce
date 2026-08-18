@@ -9,6 +9,7 @@ import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.support.annotation.IsolatedTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @IsolatedTest
 @Transactional
@@ -30,66 +30,67 @@ class CartCommandServiceTest {
     @Autowired
     private IdGenerator idGenerator;
 
+    @Autowired
+    private EntityManager em;
+
     @Test
     @DisplayName("장바구니가 존재하지 않는 경우 장바구니를 생성한 뒤 상품을 추가한다")
-    void addCartItems_not_exist_cart(){
+    void addCartItems_whenNotExistCart_thenCreateCartAndAddItems() {
         //given
         Long userId = 1L;
-        AddCartItemsContext.Item item = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        AddCartItemsContext context = AddCartItemsContext.builder()
-                .items(List.of(item))
-                .build();
+        AddCartItemsContext context = createAddContext(1L, 3, 100);
         //when
         List<Long> cartItemIds = cartCommandService.addCartItems(userId, context);
+        flushAndClear();
         //then
-        assertThat(cartItemIds).hasSize(1);
+        Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
 
-        assertThat(cartItemIds).allSatisfy(cartItemId -> assertThat(cartItemId).isNotNull());
+        assertThat(findCart.getCartItems())
+                .hasSize(1)
+                .extracting("productVariantId", "quantity")
+                .containsExactly(tuple(1L, 3));
+
+        assertThat(cartItemIds)
+                .containsExactlyElementsOf(
+                        findCart.getCartItems().stream()
+                                .map(CartItem::getId)
+                                .toList()
+                );
     }
 
     @Test
     @DisplayName("장바구니가 존재하는 경우 기존 장바구니에 상품을 추가한다")
-    void addCartItems_exist_cart(){
+    void addCartItems_whenExistCart_thenAddItemToExistCart() {
         //given
         Long userId = 1L;
-        AddCartItemsContext.Item item = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        AddCartItemsContext context = AddCartItemsContext.builder()
-                .items(List.of(item))
-                .build();
         cartRepository.save(Cart.create(userId, idGenerator));
+        flushAndClear();
+
+        AddCartItemsContext context = createAddContext(1L, 3, 100);
         //when
-        List<Long> cartItemIds = cartCommandService.addCartItems(userId, context);
+        cartCommandService.addCartItems(userId, context);
+        flushAndClear();
         //then
-        assertThat(cartItemIds).hasSize(1);
-        assertThat(cartItemIds).allSatisfy(cartItemId -> assertThat(cartItemId).isNotNull());
+        Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
+
+        assertThat(findCart.getCartItems())
+                .hasSize(1)
+                .extracting("productVariantId", "quantity")
+                .containsExactly(tuple(1L, 3));
     }
 
     @Test
     @DisplayName("장바구니 항목 수량을 변경한다")
-    void updateCartItemQuantity(){
+    void updateCartItemQuantity() {
         //given
         Long userId = 1L;
         Cart cart = Cart.create(userId, idGenerator);
-        AddCartItemsContext.Item itemCtx = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        AddCartItemsContext context = AddCartItemsContext.builder()
-                .items(List.of(itemCtx))
-                .build();
-        cart.addItems(context, idGenerator);
+        cart.addItems(createAddContext(1L, 3, 100), idGenerator);
         cartRepository.save(cart);
+        flushAndClear();
 
-        CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
+        CartItem item = cartRepository.findByUserId(userId).orElseThrow()
+                .findItemByProductVariantId(1L).orElseThrow();
 
         UpdateCartItemContext updateContext = UpdateCartItemContext.builder()
                 .cartItemId(item.getId())
@@ -98,6 +99,7 @@ class CartCommandServiceTest {
                 .build();
         //when
         cartCommandService.updateCartItemQuantity(userId, updateContext);
+        flushAndClear();
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
         CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
@@ -106,7 +108,7 @@ class CartCommandServiceTest {
 
     @Test
     @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
-    void updateCartItemQuantity_notFound_cart(){
+    void updateCartItemQuantity_whenNotFoundCart_thenThrownException() {
         //given
         Long userId = 1L;
         UpdateCartItemContext context = UpdateCartItemContext.builder()
@@ -124,33 +126,21 @@ class CartCommandServiceTest {
 
     @Test
     @DisplayName("장바구니에 담긴 항목을 제거한다")
-    void deleteCartItems(){
+    void deleteCartItems() {
         //given
         Long userId = 1L;
-
         Cart cart = Cart.create(userId, idGenerator);
-        AddCartItemsContext.Item itemCtx1 = AddCartItemsContext.Item.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-        AddCartItemsContext.Item itemCtx2 = AddCartItemsContext.Item.builder()
-                .productVariantId(2L)
-                .quantity(3)
-                .maxLimit(100)
-                .build();
-
-        AddCartItemsContext context = AddCartItemsContext.builder()
-                .items(List.of(itemCtx1, itemCtx2))
-                .build();
-
-        cart.addItems(context, idGenerator);
+        cart.addItems(createAddContext(1L, 3, 100), idGenerator);
+        cart.addItems(createAddContext(2L, 3, 100), idGenerator);
         cartRepository.save(cart);
+        flushAndClear();
 
-        CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
-        CartItem item2 = cart.findItemByProductVariantId(2L).orElseThrow();
+        Cart savedCart = cartRepository.findByUserId(userId).orElseThrow();
+        CartItem item1 = savedCart.findItemByProductVariantId(1L).orElseThrow();
+        CartItem item2 = savedCart.findItemByProductVariantId(2L).orElseThrow();
         //when
         cartCommandService.deleteCartItems(userId, List.of(item1.getId(), item2.getId()));
+        flushAndClear();
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
         assertThat(findCart.getCartItems()).isEmpty();
@@ -158,13 +148,31 @@ class CartCommandServiceTest {
 
     @Test
     @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
-    void deleteCartItems_notFound_cart(){
+    void deleteCartItems_whenNotFoundCart_thenThrownException() {
         //given
+        Long userId = 1L;
+        List<Long> cartItemIds = List.of(1L, 2L);
         //when
         //then
-        assertThatThrownBy(() -> cartCommandService.deleteCartItems(1L, List.of(1L, 2L)))
+        assertThatThrownBy(() -> cartCommandService.deleteCartItems(userId, cartItemIds))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_NOT_FOUND);
+    }
+
+    private AddCartItemsContext createAddContext(Long productVariantId, int quantity, int maxLimit) {
+        AddCartItemsContext.Item item = AddCartItemsContext.Item.builder()
+                .productVariantId(productVariantId)
+                .quantity(quantity)
+                .maxLimit(maxLimit)
+                .build();
+        return AddCartItemsContext.builder()
+                .items(List.of(item))
+                .build();
+    }
+
+    private void flushAndClear() {
+        em.flush();
+        em.clear();
     }
 }
