@@ -5,6 +5,7 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
+import com.example.order_service.order.domain.order.event.OrderFailedEvent;
 import com.example.order_service.order.domain.order.event.OrderPaidEvent;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
@@ -118,8 +119,28 @@ public class Order extends BaseAggregateRoot {
         registerPaidEvent();
     }
 
+    public void complete() {
+        if (!this.status.equals(OrderStatus.PAID)) {
+            throw new BusinessException(OrderErrorCode.ORDER_CANNOT_COMPLETED);
+        }
+        this.status = OrderStatus.COMPLETED;
+    }
+
+    public void failed(OrderCancelInfo failedInfo) {
+        if (!this.status.equals(OrderStatus.PENDING) && !this.status.equals(OrderStatus.PAID)) {
+            throw new BusinessException(OrderErrorCode.ORDER_CANNOT_FAILED);
+        }
+        this.status = OrderStatus.FAILED;
+        registerFailedEvent();
+    }
+
     private void registerPaidEvent() {
         OrderPaidEvent event = OrderPaidEvent.from(this);
+        registerEvent(event);
+    }
+
+    private void registerFailedEvent() {
+        OrderFailedEvent event = OrderFailedEvent.from(this);
         registerEvent(event);
     }
 }

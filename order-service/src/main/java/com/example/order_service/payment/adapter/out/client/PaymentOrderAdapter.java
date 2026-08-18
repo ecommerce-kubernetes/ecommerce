@@ -57,7 +57,6 @@ public class PaymentOrderAdapter implements PaymentOrderPort {
             case COMPLETED -> PaymentOrderStatus.COMPLETED;
             case PAID -> PaymentOrderStatus.PAID;
             case FAILED -> PaymentOrderStatus.FAILED;
-            case PAYMENT_FAILED -> PaymentOrderStatus.PAYMENT_FAILED;
             case CANCELED -> PaymentOrderStatus.CANCELED;
         };
     }

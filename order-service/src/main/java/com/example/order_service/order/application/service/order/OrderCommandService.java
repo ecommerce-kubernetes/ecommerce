@@ -4,12 +4,15 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.Order;
+import com.example.order_service.order.domain.order.OrderCancelInfo;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,20 @@ public class OrderCommandService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
         order.paid();
+        orderRepository.save(order);
+    }
+
+    public void changeCompleted(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        order.complete();
+    }
+
+    public void changeFailed(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        OrderCancelInfo failedInfo = OrderCancelInfo.of(reason, LocalDateTime.now());
+        order.failed(failedInfo);
         orderRepository.save(order);
     }
 

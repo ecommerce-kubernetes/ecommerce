@@ -38,6 +38,8 @@ public enum OrderErrorCode implements ErrorCode {
     PRODUCT_PRICE_CHANGED(HttpStatus.CONFLICT, "PRODUCT_PRICE_CHANGED", "상품 가격이 변동되었습니다."),
     COUPON_POLICY_CHANGED(HttpStatus.CONFLICT, "COUPON_POLICY_CHANGED", "쿠폰 정책이 변동되었습니다."),
     ORDER_CANNOT_PAID(HttpStatus.CONFLICT, "ORDER_CANNOT_PAID", "결제 처리할 수 없는 주문 입니다."),
+    ORDER_CANNOT_FAILED(HttpStatus.CONFLICT, "ORDER_CANNOT_FAILED", "주문을 실패할 수 없는 주문입니다."),
+    ORDER_CANNOT_COMPLETED(HttpStatus.CONFLICT, "ORDER_CANNOT_COMPLETED", "주문을 성공할 수 없는 주문입니다"),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다");
     private final HttpStatus status;
     private final String code;

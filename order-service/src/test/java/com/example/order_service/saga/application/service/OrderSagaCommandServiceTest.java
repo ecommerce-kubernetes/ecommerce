@@ -5,7 +5,6 @@ import com.example.order_service.saga.application.port.OrderSagaRepository;
 import com.example.order_service.saga.domain.*;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.domain.event.ReduceInventoryEvent;
-import com.example.order_service.saga.domain.event.SagaFailedEvent;
 import com.example.order_service.saga.domain.event.UsedCouponEvent;
 import com.example.order_service.saga.exception.SagaErrorCode;
 import com.example.order_service.saga.exception.SagaSystemException;

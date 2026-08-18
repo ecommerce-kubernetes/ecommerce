@@ -14,6 +14,7 @@ import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -185,7 +186,6 @@ class OrderTest {
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
     }
 
-    //TODO 이후 주문 상태 변경 메서드 추가시 given 수정
     @Test
     @DisplayName("주문을 결제 상태로 변경할 때 주문의 상태가 결제 대기가 아니면 예외가 발생한다.")
     void paid_not_pending() {
@@ -211,13 +211,110 @@ class OrderTest {
                 .orderAmount(orderAmount)
                 .build();
         Order order = Order.create(context, idGenerator);
-        order.paid();
+        order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
         //when
         //then
         assertThatThrownBy(order::paid)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_CANNOT_PAID);
+    }
+
+    @Test
+    @DisplayName("주문을 완료한다.")
+    void complete(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
+                "12345", "서울시 테헤란로 123", "123동 1234호");
+        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
+        OrderAmount orderAmount = OrderAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(24000L)
+        );
+        CreateOrderItemContext orderItemContext = createOrderItemContext();
+        CreateOrderContext context = CreateOrderContext.builder()
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .appliedCartCoupon(appliedCartCoupon)
+                .items(List.of(orderItemContext))
+                .orderAmount(orderAmount)
+                .build();
+        Order order = Order.create(context, idGenerator);
+        order.paid();
+        //when
+        order.complete();
+        //then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+    }
+
+    @Test
+    @DisplayName("주문이 결제 완료 상태가 아니면 주문을 완료할 수 없다.")
+    void complete_not_paid(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
+                "12345", "서울시 테헤란로 123", "123동 1234호");
+        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
+        OrderAmount orderAmount = OrderAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(24000L)
+        );
+        CreateOrderItemContext orderItemContext = createOrderItemContext();
+        CreateOrderContext context = CreateOrderContext.builder()
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .appliedCartCoupon(appliedCartCoupon)
+                .items(List.of(orderItemContext))
+                .orderAmount(orderAmount)
+                .build();
+        Order order = Order.create(context, idGenerator);
+        order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
+        //when
+        //then
+        assertThatThrownBy(order::complete)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_CANNOT_COMPLETED);
+    }
+
+    @Test
+    @DisplayName("주문을 실패한다.")
+    void failed(){
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
+                "12345", "서울시 테헤란로 123", "123동 1234호");
+        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
+        OrderAmount orderAmount = OrderAmount.of(
+                Money.wons(30000L),
+                Money.wons(3000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(1000L),
+                Money.wons(24000L)
+        );
+        CreateOrderItemContext orderItemContext = createOrderItemContext();
+        CreateOrderContext context = CreateOrderContext.builder()
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .appliedCartCoupon(appliedCartCoupon)
+                .items(List.of(orderItemContext))
+                .orderAmount(orderAmount)
+                .build();
+        Order order = Order.create(context, idGenerator);
+        //when
+        order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
+        //then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED);
     }
 
     private CreateOrderItemContext createOrderItemContext() {

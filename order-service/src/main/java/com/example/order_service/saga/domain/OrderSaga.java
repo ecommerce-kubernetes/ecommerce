@@ -113,6 +113,13 @@ public class OrderSaga extends BaseAggregateRoot {
 
         this.failureReason = failureReason;
 
+        SagaProcessingFailedEvent failedEvent = SagaProcessingFailedEvent.builder()
+                .orderId(this.orderId)
+                .failureReason(this.failureReason)
+                .build();
+
+        registerEvent(failedEvent);
+
         OrderSagaExecution rollbackExecution = nextRollbackTarget();
 
         if (rollbackExecution == null) {
@@ -200,13 +207,6 @@ public class OrderSaga extends BaseAggregateRoot {
     private void failSaga() {
         this.currentStep = SagaStep.END;
         this.status = SagaStatus.FAILED;
-
-        SagaFailedEvent failedEvent = SagaFailedEvent.builder()
-                .orderId(this.orderId)
-                .failureReason(this.failureReason)
-                .build();
-
-        registerEvent(failedEvent);
     }
 
     private void abortSaga() {
