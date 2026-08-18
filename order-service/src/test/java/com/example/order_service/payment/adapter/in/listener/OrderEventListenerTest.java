@@ -30,6 +30,7 @@ class OrderEventListenerTest {
         OrderFailedEvent event = OrderFailedEvent.builder()
                 .orderId(1L)
                 .userId(1L)
+                .reason("재고 부족")
                 .build();
         //when
         orderEventListener.handleFailedOrderEvent(event);

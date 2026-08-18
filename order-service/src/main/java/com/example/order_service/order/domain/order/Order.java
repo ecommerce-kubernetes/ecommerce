@@ -53,8 +53,8 @@ public class Order extends BaseAggregateRoot {
     private OrderCancelInfo orderCancelInfo;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Order (Long id, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
-                   AppliedCartCoupon appliedCartCoupon, OrderAmount orderAmount, OrderCancelInfo orderCancelInfo) {
+    private Order(Long id, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
+                  AppliedCartCoupon appliedCartCoupon, OrderAmount orderAmount, OrderCancelInfo orderCancelInfo) {
         this.id = id;
         this.status = status;
         this.orderName = orderName;
@@ -131,6 +131,7 @@ public class Order extends BaseAggregateRoot {
             throw new BusinessException(OrderErrorCode.ORDER_CANNOT_FAILED);
         }
         this.status = OrderStatus.FAILED;
+        this.orderCancelInfo = failedInfo;
         registerFailedEvent();
     }
 

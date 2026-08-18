@@ -5,13 +5,15 @@ import lombok.Builder;
 @Builder
 public record PaymentCancelCommand(
         Long orderId,
-        Long userId
+        Long userId,
+        String cancelReason
 ) {
 
-    public static PaymentCancelCommand of(Long orderId, Long userId) {
+    public static PaymentCancelCommand of(Long orderId, Long userId, String cancelReason) {
         return PaymentCancelCommand.builder()
                 .orderId(orderId)
                 .userId(userId)
+                .cancelReason(cancelReason)
                 .build();
     }
 }
