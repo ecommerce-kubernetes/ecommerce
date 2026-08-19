@@ -17,12 +17,12 @@ class CartItemValidatorTest {
     
     @Test
     @DisplayName("누락된 상품이 존재하면 예외가 발생한다")
-    void validatePurchasable_missing_product() {
+    void validateAddable_whenMissingProduct_thenThrownException() {
         //given
         CartProductResult.CartProductDetail product = null;
         //when
         //then
-        assertThatThrownBy(() -> validator.validatePurchasable(product))
+        assertThatThrownBy(() -> validator.validateAddable(product))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.PRODUCT_NOT_FOUND);
@@ -30,14 +30,14 @@ class CartItemValidatorTest {
 
     @Test
     @DisplayName("장바구니에 추가할 수 없는 상품이 존재하면 예외가 발생한다")
-    void validatePurchasable_cannot_add_product() {
+    void validateAddable_whenCannotAddableProduct_thenThrownException() {
         //given
         CartProductResult.CartProductDetail product = Instancio.of(CartProductResult.CartProductDetail.class)
                 .set(field("status"), CartProductStatus.STOP_SALE)
                 .create();
         //when
         //then
-        assertThatThrownBy(() -> validator.validatePurchasable(product))
+        assertThatThrownBy(() -> validator.validateAddable(product))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);

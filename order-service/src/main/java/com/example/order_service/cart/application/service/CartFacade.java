@@ -33,7 +33,7 @@ public class CartFacade {
         Map<Long, CartProductResult.CartProductDetail> productDataMap = productData.toMap();
 
         command.items().forEach(item ->
-                cartItemValidator.validatePurchasable(productDataMap.get(item.productVariantId())));
+                cartItemValidator.validateAddable(productDataMap.get(item.productVariantId())));
 
         AddCartItemsContext context = contextFactory.toAddCartItemsContext(command, productData);
         List<Long> cartItems = cartCommandService.addCartItems(command.userId(), context);
@@ -102,7 +102,7 @@ public class CartFacade {
         Map<Long, CartProductResult.CartProductDetail> productsMap = products.toMap();
 
         CartProductResult.CartProductDetail product = productsMap.get(cartItem.productVariantId());
-        cartItemValidator.validatePurchasable(product);
+        cartItemValidator.validateAddable(product);
 
         UpdateCartItemContext context = contextFactory.toUpdateContext(command, cartItem, product);
         cartCommandService.updateCartItemQuantity(command.userId(), context);

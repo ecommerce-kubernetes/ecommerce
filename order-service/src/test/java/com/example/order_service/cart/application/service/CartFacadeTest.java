@@ -250,7 +250,7 @@ public class CartFacadeTest {
         given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
         given(cartProductPort.getProducts(anyList())).willReturn(productData);
 
-        doNothing().when(validator).validatePurchasable(any(CartProductResult.CartProductDetail.class));
+        doNothing().when(validator).validateAddable(any(CartProductResult.CartProductDetail.class));
         doNothing().when(cartCommandService).updateCartItemQuantity(anyLong(), any(UpdateCartItemContext.class));
         //when
         UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);

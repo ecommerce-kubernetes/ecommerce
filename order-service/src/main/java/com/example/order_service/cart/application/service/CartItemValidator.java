@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CartItemValidator {
 
-    public void validatePurchasable(CartProductResult.CartProductDetail product) {
+    public void validateAddable(CartProductResult.CartProductDetail product) {
         if (product == null) {
             throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
         }
