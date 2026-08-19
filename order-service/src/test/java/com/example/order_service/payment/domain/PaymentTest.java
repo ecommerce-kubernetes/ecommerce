@@ -41,21 +41,6 @@ class PaymentTest {
     }
 
     @Test
-    @DisplayName("결제 금액이 0원인 경우 결제 상태는 완료이다.")
-    void create_totalAmount_zero() {
-        //given
-        CreatePaymentContext context = CreatePaymentContext.builder()
-                .orderId(1L)
-                .userId(1L)
-                .totalAmount(Money.ZERO)
-                .build();
-        //when
-        Payment payment = Payment.create(context, idGenerator);
-        //then
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.DONE);
-    }
-
-    @Test
     @DisplayName("결제를 생성할 때 아이디 생성기가 누락되면 예외가 발생한다.")
     void create_idGenerator_null() {
         //given

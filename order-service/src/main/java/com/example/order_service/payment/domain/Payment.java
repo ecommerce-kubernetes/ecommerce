@@ -68,22 +68,13 @@ public class Payment extends BaseAggregateRoot {
         Long id = idGenerator.generate();
         Assert.notNull(id, "결제 생성시 아이디는 필수이다.");
 
-        PaymentStatus status = context.totalAmount().equals(Money.ZERO)
-                ? PaymentStatus.DONE
-                : PaymentStatus.READY;
-
-        Payment payment = Payment.builder()
+        return Payment.builder()
                 .id(id)
                 .orderId(context.orderId())
                 .userId(context.userId())
-                .status(status)
+                .status(PaymentStatus.READY)
                 .totalAmount(context.totalAmount())
                 .build();
-
-        if (payment.status.equals(PaymentStatus.DONE)) {
-            payment.registerCompleteEvent();
-        }
-        return payment;
     }
 
     public void approvePending(ApprovePendingPaymentContext context) {
