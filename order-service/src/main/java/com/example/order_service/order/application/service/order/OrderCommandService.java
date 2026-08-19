@@ -28,10 +28,10 @@ public class OrderCommandService {
         return save.getId();
     }
 
-    public void changePaid(Long orderId) {
+    public void changeAccepted(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        order.paid();
+        order.accept();
         orderRepository.save(order);
     }
 

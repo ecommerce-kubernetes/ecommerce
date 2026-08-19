@@ -157,7 +157,7 @@ class OrderTest {
 
     @Test
     @DisplayName("주문을 결제 상태로 변경한다.")
-    void paid() {
+    void accept() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
@@ -181,14 +181,14 @@ class OrderTest {
                 .build();
         Order order = Order.create(context, idGenerator);
         //when
-        order.paid();
+        order.accept();
         //then
-        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
     }
 
     @Test
     @DisplayName("주문을 결제 상태로 변경할 때 주문의 상태가 결제 대기가 아니면 예외가 발생한다.")
-    void paid_not_pending() {
+    void accept_not_pending() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
@@ -214,7 +214,7 @@ class OrderTest {
         order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
         //when
         //then
-        assertThatThrownBy(order::paid)
+        assertThatThrownBy(order::accept)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_CANNOT_PAID);
@@ -245,7 +245,7 @@ class OrderTest {
                 .orderAmount(orderAmount)
                 .build();
         Order order = Order.create(context, idGenerator);
-        order.paid();
+        order.accept();
         //when
         order.complete();
         //then
@@ -254,7 +254,7 @@ class OrderTest {
 
     @Test
     @DisplayName("주문이 결제 완료 상태가 아니면 주문을 완료할 수 없다.")
-    void complete_not_paid(){
+    void complete_not_accept(){
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",

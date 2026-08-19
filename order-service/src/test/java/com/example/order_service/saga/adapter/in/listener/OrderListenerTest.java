@@ -1,7 +1,7 @@
 package com.example.order_service.saga.adapter.in.listener;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.order.event.OrderPaidEvent;
+import com.example.order_service.order.domain.order.event.OrderAcceptedEvent;
 import com.example.order_service.saga.application.service.OrderSagaCommandService;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import org.junit.jupiter.api.DisplayName;
@@ -28,13 +28,13 @@ class OrderListenerTest {
 
     @Test
     @DisplayName("주문 결제 완료 이벤트 수신시 주문 사가를 생성한다.")
-    void handleOrderPaidEvent() {
+    void handleOrderAcceptEvent() {
         //given
-        OrderPaidEvent.OrderedItem item = OrderPaidEvent.OrderedItem.builder()
+        OrderAcceptedEvent.OrderedItem item = OrderAcceptedEvent.OrderedItem.builder()
                 .productVariantId(1L)
                 .quantity(1)
                 .build();
-        OrderPaidEvent event = OrderPaidEvent.builder()
+        OrderAcceptedEvent event = OrderAcceptedEvent.builder()
                 .orderId(1L)
                 .userId(1L)
                 .items(List.of(item))
@@ -43,7 +43,7 @@ class OrderListenerTest {
                 .usedPoints(Money.wons(1000L))
                 .build();
         //when
-        listener.handleOrderPaidEvent(event);
+        listener.handleOrderAcceptedEvent(event);
         //then
         verify(commandService).createOrderSaga(any(CreateOrderSagaContext.class));
     }

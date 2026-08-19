@@ -28,6 +28,6 @@ class PaymentEventListenerTest {
         //when
         listener.handlePaymentCompletedEvent(event);
         //then
-        verify(commandService).changePaid(1L);
+        verify(commandService).changeAccepted(1L);
     }
 }

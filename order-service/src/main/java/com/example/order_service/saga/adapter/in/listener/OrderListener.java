@@ -1,6 +1,6 @@
 package com.example.order_service.saga.adapter.in.listener;
 
-import com.example.order_service.order.domain.order.event.OrderPaidEvent;
+import com.example.order_service.order.domain.order.event.OrderAcceptedEvent;
 import com.example.order_service.saga.application.service.OrderSagaCommandService;
 import com.example.order_service.saga.domain.OrderSagaPayload;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
@@ -20,12 +20,12 @@ public class OrderListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleOrderPaidEvent(OrderPaidEvent event) {
+    public void handleOrderAcceptedEvent(OrderAcceptedEvent event) {
         CreateOrderSagaContext createContext = mapToSagaContext(event);
         orderSagaCommandService.createOrderSaga(createContext);
     }
 
-    private CreateOrderSagaContext mapToSagaContext(OrderPaidEvent event) {
+    private CreateOrderSagaContext mapToSagaContext(OrderAcceptedEvent event) {
         List<OrderSagaPayload.OrderLine> orderLines = event.items().stream().map(item -> OrderSagaPayload.OrderLine.builder()
                 .productVariantId(item.productVariantId())
                 .quantity(item.quantity())

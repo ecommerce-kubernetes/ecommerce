@@ -8,7 +8,7 @@ import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
-import com.example.order_service.order.domain.order.event.OrderPaidEvent;
+import com.example.order_service.order.domain.order.event.OrderAcceptedEvent;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -55,24 +55,24 @@ public class OrderCommandServiceTest {
 
     @Test
     @DisplayName("주문을 결제 완료로 변경한다.")
-    void changePaid() {
+    void changeAccept() {
         //given
         IdGenerator idGenerator = new TsidGenerator();
         CreateOrderContext context = createOrderContext();
         Order order = orderRepository.save(Order.create(context, idGenerator));
         //when
-        orderCommandService.changePaid(order.getId());
+        orderCommandService.changeAccepted(order.getId());
         //then
-        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
     }
 
     @Test
     @DisplayName("주문을 결제 완료로 변경할때 주문을 찾을 수 없는 경우 예외가 발생한다.")
-    void changePaid_notFound_order() {
+    void changeAccept_notFound_order() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderCommandService.changePaid(999L))
+        assertThatThrownBy(() -> orderCommandService.changeAccepted(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -80,15 +80,15 @@ public class OrderCommandServiceTest {
 
     @Test
     @DisplayName("주문을 결제 완료로 변경되면 주문 결제 완료 이벤트가 발행된다.")
-    void changePaid_publish_event() {
+    void changeAccept_publish_event() {
         //given
         IdGenerator idGenerator = new TsidGenerator();
         CreateOrderContext context = createOrderContext();
         Order order = orderRepository.save(Order.create(context, idGenerator));
         //when
-        orderCommandService.changePaid(order.getId());
+        orderCommandService.changeAccepted(order.getId());
         //then
-        long eventCount = events.stream(OrderPaidEvent.class).count();
+        long eventCount = events.stream(OrderAcceptedEvent.class).count();
         assertThat(eventCount).isEqualTo(1);
     }
 

@@ -6,7 +6,7 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
 import com.example.order_service.order.domain.order.event.OrderFailedEvent;
-import com.example.order_service.order.domain.order.event.OrderPaidEvent;
+import com.example.order_service.order.domain.order.event.OrderAcceptedEvent;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -111,23 +111,23 @@ public class Order extends BaseAggregateRoot {
         orderItem.setOrder(this);
     }
 
-    public void paid() {
+    public void accept() {
         if (!this.status.equals(OrderStatus.PENDING)) {
             throw new BusinessException(OrderErrorCode.ORDER_CANNOT_PAID);
         }
-        this.status = OrderStatus.PAID;
-        registerPaidEvent();
+        this.status = OrderStatus.ACCEPTED;
+        registerAcceptedEvent();
     }
 
     public void complete() {
-        if (!this.status.equals(OrderStatus.PAID)) {
+        if (!this.status.equals(OrderStatus.ACCEPTED)) {
             throw new BusinessException(OrderErrorCode.ORDER_CANNOT_COMPLETED);
         }
         this.status = OrderStatus.COMPLETED;
     }
 
     public void failed(OrderCancelInfo failedInfo) {
-        if (!this.status.equals(OrderStatus.PENDING) && !this.status.equals(OrderStatus.PAID)) {
+        if (!this.status.equals(OrderStatus.PENDING) && !this.status.equals(OrderStatus.ACCEPTED)) {
             throw new BusinessException(OrderErrorCode.ORDER_CANNOT_FAILED);
         }
         this.status = OrderStatus.FAILED;
@@ -135,8 +135,8 @@ public class Order extends BaseAggregateRoot {
         registerFailedEvent();
     }
 
-    private void registerPaidEvent() {
-        OrderPaidEvent event = OrderPaidEvent.from(this);
+    private void registerAcceptedEvent() {
+        OrderAcceptedEvent event = OrderAcceptedEvent.from(this);
         registerEvent(event);
     }
 

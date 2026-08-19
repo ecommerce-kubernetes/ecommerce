@@ -8,7 +8,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record OrderPaidEvent(
+public record OrderAcceptedEvent(
         Long orderId,
         Long userId,
         List<OrderedItem> items,
@@ -17,7 +17,7 @@ public record OrderPaidEvent(
         Money usedPoints
 ) {
 
-    public static OrderPaidEvent from(Order order) {
+    public static OrderAcceptedEvent from(Order order) {
         Long cartCouponId = order.getAppliedCartCoupon() != null
                 ? order.getAppliedCartCoupon().getCartCouponId()
                 : null;
@@ -27,7 +27,7 @@ public record OrderPaidEvent(
                 .map(item -> item.getAppliedItemCoupon().getItemCouponId())
                 .toList();
 
-        return OrderPaidEvent.builder()
+        return OrderAcceptedEvent.builder()
                 .orderId(order.getId())
                 .userId(order.getOrderer().getUserId())
                 .items(OrderedItem.from(order.getOrderItems()))

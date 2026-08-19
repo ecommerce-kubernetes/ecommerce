@@ -14,6 +14,6 @@ public class PaymentEventListener {
 
     @TransactionalEventListener
     public void handlePaymentCompletedEvent(PaymentCompletedEvent event) {
-        orderCommandService.changePaid(event.orderId());
+        orderCommandService.changeAccepted(event.orderId());
     }
 }
