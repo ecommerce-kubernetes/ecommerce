@@ -54,6 +54,48 @@ public class OrderCommandServiceTest {
     }
 
     @Test
+    @DisplayName("주문을 저장할때 결제 금액이 0원이면 주문 접수로 변경한다.")
+    void save_whenTotalPaymentAmountIsZero_thenAccept() {
+        //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(1000L), 0, Money.ZERO, Money.wons(1000L));
+        OrderItemAmount orderItemAmount = OrderItemAmount.of(
+                Money.wons(1000L),
+                Money.ZERO,
+                Money.wons(1000L),
+                Money.ZERO,
+                Money.wons(1000L)
+        );
+        CreateOrderItemContext itemContext = CreateOrderItemContext.builder()
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .appliedItemCoupon(null)
+                .quantity(3)
+                .options(Collections.emptyList())
+                .orderItemAmount(orderItemAmount)
+                .build();
+
+        OrderAmount orderAmount = OrderAmount.of(Money.wons(1000L), Money.ZERO, Money.ZERO,
+                Money.ZERO, Money.wons(1000L), Money.ZERO);
+
+        CreateOrderContext context = CreateOrderContext.builder()
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .items(List.of(itemContext))
+                .appliedCartCoupon(null)
+                .orderAmount(orderAmount)
+                .build();
+        //when
+        Long orderId = orderCommandService.saveOrder(context);
+        //then
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        assertThat(orderId).isNotNull();
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
+    }
+
+    @Test
     @DisplayName("주문을 결제 완료로 변경한다.")
     void changeAccept() {
         //given
