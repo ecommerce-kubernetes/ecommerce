@@ -2,6 +2,7 @@ package com.example.order_service.payment.adapter.out.persistence;
 
 import com.example.order_service.payment.application.port.PaymentRepository;
 import com.example.order_service.payment.domain.Payment;
+import com.example.order_service.payment.domain.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,5 +22,10 @@ public class PaymentPersistenceAdapter implements PaymentRepository {
     @Override
     public Optional<Payment> findByIdAndUserId(Long paymentId, Long userId) {
         return paymentJpaRepository.findByIdAndUserId(paymentId, userId);
+    }
+
+    @Override
+    public Optional<Payment> findByOrderIdAndStatus(Long orderId, PaymentStatus status) {
+        return paymentJpaRepository.findByOrderIdAndStatus(orderId, status);
     }
 }

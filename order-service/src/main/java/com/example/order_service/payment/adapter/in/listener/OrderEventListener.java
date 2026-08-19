@@ -16,7 +16,7 @@ public class OrderEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleFailedOrderEvent(OrderFailedEvent event) {
-        PaymentCancelCommand command = PaymentCancelCommand.of(event.orderId(), event.userId());
+        PaymentCancelCommand command = PaymentCancelCommand.of(event.orderId(), event.userId(), event.reason());
         paymentFacade.cancel(command);
     }
 }
