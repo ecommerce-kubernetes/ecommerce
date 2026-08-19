@@ -128,6 +128,14 @@ public class Payment extends BaseAggregateRoot {
         this.failure = failure;
     }
 
+    public void refundPending() {
+        if (!this.status.equals(PaymentStatus.DONE)) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_CANNOT_REFUND_PENDING);
+        }
+
+        this.status = PaymentStatus.REFUND_PENDING;
+    }
+
     private void addTransaction(PaymentTransaction transaction) {
         this.paymentTransactions.add(transaction);
         transaction.setPayment(this);

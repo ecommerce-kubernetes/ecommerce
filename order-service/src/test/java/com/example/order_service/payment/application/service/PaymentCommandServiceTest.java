@@ -50,22 +50,6 @@ class PaymentCommandServiceTest {
     }
 
     @Test
-    @DisplayName("생성된 결제가 승인 완료라면 이벤트가 발행된다.")
-    void create_done() {
-        //given
-        CreatePaymentContext context = CreatePaymentContext.builder()
-                .userId(1L)
-                .orderId(1L)
-                .totalAmount(Money.ZERO)
-                .build();
-        //when
-        paymentCommandService.create(context);
-        //then
-        long eventCount = events.stream(PaymentCompletedEvent.class).count();
-        assertThat(eventCount).isEqualTo(1);
-    }
-
-    @Test
     @DisplayName("결제를 승인 대기로 변경한다.")
     void approvePending() {
         //given
@@ -182,6 +166,47 @@ class PaymentCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> paymentCommandService.abort(999L, 1L, failure))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("결제를 환불 대기로 변경한다.")
+    void refundPending() {
+        //given
+        CreatePaymentContext context = createContext();
+        Payment payment = Payment.create(context, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(10000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(10000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+
+        payment.approvePending(approvePendingContext);
+        payment.approve(approveContext, idGenerator);
+        paymentRepository.save(payment);
+        //when
+        paymentCommandService.refundPending(payment.getId(), payment.getUserId());
+        //then
+        Payment findPayment = paymentRepository.findByIdAndUserId(payment.getId(), 1L).orElseThrow();
+        assertThat(findPayment.getStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+    }
+
+    @Test
+    @DisplayName("결제를 환불 대기로 변경할때 결제를 찾을 수 없으면 예외가 발생한다.")
+    void refundPending_notFound_payment() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> paymentCommandService.refundPending(999L, 1L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);

@@ -343,6 +343,53 @@ class PaymentTest {
                 .hasMessage("결제 실패시 실패 사유는 필수입니다.");
     }
 
+    @Test
+    @DisplayName("결제를 환불 대기로 변경한다.")
+    void refundPending() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        payment.approvePending(approvePendingContext);
+        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
+                .method(PaymentMethod.CARD)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .occurredAt(LocalDateTime.now())
+                .build();
+        payment.approve(approveContext, idGenerator);
+        //when
+        payment.refundPending();
+        //then
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+    }
+
+    @Test
+    @DisplayName("결제 완료가 아니면 환불 대기로 변경할 수 없다")
+    void refundPending_notDone() {
+        //given
+        CreatePaymentContext createContext = createPaymentContext();
+        Payment payment = Payment.create(createContext, idGenerator);
+        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
+                .amount(Money.wons(1000L))
+                .provider(PaymentProvider.TOSS)
+                .paymentKey("paymentKey")
+                .build();
+
+        payment.approvePending(approvePendingContext);
+        //when
+        //then
+        assertThatThrownBy(payment::refundPending)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_CANNOT_REFUND_PENDING);
+    }
+
     private CreatePaymentContext createPaymentContext() {
         return CreatePaymentContext.builder()
                 .orderId(1L)

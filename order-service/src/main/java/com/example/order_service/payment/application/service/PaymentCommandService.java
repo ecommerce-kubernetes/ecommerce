@@ -45,4 +45,10 @@ public class PaymentCommandService {
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.abort(failure);
     }
+
+    public void refundPending(Long paymentId, Long userId) {
+        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.refundPending();
+    }
 }
