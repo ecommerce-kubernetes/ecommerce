@@ -1,7 +1,9 @@
 package com.example.order_service.payment.adapter.out.client.pg.toss;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;
@@ -22,6 +24,19 @@ public class TossPGMapper {
                 .method(method)
                 .transactionKey(response.lastTransactionKey())
                 .approvedAt(approvedAt)
+                .build();
+    }
+
+    public PGCancelResult toCancelResult(TossCancelResponse response) {
+        TossCancelResponse.CancelReceipt latestCancel = response.cancels().getLast();
+        PaymentPGStatus status = mapToPGStatus(response.status());
+        LocalDateTime canceledAt = latestCancel.canceledAt().toLocalDateTime();
+        return PGCancelResult.builder()
+                .status(status)
+                .transactionKey(latestCancel.transactionKey())
+                .amount(Money.wons(latestCancel.cancelAmount()))
+                .cancelReason(latestCancel.cancelReason())
+                .canceledAt(canceledAt)
                 .build();
     }
 

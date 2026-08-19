@@ -39,7 +39,8 @@ public class PaymentPGAdapter implements PaymentPGPort {
 
     @Override
     public PGCancelResult cancel(String paymentKey, String cancelReason, PaymentProvider provider) {
-        return null;
+        PGProcessor processor = getProcessor(provider);
+        return processor.cancel(paymentKey, cancelReason);
     }
 
     private PGProcessor getProcessor(PaymentProvider provider) {
