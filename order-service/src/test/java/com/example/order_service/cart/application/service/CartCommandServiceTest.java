@@ -63,7 +63,7 @@ class CartCommandServiceTest {
     void addCartItems_whenExistCart_thenAddItemToExistCart() {
         //given
         Long userId = 1L;
-        cartRepository.save(Cart.create(userId, idGenerator));
+        Cart savedCart = cartRepository.save(Cart.create(userId, idGenerator));
         flushAndClear();
 
         AddCartItemsContext context = createAddContext(1L, 3, 100);
@@ -72,6 +72,8 @@ class CartCommandServiceTest {
         flushAndClear();
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
+
+        assertThat(findCart.getId()).isEqualTo(savedCart.getId());
 
         assertThat(findCart.getCartItems())
                 .hasSize(1)
@@ -87,13 +89,13 @@ class CartCommandServiceTest {
         Cart cart = Cart.create(userId, idGenerator);
         cart.addItems(createAddContext(1L, 3, 100), idGenerator);
         cartRepository.save(cart);
+
+        Long cartItemId = cart.findItemByProductVariantId(1L).orElseThrow().getId();
+
         flushAndClear();
 
-        CartItem item = cartRepository.findByUserId(userId).orElseThrow()
-                .findItemByProductVariantId(1L).orElseThrow();
-
         UpdateCartItemContext updateContext = UpdateCartItemContext.builder()
-                .cartItemId(item.getId())
+                .cartItemId(cartItemId)
                 .quantity(2)
                 .maxLimit(100)
                 .build();
@@ -102,7 +104,7 @@ class CartCommandServiceTest {
         flushAndClear();
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
-        CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
+        CartItem findItem = findCart.findItemByCartItemId(cartItemId).orElseThrow();
         assertThat(findItem.getQuantity()).isEqualTo(2);
     }
 
@@ -133,13 +135,13 @@ class CartCommandServiceTest {
         cart.addItems(createAddContext(1L, 3, 100), idGenerator);
         cart.addItems(createAddContext(2L, 3, 100), idGenerator);
         cartRepository.save(cart);
-        flushAndClear();
 
-        Cart savedCart = cartRepository.findByUserId(userId).orElseThrow();
-        CartItem item1 = savedCart.findItemByProductVariantId(1L).orElseThrow();
-        CartItem item2 = savedCart.findItemByProductVariantId(2L).orElseThrow();
+        Long cartItemId1 = cart.findItemByProductVariantId(1L).orElseThrow().getId();
+        Long cartItemId2 = cart.findItemByProductVariantId(2L).orElseThrow().getId();
+
+        flushAndClear();
         //when
-        cartCommandService.deleteCartItems(userId, List.of(item1.getId(), item2.getId()));
+        cartCommandService.deleteCartItems(userId, List.of(cartItemId1, cartItemId2));
         flushAndClear();
         //then
         Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
