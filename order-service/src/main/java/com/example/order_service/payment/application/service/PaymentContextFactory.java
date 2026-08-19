@@ -5,6 +5,7 @@ import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
+import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,15 @@ public class PaymentContextFactory {
                 .method(method)
                 .transactionKey(transactionKey)
                 .amount(amount)
+                .occurredAt(occurredAt)
+                .build();
+    }
+
+    public CancelPaymentContext cancel(String transactionKey, Money amount, LocalDateTime occurredAt, String reason) {
+        return CancelPaymentContext.builder()
+                .transactionKey(transactionKey)
+                .amount(amount)
+                .cancelReason(reason)
                 .occurredAt(occurredAt)
                 .build();
     }

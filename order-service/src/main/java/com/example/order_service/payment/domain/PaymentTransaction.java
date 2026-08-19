@@ -60,6 +60,21 @@ public class PaymentTransaction extends BaseEntity {
                 .build();
     }
 
+    public static PaymentTransaction createCancel(String transactionKey, Money amount, LocalDateTime occurredAt, String cancelReason, IdGenerator idGenerator) {
+        Assert.notNull(idGenerator, "결제 취소시 아이디 생성기는 필수이다.");
+        Long id = idGenerator.generate();
+        Assert.notNull(id, "결제 취소시 아이디는 필수이다.");
+
+        return PaymentTransaction.builder()
+                .id(id)
+                .transactionKey(transactionKey)
+                .type(TransactionType.REFUND)
+                .amount(amount)
+                .reason(cancelReason)
+                .occurredAt(occurredAt)
+                .build();
+    }
+
     void setPayment(Payment payment) {
         this.payment = payment;
     }

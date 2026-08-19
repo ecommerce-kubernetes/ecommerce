@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
@@ -34,6 +35,11 @@ public class PaymentPGAdapter implements PaymentPGPort {
     public void netCancel(String paymentKey, String cancelReason, PaymentProvider provider) {
         PGProcessor processor = getProcessor(provider);
         processor.netCancel(paymentKey, cancelReason);
+    }
+
+    @Override
+    public PGCancelResult cancel(String paymentKey, String cancelReason, PaymentProvider provider) {
+        return null;
     }
 
     private PGProcessor getProcessor(PaymentProvider provider) {

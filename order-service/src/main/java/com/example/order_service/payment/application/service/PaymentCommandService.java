@@ -7,6 +7,7 @@ import com.example.order_service.payment.domain.Payment;
 import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
+import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -50,5 +51,12 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.refundPending();
+    }
+
+    public void cancel(Long paymentId, Long userId, CancelPaymentContext context) {
+        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        payment.cancel(context, idGenerator);
     }
 }

@@ -18,8 +18,10 @@ public enum PaymentErrorCode implements ErrorCode {
 
     PAYMENT_CANNOT_ABORT(HttpStatus.CONFLICT, "PAYMENT_CANNOT_ABORT", "실패 처리할 수 없는 결제 입니다."),
     PAYMENT_CANNOT_REFUND_PENDING(HttpStatus.CONFLICT, "PAYMENT_CANNOT_REFUND_PENDING", "환불 대기할 수 없는 결제 입니다."),
+    PAYMENT_CANNOT_CANCEL(HttpStatus.CONFLICT, "PAYMENT_CANNOT_CANCEL", "결제를 취소 할 수 없는 결제 입니다."),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.CONFLICT, "PAYMENT_AMOUNT_MISMATCH", "결제 금액이 승인 요청 금액과 일치하지 않습니다."),
     APPROVAL_AMOUNT_MISMATCH(HttpStatus.INTERNAL_SERVER_ERROR, "PG_APPROVAL_AMOUNT_MISMATCH", "PG 승인 금액이 일치하지 않습니다"),
+    CANCEL_AMOUNT_MISMATCH(HttpStatus.INTERNAL_SERVER_ERROR, "CANCEL_AMOUNT_MISMATCH", "PG 환불 금액이 일치하지 않습니다"),
     PAYMENT_AUTO_CANCELED(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_AUTO_CANCELED", "시스템 오류로 인해 결제가 취소되었습니다"),
     PAYMENT_REFUND_PENDING(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다");
     private final HttpStatus status;

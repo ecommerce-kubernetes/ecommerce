@@ -1,9 +1,11 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.exception.ErrorCode;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCancelCommand;
@@ -16,12 +18,15 @@ import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
+import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -60,7 +65,18 @@ public class PaymentFacade {
     }
 
     public void cancel(PaymentCancelCommand command) {
+        Optional<PaymentResult> paymentOptional = paymentQueryService.findCompletedPaymentByOrderId(command.orderId());
 
+        if (paymentOptional.isEmpty()) {
+            return;
+        }
+        PaymentResult payment = paymentOptional.get();
+        paymentCommandService.refundPending(payment.paymentId(), payment.userId());
+
+        PGCancelResult cancelResult = cancelPG(payment, command);
+        CancelPaymentContext context = contextFactory.cancel(cancelResult.transactionKey(), cancelResult.amount(), cancelResult.canceledAt(), cancelResult.cancelReason());
+
+        paymentCommandService.cancel(payment.paymentId(), payment.userId(), context);
     }
 
     private void approvePendingPayment(PaymentResult payment, PaymentConfirmCommand command) {
@@ -77,6 +93,14 @@ public class PaymentFacade {
                 PaymentFailure failure = PaymentFailure.of(e.getErrorCode().getCode(), e.getErrorCode().getMessage());
                 paymentCommandService.abort(payment.paymentId(), payment.userId(), failure);
             }
+            throw e;
+        }
+    }
+
+    private PGCancelResult cancelPG(PaymentResult payment, PaymentCancelCommand command) {
+        try {
+            return paymentPGPort.cancel(payment.paymentKey(), command.cancelReason(), payment.provider());
+        } catch (PortException e) {
             throw e;
         }
     }

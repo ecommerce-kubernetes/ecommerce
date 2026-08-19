@@ -6,6 +6,7 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
+import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.domain.event.PaymentCompletedEvent;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -134,6 +135,21 @@ public class Payment extends BaseAggregateRoot {
         }
 
         this.status = PaymentStatus.REFUND_PENDING;
+    }
+
+    public void cancel(CancelPaymentContext context, IdGenerator idGenerator) {
+        if (!this.status.equals(PaymentStatus.REFUND_PENDING)) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_CANNOT_CANCEL);
+        }
+
+        if (!this.totalAmount.equals(context.amount())) {
+            throw new BusinessException(PaymentErrorCode.CANCEL_AMOUNT_MISMATCH);
+        }
+
+        this.status = PaymentStatus.CANCELED;
+        PaymentTransaction transaction = PaymentTransaction.createCancel(context.transactionKey(), context.amount(),
+                context.occurredAt(), context.cancelReason(), idGenerator);
+        addTransaction(transaction);
     }
 
     private void addTransaction(PaymentTransaction transaction) {
