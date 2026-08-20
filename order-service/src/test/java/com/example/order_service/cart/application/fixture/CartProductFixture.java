@@ -20,7 +20,7 @@ public class CartProductFixture {
                 .status(CartProductStatus.ON_SALE)
                 .stock(100)
                 .sku("SKU")
-                .productName("상품1")
+                .productName("상품")
                 .thumbnail("/product/product.jpg")
                 .originalPrice(Money.wons(10000L))
                 .discountRate(10)

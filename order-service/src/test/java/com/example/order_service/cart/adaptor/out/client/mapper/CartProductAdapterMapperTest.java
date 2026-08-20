@@ -1,9 +1,11 @@
 package com.example.order_service.cart.adaptor.out.client.mapper;
 
+import com.example.order_service.cart.application.fixture.CartProductFixture;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
+import com.example.order_service.infrastructure.fixture.ProductResponseFixture;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,27 +24,12 @@ public class CartProductAdapterMapperTest {
     @DisplayName("장바구니 상품 조회 결과 매핑")
     void toCartProductResult() {
         //given
-        ProductResponse.UnitPrice unitPrice = ProductResponse.UnitPrice.builder()
-                .originalPrice(10000L)
-                .discountRate(10)
-                .discountAmount(1000L)
-                .discountedPrice(9000L)
-                .build();
-
-        ProductResponse.ProductDetail product = Instancio.of(ProductResponse.ProductDetail.class)
-                .set(field("status"), "ON_SALE")
-                .set(field("unitPrice"), unitPrice)
-                .create();
-
-        ProductResponse response = ProductResponse.builder()
-                .products(List.of(product))
-                .build();
+        ProductResponse response = ProductResponseFixture.anProductResponse().build();
+        CartProductResult expectedResult = CartProductFixture.anProducts().build();
         //when
         CartProductResult result = cartProductAdapterMapper.toCartProductResult(response);
         //then
         assertThat(result.products()).hasSize(1);
-        assertThat(result.products())
-                .extracting("productId", "status", "originalPrice")
-                .containsExactly(tuple( product.productId(), CartProductStatus.ON_SALE, Money.wons(unitPrice.originalPrice())));
+        assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
     }
 }
