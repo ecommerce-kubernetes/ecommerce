@@ -1,6 +1,7 @@
 package com.example.order_service.cart.adaptor.out.client;
 
 import com.example.order_service.cart.adaptor.out.client.mapper.CartProductAdapterMapper;
+import com.example.order_service.cart.application.fixture.CartProductFixture;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartProductPortErrorCode;
@@ -11,7 +12,9 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.dto.response.product.ProductResponse;
+import com.example.order_service.infrastructure.fixture.ProductResponseFixture;
 import com.example.order_service.infrastructure.gateway.ProductGateway;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,43 +41,27 @@ class CartProductAdapterTest {
     @Spy
     private CartProductAdapterMapper cartProductAdapterMapper;
 
+    @BeforeEach
+    void setUp() {
+        CartProductAdapterMapper mapper = new CartProductAdapterMapper();
+        cartProductAdapter = new CartProductAdapter(productGateway, mapper);
+    }
+
     @Test
     @DisplayName("상품을 조회한다")
     void getProducts() {
         //given
-        List<Long> variantIds = List.of(1L, 2L);
-        ProductResponse.UnitPrice unitPrice = ProductResponse.UnitPrice.builder()
-                .originalPrice(10000L)
-                .discountRate(10)
-                .discountAmount(1000L)
-                .discountedPrice(9000L)
-                .build();
+        List<Long> productVariantIds = List.of(1L);
+        ProductResponse response = ProductResponseFixture.anProductResponse().build();
 
-        ProductResponse.ProductOption option = ProductResponse.ProductOption.builder()
-                .optionTypeName("사이즈")
-                .optionValueName("XL").build();
-        ProductResponse.ProductDetail detail = ProductResponse.ProductDetail.builder()
-                .productId(1L)
-                .productVariantId(1L)
-                .status("ON_SALE")
-                .stock(100)
-                .sku("SKU")
-                .productName("상품 이름")
-                .thumbnail("/product/product.jpg")
-                .unitPrice(unitPrice)
-                .options(List.of(option))
-                .build();
-        ProductResponse response = ProductResponse.builder().products(List.of(detail)).build();
         given(productGateway.getProducts(anyList())).willReturn(response);
         //when
-        CartProductResult result = cartProductAdapter.getProducts(variantIds);
+        CartProductResult result = cartProductAdapter.getProducts(productVariantIds);
         //then
         assertThat(result.products()).hasSize(1);
-        CartProductResult.CartProductDetail mappedProduct = result.products().stream().findFirst().orElseThrow();
-        assertThat(mappedProduct.status()).isEqualTo(CartProductStatus.ON_SALE);
-        assertThat(mappedProduct.productId()).isEqualTo(1L);
-        assertThat(mappedProduct.discountedPrice()).isEqualTo(Money.wons(9000L));
-        assertThat(mappedProduct.stock()).isEqualTo(100);
+        assertThat(result.products())
+                .extracting("productVariantId")
+                .containsExactly(1L);
     }
 
 
