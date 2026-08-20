@@ -3,7 +3,6 @@ package com.example.order_service.cart.application.service;
 import com.example.order_service.cart.application.port.CartRepository;
 import com.example.order_service.cart.application.service.dto.data.CartItemData;
 import com.example.order_service.cart.domain.Cart;
-import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.domain.context.AddCartItemsContext;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;

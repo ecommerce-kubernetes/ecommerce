@@ -1,7 +1,6 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.exception.ErrorCode;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;

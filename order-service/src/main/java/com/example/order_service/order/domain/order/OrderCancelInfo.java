@@ -2,7 +2,6 @@ package com.example.order_service.order.domain.order;
 
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;

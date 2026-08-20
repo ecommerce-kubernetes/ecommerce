@@ -1,15 +1,14 @@
 package com.example.order_service.cart.application.service;
 
+import com.example.order_service.cart.application.fixture.CartProductFixture;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
 import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.instancio.Select.field;
 
 class CartItemValidatorTest {
 
@@ -32,9 +31,7 @@ class CartItemValidatorTest {
     @DisplayName("장바구니에 추가할 수 없는 상품이 존재하면 예외가 발생한다")
     void validateAddable_whenCannotAddableProduct_thenThrownException() {
         //given
-        CartProductResult.CartProductDetail product = Instancio.of(CartProductResult.CartProductDetail.class)
-                .set(field("status"), CartProductStatus.STOP_SALE)
-                .create();
+        CartProductResult.CartProductDetail product = CartProductFixture.anProduct().status(CartProductStatus.STOP_SALE).build();
         //when
         //then
         assertThatThrownBy(() -> validator.validateAddable(product))
