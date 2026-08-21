@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class OrderSheetItemTest {
 
@@ -97,7 +98,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목에 쿠폰을 적용할때 쿠폰이 없으면 예외가 발생한다.")
-    void applyItemCoupon_itemCoupon_null() {
+    void applyItemCoupon_whenItemCouponIsNull_thenThrownException() {
         //given
         OrderSheetItem item = OrderSheetItemFixtureBuilder.given().build();
         //when
@@ -179,6 +180,20 @@ public class OrderSheetItemTest {
     }
 
     @Test
+    @DisplayName("주문 항목의 수량이 쿠폰 적용 가능 수량을 초과하면 최대 적용 수량까지만 할인한다.")
+    void calculateCouponDiscount_whenQuantityExceedsApplyQuantityLimit_thenApplyDiscountUpToLimit() {
+        //given
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(2)
+                .withFixedItemCoupon(1L, Money.wons(1000L), 1)
+                .build();
+        //when
+        Money couponDiscount = item.calculateCouponDiscount();
+        //then
+        assertThat(couponDiscount).isEqualTo(Money.wons(1000L));
+    }
+
+    @Test
     @DisplayName("주문 항목에 상품 쿠폰이 적용되지 않은 경우 상품 쿠폰 할인 금액은 0원 이다.")
     void calculateCouponDiscount_whenNotAppliedItemCoupon_thenItemCouponDiscountIsZero() {
         //given
@@ -240,8 +255,25 @@ public class OrderSheetItemTest {
     }
 
     @Test
+    @DisplayName("상품 가격정보가 동일하면 예외가 발생하지 않는다.")
+    void validatePriceNotChanged_whenProductPriceMatches_thenNotThrow() {
+        //given
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(1)
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
+                .build();
+
+        ProductPriceSnapshot target = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        //when
+        //then
+        assertDoesNotThrow(() -> item.validatePriceNotChanged(target));
+    }
+
+    @Test
     @DisplayName("상품 가격 정보가 동일하지 않으면 예외가 발생한다.")
-    void validatePriceNotChanged() {
+    void validatePriceNotChanged_whenProductPriceMismatch_thenThrownException() {
         //given
         OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
                 .withQuantity(1)
@@ -272,6 +304,19 @@ public class OrderSheetItemTest {
         assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("해당 주문 항목에는 쿠폰이 적용되어있지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("주문 항목에 적용된 상품 쿠폰과 아이디와 할인 정책, 적용 가능 최대 수량이 동일하면 예외가 발생하지 않는다.")
+    void validateItemCouponNotChanged_whenItemCouponMatches_thenNotThrow() {
+        //given
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given().withFixedItemCoupon(1L, Money.wons(1000L), 1).build();
+
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot target = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponPolicy, 1);
+        //when
+        //then
+        assertDoesNotThrow(() -> item.validateItemCouponNotChanged(target));
     }
 
     @Test
