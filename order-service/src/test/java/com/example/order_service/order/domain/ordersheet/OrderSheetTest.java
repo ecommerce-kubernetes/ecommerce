@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class OrderSheetTest {
 
@@ -49,6 +50,7 @@ public class OrderSheetTest {
         //then
         assertThat(orderSheet.getOrderer()).isEqualTo(orderer);
         assertThat(orderSheet.getItems()).hasSize(1);
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.ZERO);
         assertThat(orderSheet.getExpiresAt()).isEqualTo(expiresAt);
     }
 
@@ -292,6 +294,20 @@ public class OrderSheetTest {
     }
 
     @Test
+    @DisplayName("주문서가 만료되었는지 여부를 반환한다.")
+    void isExpired() {
+        //given
+        LocalDateTime expiresAt = LocalDateTime.now();
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withExpiresAt(expiresAt).build();
+
+        LocalDateTime expiredAt = expiresAt.plusMinutes(10);
+        //when
+        boolean isExpired = orderSheet.isExpired(expiredAt);
+        //then
+        assertThat(isExpired).isTrue();
+    }
+
+    @Test
     @DisplayName("주문서의 최대 적용 가능 포인트를 계산한다.")
     void calculateMaxUsablePoints(){
         //given
@@ -345,6 +361,38 @@ public class OrderSheetTest {
     }
 
     @Test
+    @DisplayName("장바구니 쿠폰 할인 금액을 계산한다.")
+    void calculateCartCouponDiscount() {
+        //given
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy cartCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(5000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "5000원 할인 쿠폰", cartCouponPolicy, Money.wons(10000L));
+        orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
+        //when
+        Money cartCouponDiscount = orderSheet.calculateCartCouponDiscount();
+        //then
+        assertThat(cartCouponDiscount).isEqualTo(Money.wons(5000L));
+    }
+    
+    @Test
+    @DisplayName("장바구니 쿠폰 할인 금액이 주문 항목 최종 가격 총액을 초과하면 주문 항목 최종 가격 총액만큼 할인한다.")
+    void calculateCartCouponDiscount_whenDiscountExceedsTotalItemsFinalAmount_thenReturnTotalItemsFinalAmount() {
+        //given
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy cartCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(50000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "50000원 할인 쿠폰", cartCouponPolicy, Money.wons(10000L));
+        orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
+        //when
+        Money cartCouponDiscount = orderSheet.calculateCartCouponDiscount();
+        //then
+        assertThat(cartCouponDiscount).isEqualTo(Money.wons(27000L));
+    }
+
+    @Test
     @DisplayName("총 결제 금액을 계산한다.")
     void calculateTotalPaymentAmount(){
         //given
@@ -353,6 +401,29 @@ public class OrderSheetTest {
         Money paymentAmount = orderSheet.calculateTotalPaymentAmount();
         //then
         assertThat(paymentAmount).isEqualTo(Money.wons(27000L));
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰, 장바구니 쿠폰, 포인트가 적용되었을 때 총 결제 금액을 계산한다.")
+    void calculateTotalPaymentAmount_whenCouponsAndPointsApplied_thenReturnDiscountedAmount() {
+        //given
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+
+        OrderSheetItem item = orderSheet.getItems().getFirst();
+        CouponDiscountPolicy itemPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "상품 1000원 할인", itemPolicy, 1);
+        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointPolicy);
+
+        CouponDiscountPolicy cartPolicy = new FixedCouponDiscountPolicy(Money.wons(5000L));
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 5000원 할인", cartPolicy, Money.wons(10000L));
+        orderSheet.applyCartCoupon(cartCoupon, pointPolicy);
+
+        orderSheet.applyPoints(Money.wons(1000L), pointPolicy);
+        //when
+        Money paymentAmount = orderSheet.calculateTotalPaymentAmount();
+        //then
+        assertThat(paymentAmount).isEqualTo(Money.wons(20000L));
     }
 
     @Test
@@ -422,6 +493,22 @@ public class OrderSheetTest {
         boolean hasCoupon = orderSheet.hasCoupon();
         //then
         assertThat(hasCoupon).isTrue();
+    }
+    
+    @Test
+    @DisplayName("장바구니 쿠폰 동일하면 예외가 발생하지 않는다.")
+    void validateCartCouponNotChanged_whenCartCouponMatches_thenNotThrow() {
+        //given
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        CartCouponSnapshot cartCouponSnapshot = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", couponDiscountPolicy, Money.wons(10000L));
+
+        orderSheet.applyCartCoupon(cartCouponSnapshot, pointPolicy);
+        //when
+        //then
+        assertDoesNotThrow(() -> orderSheet.validateCartCouponNotChanged(cartCouponSnapshot));
     }
 
     @Test
@@ -502,8 +589,20 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("포인트가 최대 적용 가능 한도를 초과하는지 검증한다.")
-    void validatePointsLimit() {
+    @DisplayName("포인트가 최대 적용 가능 한도를 만족하면 예외가 발생하지 않는다.")
+    void validatePointsLimit_whenMetAvailablePoints_thenNotThrow() {
+        //given
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
+
+        PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
+        //when
+        //then
+        assertDoesNotThrow(() -> orderSheet.validatePointsLimit(Money.wons(1000L), pointPolicy));
+    }
+
+    @Test
+    @DisplayName("포인트가 최대 적용 가능 한도를 초과하면 예외가 발생한다.")
+    void validatePointsLimit_whenExceedAvailablePoints_thenThrownException() {
         //given
         OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
 
