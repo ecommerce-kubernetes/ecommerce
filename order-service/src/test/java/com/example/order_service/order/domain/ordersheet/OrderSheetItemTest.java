@@ -28,19 +28,7 @@ public class OrderSheetItemTest {
     @DisplayName("주문 항목을 생성한다")
     void create() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
-        int quantity = 1;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(List.of(productOption))
-                .build();
+        CreateOrderSheetItemContext context = createContext(1);
         //when
         OrderSheetItem result = OrderSheetItem.create(context, idGenerator);
         //then
@@ -48,29 +36,17 @@ public class OrderSheetItemTest {
         assertThat(result)
                 .extracting(OrderSheetItem::getProductSnapshot, OrderSheetItem::getPriceSnapshot, OrderSheetItem::getQuantity)
                 .containsExactly(
-                        productSnapshot, priceSnapshot, quantity
+                        context.productSnapshot(), context.priceSnapshot(), context.quantity()
                 );
-        assertThat(result.getOptionSnapshots())
-                .containsExactly(productOption);
+
+        assertThat(result.getOptionSnapshots()).isEqualTo(context.optionSnapshots());
     }
 
     @Test
     @DisplayName("주문 항목을 생성할때 아이디 생성기가 누락되면 예외가 발생한다.")
-    void create_idGenerator_null(){
+    void create_whenIdGeneratorIsNull_thenThrownException() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
-        int quantity = 1;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(List.of(productOption))
-                .build();
+        CreateOrderSheetItemContext context = createContext(1);
         //when
         //then
         assertThatThrownBy(() -> OrderSheetItem.create(context, null))
@@ -80,21 +56,9 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목 생성시 아이디가 누락되면 예외가 발생한다.")
-    void create_id_null(){
+    void create_whenIdGeneratorGenerateNullId_thenThrownException() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
-        int quantity = 1;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(List.of(productOption))
-                .build();
+        CreateOrderSheetItemContext context = createContext(1);
 
         IdGenerator nullIdGenerator = () -> null;
         //when
@@ -105,22 +69,10 @@ public class OrderSheetItemTest {
     }
 
     @Test
-    @DisplayName("주문서 항목의 주문 수량이 0 이하면 예외가 발생한다.")
-    void create_quantity_less_than_1() {
+    @DisplayName("주문서 항목의 주문 수량이 1 이하면 예외가 발생한다.")
+    void create_whenQuantityLessThan1_thenThrownException() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
-        int quantity = 0;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(List.of(productOption))
-                .build();
+        CreateOrderSheetItemContext context = createContext(0);
         //when
         //then
         assertThatThrownBy(() -> OrderSheetItem.create(context, idGenerator))
@@ -133,21 +85,7 @@ public class OrderSheetItemTest {
     @DisplayName("주문 항목에 쿠폰을 적용한다.")
     void applyItemCoupon() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given().build();
 
         CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
@@ -161,22 +99,7 @@ public class OrderSheetItemTest {
     @DisplayName("주문 항목에 쿠폰을 적용할때 쿠폰이 없으면 예외가 발생한다.")
     void applyItemCoupon_itemCoupon_null() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given().build();
         //when
         //then
         assertThatThrownBy(() -> item.applyItemCoupon(null))
@@ -188,26 +111,9 @@ public class OrderSheetItemTest {
     @DisplayName("상품 쿠폰을 해제한다")
     void removeItemCoupon() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withFixedItemCoupon(100L, Money.wons(1000L), 1)
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-
-        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
-
-        item.applyItemCoupon(itemCoupon);
         //when
         item.removeItemCoupon();
         //then
@@ -218,21 +124,11 @@ public class OrderSheetItemTest {
     @DisplayName("상품 정상가 총액을 계산한다.")
     void calculateOriginalLineTotal() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
+                .withQuantity(3).build();
         //when
         Money result = item.calculateOriginalLineTotal();
         //then
@@ -243,20 +139,11 @@ public class OrderSheetItemTest {
     @DisplayName("상품 기본 할인 총액을 계산한다.")
     void calculateItemDiscountLineTotal() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
+                .withQuantity(3).build();
         //when
         Money result = item.calculateItemDiscountLineTotal();
         //then
@@ -267,21 +154,11 @@ public class OrderSheetItemTest {
     @DisplayName("상품 판매가 총액을 계산한다.")
     void calculateLineTotal() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
+                .withQuantity(3).build();
         //when
         Money result = item.calculateLineTotal();
         //then
@@ -292,25 +169,9 @@ public class OrderSheetItemTest {
     @DisplayName("주문 항목의 쿠폰 할인 금액을 계산한다.")
     void calculateCouponDiscount() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withFixedItemCoupon(1L, Money.wons(1000L), 1)
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-
-        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", policy, 1);
-        item.applyItemCoupon(itemCoupon);
         //when
         Money couponDiscount = item.calculateCouponDiscount();
         //then
@@ -319,23 +180,9 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목에 상품 쿠폰이 적용되지 않은 경우 상품 쿠폰 할인 금액은 0원 이다.")
-    void calculateCouponDiscount_not_apply_itemCoupon() {
+    void calculateCouponDiscount_whenNotAppliedItemCoupon_thenItemCouponDiscountIsZero() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given().build();
         //when
         Money couponDiscount = item.calculateCouponDiscount();
         //then
@@ -343,105 +190,65 @@ public class OrderSheetItemTest {
     }
 
     @Test
-    @DisplayName("주문 항목에 적용된 상품 쿠폰 할인 금액이 주문 항목의 판매가 총액을 넘어서는 경우 쿠폰 할인 금액은 판매가 총액을 한도로 적용된다.")
-    void calculateCouponDiscount_lineTotal_lessThan_discountAmount() {
+    @DisplayName("상품 쿠폰 할인 금액이 주문 항목의 판매가 총액을 초과하면 판매가 총액까지만 할인한다.")
+    void calculateCouponDiscount_whenItemCouponDiscountExceedLineTotal_thenLimitToLineTotal() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 1;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(1)
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
+                .withFixedItemCoupon(1L, Money.wons(10000L), 1)
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(30000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "30000원 할인 쿠폰", policy, 1);
-        item.applyItemCoupon(itemCoupon);
         //when
         Money result = item.calculateCouponDiscount();
         //then
-        assertThat(result).isEqualTo(item.calculateLineTotal());
+        assertThat(result).isEqualTo(Money.wons(9000L));
     }
 
     @Test
-    @DisplayName("주문 항목의 최종 금액을 계산한다. (상품 쿠폰 미적용 시 원금액 반환)")
-    void calculateFinalAmount_not_applied_itemCoupon() {
+    @DisplayName("상품 쿠폰이 적용되지 않은 경우 주문 항목의 최종 금액은 판매가 총액이다.")
+    void calculateFinalAmount_whenNotAppliedItemCoupon_thenReturnLineTotal() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(2)
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
         //when
         Money result = item.calculateFinalAmount();
         //then
-        assertThat(result).isEqualTo(item.calculateLineTotal());
+        assertThat(result).isEqualTo(Money.wons(18000L));
     }
 
     @Test
-    @DisplayName("주문 항목의 최종 금액을 계산한다. (상품 쿠폰 적용 시 할인액 차감)")
-    void calculateFinalAmount_applied_itemCoupon() {
+    @DisplayName("상품 쿠폰이 적용된 경우 주문 항목의 최종 금액은 판매가 총액에 쿠폰 할인을 적용한 금액이다.")
+    void calculateFinalAmount_whenAppliedItemCoupon_thenAppliedCouponDiscount() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(1)
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
+                .withFixedItemCoupon(1L, Money.wons(1000L), 1)
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-        CouponDiscountPolicy policy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", policy, 1);
-        item.applyItemCoupon(itemCoupon);
         //when
         Money result = item.calculateFinalAmount();
         //then
-        assertThat(result).isEqualTo(Money.wons(26000L));
+        assertThat(result).isEqualTo(Money.wons(8000L));
     }
 
     @Test
     @DisplayName("상품 가격 정보가 동일하지 않으면 예외가 발생한다.")
     void validatePriceNotChanged() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(1)
+                .withPriceSnapshot(
+                        ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L))
+                )
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
 
         ProductPriceSnapshot target = ProductPriceSnapshot.of(Money.wons(10000L), 20, Money.wons(2000L), Money.wons(8000L));
         //when
@@ -453,24 +260,10 @@ public class OrderSheetItemTest {
     }
 
     @Test
-    @DisplayName("쿠폰이 적용되지 않은 주문 항목에 검증을 수행하면 예외가 발생한다.")
-    void validateItemCouponNotChanged_not_apply_itemCoupon() {
+    @DisplayName("쿠폰이 적용되지 않은 주문 항목에 쿠폰 검증을 수행하면 예외가 발생한다.")
+    void validateItemCouponNotChanged_whenNotAppliedItemCoupon_thenThrownException() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given().build();
 
         CouponDiscountPolicy newCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
         ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", newCouponPolicy, 1);
@@ -483,65 +276,31 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목에 적용된 상품 쿠폰 아이디와 동일하지 않으면 예외가 발생한다")
-    void validateItemCouponNotChanged_miss_match_itemCouponId() {
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
+    void validateItemCouponNotChanged_whenItemCouponIdMismatch_thenThrownException() {
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given().withFixedItemCoupon(1L, Money.wons(1000L), 1).build();
 
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
-                .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-
-        CouponDiscountPolicy oldCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        CouponDiscountPolicy newCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot oldItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", oldCouponPolicy, 1);
-        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(2L, "1000원 할인 쿠폰", newCouponPolicy, 1);
-
-        item.applyItemCoupon(oldItemCoupon);
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot target = ItemCouponSnapshot.of(2L, "1000원 할인 쿠폰", couponPolicy, 1);
         //when
         //then
-        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(target))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("검증하려는 쿠폰 ID가 주문 항목에 적용된 상품 쿠폰 ID와 일치하지 않습니다.");
     }
 
     @Test
     @DisplayName("상품 쿠폰 할인 정책이 동일하지 않으면 예외가 발생한다.")
-    void validateItemCouponNotChanged_couponDiscountPolicy() {
+    void validateItemCouponNotChanged_whenItemCouponPolicyMismatch_thenThrownException() {
         //given
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
-                "청바지", "/product/product/jean1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
-                .builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withFixedItemCoupon(1L, Money.wons(1000L), 1)
                 .build();
 
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-
-        CouponDiscountPolicy oldCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CouponDiscountPolicy newCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(2000L));
-        ItemCouponSnapshot oldItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", oldCouponPolicy, 1);
-        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", newCouponPolicy, 1);
-
-        item.applyItemCoupon(oldItemCoupon);
+        ItemCouponSnapshot target = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", newCouponPolicy, 1);
         //when
         //then
-        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(target))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
@@ -549,34 +308,35 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("상품 쿠폰의 최대 적용 가능 수량이 동일하지 않으면 예외가 발생한다.")
-    void validateItemCouponNotChanged_maxQuantityLimit() {
+    void validateItemCouponNotChanged_whenItemCouponApplyQuantityLimitMismatch_thenThrownException() {
         //given
+        OrderSheetItem item = OrderSheetItemFixtureBuilder.given()
+                .withQuantity(3)
+                .withFixedItemCoupon(1L, Money.wons(1000L), 1)
+                .build();
+
+        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot target = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponPolicy, 2);
+        //when
+        //then
+        assertThatThrownBy(() -> item.validateItemCouponNotChanged(target))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
+    }
+
+    private CreateOrderSheetItemContext createContext(int quantity) {
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
                 Money.wons(1000L), Money.wons(9000L));
-        int quantity = 3;
-
-        CreateOrderSheetItemContext context = CreateOrderSheetItemContext
+        ProductOptionSnapshot productOption = ProductOptionSnapshot.of("사이즈", "XL");
+        return CreateOrderSheetItemContext
                 .builder()
                 .productSnapshot(productSnapshot)
                 .priceSnapshot(priceSnapshot)
                 .quantity(quantity)
-                .optionSnapshots(Collections.emptyList())
+                .optionSnapshots(List.of(productOption))
                 .build();
-
-        OrderSheetItem item = OrderSheetItem.create(context, idGenerator);
-
-        CouponDiscountPolicy couponPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot oldItemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponPolicy, 3);
-        ItemCouponSnapshot newItemCoupon = ItemCouponSnapshot.of(1L, "2000원 할인 쿠폰", couponPolicy, 1);
-
-        item.applyItemCoupon(oldItemCoupon);
-        //when
-        //then
-        assertThatThrownBy(() -> item.validateItemCouponNotChanged(newItemCoupon))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.COUPON_POLICY_CHANGED);
     }
 }
