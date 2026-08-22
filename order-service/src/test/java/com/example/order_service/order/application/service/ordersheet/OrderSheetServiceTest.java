@@ -6,16 +6,14 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.*;
 import com.example.order_service.order.application.port.dto.*;
+import com.example.order_service.order.application.service.fixture.*;
 import com.example.order_service.order.application.service.ordersheet.dto.command.*;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetCreateResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.order.config.OrderSheetProperties;
-import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
-import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
-import com.example.order_service.order.domain.ordersheet.OrderSheet;
-import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.*;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.*;
@@ -78,20 +76,14 @@ public class OrderSheetServiceTest {
     @DisplayName("장바구니 주문서 생성")
     void createCartOrderSheet() {
         //given
-        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
-                .userId(1L)
-                .cartItemIds(List.of(1L))
-                .build();
+        CreateCartOrderSheetCommand command = OrderSheetCommandFixture.anCreateCartCommand().build();
 
-        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
+        OrdererProfileResult ordererProfile = OrderUserResultFixture.anOrdererProfile().defaultShippingAddress(shippingAddress).build();
 
-        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
-        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+        OrderCartItemsResult cartResult = OrderCartResultFixture.anOrderCartItems().build();
 
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+        OrderProductsResult products = OrderProductResultFixture.anOrderProducts().build();
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
 
@@ -115,21 +107,15 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("장바구니 주문서 생성시, 주문자 정보의 대표 배송 정보가 없으면 배송정보가 없는 주문서가 생성된다.")
-    void createCartOrderSheet_without_default_shippingAddress() {
+    void createCartOrderSheet_whenOrdererProfileWithoutDefaultShippingAddress_thenCreateOrderSheetWithoutShippingAddress() {
         //given
-        CreateCartOrderSheetCommand command = CreateCartOrderSheetCommand.builder()
-                .userId(1L)
-                .cartItemIds(List.of(1L))
-                .build();
+        CreateCartOrderSheetCommand command = OrderSheetCommandFixture.anCreateCartCommand().build();
 
-        Money availablePoints = Money.wons(10000L);
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(null, availablePoints);
+        OrdererProfileResult ordererProfile = OrderUserResultFixture.anOrdererProfile().build();
 
-        OrderCartItemsResult.Item cartItem = createCartItem(1L, 1L, 3);
-        OrderCartItemsResult cartResult = OrderCartItemsResult.builder().items(List.of(cartItem)).build();
+        OrderCartItemsResult cartResult = OrderCartResultFixture.anOrderCartItems().build();
 
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+        OrderProductsResult products = OrderProductResultFixture.anOrderProducts().build();
 
         LocalDateTime expectedExpiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
 
@@ -154,26 +140,14 @@ public class OrderSheetServiceTest {
     @DisplayName("바로 구매 주문서 생성")
     void createDirectOrderSheet() {
         //given
-        Long userId = 1L;
-        Long productVariantId = 1L;
-        int quantity = 3;
-        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
-        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
-                .userId(userId)
-                .items(List.of(item))
-                .build();
+        CreateDirectOrderSheetCommand command = OrderSheetCommandFixture.anCreateDirectCommand().build();
 
-        Money availablePoints = Money.wons(10000L);
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(shippingAddress, availablePoints);
+        OrdererProfileResult ordererProfile = OrderUserResultFixture.anOrdererProfile().defaultShippingAddress(shippingAddress).build();
 
-        OrderProductsResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+        OrderProductsResult products = OrderProductResultFixture.anOrderProducts().build();
 
-        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
@@ -194,27 +168,15 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("바로 구매 주문서 생성시, 주문자 정보의 대표 배송 정보가 없으면 배송정보가 없는 주문서가 생성된다.")
-    void createDirectOrderSheet_without_default_shippingAddress() {
+    void createDirectOrderSheet_whenOrdererProfileWithoutDefaultShippingAddress_thenCreateOrderSheetWithoutShippingAddress() {
         //given
-        Long userId = 1L;
-        Long productVariantId = 1L;
-        int quantity = 3;
-        CreateDirectOrderSheetCommand.OrderVariant item = CreateDirectOrderSheetCommand.OrderVariant.builder()
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
-        CreateDirectOrderSheetCommand command = CreateDirectOrderSheetCommand.builder()
-                .userId(userId)
-                .items(List.of(item))
-                .build();
+        CreateDirectOrderSheetCommand command = OrderSheetCommandFixture.anCreateDirectCommand().build();
 
-        Money availablePoints = Money.wons(10000L);
-        OrdererProfileResult ordererProfile = createOrdererProfileResult(null, availablePoints);
+        OrdererProfileResult ordererProfile = OrderUserResultFixture.anOrdererProfile().build();
 
-        OrderProductsResult.OrderProductDetail product = createProductDetail(productVariantId, OrderProductStatus.ON_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder().products(List.of(product)).build();
+        OrderProductsResult products = OrderProductResultFixture.anOrderProducts().build();
 
-        given(orderUserPort.getOrdererProfile(userId)).willReturn(ordererProfile);
+        given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfile);
         given(orderProductPort.getProducts(anyList())).willReturn(products);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
 
@@ -236,10 +198,9 @@ public class OrderSheetServiceTest {
     @DisplayName("주문서를 조회한다")
     void getOrderSheet() {
         //given
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
 
-        OrdererPointResult pointResult = OrdererPointResult.builder().userId(1L).availablePoints(Money.wons(10000L)).build();
+        OrdererPointResult pointResult = OrderUserResultFixture.anOrdererPointResult().build();
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderUserPort.getOrdererPoints(anyLong())).willReturn(pointResult);
         //when
@@ -252,31 +213,29 @@ public class OrderSheetServiceTest {
         assertThat(result.items())
                 .extracting("price.lineTotal", "price.finalAmount")
                 .containsExactly(
-                        tuple(Money.wons(45000L), Money.wons(44000L))
+                        tuple(Money.wons(27000L), Money.wons(27000L))
                 );
 
-        assertThat(result.items())
-                .extracting("coupon.appliedDiscountAmount")
-                .containsExactly(Money.wons(1000L));
+        assertThat(result.items().getFirst().coupon()).isNull();
 
-        assertThat(result.cartCoupon().appliedDiscountAmount()).isEqualTo(Money.wons(1000L));
+        assertThat(result.cartCoupon()).isNull();
 
         assertThat(result.paymentSummary())
                 .extracting("totalOriginalAmount", "totalItemDiscount", "totalItemCouponDiscount",
                         "cartCouponDiscount", "usedPoints", "totalPaymentAmount")
                 .containsExactly(
-                        Money.wons(50000L), Money.wons(5000L), Money.wons(1000L),
-                        Money.wons(1000L), Money.wons(1000L), Money.wons(42000L)
+                        Money.wons(30000L), Money.wons(3000L), Money.ZERO,
+                        Money.ZERO, Money.ZERO, Money.wons(27000L)
                 );
 
         assertThat(result.point())
                 .extracting("availablePoints", "maxUsablePoints")
-                .containsExactly(Money.wons(10000L), Money.wons(4300L));
+                .containsExactly(Money.wons(10000L), Money.wons(2700L));
     }
 
     @Test
     @DisplayName("주문서를 찾을 수 없는 경우 예외가 발생한다")
-    void getOrderSheet_notFound() {
+    void getOrderSheet_whenOrderSheetNotFound_thenThrownException() {
         //given
         Long orderSheetId = 999L;
         Long userId = 1L;
@@ -291,10 +250,10 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("주문서가 만료된 경우 예외가 발생한다")
-    void getOrderSheet_expired() {
+    void getOrderSheet_whenOrderSheetExpired_thenThrownException() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withExpiresAt(expiresAt).build();
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
@@ -308,17 +267,8 @@ public class OrderSheetServiceTest {
     @DisplayName("주문서 배송 정보를 변경한다")
     void updateShippingAddress() {
         //given
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
-        UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
-                .orderSheetId(orderSheet.getId())
-                .userId(1L)
-                .receiverName("수령자")
-                .receiverPhone("010-9876-5432")
-                .zipCode("12345")
-                .address("서울시 테헤란로 321")
-                .addressDetail("321동 1234호")
-                .build();
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
+        UpdateOrderSheetShippingAddressCommand command = OrderSheetCommandFixture.anUpdateShippingAddressCommand().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
@@ -336,18 +286,9 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("주문서 배송 정보를 변경할때 주문서를 찾을 수 없는 경우 예외가 발생한다.")
-    void updateShippingAddress_notFound_orderSheet() {
+    void updateShippingAddress_whenOrderSheetNotFound_thenThrownException() {
         //given
-        UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
-                .orderSheetId(999L)
-                .userId(1L)
-                .receiverName("수령자")
-                .receiverPhone("010-9876-5432")
-                .zipCode("12345")
-                .address("서울시 테헤란로 321")
-                .addressDetail("321동 1234호")
-                .build();
-
+        UpdateOrderSheetShippingAddressCommand command = OrderSheetCommandFixture.anUpdateShippingAddressCommand().build();
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
@@ -359,19 +300,12 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("주문서 배송 정보를 변경할때 주문서가 만료된 경우 예외가 발생한다")
-    void updateShippingAddress_expired() {
+    void updateShippingAddress_whenOrderSheetExpired_thenThrownException() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
-        UpdateOrderSheetShippingAddressCommand command = UpdateOrderSheetShippingAddressCommand.builder()
-                .orderSheetId(orderSheet.getId())
-                .userId(1L)
-                .receiverName("수령자")
-                .receiverPhone("010-9876-5432")
-                .zipCode("12345")
-                .address("서울시 테헤란로 321")
-                .addressDetail("321동 1234호")
-                .build();
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withExpiresAt(expiresAt).build();
+        UpdateOrderSheetShippingAddressCommand command = OrderSheetCommandFixture.anUpdateShippingAddressCommand().build();
+
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
@@ -385,33 +319,14 @@ public class OrderSheetServiceTest {
     @DisplayName("상품 쿠폰을 적용한다.")
     void applyItemCoupons() {
         //given
-        CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
-        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .itemCoupon(itemCoupon)
-                .expiresAt(LocalDateTime.now().plusDays(10))
-                .build();
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
 
-        ItemCouponsResult itemCouponsResult = ItemCouponsResult.builder()
-                .userId(1L)
-                .itemCoupons(List.of(itemCouponResult))
-                .build();
-
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
         OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
 
-        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
-                .orderSheetItemId(orderSheetItem.getId())
-                .itemCouponId(10L)
-                .build();
+        ApplyItemCouponsCommand.ItemCouponCommand itemCommand = OrderSheetCommandFixture.anItemCouponCommand().orderSheetItemId(orderSheetItem.getId()).build();
+        ApplyItemCouponsCommand command = OrderSheetCommandFixture.anApplyItemCouponsCommand().itemCouponCommands(List.of(itemCommand)).build();
 
-        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
-                .userId(1L)
-                .orderSheetId(orderSheet.getId())
-                .itemCouponCommands(List.of(itemCouponCommand))
-                .build();
+        ItemCouponsResult itemCouponsResult = OrderCouponResultFixture.anItemCoupons().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getItemCoupons(anyLong(), anyList())).willReturn(itemCouponsResult);
@@ -424,30 +339,21 @@ public class OrderSheetServiceTest {
 
         assertThat(orderSheetItem)
                 .extracting("itemCouponSnapshot.itemCouponId")
-                .isEqualTo(10L);
+                .isEqualTo(1L);
 
-        assertThat(orderSheetItem.calculateFinalAmount()).isEqualTo(Money.wons(40500L));
+        assertThat(orderSheetItem.calculateFinalAmount()).isEqualTo(Money.wons(26000L));
 
-        assertThat(orderSheet.calculateTotalItemCouponDiscount()).isEqualTo(Money.wons(4500L));
-        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(38500L));
+        assertThat(orderSheet.calculateTotalItemCouponDiscount()).isEqualTo(Money.wons(1000L));
+        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(26000L));
 
-        assertThat(orderSheet.calculateMaxUsablePoints(pointUsagePolicy)).isEqualTo(Money.wons(3950L));
+        assertThat(orderSheet.calculateMaxUsablePoints(pointUsagePolicy)).isEqualTo(Money.wons(2600L));
     }
 
     @Test
     @DisplayName("상품 쿠폰 적용 시, 주문서를 찾을 수 없으면 예외가 발생한다")
-    void applyItemCoupons_notFound_orderSheet() {
+    void applyItemCoupons_whenOrderSheetNotFound_thenThrownException() {
         //given
-        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
-                .orderSheetItemId(1L)
-                .itemCouponId(10L)
-                .build();
-
-        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
-                .userId(1L)
-                .orderSheetId(999L)
-                .itemCouponCommands(List.of(itemCouponCommand))
-                .build();
+        ApplyItemCouponsCommand command = OrderSheetCommandFixture.anApplyItemCouponsCommand().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
@@ -460,22 +366,15 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
-    void applyItemCoupons_expired_orderSheet() {
+    void applyItemCoupons_whenOrderSheetExpired_thenThrownException() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withExpiresAt(expiresAt).build();
+
         OrderSheetItem orderSheetItem = orderSheet.getItems().stream().findFirst().orElseThrow();
 
-        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
-                .orderSheetItemId(orderSheetItem.getId())
-                .itemCouponId(10L)
-                .build();
-
-        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
-                .userId(1L)
-                .orderSheetId(orderSheet.getId())
-                .itemCouponCommands(List.of(itemCouponCommand))
-                .build();
+        ApplyItemCouponsCommand.ItemCouponCommand itemCommand = OrderSheetCommandFixture.anItemCouponCommand().orderSheetItemId(orderSheetItem.getId()).build();
+        ApplyItemCouponsCommand command = OrderSheetCommandFixture.anApplyItemCouponsCommand().itemCouponCommands(List.of(itemCommand)).build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
@@ -488,36 +387,17 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("상품 쿠폰 적용시 주문 항목을 찾을 수 없는 경우 예외가 발생한다.")
-    void applyItemCoupon_notFound_orderSheetItem() {
+    void applyItemCoupon_whenOrderSheetItemNotFound_thenThrownException() {
         //given
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(properties.ttlMinutes());
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
 
-        ApplyItemCouponsCommand.ItemCouponCommand itemCouponCommand = ApplyItemCouponsCommand.ItemCouponCommand.builder()
-                .orderSheetItemId(999L)
-                .itemCouponId(10L)
-                .build();
+        ApplyItemCouponsCommand.ItemCouponCommand itemCommand = OrderSheetCommandFixture.anItemCouponCommand().orderSheetItemId(999L).build();
+        ApplyItemCouponsCommand command = OrderSheetCommandFixture.anApplyItemCouponsCommand().itemCouponCommands(List.of(itemCommand)).build();
 
-        ApplyItemCouponsCommand command = ApplyItemCouponsCommand.builder()
-                .userId(1L)
-                .orderSheetId(orderSheet.getId())
-                .itemCouponCommands(List.of(itemCouponCommand))
-                .build();
-
-        CouponDiscountPolicy couponPolicy = new RateCouponDiscountPolicy(50, Money.wons(100000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(10L, "바지 반값 할인 쿠폰", couponPolicy, 1);
-        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .itemCoupon(itemCoupon)
-                .expiresAt(LocalDateTime.now().plusDays(10))
-                .build();
-        ItemCouponsResult couponsResult = ItemCouponsResult.builder()
-                .userId(1L)
-                .itemCoupons(List.of(itemCouponResult))
-                .build();
+        ItemCouponsResult itemCouponsResult = OrderCouponResultFixture.anItemCoupons().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
-        given(orderCouponPort.getItemCoupons(anyLong(), anyList())).willReturn(couponsResult);
+        given(orderCouponPort.getItemCoupons(anyLong(), anyList())).willReturn(itemCouponsResult);
         //when
         //then
         assertThatThrownBy(() -> orderSheetService.applyItemCoupons(command))
@@ -530,21 +410,11 @@ public class OrderSheetServiceTest {
     @DisplayName("장바구니 쿠폰을 적용한다")
     void applyCartCoupon() {
         //given
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
 
-        ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
-                .userId(1L)
-                .cartCouponId(20L)
-                .orderSheetId(orderSheet.getId())
-                .build();
+        ApplyCartCouponCommand command = OrderSheetCommandFixture.anApplyCartCouponCommand().build();
 
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(20L, "장바구니 5% 할인 쿠폰", new RateCouponDiscountPolicy(5, Money.wons(50000L)), Money.wons(30000L));
-        CartCouponResult cartCouponResult = CartCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .cartCoupon(cartCoupon)
-                .expiresAt(LocalDateTime.now(clock).plusDays(1))
-                .build();
+        CartCouponResult cartCouponResult = OrderCouponResultFixture.anFixedCartCoupon().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
@@ -555,23 +425,19 @@ public class OrderSheetServiceTest {
         assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
         assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
 
-        assertThat(orderSheet.getCartCoupon().getCartCouponId()).isEqualTo(20L);
+        assertThat(orderSheet.getCartCoupon().getCartCouponId()).isEqualTo(1L);
 
-        assertThat(orderSheet.calculateCartCouponDiscount()).isEqualTo(Money.wons(2200L));
-        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(40800L));
+        assertThat(orderSheet.calculateCartCouponDiscount()).isEqualTo(Money.wons(1000L));
+        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(26000L));
 
-        assertThat(orderSheet.calculateMaxUsablePoints(pointUsagePolicy)).isEqualTo(Money.wons(4180L));
+        assertThat(orderSheet.calculateMaxUsablePoints(pointUsagePolicy)).isEqualTo(Money.wons(2600L));
     }
 
     @Test
     @DisplayName("장바구니 쿠폰 쿠폰 적용 시, 주문서를 찾을 수 없으면 예외가 발생한다")
-    void applyCartCoupon_notFound_orderSheet() {
+    void applyCartCoupon_whenOrderSheetNotFound_thenThrownException() {
         //given
-        ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
-                .userId(1L)
-                .cartCouponId(20L)
-                .orderSheetId(999L)
-                .build();
+        ApplyCartCouponCommand command = OrderSheetCommandFixture.anApplyCartCouponCommand().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
@@ -584,16 +450,12 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("장바구니 쿠폰 적용시 주문서가 만료된 경우 예외가 발생한다.")
-    void applyCartCoupon_expired_orderSheet() {
+    void applyCartCoupon_whenOrderSheetExpired_thenThrownException() {
         //given
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withExpiresAt(expiresAt).build();
 
-        ApplyCartCouponCommand command = ApplyCartCouponCommand.builder()
-                .userId(1L)
-                .cartCouponId(20L)
-                .orderSheetId(orderSheet.getId())
-                .build();
+        ApplyCartCouponCommand command = OrderSheetCommandFixture.anApplyCartCouponCommand().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
@@ -608,18 +470,12 @@ public class OrderSheetServiceTest {
     @DisplayName("포인트를 적용한다.")
     void applyPoints() {
         //given
-        Long userId = 1L;
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
-        ApplyPointCommand command = ApplyPointCommand.builder()
-                .orderSheetId(orderSheet.getId())
-                .userId(userId)
-                .usedPoints(2000L)
-                .build();
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().build();
 
-        Money availablePoints = Money.wons(10000L);
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrdererProfileResult ordererProfileResult = createOrdererProfileResult(shippingAddress, availablePoints);
+        ApplyPointCommand command = OrderSheetCommandFixture.anApplyPointCommand().build();
+
+        OrdererProfileResult ordererProfileResult = OrderUserResultFixture.anOrdererProfile().build();
+
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderUserPort.getOrdererProfile(anyLong())).willReturn(ordererProfileResult);
         given(repository.save(any(OrderSheet.class), any())).willAnswer(invocation -> invocation.getArgument(0));
@@ -629,20 +485,15 @@ public class OrderSheetServiceTest {
         assertThat(result.orderSheetId()).isEqualTo(orderSheet.getId());
         assertThat(result.expiresAt()).isEqualTo(orderSheet.getExpiresAt());
 
-        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(2000L));
-        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(41000L));
+        assertThat(orderSheet.getUsedPoints()).isEqualTo(Money.wons(1000L));
+        assertThat(orderSheet.calculateTotalPaymentAmount()).isEqualTo(Money.wons(26000L));
     }
 
     @Test
     @DisplayName("포인트를 적용할 때, 주문서를 찾을 수 없으면 예외가 발생한다")
-    void applyPoints_orderSheet_notFound() {
+    void applyPoints_whenOrderSheetNotFound_thenThrownException() {
         //given
-        Long userId = 1L;
-        ApplyPointCommand command = ApplyPointCommand.builder()
-                .orderSheetId(999L)
-                .userId(userId)
-                .usedPoints(1000L)
-                .build();
+        ApplyPointCommand command = OrderSheetCommandFixture.anApplyPointCommand().build();
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
@@ -654,17 +505,12 @@ public class OrderSheetServiceTest {
 
     @Test
     @DisplayName("포인트를 적용할 때, 주문서가 만료되었으면 예외가 발생한다")
-    void applyPoints_orderSheet_expired() {
+    void applyPoints_whenOrderSheetExpired_thenThrownException() {
         //given
-        Long userId = 1L;
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(10);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withExpiresAt(expiresAt).build();
 
-        ApplyPointCommand command = ApplyPointCommand.builder()
-                .userId(userId)
-                .orderSheetId(orderSheet.getId())
-                .usedPoints(2000L)
-                .build();
+        ApplyPointCommand command = OrderSheetCommandFixture.anApplyPointCommand().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
@@ -673,75 +519,5 @@ public class OrderSheetServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
-    }
-
-    private OrdererProfileResult createOrdererProfileResult(ShippingAddress shippingAddress, Money availablePoints) {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        return OrdererProfileResult.builder()
-                .orderer(orderer)
-                .availablePoints(availablePoints)
-                .defaultShippingAddress(shippingAddress)
-                .build();
-    }
-
-    private OrderProductsResult.OrderProductDetail createProductDetail(Long variantId, OrderProductStatus status, int stock) {
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, variantId, "SKU", "상품", "/product/product.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot option1 = ProductOptionSnapshot.of("옵션1", "옵션 값");
-        ProductOptionSnapshot option2 = ProductOptionSnapshot.of("옵션2", "옵션 값");
-        return OrderProductsResult.OrderProductDetail.builder()
-                .productSnapshot(productSnapshot)
-                .status(status)
-                .stock(stock)
-                .priceSnapshot(priceSnapshot)
-                .options(List.of(option1, option2))
-                .build();
-    }
-
-    private OrderCartItemsResult.Item createCartItem(Long cartItemId, Long variantId, int quantity) {
-        return OrderCartItemsResult.Item.builder()
-                .cartItemId(cartItemId)
-                .productVariantId(variantId)
-                .quantity(quantity)
-                .build();
-    }
-
-    private OrderSheet createOrderSheet(LocalDateTime expiresAt) {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
-
-        CreateOrderSheetItemContext itemCtx = CreateOrderSheetItemContext.builder()
-                .productSnapshot(product)
-                .priceSnapshot(price)
-                .quantity(5)
-                .optionSnapshots(options)
-                .build();
-
-        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
-                .orderer(orderer)
-                .items(List.of(itemCtx))
-                .expiresAt(expiresAt)
-                .build();
-
-        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
-
-        OrderSheetItem item = orderSheet.getItems().getFirst();
-
-        orderSheet.changeShippingAddress(shippingAddress);
-        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointUsagePolicy);
-        orderSheet.applyCartCoupon(cartCoupon, pointUsagePolicy);
-
-        orderSheet.applyPoints(Money.wons(1000L), pointUsagePolicy);
-        return orderSheet;
     }
 }

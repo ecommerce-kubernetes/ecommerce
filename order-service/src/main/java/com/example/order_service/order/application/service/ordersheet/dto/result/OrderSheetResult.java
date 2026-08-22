@@ -70,6 +70,9 @@ public record OrderSheetResult(
             Money appliedDiscountAmount
     ) {
         public static AppliedCartCouponResult from(OrderSheet orderSheet) {
+            if (!orderSheet.hasCoupon()) {
+                return null;
+            }
             return AppliedCartCouponResult.builder()
                     .cartCouponId(orderSheet.getCartCoupon().getCartCouponId())
                     .name(orderSheet.getCartCoupon().getName())
@@ -124,6 +127,9 @@ public record OrderSheetResult(
             Money appliedDiscountAmount
     ) {
         public static AppliedItemCouponResult from(OrderSheetItem orderSheetItem) {
+            if (!orderSheetItem.hasCoupon()) {
+                return null;
+            }
             return AppliedItemCouponResult.builder()
                     .itemCouponId(orderSheetItem.getItemCouponSnapshot().getItemCouponId())
                     .name(orderSheetItem.getItemCouponSnapshot().getName())
