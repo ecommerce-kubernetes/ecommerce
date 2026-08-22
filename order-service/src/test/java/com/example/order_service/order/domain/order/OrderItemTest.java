@@ -54,7 +54,7 @@ class OrderItemTest {
 
     @Test
     @DisplayName("주문 항목을 생성할때 아이디 생성기가 누락되면 예외가 발생한다.")
-    void create_idGenerator_null(){
+    void create_whenIdGeneratorIsNull_thenThrownException(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
@@ -84,7 +84,7 @@ class OrderItemTest {
 
     @Test
     @DisplayName("주문 항목을 생성할때 아이디가 누락되면 예외가 발생한다.")
-    void create_id_null(){
+    void create_whenIdGeneratorGenerateNullId_thenThrownException(){
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
@@ -116,7 +116,7 @@ class OrderItemTest {
 
     @Test
     @DisplayName("주문 항목을 생성할때 수량은 1개 이상이여야 한다.")
-    void create_quantity_lessThan_1() {
+    void create_whenQuantityLessThanOne_thenThrownException() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
         ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));

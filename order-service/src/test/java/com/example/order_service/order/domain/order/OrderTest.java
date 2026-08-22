@@ -63,7 +63,7 @@ class OrderTest {
 
     @Test
     @DisplayName("주문 생성시 아이디 생성기가 누락되면 예외가 발생한다.")
-    void create_idGenerator_null() {
+    void create_whenIdGeneratorIsNull_thenThrownException() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
@@ -94,7 +94,7 @@ class OrderTest {
 
     @Test
     @DisplayName("주문 생성시 아이디가 누락되면 예외가 발생한다.")
-    void create_id_null() {
+    void create_whenIdGeneratorGenerateNullId_thenThrownException() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
@@ -125,8 +125,8 @@ class OrderTest {
     }
 
     @Test
-    @DisplayName("주문을 생성할때 주문 항목은 비어있을 수 없다")
-    void create_orderItems_empty() {
+    @DisplayName("주문을 생성할때 주문 항목은 비어있으면 예외가 발생한다.")
+    void create_whenOrderItemsEmpty_thenThrownException() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
@@ -159,27 +159,7 @@ class OrderTest {
     @DisplayName("주문을 결제 상태로 변경한다.")
     void accept() {
         //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
-                "12345", "서울시 테헤란로 123", "123동 1234호");
-        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
-        OrderAmount orderAmount = OrderAmount.of(
-                Money.wons(30000L),
-                Money.wons(3000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(24000L)
-        );
-        CreateOrderItemContext orderItemContext = createOrderItemContext();
-        CreateOrderContext context = CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .appliedCartCoupon(appliedCartCoupon)
-                .items(List.of(orderItemContext))
-                .orderAmount(orderAmount)
-                .build();
-        Order order = Order.create(context, idGenerator);
+        Order order = OrderFixtureBuilder.given().build();
         //when
         order.accept();
         //then
@@ -190,27 +170,7 @@ class OrderTest {
     @DisplayName("주문을 결제 상태로 변경할 때 주문의 상태가 결제 대기가 아니면 예외가 발생한다.")
     void accept_not_pending() {
         //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
-                "12345", "서울시 테헤란로 123", "123동 1234호");
-        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
-        OrderAmount orderAmount = OrderAmount.of(
-                Money.wons(30000L),
-                Money.wons(3000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(24000L)
-        );
-        CreateOrderItemContext orderItemContext = createOrderItemContext();
-        CreateOrderContext context = CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .appliedCartCoupon(appliedCartCoupon)
-                .items(List.of(orderItemContext))
-                .orderAmount(orderAmount)
-                .build();
-        Order order = Order.create(context, idGenerator);
+        Order order = OrderFixtureBuilder.given().build();
         order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
         //when
         //then
@@ -224,27 +184,7 @@ class OrderTest {
     @DisplayName("주문을 완료한다.")
     void complete(){
         //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
-                "12345", "서울시 테헤란로 123", "123동 1234호");
-        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
-        OrderAmount orderAmount = OrderAmount.of(
-                Money.wons(30000L),
-                Money.wons(3000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(24000L)
-        );
-        CreateOrderItemContext orderItemContext = createOrderItemContext();
-        CreateOrderContext context = CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .appliedCartCoupon(appliedCartCoupon)
-                .items(List.of(orderItemContext))
-                .orderAmount(orderAmount)
-                .build();
-        Order order = Order.create(context, idGenerator);
+        Order order = OrderFixtureBuilder.given().build();
         order.accept();
         //when
         order.complete();
@@ -256,27 +196,7 @@ class OrderTest {
     @DisplayName("주문이 결제 완료 상태가 아니면 주문을 완료할 수 없다.")
     void complete_not_accept(){
         //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
-                "12345", "서울시 테헤란로 123", "123동 1234호");
-        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
-        OrderAmount orderAmount = OrderAmount.of(
-                Money.wons(30000L),
-                Money.wons(3000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(24000L)
-        );
-        CreateOrderItemContext orderItemContext = createOrderItemContext();
-        CreateOrderContext context = CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .appliedCartCoupon(appliedCartCoupon)
-                .items(List.of(orderItemContext))
-                .orderAmount(orderAmount)
-                .build();
-        Order order = Order.create(context, idGenerator);
+        Order order = OrderFixtureBuilder.given().build();
         order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
         //when
         //then
@@ -290,27 +210,7 @@ class OrderTest {
     @DisplayName("주문을 실패한다.")
     void failed(){
         //given
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
-                "12345", "서울시 테헤란로 123", "123동 1234호");
-        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(1L, "장바구니 1000원 할인");
-        OrderAmount orderAmount = OrderAmount.of(
-                Money.wons(30000L),
-                Money.wons(3000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(1000L),
-                Money.wons(24000L)
-        );
-        CreateOrderItemContext orderItemContext = createOrderItemContext();
-        CreateOrderContext context = CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .appliedCartCoupon(appliedCartCoupon)
-                .items(List.of(orderItemContext))
-                .orderAmount(orderAmount)
-                .build();
-        Order order = Order.create(context, idGenerator);
+        Order order = OrderFixtureBuilder.given().build();
         //when
         order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
         //then
