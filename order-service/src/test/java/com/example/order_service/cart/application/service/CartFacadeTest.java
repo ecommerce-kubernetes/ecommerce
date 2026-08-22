@@ -40,7 +40,6 @@ public class CartFacadeTest {
     @Mock
     private CartQueryService cartQueryService;
 
-
     @BeforeEach
     void setUp() {
         CartItemValidator cartItemValidator = new CartItemValidator();

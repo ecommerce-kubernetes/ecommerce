@@ -20,6 +20,7 @@ import com.example.order_service.order.domain.policy.*;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,11 +67,15 @@ public class OrderSheetServiceTest {
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
     @Spy
-    private OrderValidator orderValidator;
-    @Spy
     private IdGenerator idGenerator = new TsidGenerator();
-    @Spy
-    private OrderSheetContextFactory contextFactory;
+
+    @BeforeEach
+    void setUp() {
+        OrderValidator orderValidator = new OrderValidator();
+        OrderSheetContextFactory contextFactory = new OrderSheetContextFactory();
+        orderSheetService = new OrderSheetService(properties, orderProductPort, orderCouponPort, orderUserPort,
+                orderCartPort, orderValidator, pointUsagePolicy, contextFactory, repository, idGenerator, clock);
+    }
 
     @Test
     @DisplayName("장바구니 주문서 생성")
