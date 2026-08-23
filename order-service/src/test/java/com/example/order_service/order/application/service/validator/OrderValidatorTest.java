@@ -3,6 +3,9 @@ package com.example.order_service.order.application.service.validator;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.port.dto.*;
+import com.example.order_service.order.application.service.fixture.OrderCartResultFixture;
+import com.example.order_service.order.application.service.fixture.OrderCouponResultFixture;
+import com.example.order_service.order.application.service.fixture.OrderProductResultFixture;
 import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
 import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -28,13 +31,12 @@ class OrderValidatorTest {
         //given
         List<Long> requestCartItemIds = List.of(1L, 2L);
 
-        OrderCartItemsResult.Item item = OrderCartItemsResult.Item.builder()
-                .cartItemId(1L)
-                .productVariantId(1L)
-                .quantity(3)
+        OrderCartItemsResult.Item item = OrderCartResultFixture.anOrderCartItem().cartItemId(1L)
                 .build();
 
-        OrderCartItemsResult cartItems = OrderCartItemsResult.builder().items(List.of(item)).build();
+        OrderCartItemsResult cartItems = OrderCartResultFixture.anOrderCartItems()
+                .items(List.of(item))
+                .build();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validateMissingCartItems(requestCartItemIds, cartItems))
@@ -45,7 +47,7 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("누락된 상품이 있는지 검증한다")
-    void validateOrderable_missing_product() {
+    void validateOrderable_whenMissingProduct_thenThrownException() {
         //given
         OrderProductsResult.OrderProductDetail product = null;
         //when
@@ -58,12 +60,11 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("주문 불가능한 상품이 있는지 검증한다")
-    void validateOrderable_product_unOrderable() {
+    void validateOrderable_whenStatusOnSale_thenThrownException() {
         //given
-        OrderProductsResult.OrderProductDetail product = Instancio.of(OrderProductsResult.OrderProductDetail.class)
-                .set(field("status"), OrderProductStatus.STOP_SALE)
-                .set(field("stock"), 100)
-                .create();
+        OrderProductsResult.OrderProductDetail product = OrderProductResultFixture.anOrderProduct()
+                .status(OrderProductStatus.STOP_SALE)
+                .build();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validateOrderable(product, 10))
@@ -74,12 +75,11 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("상품 재고가 부족한지 검증한다")
-    void validateOrderable_product_insufficient_stock() {
+    void validateOrderable_whenInsufficientStock_thenThrownException() {
         //given
-        OrderProductsResult.OrderProductDetail product = Instancio.of(OrderProductsResult.OrderProductDetail.class)
-                .set(field("status"), OrderProductStatus.ON_SALE)
-                .set(field("stock"), 10)
-                .create();
+        OrderProductsResult.OrderProductDetail product = OrderProductResultFixture.anOrderProduct()
+                .stock(10)
+                .build();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validateOrderable(product, 15))
@@ -104,12 +104,13 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("누락된 상품 쿠폰이 있는지 검증한다.")
-    void validateItemCoupon_missing_coupon() {
+    void validateItemCoupon_whenCouponIsNull_thenThrownException() {
+        ItemCouponsResult.ItemCouponResult couponResult = null;
         //given
         LocalDateTime currentTime = LocalDateTime.now();
         //when
         //then
-        assertThatThrownBy(() -> orderValidator.validateItemCoupon(null, currentTime))
+        assertThatThrownBy(() -> orderValidator.validateItemCoupon(couponResult, currentTime))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_COUPON_NOT_FOUND);
@@ -117,18 +118,13 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("상품 쿠폰이 사용 가능한지 확인한다.")
-    void validateItemCoupon_coupon_unavailable() {
+    void validateItemCoupon_whenCouponUnAvailable_thenThrownException() {
         //given
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponDiscountPolicy, 1);
-        LocalDateTime expiresAt = LocalDateTime.now().plusDays(10);
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
+        ItemCouponsResult.ItemCouponResult itemCouponResult = OrderCouponResultFixture.anItemCoupon()
                 .status(OrderCouponStatus.USED)
-                .itemCoupon(itemCoupon)
-                .expiresAt(expiresAt)
                 .build();
+
+        LocalDateTime currentTime = LocalDateTime.now();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validateItemCoupon(itemCouponResult, currentTime))
@@ -139,18 +135,13 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("상품 쿠폰이 만료되었는지 검증한다.")
-    void validateItemCoupon_coupon_expired() {
+    void validateItemCoupon_whenCouponExpired_thenThrownException() {
         //given
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", couponDiscountPolicy, 1);
         LocalDateTime expiresAt = LocalDateTime.now().minusDays(1);
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        ItemCouponsResult.ItemCouponResult itemCouponResult = ItemCouponsResult.ItemCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .itemCoupon(itemCoupon)
+        ItemCouponsResult.ItemCouponResult itemCouponResult = OrderCouponResultFixture.anItemCoupon()
                 .expiresAt(expiresAt)
                 .build();
+        LocalDateTime currentTime = LocalDateTime.now();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validateItemCoupon(itemCouponResult, currentTime))
@@ -161,13 +152,13 @@ class OrderValidatorTest {
     
     @Test
     @DisplayName("장바구니 쿠폰이 누락되었는지 검증한다.")
-    void validateCartCoupon_missing_cartCoupon() {
+    void validateCartCoupon_whenCouponIsNull_thenThrownException() {
         //given
         LocalDateTime currentTime = LocalDateTime.now();
-
+        CartCouponResult cartCouponResult = null;
         //when
         //then
-        assertThatThrownBy(() -> orderValidator.validateCartCoupon(null, currentTime))
+        assertThatThrownBy(() -> orderValidator.validateCartCoupon(cartCouponResult, currentTime))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_COUPON_NOT_FOUND);
@@ -175,18 +166,13 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("장바구니 쿠폰이 사용 가능한지 검증한다.")
-    void validateCartCoupon_coupon_unavailable() {
+    void validateCartCoupon_whenCouponUnavailable_thenThrownException() {
         //given
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", couponDiscountPolicy, Money.wons(50000L));
-        LocalDateTime expiresAt = LocalDateTime.now().plusDays(1);
+        CartCouponResult cartCouponResult = OrderCouponResultFixture.anCartCoupon()
+                .status(OrderCouponStatus.USED)
+                .build();
         LocalDateTime currentTime = LocalDateTime.now();
 
-        CartCouponResult cartCouponResult = CartCouponResult.builder()
-                .status(OrderCouponStatus.USED)
-                .cartCoupon(cartCoupon)
-                .expiresAt(expiresAt)
-                .build();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validateCartCoupon(cartCouponResult, currentTime))
@@ -197,16 +183,12 @@ class OrderValidatorTest {
 
     @Test
     @DisplayName("장바구니 쿠폰이 만료 되었는지 검증한다.")
-    void validateCartCoupon_cartCoupon_expired() {
+    void validateCartCoupon_whenCouponExpired_thenThrownException() {
         //given
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "장바구니 1000원 할인 쿠폰", couponDiscountPolicy, Money.wons(50000L));
         LocalDateTime expiresAt = LocalDateTime.now().minusDays(1);
         LocalDateTime currentTime = LocalDateTime.now();
 
-        CartCouponResult cartCouponResult = CartCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .cartCoupon(cartCoupon)
+        CartCouponResult cartCouponResult = OrderCouponResultFixture.anCartCoupon()
                 .expiresAt(expiresAt)
                 .build();
         //when
