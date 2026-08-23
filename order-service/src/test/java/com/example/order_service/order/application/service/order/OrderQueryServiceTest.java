@@ -17,6 +17,7 @@ import com.example.order_service.order.domain.vo.ProductSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.support.annotation.IsolatedTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-@RecordApplicationEvents
 @IsolatedTest
 @Transactional
 public class OrderQueryServiceTest {
@@ -42,6 +42,9 @@ public class OrderQueryServiceTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private EntityManager em;
+
     @Test
     @DisplayName("주문 아이디와 주문자 아이디로 주문을 조회한다.")
     void getOrder() {
@@ -51,6 +54,7 @@ public class OrderQueryServiceTest {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         Order order = orderRepository.save(Order.create(orderContext, idGenerator));
+        flushAndClear();
         //when
         OrderResult findOrder = orderQueryService.getOrder(order.getId(), 1L);
         //then
@@ -62,7 +66,7 @@ public class OrderQueryServiceTest {
 
     @Test
     @DisplayName("주문을 찾을 수 없으면 예외가 발생한다.")
-    void getOrder_notFound_Order() {
+    void getOrder_whenOrderNotFound_thenThrownException() {
         //given
         //when
         //then
@@ -85,6 +89,7 @@ public class OrderQueryServiceTest {
         OrderSearchCommand command = OrderSearchCommand.of("latest", null, null, pageable);
         orderRepository.save(order1);
         orderRepository.save(order2);
+        flushAndClear();
         //when
         Page<OrderSummaryResult> orders = orderQueryService.getOrders(1L, command);
         //then
@@ -133,5 +138,10 @@ public class OrderQueryServiceTest {
                 .appliedCartCoupon(appliedCartCoupon)
                 .orderAmount(orderAmount)
                 .build();
+    }
+
+    private void flushAndClear() {
+        em.flush();
+        em.clear();
     }
 }

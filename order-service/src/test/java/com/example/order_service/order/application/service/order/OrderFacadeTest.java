@@ -9,14 +9,17 @@ import com.example.order_service.order.application.port.OrderProductPort;
 import com.example.order_service.order.application.port.OrderSheetRepository;
 import com.example.order_service.order.application.port.OrderUserPort;
 import com.example.order_service.order.application.port.dto.*;
+import com.example.order_service.order.application.service.fixture.OrderCommandFixture;
+import com.example.order_service.order.application.service.fixture.OrderCouponResultFixture;
+import com.example.order_service.order.application.service.fixture.OrderProductResultFixture;
+import com.example.order_service.order.application.service.fixture.OrderUserResultFixture;
 import com.example.order_service.order.application.service.order.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderCreateResult;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetContextFactory;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
-import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
-import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
-import com.example.order_service.order.domain.ordersheet.OrderSheet;
-import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
+import com.example.order_service.order.domain.ordersheet.*;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
@@ -25,6 +28,7 @@ import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,37 +68,42 @@ public class OrderFacadeTest {
     @Spy
     private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
     @Spy
-    private OrderValidator orderValidator;
-    @Spy
-    private OrderContextFactory orderContextFactory;
-    @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
-    
-    
+
+    @BeforeEach
+    void setUp() {
+        OrderValidator orderValidator = new OrderValidator();
+        OrderContextFactory contextFactory = new OrderContextFactory();
+        orderFacade = new OrderFacade(orderSheetRepository, orderCommandService, orderProductPort, orderCouponPort, orderUserPort, pointUsagePolicy,
+                orderValidator, contextFactory, clock);
+    }
+
     @Test
     @DisplayName("주문을 생성한다.")
     void createOrder() {
         //given
-        CreateOrderCommand command = CreateOrderCommand.builder()
-                .orderSheetId(1L)
-                .userId(1L)
-                .build();
-        LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(30);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        CreateOrderCommand command = OrderCommandFixture.anCreateOrderCommand().build();
 
-        OrderProductsResult.OrderProductDetail product = createProductDetail(1L, OrderProductStatus.ON_SALE, 100);
-        OrderProductsResult products = OrderProductsResult.builder()
-                .products(List.of(product))
-                .build();
+        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인", couponDiscountPolicy, 1);
+        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "1000원 할인", couponDiscountPolicy, Money.wons(10000L));
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
 
-        ItemCouponsResult.ItemCouponResult itemCouponResult = createItemCouponResult();
-        ItemCouponsResult itemCoupons = ItemCouponsResult.builder()
-                .userId(1L)
-                .itemCoupons(List.of(itemCouponResult))
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given()
+                .withShippingAddress(shippingAddress)
+                .withCartCoupon(cartCoupon)
+                .withItemCoupon(itemCoupon)
+                .withUsedPoint(Money.wons(1000L))
                 .build();
 
-        CartCouponResult cartCouponResult = createCartCouponResult();
-        OrdererProfileResult ordererProfile = createOrdererProfile();
+        OrderProductsResult products = OrderProductResultFixture.anOrderProducts().build();
+
+        ItemCouponsResult.ItemCouponResult itemCouponResult = OrderCouponResultFixture.anItemCoupon().itemCoupon(itemCoupon).build();
+        ItemCouponsResult itemCoupons = OrderCouponResultFixture.anItemCoupons().itemCoupons(List.of(itemCouponResult)).build();
+
+        CartCouponResult cartCouponResult = OrderCouponResultFixture.anCartCoupon().cartCoupon(cartCoupon).build();
+
+        OrdererProfileResult ordererProfile = OrderUserResultFixture.anOrdererProfile().build();
 
         given(orderSheetRepository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderProductPort.getProducts(anyList())).willReturn(products);
@@ -110,12 +119,9 @@ public class OrderFacadeTest {
 
     @Test
     @DisplayName("주문서를 찾을 수 없으면 예외가 발생한다.")
-    void createOrder_notFound_orderSheet() {
+    void createOrder_whenOrderSheetNotFound_thenThrownException() {
         //given
-        CreateOrderCommand command = CreateOrderCommand.builder()
-                .orderSheetId(1L)
-                .userId(1L)
-                .build();
+        CreateOrderCommand command = OrderCommandFixture.anCreateOrderCommand().build();
         given(orderSheetRepository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.empty());
         //when
         //then
@@ -127,14 +133,17 @@ public class OrderFacadeTest {
 
     @Test
     @DisplayName("주문서가 만료되었으면 예외가 발생한다.")
-    void createOrder_expired_orderSheet() {
+    void createOrder_whenOrderSheetExpired_thenThrownException() {
         //given
-        CreateOrderCommand command = CreateOrderCommand.builder()
-                .orderSheetId(1L)
-                .userId(1L)
-                .build();
+        CreateOrderCommand command = OrderCommandFixture.anCreateOrderCommand().build();
+
         LocalDateTime expiresAt = LocalDateTime.now(clock).minusMinutes(20);
-        OrderSheet orderSheet = createOrderSheet(expiresAt);
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given()
+                .withShippingAddress(shippingAddress)
+                .withExpiresAt(expiresAt)
+                .build();
+
         given(orderSheetRepository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         //when
         //then
@@ -143,91 +152,4 @@ public class OrderFacadeTest {
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
     }
-
-    private OrderSheet createOrderSheet(LocalDateTime expiresAt) {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
-
-        CreateOrderSheetItemContext itemCtx = CreateOrderSheetItemContext.builder()
-                .productSnapshot(product)
-                .priceSnapshot(price)
-                .quantity(5)
-                .optionSnapshots(options)
-                .build();
-
-        CreateOrderSheetContext context = CreateOrderSheetContext.builder()
-                .orderer(orderer)
-                .items(List.of(itemCtx))
-                .expiresAt(expiresAt)
-                .build();
-
-        IdGenerator idGenerator = new TsidGenerator();
-
-        OrderSheet orderSheet = OrderSheet.create(context, idGenerator);
-
-        OrderSheetItem item = orderSheet.getItems().getFirst();
-
-        orderSheet.changeShippingAddress(shippingAddress);
-        orderSheet.applyItemCoupon(item.getId(), itemCoupon, pointUsagePolicy);
-        orderSheet.applyCartCoupon(cartCoupon, pointUsagePolicy);
-
-        orderSheet.applyPoints(Money.wons(1000L), pointUsagePolicy);
-        return orderSheet;
-    }
-
-    private OrderProductsResult.OrderProductDetail createProductDetail(Long variantId, OrderProductStatus status, int stock) {
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, variantId, "SKU", "상품", "/product/product.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        ProductOptionSnapshot option1 = ProductOptionSnapshot.of("옵션1", "옵션 값");
-        ProductOptionSnapshot option2 = ProductOptionSnapshot.of("옵션2", "옵션 값");
-        return OrderProductsResult.OrderProductDetail.builder()
-                .productSnapshot(productSnapshot)
-                .status(status)
-                .stock(stock)
-                .priceSnapshot(priceSnapshot)
-                .options(List.of(option1, option2))
-                .build();
-    }
-
-    private ItemCouponsResult.ItemCouponResult createItemCouponResult() {
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", couponDiscountPolicy, 1);
-        return ItemCouponsResult.ItemCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .itemCoupon(itemCoupon)
-                .expiresAt(LocalDateTime.now(clock).plusDays(1))
-                .build();
-    }
-
-    private CartCouponResult createCartCouponResult() {
-        CouponDiscountPolicy couponDiscountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
-        CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(2L, "장바구니 1000원 할인", couponDiscountPolicy, Money.wons(10000L));
-        return CartCouponResult.builder()
-                .status(OrderCouponStatus.AVAILABLE)
-                .cartCoupon(cartCoupon)
-                .expiresAt(LocalDateTime.now(clock).plusDays(1))
-                .build();
-    }
-
-    private OrdererProfileResult createOrdererProfile() {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-
-        return OrdererProfileResult.builder()
-                .orderer(orderer)
-                .availablePoints(Money.wons(10000L))
-                .defaultShippingAddress(shippingAddress)
-                .build();
-    }
-
 }

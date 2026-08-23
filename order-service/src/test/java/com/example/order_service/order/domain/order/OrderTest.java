@@ -168,7 +168,7 @@ class OrderTest {
 
     @Test
     @DisplayName("주문을 결제 상태로 변경할 때 주문의 상태가 결제 대기가 아니면 예외가 발생한다.")
-    void accept_not_pending() {
+    void accept_whenStatusNotPending_thenThrownException() {
         //given
         Order order = OrderFixtureBuilder.given().build();
         order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));
@@ -194,7 +194,7 @@ class OrderTest {
 
     @Test
     @DisplayName("주문이 결제 완료 상태가 아니면 주문을 완료할 수 없다.")
-    void complete_not_accept(){
+    void complete_whenStatusNotAccepted_thenThrownException(){
         //given
         Order order = OrderFixtureBuilder.given().build();
         order.failed(OrderCancelInfo.of("주문 시간 초과", LocalDateTime.now()));

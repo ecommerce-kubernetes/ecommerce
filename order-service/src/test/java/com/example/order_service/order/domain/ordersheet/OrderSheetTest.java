@@ -142,7 +142,8 @@ public class OrderSheetTest {
         Money usedPoints = Money.wons(2600L);
         PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         OrderSheet orderSheet = OrderSheetFixtureBuilder.given()
-                .withUsedPoint(usedPoints, pointPolicy).build();
+                .setPointUsagePolicy(pointPolicy)
+                .withUsedPoint(usedPoints).build();
 
         OrderSheetItem item = orderSheet.getItems().getFirst();
 
@@ -253,7 +254,9 @@ public class OrderSheetTest {
         //given
         PointUsagePolicy pointPolicy = new DefaultPointUsagePolicy(BigDecimal.valueOf(0.1));
         Money usedPoints = Money.wons(2700L);
-        OrderSheet orderSheet = OrderSheetFixtureBuilder.given().withUsedPoint(usedPoints, pointPolicy).build();
+        OrderSheet orderSheet = OrderSheetFixtureBuilder.given()
+                .setPointUsagePolicy(pointPolicy)
+                .withUsedPoint(usedPoints).build();
 
         CouponDiscountPolicy cartCouponPolicy = new FixedCouponDiscountPolicy(Money.wons(5000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "5000원 할인 쿠폰", cartCouponPolicy, Money.wons(10000L));

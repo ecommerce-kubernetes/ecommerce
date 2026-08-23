@@ -15,13 +15,13 @@ import java.util.List;
 public class OrderCouponResultFixture {
 
     public static ItemCouponsResult.ItemCouponsResultBuilder anItemCoupons() {
-        ItemCouponsResult.ItemCouponResult itemCouponResult = anFixedItemCoupon().build();
+        ItemCouponsResult.ItemCouponResult itemCouponResult = anItemCoupon().build();
         return ItemCouponsResult.builder()
                 .userId(1L)
                 .itemCoupons(List.of(itemCouponResult));
     }
 
-    public static ItemCouponsResult.ItemCouponResult.ItemCouponResultBuilder anFixedItemCoupon() {
+    public static ItemCouponsResult.ItemCouponResult.ItemCouponResultBuilder anItemCoupon() {
         CouponDiscountPolicy discountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "1000원 할인 쿠폰", discountPolicy, 1);
         return ItemCouponsResult.ItemCouponResult.builder()
@@ -30,7 +30,7 @@ public class OrderCouponResultFixture {
                 .expiresAt(LocalDateTime.now().plusDays(10));
     }
 
-    public static CartCouponResult.CartCouponResultBuilder anFixedCartCoupon() {
+    public static CartCouponResult.CartCouponResultBuilder anCartCoupon() {
         CouponDiscountPolicy discountPolicy = new FixedCouponDiscountPolicy(Money.wons(1000L));
         CartCouponSnapshot cartCoupon = CartCouponSnapshot.of(1L, "1000원 할인 쿠폰", discountPolicy, Money.wons(10000L));
         return CartCouponResult.builder()

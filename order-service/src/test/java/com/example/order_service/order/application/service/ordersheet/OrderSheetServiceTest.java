@@ -14,8 +14,6 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.order.config.OrderSheetProperties;
 import com.example.order_service.order.domain.ordersheet.*;
-import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
-import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.*;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -419,7 +417,7 @@ public class OrderSheetServiceTest {
 
         ApplyCartCouponCommand command = OrderSheetCommandFixture.anApplyCartCouponCommand().build();
 
-        CartCouponResult cartCouponResult = OrderCouponResultFixture.anFixedCartCoupon().build();
+        CartCouponResult cartCouponResult = OrderCouponResultFixture.anCartCoupon().build();
 
         given(repository.findByIdAndOrdererId(anyLong(), anyLong())).willReturn(Optional.of(orderSheet));
         given(orderCouponPort.getCartCoupon(anyLong(), anyLong())).willReturn(cartCouponResult);
