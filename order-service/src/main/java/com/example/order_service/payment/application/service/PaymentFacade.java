@@ -69,18 +69,19 @@ public class PaymentFacade {
         if (paymentOptional.isEmpty()) {
             return;
         }
+
         PaymentResult payment = paymentOptional.get();
-        paymentCommandService.refundPending(payment.paymentId(), payment.userId());
+        paymentCommandService.refundPending(payment.paymentId());
 
         PGCancelResult cancelResult = cancelPG(payment, command);
         CancelPaymentContext context = contextFactory.cancel(cancelResult.transactionKey(), cancelResult.amount(), cancelResult.canceledAt(), cancelResult.cancelReason());
 
-        paymentCommandService.cancel(payment.paymentId(), payment.userId(), context);
+        paymentCommandService.cancel(payment.paymentId(), context);
     }
 
     private void approvePendingPayment(PaymentResult payment, PaymentConfirmCommand command) {
         ApprovePendingPaymentContext approvePendingContext = contextFactory.approvePending(command.amount(), command.provider(), command.paymentKey());
-        paymentCommandService.approvePending(payment.paymentId(), payment.userId(), approvePendingContext);
+        paymentCommandService.approvePending(payment.paymentId(), approvePendingContext);
     }
 
     private PGConfirmResult confirmPG(PaymentResult payment, PaymentConfirmCommand command) {
@@ -90,7 +91,7 @@ public class PaymentFacade {
             PaymentPGPortErrorCode errorCode = (PaymentPGPortErrorCode) e.getErrorCode();
             if (pgErrorPolicy.isAbortTargetOnApprove(errorCode)) {
                 PaymentFailure failure = PaymentFailure.of(e.getErrorCode().getCode(), e.getErrorCode().getMessage());
-                paymentCommandService.abort(payment.paymentId(), payment.userId(), failure);
+                paymentCommandService.abort(payment.paymentId(), failure);
             }
             throw e;
         }
@@ -108,20 +109,20 @@ public class PaymentFacade {
         try {
             ApprovePaymentContext approve = contextFactory.approve(confirmResult.method(), confirmResult.transactionKey(),
                     confirmResult.amount(), confirmResult.approvedAt());
-            paymentCommandService.approve(payment.paymentId(), payment.userId(), approve);
+            paymentCommandService.approve(payment.paymentId(), approve);
         } catch (Exception e) {
-            executeNetworkCancelAndAbort(command.paymentKey(), payment.paymentId(), payment.userId(), command.provider(),
+            executeNetworkCancelAndAbort(command.paymentKey(), payment.paymentId(), command.provider(),
                     "시스템 장애 또는 비즈니스 룰 위반으로 인한 자동 망취소");
             throw e;
         }
     }
 
-    private void executeNetworkCancelAndAbort(String paymentKey, Long paymentId, Long userId, PaymentProvider provider, String reason) {
+    private void executeNetworkCancelAndAbort(String paymentKey, Long paymentId, PaymentProvider provider, String reason) {
         try {
             paymentPGPort.netCancel(paymentKey, reason, provider);
 
             PaymentFailure failure = PaymentFailure.of("NETWORK_CANCEL", reason);
-            paymentCommandService.abort(paymentId, userId, failure);
+            paymentCommandService.abort(paymentId, failure);
 
         } catch (PortException e) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);

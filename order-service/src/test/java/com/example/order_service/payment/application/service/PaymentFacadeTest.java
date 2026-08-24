@@ -110,7 +110,7 @@ class PaymentFacadeTest {
 
         willDoNothing()
                 .given(paymentCommandService)
-                .approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
+                .approvePending(anyLong(), any(ApprovePendingPaymentContext.class));
         given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
                 .willReturn(pgResult);
         //when
@@ -141,7 +141,7 @@ class PaymentFacadeTest {
 
         given(paymentQueryService.getPayment(anyLong(), anyLong())).willReturn(paymentResult);
         willThrow(new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH))
-                .given(paymentCommandService).approvePending(anyLong(), anyLong(), any(ApprovePendingPaymentContext.class));
+                .given(paymentCommandService).approvePending(anyLong(), any(ApprovePendingPaymentContext.class));
         //when
         //then
         assertThatThrownBy(() -> paymentFacade.approve(command))
@@ -149,7 +149,7 @@ class PaymentFacadeTest {
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
 
-        verify(paymentCommandService).abort(anyLong(), anyLong(), any(PaymentFailure.class));
+        verify(paymentCommandService).abort(anyLong(), any(PaymentFailure.class));
     }
 
     private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {

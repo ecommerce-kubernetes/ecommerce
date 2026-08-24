@@ -28,35 +28,34 @@ public class PaymentCommandService {
         return save.getId();
     }
 
-    public void approvePending(Long paymentId, Long userId, ApprovePendingPaymentContext context) {
-        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+    public void approvePending(Long paymentId, ApprovePendingPaymentContext context) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.approvePending(context);
     }
 
-    public void approve(Long paymentId, Long userId, ApprovePaymentContext context) {
-        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+    public void approve(Long paymentId, ApprovePaymentContext context) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.approve(context, idGenerator);
         paymentRepository.save(payment);
     }
 
-    public void abort(Long paymentId, Long userId, PaymentFailure failure) {
-        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+    public void abort(Long paymentId, PaymentFailure failure) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.abort(failure);
     }
 
-    public void refundPending(Long paymentId, Long userId) {
-        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+    public void refundPending(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.refundPending();
     }
 
-    public void cancel(Long paymentId, Long userId, CancelPaymentContext context) {
-        Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
+    public void cancel(Long paymentId, CancelPaymentContext context) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-
         payment.cancel(context, idGenerator);
     }
 }

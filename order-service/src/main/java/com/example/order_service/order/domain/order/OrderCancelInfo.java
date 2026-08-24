@@ -2,6 +2,7 @@ package com.example.order_service.order.domain.order;
 
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderCancelInfo {
 
