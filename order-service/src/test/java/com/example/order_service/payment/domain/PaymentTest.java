@@ -42,7 +42,7 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 생성할 때 아이디 생성기가 누락되면 예외가 발생한다.")
-    void create_idGenerator_null() {
+    void create_whenIdGeneratorIsNull_thenThrownException() {
         //given
         CreatePaymentContext context = CreatePaymentContext.builder()
                 .orderId(1L)
@@ -58,7 +58,7 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제 생성시 아이디가 누락되면 예외가 발생한다.")
-    void create_id_null() {
+    void create_whenIdGeneratorGenerateNullId_thenThrownException() {
         //given
         CreatePaymentContext context = CreatePaymentContext.builder()
                 .orderId(1L)
@@ -78,8 +78,7 @@ class PaymentTest {
     @DisplayName("결제를 승인 대기로 변경한다.")
     void approvePending() {
         //given
-        CreatePaymentContext context = createPaymentContext();
-        Payment payment = Payment.create(context, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given().build();
 
         PaymentProvider provider = PaymentProvider.TOSS;
         ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
@@ -97,14 +96,11 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 승인 대기로 변경할 때 결제가 준비 상태가 아니면 예외가 발생한다.")
-    void approvePending_payment_not_ready() {
+    void approvePending_whenStatusNotReady_thenThrownException() {
         //given
-        CreatePaymentContext context = CreatePaymentContext.builder()
-                .orderId(1L)
-                .userId(1L)
-                .totalAmount(Money.ZERO)
-                .build();
-        Payment payment = Payment.create(context, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given().build();
+
+        payment.abort(PaymentFailure.of("결제 실패", "알 수 없는 에러로 결제가 실패됨"));
 
         PaymentProvider provider = PaymentProvider.TOSS;
         ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
@@ -122,14 +118,10 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 승인 대기로 변경할때 지원하지 않는 결제사인 경우 예외가 발생한다.")
-    void approvePending_unsupported_provider() {
+    void approvePending_whenUnsupportedProvider_thenThrownException() {
         //given
-        CreatePaymentContext context = CreatePaymentContext.builder()
-                .orderId(1L)
-                .userId(1L)
-                .totalAmount(Money.ZERO)
-                .build();
-        Payment payment = Payment.create(context, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given().build();
+
         PaymentProvider provider = PaymentProvider.KAKAO;
         ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
                 .amount(Money.wons(1000L))
@@ -141,15 +133,14 @@ class PaymentTest {
         assertThatThrownBy(() -> payment.approvePending(approveContext))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(PaymentErrorCode.PAYMENT_NOT_READY);
+                .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_PROVIDER);
     }
 
     @Test
     @DisplayName("결제를 승인 대기로 변경할 때 결제 가격이 일치하지 않으면 예외가 발생한다.")
-    void approvePending_totalAmount_missMatch() {
+    void approvePending_whenTotalAmountNotMatches_thenThrownException() {
         //given
-        CreatePaymentContext context = createPaymentContext();
-        Payment payment = Payment.create(context, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given().build();
 
         PaymentProvider provider = PaymentProvider.TOSS;
         ApprovePendingPaymentContext approveContext = ApprovePendingPaymentContext.builder()
@@ -169,13 +160,7 @@ class PaymentTest {
     @DisplayName("결제를 승인한다.")
     void approve() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
+        Payment payment = PaymentFixtureBuilder.given().asApprovePending().build();
 
         ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
                 .method(PaymentMethod.CARD)
@@ -183,7 +168,7 @@ class PaymentTest {
                 .amount(Money.wons(1000L))
                 .occurredAt(LocalDateTime.now())
                 .build();
-        payment.approvePending(approvePendingContext);
+
         //when
         payment.approve(approveContext, idGenerator);
         //then
@@ -194,10 +179,9 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 승인할때 승인 대기 상태가 아니면 예외가 발생한다.")
-    void approve_payment_not_approvePending() {
+    void approve_whenStatusNotApprovalPending_thenThrownException() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given().build();
         ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
                 .method(PaymentMethod.CARD)
                 .transactionKey("transactionKey")
@@ -214,18 +198,9 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 승인할때 지원하지 않는 결제 방식인 경우 예외가 발생한다.")
-    void approve_unsupported_method() {
+    void approve_whenUnsupportedMethod_thenThrownException() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        payment.approvePending(approvePendingContext);
+        Payment payment = PaymentFixtureBuilder.given().asApprovePending().build();
 
         ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
                 .method(PaymentMethod.VIRTUAL_ACCOUNT)
@@ -243,18 +218,11 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 승인할 때 승인 금액이 일치하지 않으면 예외가 발생한다.")
-    void approve_missMatch_totalAmount() {
+    void approve_whenApproveAmountMismatch_thenThrownException() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        payment.approvePending(approvePendingContext);
+        Payment payment = PaymentFixtureBuilder.given()
+                .withTotalAmount(Money.wons(1000L))
+                .asApprovePending().build();
 
         ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
                 .method(PaymentMethod.CARD)
@@ -274,17 +242,8 @@ class PaymentTest {
     @DisplayName("결제를 실패 처리한다.")
     void abort() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        PaymentFailure failure = PaymentFailure.of("UNSUPPORTED_PROVIDER", "지원하지 않는 결제사 입니다.");
-
-        payment.approvePending(approvePendingContext);
+        Payment payment = PaymentFixtureBuilder.given().build();;
+        PaymentFailure failure = PaymentFailure.of("TIMEOUT", "만료된 결제입니다.");
         //when
         payment.abort(failure);
         //then
@@ -294,27 +253,13 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 실패 처리할때 결제 상태가 준비 또는 승인 대기가 아니면 예외가 발생한다.")
-    void abort_not_ready_or_approval_pending() {
+    void abort_whenStatusNotReadyOrApprovalPending_thenThrownException() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
-                .method(PaymentMethod.CARD)
-                .transactionKey("transactionKey")
-                .amount(Money.wons(1000L))
-                .occurredAt(LocalDateTime.now())
+        Payment payment = PaymentFixtureBuilder.given()
+                .asDone()
                 .build();
 
         PaymentFailure failure = PaymentFailure.of("UNSUPPORTED_PROVIDER", "지원하지 않는 결제사 입니다.");
-
-        payment.approvePending(approvePendingContext);
-        payment.approve(approveContext, idGenerator);
         //when
         //then
         assertThatThrownBy(() -> payment.abort(failure))
@@ -325,17 +270,9 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제를 실패 처리할때 실패 사유가 누락되면 예외가 발생한다.")
-    void abort_failure_null() {
+    void abort_whenPaymentFailureIsNull_thenThrownException() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        payment.approvePending(approvePendingContext);
+        Payment payment = PaymentFixtureBuilder.given().build();
         //when
         //then
         assertThatThrownBy(() -> payment.abort(null))
@@ -347,22 +284,8 @@ class PaymentTest {
     @DisplayName("결제를 환불 대기로 변경한다.")
     void refundPending() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        payment.approvePending(approvePendingContext);
-        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
-                .method(PaymentMethod.CARD)
-                .transactionKey("transactionKey")
-                .amount(Money.wons(1000L))
-                .occurredAt(LocalDateTime.now())
-                .build();
-        payment.approve(approveContext, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given()
+                .asDone().build();
         //when
         payment.refundPending();
         //then
@@ -371,30 +294,14 @@ class PaymentTest {
 
     @Test
     @DisplayName("결제 완료가 아니면 환불 대기로 변경할 수 없다")
-    void refundPending_notDone() {
+    void refundPending_whenStatusNotDone_thenThrownException() {
         //given
-        CreatePaymentContext createContext = createPaymentContext();
-        Payment payment = Payment.create(createContext, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-
-        payment.approvePending(approvePendingContext);
+        Payment payment = PaymentFixtureBuilder.given().asApprovePending().build();
         //when
         //then
         assertThatThrownBy(payment::refundPending)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_CANNOT_REFUND_PENDING);
-    }
-
-    private CreatePaymentContext createPaymentContext() {
-        return CreatePaymentContext.builder()
-                .orderId(1L)
-                .userId(1L)
-                .totalAmount(Money.wons(1000L))
-                .build();
     }
 }

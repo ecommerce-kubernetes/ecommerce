@@ -9,17 +9,17 @@
 
 ## 2. 애그리거트 명세 (Aggregate Specifications)
 
-### 2.1 `Cart` (Aggregate Root)
+### 2.1 장바구니 (`Cart`- Aggregate Root)
 
 사용자의 주문 대기중인 상품 목록을 관리
 
 ### 2.1.1 속성 (Attribute)
 
-| 필드명       | 타입             | 설명                    |
-|-----------|----------------|-----------------------|
-| id        | Long           | 장바구니 식별자              |
-| userId    | Long           | 장바구니의 소유자 식별자         |
-| cartItems | List<CartItem> | 장바구니에 담긴 개별 상품 항목 리스트 |
+| 필드명         | 타입               | 설명                    |
+|-------------|------------------|-----------------------|
+| `id`        | `Long`           | 장바구니 식별자              |
+| `userId`    | `Long`           | 장바구니의 소유자 식별자         |
+| `cartItems` | `List<CartItem>` | 장바구니에 담긴 개별 상품 항목 리스트 |
 
 ### 2.1.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -47,16 +47,16 @@
 
 #### 하위 엔티티: 장바구니 항목 (`CartItem`)
 
-**역할**: 장바구니에 담긴 개별 상품 정보를 관리.
+**역할**: 장바구니에 담긴 개별 상품 정보를 관리 한다.
 
 **속성 (Attribute)**
 
-| 필드명              | 타입      | 설명          |
-|------------------|---------|-------------|
-| id               | Long    | 장바구니 항목 아이디 |
-| cart             | Cart    | 장바구니        |
-| productVariantId | Long    | 상품 변형 아이디   |
-| quantity         | Integer | 담은 수량       |
+| 필드명                | 타입        | 설명          |
+|--------------------|-----------|-------------|
+| `id`               | `Long`    | 장바구니 항목 아이디 |
+| `cart`             | `Cart`    | 장바구니        |
+| `productVariantId` | `Long`    | 상품 변형 아이디   |
+| `quantity`         | `Integer` | 담은 수량       |
 
 **도메인 규칙**
 
@@ -77,21 +77,21 @@
 
 ---
 
-### 2.2 `OrderSheet` (Aggregate Root)
+### 2.2 주문서 (`OrderSheet`- Aggregate Root)
 
 주문 생성 전에 주문에 필요한 상품, 배송지, 쿠폰, 포인트 등의 정보를 하나의 주문 단위로 관리하고, 할인 및 결제 금액을 계산하며 주문서의 유효성을 보장한다.
 
 ### 2.2.1 속성 (Attribute)
 
-| 필드명             | 타입                   | 설명                       |
-|-----------------|----------------------|--------------------------|
-| id              | Long                 | 주문서 식별자                  |
-| orderer         | Orderer              | 주문자 정보                   |
-| shippingAddress | ShippingAddress      | 배송 정보                    |
-| items           | List<OrderSheetItem> | 주문서에 포함된 상품 항목 목록        |
-| cartCoupon      | CartCouponSnapshot   | 주문서에 적용된 장바구니 쿠폰 정보의 스냅샷 |
-| usedPoints      | Money                | 주문서에서 사용한 포인트            |
-| expiresAt       | LocalDateTime        | 주문서 만료 시각                |
+| 필드명               | 타입                     | 설명                       |
+|-------------------|------------------------|--------------------------|
+| `id`              | `Long`                 | 주문서 식별자                  |
+| `orderer`         | `Orderer`              | 주문자 정보                   |
+| `shippingAddress` | `ShippingAddress`      | 배송 정보                    |
+| `items`           | `List<OrderSheetItem>` | 주문서에 포함된 상품 항목 목록        |
+| `cartCoupon`      | `CartCouponSnapshot`   | 주문서에 적용된 장바구니 쿠폰 정보의 스냅샷 |
+| `usedPoints`      | `Money`                | 주문서에서 사용한 포인트            |
+| `expiresAt`       | `LocalDateTime`        | 주문서 만료 시각                |
 
 ### 2.2.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -141,14 +141,14 @@
 
 **속성 (Attribute)**
 
-| 필드명                | 타입                          | 설명                     |
-|--------------------|-----------------------------|------------------------|
-| id                 | Long                        | 주문서 항목 식별자             |
-| productSnapshot    | ProductSnapshot             | 주문 시점의 상품 정보 스냅샷       |
-| priceSnapshot      | ProductPriceSnapshot        | 주문 시점의 상품 가격 정보 스냅샷    |
-| itemCouponSnapshot | ItemCouponSnapshot          | 주문 항목에 적용된 상품 쿠폰 스냅샷   |
-| quantity           | int                         | 주문 상품 수량               |
-| optionSnapshots    | List<ProductOptionSnapshot> | 주문 시점의 상품 옵션 정보 스냅샷 목록 |
+| 필드명                  | 타입                            | 설명                     |
+|----------------------|-------------------------------|------------------------|
+| `id`                 | `Long`                        | 주문서 항목 식별자             |
+| `productSnapshot`    | `ProductSnapshot`             | 주문 시점의 상품 정보 스냅샷       |
+| `priceSnapshot`      | `ProductPriceSnapshot`        | 주문 시점의 상품 가격 정보 스냅샷    |
+| `itemCouponSnapshot` | `ItemCouponSnapshot`          | 주문 항목에 적용된 상품 쿠폰 스냅샷   |
+| `quantity`           | `int`                         | 주문 상품 수량               |
+| `optionSnapshots`    | `List<ProductOptionSnapshot>` | 주문 시점의 상품 옵션 정보 스냅샷 목록 |
 
 **도메인 규칙**
 
@@ -187,20 +187,16 @@
 
 **속성 (Attribute)**
 
-| 필드명                  | 타입                   | 설명                 |
-|----------------------|----------------------|--------------------|
-| cartCouponId         | Long                 | 장바구니 쿠폰 식별자        |
-| name                 | String               | 장바구니 쿠폰 이름         |
-| discountPolicy       | CouponDiscountPolicy | 쿠폰 할인 정책           |
-| minimumPaymentAmount | Money                | 쿠폰 적용을 위한 최소 결제 금액 |
+| 필드명                    | 타입                     | 설명                 |
+|------------------------|------------------------|--------------------|
+| `cartCouponId`         | `Long`                 | 장바구니 쿠폰 식별자        |
+| `name`                 | `String`               | 장바구니 쿠폰 이름         |
+| `discountPolicy`       | `CouponDiscountPolicy` | 쿠폰 할인 정책           |
+| `minimumPaymentAmount` | `Money`                | 쿠폰 적용을 위한 최소 결제 금액 |
 
 **도메인 규칙**
 
-- [규칙 1: 쿠폰 식별자는 필수이다.]
-- [규칙 2: 쿠폰 이름은 비어 있을 수 없다.]
-- [규칙 3: 할인 정책은 필수이다.]
-- [규칙 4: 최소 결제 금액은 필수이다.]
-- [규칙 5: 쿠폰은 기준 금액이 최소 결제 금액 이상인 경우에만 적용할 수 있다.]
+- 쿠폰 식별자, 이름, 할인 정책, 최소 결제 금액은 필수이며, 쿠폰은 기준 금액이 최소 결제 금액 이상인 경우에만 적용 가능 하다.
 
 **주요 행위**
 
@@ -215,20 +211,16 @@
 
 **속성 (Attribute)**
 
-| 필드명                | 타입                   | 설명                    |
-|--------------------|----------------------|-----------------------|
-| itemCouponId       | Long                 | 상품 쿠폰 식별자             |
-| name               | String               | 상품 쿠폰 이름              |
-| discountPolicy     | CouponDiscountPolicy | 쿠폰 할인 정책              |
-| applyQuantityLimit | Integer              | 쿠폰을 적용할 수 있는 최대 상품 수량 |
+| 필드명                  | 타입                     | 설명                    |
+|----------------------|------------------------|-----------------------|
+| `itemCouponId`       | `Long`                 | 상품 쿠폰 식별자             |
+| `name`               | `String`               | 상품 쿠폰 이름              |
+| `discountPolicy`     | `CouponDiscountPolicy` | 쿠폰 할인 정책              |
+| `applyQuantityLimit` | `Integer`              | 쿠폰을 적용할 수 있는 최대 상품 수량 |
 
 **도메인 규칙**
 
-- [규칙 1: 쿠폰 식별자는 필수이다.]
-- [규칙 2: 쿠폰 이름은 비어 있을 수 없다.]
-- [규칙 3: 할인 정책은 필수이다.]
-- [규칙 4: 쿠폰 적용 가능 수량은 필수이다.]
-- [규칙 5: 상품 쿠폰 할인은 실제 상품 수량과 쿠폰 적용 가능 수량 중 작은 수량에 대해서만 적용된다.]
+- 쿠폰 식별자, 이름, 할인 정책, 쿠폰 적용 가능 수량은 필수이며, 할인은 실제 상품 수량과 쿠폰 적용 가능 수량 중 작은 수량에 대해서만 적용 가능 하다.
 
 **주요 행위**
 
@@ -258,23 +250,23 @@
 
 ---
 
-### 2.3 `Order` (Aggregate Root)
+### 2.3 주문 (`Order`-Aggregate Root)
 
 사용자의 주문 정보를 관리하고 주문 처리 상태를 변경하며, 주문 항목과 주문 금액을 포함한 주문 전체의 일관성을 유지한다. 또한 주문 상태 변경에 따라 주문 접수 및 주문 실패 도메인 이벤트를 등록한다.
 
 ### 2.3.1 속성 (Attribute)
 
-| 필드명               | 타입                | 설명                |
-|-------------------|-------------------|-------------------|
-| id                | Long              | 주문 식별자            |
-| status            | OrderStatus       | 주문 처리 상태          |
-| orderName         | String            | 주문을 식별하기 위한 주문명   |
-| orderer           | Orderer           | 주문자 정보            |
-| shippingAddress   | ShippingAddress   | 배송지 정보            |
-| orderItems        | List<OrderItem>   | 주문 상품 항목 목록       |
-| appliedCartCoupon | AppliedCartCoupon | 주문에 적용된 장바구니 쿠폰   |
-| orderAmount       | OrderAmount       | 주문 전체 금액 정보       |
-| orderCancelInfo   | OrderCancelInfo   | 주문 실패 또는 취소 관련 정보 |
+| 필드명                 | 타입                  | 설명                |
+|---------------------|---------------------|-------------------|
+| `id`                | `Long`              | 주문 식별자            |
+| `status`            | `OrderStatus`       | 주문 처리 상태          |
+| `orderName`         | `String`            | 주문을 식별하기 위한 주문명   |
+| `orderer`           | `Orderer`           | 주문자 정보            |
+| `shippingAddress`   | `ShippingAddress`   | 배송지 정보            |
+| `orderItems`        | `List<OrderItem>`   | 주문 상품 항목 목록       |
+| `appliedCartCoupon` | `AppliedCartCoupon` | 주문에 적용된 장바구니 쿠폰   |
+| `orderAmount`       | `OrderAmount`       | 주문 전체 금액 정보       |
+| `orderCancelInfo`   | `OrderCancelInfo`   | 주문 실패 또는 취소 관련 정보 |
 
 ### 2.3.2 생명 주기 및 상태 흐름 (Lifecycle & State)
 
@@ -299,13 +291,13 @@ stateDiagram-v2
 
 #### 상태 전이 규칙
 
-| 이전 상태    | 행위/메서드     | 다음 상태     | 비지니스 제약 및 의도                                                           |
-|----------|------------|-----------|------------------------------------------------------------------------|
-| (None)   | create()   | PENDING   | 결제가 필요한 일반적인 주문이 생성되었을 때의 초기 상태.                                       |
-| PENDING  | accept()   | ACCEPTED  | 해당 주문에 대한 결제가 최종 승인된 이후의 상태. 이후 SAGA 기반의 자원 차감 트랜잭션이 시작됨.              |
-| PENDING  | failed()   | FAILED    | 지정된 시간 내에 결제가 승인되지 않아 주문 유효기간이 만료된 상태.                                 |
-| ACCEPTED | complete() | COMPLETED | SAGA 오케스트레이션을 통해 재고 감소, 쿠폰 사용 처리 등 모든 자원 차감이 성공적으로 완료되어 주문이 최종 확정된 상태. |
-| ACCEPTED | failed()   | FAILED    | 재고 부족 등의 사유로 자원 차감에 실패하여, SAGA 보상 트랜잭션 발생하고 주문이 실패 처리된 상태. 이후 환불이 진행됨. |
+| 이전 상태      | 행위/메서드       | 다음 상태       | 비지니스 제약 및 의도                                                           |
+|------------|--------------|-------------|------------------------------------------------------------------------|
+| `(None)`   | `create()`   | `PENDING`   | 결제가 필요한 일반적인 주문이 생성되었을 때의 초기 상태.                                       |
+| `PENDING`  | `accept()`   | `ACCEPTED`  | 해당 주문에 대한 결제가 최종 승인된 이후의 상태. 이후 SAGA 기반의 자원 차감 트랜잭션이 시작됨.              |
+| `PENDING`  | `failed()`   | `FAILED`    | 지정된 시간 내에 결제가 승인되지 않아 주문 유효기간이 만료된 상태.                                 |
+| `ACCEPTED` | `complete()` | `COMPLETED` | SAGA 오케스트레이션을 통해 재고 감소, 쿠폰 사용 처리 등 모든 자원 차감이 성공적으로 완료되어 주문이 최종 확정된 상태. |
+| `ACCEPTED` | `failed()`   | `FAILED`    | 재고 부족 등의 사유로 자원 차감에 실패하여, SAGA 보상 트랜잭션 발생하고 주문이 실패 처리된 상태. 이후 환불이 진행됨. |
 
 ### 2.3.3 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -338,37 +330,26 @@ stateDiagram-v2
 
 ### 2.3.4 내부 구성 요소(Entities & Value Objects)
 
-#### 하위 엔티티: 주문 항목 (OrderItem)
+#### 하위 엔티티: 주문 항목 (`OrderItem`)
 
 주문에 포함된 개별 상품의 상품 정보, 가격, 쿠폰, 수량, 옵션 및 항목별 금액을 관리한다.
 
 **속성 (Attribute)**
 
-| 필드명               | 타입                          | 설명                 |
-|-------------------|-----------------------------|--------------------|
-| id                | Long                        | 주문 항목 식별자          |
-| order             | Order                       | 소속 주문              |
-| product           | ProductSnapshot             | 주문 당시 상품 정보 스냅샷    |
-| productPrice      | ProductPriceSnapshot        | 주문 당시 상품 가격 정보 스냅샷 |
-| appliedItemCoupon | AppliedItemCoupon           | 주문 항목에 적용된 상품 쿠폰   |
-| quantity          | Integer                     | 주문 상품 수량           |
-| options           | List<ProductOptionSnapshot> | 주문 상품 옵션 정보        |
-| orderItemAmount   | OrderItemAmount             | 해당 주문 항목의 금액 정보    |
+| 필드명                 | 타입                            | 설명                 |
+|---------------------|-------------------------------|--------------------|
+| `id`                | `Long`                        | 주문 항목 식별자          |
+| `order`             | `Order`                       | 소속 주문              |
+| `product`           | `ProductSnapshot`             | 주문 당시 상품 정보 스냅샷    |
+| `productPrice`      | `ProductPriceSnapshot`        | 주문 당시 상품 가격 정보 스냅샷 |
+| `appliedItemCoupon` | `AppliedItemCoupon`           | 주문 항목에 적용된 상품 쿠폰   |
+| `quantity`          | `Integer`                     | 주문 상품 수량           |
+| `options`           | `List<ProductOptionSnapshot>` | 주문 상품 옵션 정보        |
+| `orderItemAmount`   | `OrderItemAmount`             | 해당 주문 항목의 금액 정보    |
 
 **도메인 규칙**
 
-- [규칙 1: 주문 항목의 수량은 1개 이상이어야 한다.]
-    1. 주문 항목 생성 시 수량이 0 이하이면 생성할 수 없다.
-- [규칙 2: 주문 항목은 반드시 특정 주문에 소속되어야 한다.]
-    1. 주문에 추가된 항목은 `Order`와의 연관관계를 설정한다.
-- [규칙 3: 주문 항목의 금액 정보는 항목 원가, 할인, 쿠폰 할인 및 최종 금액 간의 일관성을 유지해야 한다.]
-    1. 금액 계산 결과는 `OrderItemAmount`를 통해 검증되어야 한다.
-
-**주요 행위**
-
-| 메서드명/행위  | 파라미터                                    | 반환값         | 비지니스 의도 및 제약                                                          |
-|----------|-----------------------------------------|-------------|-----------------------------------------------------------------------|
-| `create` | `CreateOrderItemContext`, `IdGenerator` | `OrderItem` | 주문 항목을 생성한다. 식별자를 생성하고 수량이 1개 이상인지 검증한 후 상품, 가격, 쿠폰, 옵션, 금액 정보를 저장한다. |
+- 수량은 1개 이상이어야 하며, 항목은 특정 `Order`에 소속되어야 하고, 금액 정보는 원가·할인·최종 금액 간의 일관성을 유지해야 한다.
 
 #### 값 객체: 주문 금액 (`OrderAmount`)
 
@@ -376,20 +357,18 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명                     | 타입    | 설명             |
-|-------------------------|-------|----------------|
-| totalOriginalAmount     | Money | 전체 주문 상품 원가    |
-| totalItemDiscount       | Money | 전체 상품 할인 금액    |
-| totalItemCouponDiscount | Money | 전체 상품 쿠폰 할인 금액 |
-| cartCouponDiscount      | Money | 장바구니 쿠폰 할인 금액  |
-| usedPoints              | Money | 사용한 포인트        |
-| totalPaymentAmount      | Money | 최종 결제 금액       |
+| 필드명                       | 타입      | 설명             |
+|---------------------------|---------|----------------|
+| `totalOriginalAmount`     | `Money` | 전체 주문 상품 원가    |
+| `totalItemDiscount`       | `Money` | 전체 상품 할인 금액    |
+| `totalItemCouponDiscount` | `Money` | 전체 상품 쿠폰 할인 금액 |
+| `cartCouponDiscount`      | `Money` | 장바구니 쿠폰 할인 금액  |
+| `usedPoints`              | `Money` | 사용한 포인트        |
+| `totalPaymentAmount`      | `Money` | 최종 결제 금액       |
 
 **도메인 규칙**
 
-- [규칙 1: 모든 금액 정보는 필수이다.]
-- [규칙 2: 전체 할인 및 사용 포인트의 합은 전체 원가를 초과할 수 없다.]
-- [규칙 3: 최종 결제 금액은 전체 원가에서 모든 할인 금액과 사용 포인트를 차감한 값과 일치해야 한다.]
+- 전체 원가, 각종 할인 내역, 최종 결제 금액을 관리한다. 결제 금액은 원가에서 할인을 차감한 값과 정확히 일치해야 한다.
 
 #### 값 객체: 주문 항목 금액 (`OrderItemAmount`)
 
@@ -397,21 +376,17 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명                | 타입    | 설명                |
-|--------------------|-------|-------------------|
-| originalAmount     | Money | 주문 항목의 원가 총액      |
-| itemDiscount       | Money | 상품 자체 할인 금액       |
-| lineTotal          | Money | 상품 할인 적용 후 판매가 총액 |
-| itemCouponDiscount | Money | 상품 쿠폰 할인 금액       |
-| finalAmount        | Money | 주문 항목의 최종 결제 금액   |
+| 필드명                  | 타입      | 설명                |
+|----------------------|---------|-------------------|
+| `originalAmount`     | `Money` | 주문 항목의 원가 총액      |
+| `itemDiscount`       | `Money` | 상품 자체 할인 금액       |
+| `lineTotal`          | `Money` | 상품 할인 적용 후 판매가 총액 |
+| `itemCouponDiscount` | `Money` | 상품 쿠폰 할인 금액       |
+| `finalAmount`        | `Money` | 주문 항목의 최종 결제 금액   |
 
 **도메인 규칙**
 
-- [규칙 1: 모든 금액 정보는 필수이다.]
-- [규칙 2: 상품 할인 금액은 원가 총액을 초과할 수 없다.]
-- [규칙 3: 판매가 총액은 원가 총액에서 상품 할인 금액을 차감한 값과 일치해야 한다.]
-- [규칙 4: 상품 쿠폰 할인 금액은 판매가 총액을 초과할 수 없다.]
-- [규칙 5: 최종 결제 금액은 판매가 총액에서 상품 쿠폰 할인 금액을 차감한 값과 일치해야 한다.]
+- 개별 항목의 원가, 할인, 최종 금액을 관리하며 금액 계산의 일관성을 보장 한다.
 
 #### 값 객체: 주문 취소 정보 (`OrderCancelInfo`)
 
@@ -419,15 +394,14 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명        | 타입            | 설명             |
-|------------|---------------|----------------|
-| reason     | String        | 주문 실패 또는 취소 사유 |
-| canceledAt | LocalDateTime | 취소 정보가 기록된 시각  |
+| 필드명          | 타입              | 설명             |
+|--------------|-----------------|----------------|
+| `reason`     | `String`        | 주문 실패 또는 취소 사유 |
+| `canceledAt` | `LocalDateTime` | 취소 정보가 기록된 시각  |
 
 **도메인 규칙**
 
-- [규칙 1: 취소 사유는 필수이며 비어 있을 수 없다.]
-- [규칙 2: 취소 시각은 필수이다.]
+- 실패/취소 사유와 기록된 시각을 필수적으로 관리 한다.
 
 #### 값 객체: 적용 장바구니 쿠폰 (`AppliedCartCoupon`)
 
@@ -435,15 +409,14 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명          | 타입     | 설명              |
-|--------------|--------|-----------------|
-| cartCouponId | Long   | 적용된 장바구니 쿠폰 식별자 |
-| name         | String | 적용된 장바구니 쿠폰 이름  |
+| 필드명            | 타입       | 설명              |
+|----------------|----------|-----------------|
+| `cartCouponId` | `Long`   | 적용된 장바구니 쿠폰 식별자 |
+| `name`         | `String` | 적용된 장바구니 쿠폰 이름  |
 
 **도메인 규칙**
 
-- [규칙 1: 장바구니 쿠폰 식별자는 필수이다.]
-- [규칙 2: 장바구니 쿠폰 이름은 비어 있을 수 없다.]
+- 적용된 쿠폰의 식별자와 이름을 필수적으로 보관 한다
 
 #### 값 객체: 적용 상품 쿠폰 (`AppliedItemCoupon`)
 
@@ -451,34 +424,33 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명          | 타입     | 설명            |
-|--------------|--------|---------------|
-| itemCouponId | Long   | 적용된 상품 쿠폰 식별자 |
-| name         | String | 적용된 상품 쿠폰 이름  |
+| 필드명            | 타입       | 설명            |
+|----------------|----------|---------------|
+| `itemCouponId` | `Long`   | 적용된 상품 쿠폰 식별자 |
+| `name`         | `String` | 적용된 상품 쿠폰 이름  |
 
 **도메인 규칙**
 
-- [규칙 1: 상품 쿠폰 식별자는 필수이다.]
-- [규칙 2: 상품 쿠폰 이름은 비어 있을 수 없다.]
+- 적용된 쿠폰의 식별자와 이름을 필수적으로 보관 한다.
 
-### 2.4 Payment (Aggregate Root)
+### 2.4 결제 (`Payment`- Aggregate Root)
 
 결제 대상 주문의 결제 상태와 결제 수단 정보를 관리하고, 결제 승인 및 환불 과정에서 발생하는 결제 거래 내역을 함께 관리한다.
 
 ### 2.4.1 속성 (Attribute)
 
-| 필드명                 | 타입                       | 설명               |
-|---------------------|--------------------------|------------------|
-| id                  | Long                     | 결제 식별자           |
-| orderId             | Long                     | 결제 대상 주문 식별자     |
-| userId              | Long                     | 결제 사용자 식별자       |
-| status              | PaymentStatus            | 결제 처리 상태         |
-| method              | PaymentMethod            | 결제 수단            |
-| provider            | PaymentProvider          | 결제 제공자           |
-| paymentKey          | String                   | 외부 결제 시스템의 결제 키  |
-| totalAmount         | Money                    | 결제 총액            |
-| failure             | PaymentFailure           | 결제 실패 정보         |
-| paymentTransactions | List<PaymentTransaction> | 결제 승인 및 환불 거래 내역 |
+| 필드명                   | 타입                         | 설명               |
+|-----------------------|----------------------------|------------------|
+| `id`                  | `Long`                     | 결제 식별자           |
+| `orderId`             | `Long`                     | 결제 대상 주문 식별자     |
+| `userId`              | `Long`                     | 결제 사용자 식별자       |
+| `status`              | `PaymentStatus`            | 결제 처리 상태         |
+| `method`              | `PaymentMethod`            | 결제 수단            |
+| `provider`            | `PaymentProvider`          | 결제 제공자           |
+| `paymentKey`          | `String`                   | 외부 결제 시스템의 결제 키  |
+| `totalAmount`         | `Money`                    | 결제 총액            |
+| `failure`             | `PaymentFailure`           | 결제 실패 정보         |
+| `paymentTransactions` | `List<PaymentTransaction>` | 결제 승인 및 환불 거래 내역 |
 
 ### 2.4.2 생명 주기 및 상태 흐름 (Lifecycle & State)
 
@@ -506,15 +478,15 @@ stateDiagram-v2
 
 #### 상태 전이 규칙
 
-| 이전 상태            | 행위/메서드           | 다음 상태            | 비지니스 제약 및 의도                                    |
-|------------------|------------------|------------------|-------------------------------------------------|
-| (None)           | create()         | READY            | 결제 애그리거트를 생성하고 결제 준비 상태로 초기화한다.                 |
-| READY            | approvePending() | APPROVAL_PENDING | 결제 준비 상태에서 외부 결제 승인 요청에 필요한 결제 제공자와 결제 키를 등록한다. |
-| READY            | abort()          | ABORTED          | 결제 승인 전 결제를 실패 처리하고 실패 정보를 저장한다.                |
-| APPROVAL_PENDING | complete()       | DONE             | 승인 대기 상태에서 결제 수단과 결제 거래 내역을 등록하고 결제를 완료한다.      |
-| APPROVAL_PENDING | failed()         | ABORTED          | 승인 대기 중인 결제를 실패 처리하고 실패 정보를 저장한다.               |
-| DONE             | refundPending()  | REFUND_PENDING   | 완료된 결제를 환불 가능한 상태로 전환한다.                        |
-| REFUND_PENDING   | cancel()         | CANCELED         | 환불 대기 상태에서 환불 거래 내역을 등록하고 결제를 취소 완료한다.          |
+| 이전 상태              | 행위/메서드             | 다음 상태              | 비지니스 제약 및 의도                                    |
+|--------------------|--------------------|--------------------|-------------------------------------------------|
+| `(None)`           | `create()`         | `READY`            | 결제 애그리거트를 생성하고 결제 준비 상태로 초기화한다.                 |
+| `READY`            | `approvePending()` | `APPROVAL_PENDING` | 결제 준비 상태에서 외부 결제 승인 요청에 필요한 결제 제공자와 결제 키를 등록한다. |
+| `READY`            | `abort()`          | `ABORTED`          | 결제 승인 전 결제를 실패 처리하고 실패 정보를 저장한다.                |
+| `APPROVAL_PENDING` | `complete()`       | `DONE`             | 승인 대기 상태에서 결제 수단과 결제 거래 내역을 등록하고 결제를 완료한다.      |
+| `APPROVAL_PENDING` | `failed()`         | `ABORTED`          | 승인 대기 중인 결제를 실패 처리하고 실패 정보를 저장한다.               |
+| `DONE`             | `refundPending()`  | `REFUND_PENDING`   | 완료된 결제를 환불 가능한 상태로 전환한다.                        |
+| `REFUND_PENDING`   | `cancel()`         | `CANCELED`         | 환불 대기 상태에서 환불 거래 내역을 등록하고 결제를 취소 완료한다.          |
 
 ### 2.4.3 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -565,22 +537,19 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명            | 타입              | 설명                |
-|----------------|-----------------|-------------------|
-| id             | Long            | 결제 거래 식별자         |
-| payment        | Payment         | 소속 결제             |
-| transactionKey | String          | 외부 결제 시스템 거래 식별 키 |
-| type           | TransactionType | 거래 유형             |
-| amount         | Money           | 거래 금액             |
-| reason         | String          | 거래 사유             |
-| occurredAt     | LocalDateTime   | 거래 발생 시각          |
+| 필드명              | 타입                | 설명                |
+|------------------|-------------------|-------------------|
+| `id`             | `Long`            | 결제 거래 식별자         |
+| `payment`        | `Payment`         | 소속 결제             |
+| `transactionKey` | `String`          | 외부 결제 시스템 거래 식별 키 |
+| `type`           | `TransactionType` | 거래 유형             |
+| `amount`         | `Money`           | 거래 금액             |
+| `reason`         | `String`          | 거래 사유             |
+| `occurredAt`     | `LocalDateTime`   | 거래 발생 시각          |
 
 **도메인 규칙**
 
-- [규칙 1: 결제 승인 거래는 `PAYMENT` 유형으로 기록된다.]
-    1. `createApproval()`로 생성된 거래는 `TransactionType.PAYMENT`를 사용한다.
-- [규칙 2: 결제 환불 거래는 `REFUND` 유형으로 기록된다.]
-    1. `createCancel()`로 생성된 거래는 `TransactionType.REFUND`를 사용한다.
+- 결제 승인 거래는 `PAYMENT` 유형으로, 환불 거래는 `REFUND` 유형으로 기록 된다.
 
 **주요 행위**
 
@@ -595,10 +564,10 @@ stateDiagram-v2
 
 **속성 (Attribute)**
 
-| 필드명     | 타입     | 설명        |
-|---------|--------|-----------|
-| code    | String | 결제 실패 코드  |
-| message | String | 결제 실패 메시지 |
+| 필드명       | 타입       | 설명        |
+|-----------|----------|-----------|
+| `code`    | `String` | 결제 실패 코드  |
+| `message` | `String` | 결제 실패 메시지 |
 
 ### 2.5 OrderSaga (Aggregate Root)
 
@@ -607,16 +576,16 @@ stateDiagram-v2
 
 ### 2.5.1 속성 (Attribute)
 
-| 필드명                 | 타입                       | 설명                          |
-|---------------------|--------------------------|-----------------------------|
-| id                  | Long                     | 주문 SAGA 식별자                 |
-| orderId             | Long                     | SAGA가 처리하는 주문 식별자           |
-| status              | SagaStatus               | SAGA 전체 처리 상태               |
-| currentStep         | SagaStep                 | 현재 처리 중인 SAGA 단계            |
-| payload             | OrderSagaPayload         | SAGA 처리에 필요한 주문 정보 및 실행 데이터 |
-| orderSagaExecutions | List<OrderSagaExecution> | SAGA 각 단계의 정방향 및 보상 실행 이력   |
-| failureReason       | String                   | SAGA 처리 실패 사유               |
-| version             | Long                     | 낙관적 락을 위한 버전                |
+| 필드명                   | 타입                         | 설명                          |
+|-----------------------|----------------------------|-----------------------------|
+| `id`                  | `Long`                     | 주문 SAGA 식별자                 |
+| `orderId`             | `Long`                     | SAGA가 처리하는 주문 식별자           |
+| `status`              | `SagaStatus`               | SAGA 전체 처리 상태               |
+| `currentStep`         | `SagaStep`                 | 현재 처리 중인 SAGA 단계            |
+| `payload`             | `OrderSagaPayload`         | SAGA 처리에 필요한 주문 정보 및 실행 데이터 |
+| `orderSagaExecutions` | `List<OrderSagaExecution>` | SAGA 각 단계의 정방향 및 보상 실행 이력   |
+| `failureReason`       | `String`                   | SAGA 처리 실패 사유               |
+| `version`             | `Long`                     | 낙관적 락을 위한 버전                |
 
 ### 2.5.2 생명 주기 및 상태 흐름 (Lifecycle & State)
 
@@ -642,16 +611,16 @@ stateDiagram-v2
 
 #### 상태 전이 규칙
 
-| 이전 상태        | 행위/메서드               | 다음 상태        | 비지니스 제약 및 의도                                          |
-|--------------|----------------------|--------------|-------------------------------------------------------|
-| (None)       | create()             | PROCESSING   | 주문 SAGA를 생성하고 최초 단계인 INVENTORY의 정방향 실행을 생성한다.         |
-| PROCESSING   | completeForward()    | PROCESSING   | 현재 정방향 실행을 성공 처리하고 다음 정방향 단계가 존재하면 해당 단계로 이동한다.       |
-| PROCESSING   | completeForward()    | COMPLETE     | 현재 정방향 실행 완료 후 더 이상 처리할 정방향 단계가 없으면 SAGA를 완료한다.       |
-| PROCESSING   | failForward()        | COMPENSATING | 정방향 단계가 실패하면 실패 정보를 기록하고 이미 성공한 정방향 단계를 역순으로 보상 처리한다. |
-| PROCESSING   | failForward()        | ABORT        | 실패한 시점에 보상할 성공 단계가 더 이상 존재하지 않으면 즉시 SAGA를 중단한다.       |
-| COMPENSATING | completeCompensate() | COMPENSATING | 보상 실행을 성공 처리하고 다음 보상 대상이 있으면 해당 단계로 이동한다.             |
-| COMPENSATING | completeCompensate() | ABORT        | 더 이상 보상할 대상이 없으면 SAGA를 중단 완료한다.                       |
-| COMPENSATING | failCompensate()     | FAILED       | 보상 단계 자체가 실패하면 SAGA를 실패 상태로 종료한다.                     |
+| 이전 상태          | 행위/메서드                 | 다음 상태          | 비지니스 제약 및 의도                                          |
+|----------------|------------------------|----------------|-------------------------------------------------------|
+| `(None)`       | `create()`             | `PROCESSING`   | 주문 SAGA를 생성하고 최초 단계인 INVENTORY의 정방향 실행을 생성한다.         |
+| `PROCESSING`   | `completeForward()`    | `PROCESSING`   | 현재 정방향 실행을 성공 처리하고 다음 정방향 단계가 존재하면 해당 단계로 이동한다.       |
+| `PROCESSING`   | `completeForward()`    | `COMPLETE`     | 현재 정방향 실행 완료 후 더 이상 처리할 정방향 단계가 없으면 SAGA를 완료한다.       |
+| `PROCESSING`   | `failForward()`        | `COMPENSATING` | 정방향 단계가 실패하면 실패 정보를 기록하고 이미 성공한 정방향 단계를 역순으로 보상 처리한다. |
+| `PROCESSING`   | `failForward()`        | `ABORT`        | 실패한 시점에 보상할 성공 단계가 더 이상 존재하지 않으면 즉시 SAGA를 중단한다.       |
+| `COMPENSATING` | `completeCompensate()` | `COMPENSATING` | 보상 실행을 성공 처리하고 다음 보상 대상이 있으면 해당 단계로 이동한다.             |
+| `COMPENSATING` | `completeCompensate()` | `ABORT`        | 더 이상 보상할 대상이 없으면 SAGA를 중단 완료한다.                       |
+| `COMPENSATING` | `failCompensate()`     | `FAILED`       | 보상 단계 자체가 실패하면 SAGA를 실패 상태로 종료한다.                     |
 
 ### 2.5.3 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -696,32 +665,32 @@ stateDiagram-v2
 
 ### 2.5.5 내부 구성 요소 (Entities & Value Objects)
 
-#### 하위 엔티티: SAGA 실행 (OrderSagaExecution)
+#### 하위 엔티티: SAGA 실행 (`OrderSagaExecution`)
 
 SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리한다. 하나의 OrderSaga에 종속되어 각 단계의 처리 결과를 기록한다.
 
 **속성 (Attribute)**
 
-| 필드명       | 타입              | 설명                 |
-|-----------|-----------------|--------------------|
-| id        | Long            | SAGA 실행 식별자        |
-| orderSaga | OrderSaga       | 소속 주문 SAGA         |
-| status    | ExecutionStatus | 실행 결과 상태           |
-| type      | ExecutionType   | 정방향 실행 또는 보상 실행 유형 |
-| step      | SagaStep        | 실행 대상 SAGA 단계      |
+| 필드명         | 타입                | 설명                 |
+|-------------|-------------------|--------------------|
+| `id`        | `Long`            | SAGA 실행 식별자        |
+| `orderSaga` | `OrderSaga`       | 소속 주문 SAGA         |
+| `status`    | `ExecutionStatus` | 실행 결과 상태           |
+| `type`      | `ExecutionType`   | 정방향 실행 또는 보상 실행 유형 |
+| `step`      | `SagaStep`        | 실행 대상 SAGA 단계      |
 
 **도메인 규칙**
 
 - [규칙 1: SAGA 실행은 실행 유형과 단계가 반드시 존재해야 한다.]
-    1. 실행 생성 시 type과 step은 필수이다.
-- [규칙 2: SAGA 실행은 PENDING 상태로 생성된다.]
-    1. 새로운 실행 이력이 생성되면 초기 상태는 PENDING이다.
+    1. 실행 생성 시 `type`과 `step`은 필수이다.
+- [규칙 2: SAGA 실행은 `PENDING` 상태로 생성된다.]
+    1. 새로운 실행 이력이 생성되면 초기 상태는 `PENDING`이다.
 - [규칙 3: 실패한 실행은 성공 상태로 변경할 수 없다.]
-    1. FAIL 상태인 실행에 success()를 호출하면 시스템 예외가 발생한다.
+    1. `FAIL` 상태인 실행에 `success()`를 호출하면 시스템 예외가 발생한다.
 - [규칙 4: 성공한 실행은 실패 상태로 변경할 수 없다.]
-    1. SUCCESS 상태인 실행에 fail()을 호출하면 시스템 예외가 발생한다.
-- [규칙 5: 실행 결과는 SUCCESS 또는 FAIL로 확정된다.]
-    1. 실행이 성공하면 SUCCESS, 실패하면 FAIL로 상태를 변경한다.
+    1. `SUCCESS` 상태인 실행에 `fail()`을 호출하면 시스템 예외가 발생한다.
+- [규칙 5: 실행 결과는 `SUCCESS` 또는 FAIL로 확정된다.]
+    1. 실행이 성공하면 `SUCCESS`, 실패하면 `FAIL`로 상태를 변경한다.
 
 **주요 행위**
 
@@ -733,12 +702,12 @@ SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리�
 
 ### 2.5.6 SAGA 실행 단계
 
-| 단계        | 의미      | 정방향 이벤트              | 보상 이벤트                |
-|-----------|---------|----------------------|-----------------------|
-| INVENTORY | 재고 차감   | ReduceInventoryEvent | RestoreInventoryEvent |
-| COUPON    | 쿠폰 사용   | UsedCouponEvent      | RestoreCouponEvent    |
-| POINT     | 포인트 사용  | UsedPointEvent       | 없음                    |
-| END       | SAGA 종료 | 없음                   | 없음                    |
+| 단계          | 의미      | 정방향 이벤트                | 보상 이벤트                  |
+|-------------|---------|------------------------|-------------------------|
+| `INVENTORY` | 재고 차감   | `ReduceInventoryEvent` | `RestoreInventoryEvent` |
+| `COUPON`    | 쿠폰 사용   | `UsedCouponEvent`      | `RestoreCouponEvent`    |
+| `POINT`     | 포인트 사용  | `UsedPointEvent`       | 없음                      |
+| `END`       | SAGA 종료 | 없음                     | 없음                      |
 
 ## 3. 공통 도메인 요소 (Common Domain Elements)
 
@@ -748,11 +717,11 @@ SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리�
 
 ### 3.1.1 속성 (Attribute)
 
-| 필드명         | 타입     | 설명      |
-|-------------|--------|---------|
-| userId      | Long   | 유저 식별자  |
-| userName    | String | 유저 이름   |
-| phoneNumber | String | 유저 전화번호 |
+| 필드명           | 타입       | 설명      |
+|---------------|----------|---------|
+| `userId`      | `Long`   | 유저 식별자  |
+| `userName`    | `String` | 유저 이름   |
+| `phoneNumber` | `String` | 유저 전화번호 |
 
 ### 3.1.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -767,13 +736,13 @@ SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리�
 
 ### 3.2.1 속성 (Attribute)
 
-| 필드명           | 타입     | 설명       |
-|---------------|--------|----------|
-| receiverName  | String | 수령인 이름   |
-| receiverPhone | String | 수령인 전화번호 |
-| zipCode       | String | 우편번호     |
-| address       | String | 주소       |
-| addressDetail | String | 상세 주소    |
+| 필드명             | 타입       | 설명       |
+|-----------------|----------|----------|
+| `receiverName`  | `String` | 수령인 이름   |
+| `receiverPhone` | `String` | 수령인 전화번호 |
+| `zipCode`       | `String` | 우편번호     |
+| `address`       | `String` | 주소       |
+| `addressDetail` | `String` | 상세 주소    |
 
 ### 3.2.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -789,13 +758,13 @@ SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리�
 
 ### 3.3.1 속성 (Attribute)
 
-| 필드명              | 타입     | 설명            |
-|------------------|--------|---------------|
-| productId        | Long   | 상품 식별자        |
-| productVariantId | Long   | 상품 변형 식별자     |
-| sku              | String | 상품 재고 관리 코드   |
-| productName      | String | 주문 시점의 상품명    |
-| thumbnail        | String | 상품 대표 이미지 URL |
+| 필드명                | 타입       | 설명            |
+|--------------------|----------|---------------|
+| `productId`        | `Long`   | 상품 식별자        |
+| `productVariantId` | `Long`   | 상품 변형 식별자     |
+| `sku`              | `String` | 상품 재고 관리 코드   |
+| `productName`      | `String` | 주문 시점의 상품명    |
+| `thumbnail`        | `String` | 상품 대표 이미지 URL |
 
 ### 3.3.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -808,12 +777,12 @@ SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리�
 
 ### 3.4.1 속성 (Attribute)
 
-| 필드명             | 타입      | 설명               |
-|-----------------|---------|------------------|
-| originalPrice   | Money   | 상품 원래 가격         |
-| discountRate    | Integer | 상품 할인율           |
-| discountAmount  | Money   | 상품 자체 할인 금액      |
-| discountedPrice | Money   | 할인 적용 후 최종 판매 가격 |
+| 필드명               | 타입        | 설명               |
+|-------------------|-----------|------------------|
+| `originalPrice`   | `Money`   | 상품 원래 가격         |
+| `discountRate`    | `Integer` | 상품 할인율           |
+| `discountAmount`  | `Money`   | 상품 자체 할인 금액      |
+| `discountedPrice` | `Money`   | 할인 적용 후 최종 판매 가격 |
 
 ### 3.4.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
@@ -830,10 +799,10 @@ SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리�
 
 ### 3.5.1 속성 (Attribute)
 
-| 필드명             | 타입     | 설명                      |
-|-----------------|--------|-------------------------|
-| optionTypeName  | String | 옵션 종류 이름 (예: 색상, 사이즈)   |
-| optionValueName | String | 실제 선택한 옵션 값 (예: 블랙, XL) |
+| 필드명               | 타입       | 설명                      |
+|-------------------|----------|-------------------------|
+| `optionTypeName`  | `String` | 옵션 종류 이름 (예: 색상, 사이즈)   |
+| `optionValueName` | `String` | 실제 선택한 옵션 값 (예: 블랙, XL) |
 
 ### 3.5.2 핵심 도메인 규칙 (Invariants / Business Rules)
 
