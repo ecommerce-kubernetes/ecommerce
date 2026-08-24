@@ -317,7 +317,7 @@ stateDiagram-v2
     1. `PENDING` 상태가 아닌 주문은 `ACCEPTED` 상태로 변경할 수 없다.
 - [규칙 4: 주문은 `ACCEPTED` 상태에서만 주문 완료 상태로 변경할 수 있다.]
     1. `ACCEPTED` 상태가 아닌 주문은 `COMPLETED` 상태로 변경할 수 없다.
-- [규칙 5: 주문은 PENDING 또는 ACCEPTED 상태에서만 실패 처리할 수 있다.]
+- [규칙 5: 주문은 `PENDING` 또는 `ACCEPTED` 상태에서만 실패 처리할 수 있다.]
     1. 그 외 상태의 주문은 `FAILED` 상태로 변경할 수 없다.
 - [규칙 6: 주문이 실패 처리되면 실패 상태와 취소 정보가 함께 기록되어야 한다.]
     1. `failed()` 호출 시 주문 상태를 `FAILED`로 변경하고 전달받은 `OrderCancelInfo`를 저장한다.
