@@ -589,6 +589,157 @@ stateDiagram-v2
 | `createApproval` | `String transactionKey`, `Money amount`, `LocalDateTime occurredAt`, `IdGenerator`                        | `PaymentTransaction` | 결제 승인 거래를 생성한다. 거래 유형을 `PAYMENT`로 설정하고 정상 승인 사유를 기록한다.  |
 | `createCancel`   | `String transactionKey`, `Money amount`, `LocalDateTime occurredAt`, `String cancelReason`, `IdGenerator` | `PaymentTransaction` | 결제 환불 거래를 생성한다. 거래 유형을 `REFUND`로 설정하고 전달받은 환불 사유를 기록한다. |
 
+#### 값 객체: 결제 실패 정보 (`PaymentFailure`)
+
+결제가 실패한 이유와 코드를 관리
+
+**속성 (Attribute)**
+
+| 필드명     | 타입     | 설명        |
+|---------|--------|-----------|
+| code    | String | 결제 실패 코드  |
+| message | String | 결제 실패 메시지 |
+
+### 2.5 OrderSaga (Aggregate Root)
+
+주문 처리 과정에서 재고, 쿠폰, 포인트 등의 여러 자원에 대한 분산 트랜잭션을 관리하고, 각 단계의 실행 결과에 따라 다음 실행 단계 또는 보상 단계를 결정한다. SAGA의 전체 상태, 현재 단계, 실행 이력 및
+실패 정보를 관리하며 각 단계에 필요한 이벤트를 발행한다.
+
+### 2.5.1 속성 (Attribute)
+
+| 필드명                 | 타입                       | 설명                          |
+|---------------------|--------------------------|-----------------------------|
+| id                  | Long                     | 주문 SAGA 식별자                 |
+| orderId             | Long                     | SAGA가 처리하는 주문 식별자           |
+| status              | SagaStatus               | SAGA 전체 처리 상태               |
+| currentStep         | SagaStep                 | 현재 처리 중인 SAGA 단계            |
+| payload             | OrderSagaPayload         | SAGA 처리에 필요한 주문 정보 및 실행 데이터 |
+| orderSagaExecutions | List<OrderSagaExecution> | SAGA 각 단계의 정방향 및 보상 실행 이력   |
+| failureReason       | String                   | SAGA 처리 실패 사유               |
+| version             | Long                     | 낙관적 락을 위한 버전                |
+
+### 2.5.2 생명 주기 및 상태 흐름 (Lifecycle & State)
+
+SAGA는 정방향 처리를 진행하다가 특정 단계에서 실패하면 이미 성공한 단계들을 역순으로 보상 처리한다. 모든 정방향 단계가 성공하면 `COMPLETE`, 보상이 필요한 실패가 발생하여 모든 보상 처리가 완료되면
+`ABORT`, 보상 처리 자체가 실패하면 `FAILED` 상태로 종료한다.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> PROCESSING: create()
+    PROCESSING --> PROCESSING: completeForward()
+    PROCESSING --> COMPENSATING: failForward()
+    COMPENSATING --> COMPENSATING: completeCompensate()
+    COMPENSATING --> COMPLETE: all forward steps completed
+    PROCESSING --> COMPLETE: completeForward() [nextStep == END]
+    COMPENSATING --> FAILED: failCompensate()
+    PROCESSING --> ABORT: no rollback target
+    COMPENSATING --> ABORT: all compensation completed
+    COMPLETE --> [*]
+    ABORT --> [*]
+    FAILED --> [*]
+```
+
+#### 상태 전이 규칙
+
+| 이전 상태        | 행위/메서드               | 다음 상태        | 비지니스 제약 및 의도                                          |
+|--------------|----------------------|--------------|-------------------------------------------------------|
+| (None)       | create()             | PROCESSING   | 주문 SAGA를 생성하고 최초 단계인 INVENTORY의 정방향 실행을 생성한다.         |
+| PROCESSING   | completeForward()    | PROCESSING   | 현재 정방향 실행을 성공 처리하고 다음 정방향 단계가 존재하면 해당 단계로 이동한다.       |
+| PROCESSING   | completeForward()    | COMPLETE     | 현재 정방향 실행 완료 후 더 이상 처리할 정방향 단계가 없으면 SAGA를 완료한다.       |
+| PROCESSING   | failForward()        | COMPENSATING | 정방향 단계가 실패하면 실패 정보를 기록하고 이미 성공한 정방향 단계를 역순으로 보상 처리한다. |
+| PROCESSING   | failForward()        | ABORT        | 실패한 시점에 보상할 성공 단계가 더 이상 존재하지 않으면 즉시 SAGA를 중단한다.       |
+| COMPENSATING | completeCompensate() | COMPENSATING | 보상 실행을 성공 처리하고 다음 보상 대상이 있으면 해당 단계로 이동한다.             |
+| COMPENSATING | completeCompensate() | ABORT        | 더 이상 보상할 대상이 없으면 SAGA를 중단 완료한다.                       |
+| COMPENSATING | failCompensate()     | FAILED       | 보상 단계 자체가 실패하면 SAGA를 실패 상태로 종료한다.                     |
+
+### 2.5.3 핵심 도메인 규칙 (Invariants / Business Rules)
+
+- [규칙 1: SAGA는 항상 최초 정방향 처리 단계와 함께 생성된다.]
+    1. SAGA 생성 시 상태는 `PROCESSING이`며 현재 단계는 `INVENTORY`로 설정된다.
+- [규칙 2: SAGA 생성과 동시에 최초 실행 이력이 생성되어야 한다.]
+    1. 최초 `INVENTORY` 단계에 대해 `FORWARD` 타입의 `OrderSagaExecution`을 생성하고 이를 `SAGA`에 포함시킨다.
+- [규칙 3: SAGA 생성 시 최초 정방향 실행 이벤트를 등록해야 한다.]
+    1. 최초 `INVENTORY` 실행을 위해 `ReduceInventoryEvent`를 등록한다.
+- [규칙 4: 정방향 실행이 성공하면 현재 단계에 따라 다음 정방향 단계를 결정해야 한다.]
+    1. `INVENTORY → COUPON → POINT → END` 순으로 진행하되, 주문에 해당 자원이 존재하지 않으면 해당 단계를 건너뛴다.
+- [규칙 5: 쿠폰과 포인트 단계의 진행 여부는 SAGA payload를 기준으로 결정한다.]
+    1. 쿠폰 사용 정보가 없으면 `COUPON` 단계를 생략하고, 포인트 사용 정보가 없으면 `POINT` 단계를 생략한다.
+- [규칙 6: 모든 정방향 실행이 성공하면 SAGA는 `COMPLETE` 상태가 된다.]
+    1. 더 이상 진행할 정방향 단계가 없으면 현재 단계를 `END`로 변경하고 SAGA 상태를 `COMPLETE`로 변경한다.
+- [규칙 7: 정방향 실행이 실패하면 실패 사유를 기록하고 이미 성공한 단계의 보상을 시작해야 한다.]
+    1. `failForward()` 호출 시 현재 실행을 실패 처리하고 `failureReason`을 저장한 뒤 가장 최근에 성공한 정방향 실행부터 보상한다.
+- [규칙 8: 보상 순서는 성공한 정방향 실행의 역순이어야 한다.]
+    1. 가장 최근에 성공한 정방향 단계부터 이전 단계 순서로 보상 실행을 생성한다.
+- [규칙 9: 이미 보상 처리가 완료된 단계는 다시 보상하지 않는다.]
+    1. 이미 `COMPENSATE` 실행 이력이 존재하는 `SagaStep`은 다음 보상 대상에서 제외한다.
+- [규칙 10: 모든 정방향 성공 단계에 대한 보상이 완료되면 SAGA는 `ABORT` 상태가 된다.]
+    1. 더 이상 보상 대상이 존재하지 않으면 현재 단계를 END로 변경하고 SAGA를 중단 완료한다.
+- [규칙 11: 보상 처리 자체가 실패하면 SAGA는 FAILED 상태가 된다.]
+    1. 보상 실행이 실패하면 추가적인 보상 단계를 진행하지 않고 SAGA를 실패 상태로 종료한다.
+- [규칙 12: 하나의 실행 이력은 성공과 실패 상태를 동시에 가질 수 없다.]
+    1. `OrderSagaExecution.success()`는 이미 실패한 실행을 성공으로 변경할 수 없으며, `fail()`은 이미 성공한 실행을 실패로 변경할 수 없다.
+- [규칙 13: 동일한 실행 결과에 대한 중복 처리는 멱등적으로 동작해야 한다.]
+    1. 이미 `SUCCESS`인 실행에 다시 성공 처리가 요청되거나 이미 `FAIL`인 실행에 다시 실패 처리가 요청된 경우 추가 상태 변경을 수행하지 않는다.
+- [규칙 14: SAGA 실행 이력은 해당 SAGA에 종속된다.]
+    1. 생성된 `OrderSagaExecution`은 현재 `OrderSaga`에 귀속되어야 한다.
+
+### 2.5.4 주요 행위 (Behavior / Commands)
+
+| 메서드명/행위              | 파라미터                                          | 반환값         | 비지니스 의도 및 제약                                                                                                  |
+|----------------------|-----------------------------------------------|-------------|---------------------------------------------------------------------------------------------------------------|
+| `create`             | `CreateOrderSagaContext`, `IdGenerator`       | `OrderSaga` | 주문 SAGA를 생성한다. `PROCESSING` 상태와 `INVENTORY` 단계를 초기화하고 최초 정방향 실행 및 `ReduceInventoryEvent`를 등록한다.               |
+| `completeForward`    | `executionId`, `IdGenerator`                  | `void`      | 정방향 실행을 성공 처리하고 현재 단계의 다음 정방향 단계를 결정한다. 다음 단계가 존재하면 해당 실행과 이벤트를 생성하고, 더 이상 단계가 없으면 SAGA를 `COMPLETE` 상태로 종료한다. |
+| `failForward`        | `executionId`, `failureReason`, `IdGenerator` | `void`      | 정방향 실행 실패를 기록하고 실패 이벤트를 등록한 뒤 이미 성공한 정방향 단계 중 가장 최근 단계부터 보상 처리를 시작한다. 보상 대상이 없으면 SAGA를 `ABORT` 상태로 종료한다.      |
+| `completeCompensate` | `executionId`, `IdGenerator`                  | `void`      | 보상 실행을 성공 처리하고 다음 보상 대상이 존재하면 역순으로 다음 보상을 진행한다. 더 이상 보상 대상이 없으면 SAGA를 `ABORT` 상태로 종료한다.                       |
+| `failCompensate`     | `executionId`                                 | `void`      | 보상 실행 실패를 기록하고 SAGA를 `FAILED` 상태로 종료한다.                                                                       |
+
+### 2.5.5 내부 구성 요소 (Entities & Value Objects)
+
+#### 하위 엔티티: SAGA 실행 (OrderSagaExecution)
+
+SAGA의 개별 단계에 대한 정방향 또는 보상 실행 상태를 관리한다. 하나의 OrderSaga에 종속되어 각 단계의 처리 결과를 기록한다.
+
+**속성 (Attribute)**
+
+| 필드명       | 타입              | 설명                 |
+|-----------|-----------------|--------------------|
+| id        | Long            | SAGA 실행 식별자        |
+| orderSaga | OrderSaga       | 소속 주문 SAGA         |
+| status    | ExecutionStatus | 실행 결과 상태           |
+| type      | ExecutionType   | 정방향 실행 또는 보상 실행 유형 |
+| step      | SagaStep        | 실행 대상 SAGA 단계      |
+
+**도메인 규칙**
+
+- [규칙 1: SAGA 실행은 실행 유형과 단계가 반드시 존재해야 한다.]
+    1. 실행 생성 시 type과 step은 필수이다.
+- [규칙 2: SAGA 실행은 PENDING 상태로 생성된다.]
+    1. 새로운 실행 이력이 생성되면 초기 상태는 PENDING이다.
+- [규칙 3: 실패한 실행은 성공 상태로 변경할 수 없다.]
+    1. FAIL 상태인 실행에 success()를 호출하면 시스템 예외가 발생한다.
+- [규칙 4: 성공한 실행은 실패 상태로 변경할 수 없다.]
+    1. SUCCESS 상태인 실행에 fail()을 호출하면 시스템 예외가 발생한다.
+- [규칙 5: 실행 결과는 SUCCESS 또는 FAIL로 확정된다.]
+    1. 실행이 성공하면 SUCCESS, 실패하면 FAIL로 상태를 변경한다.
+
+**주요 행위**
+
+| 메서드명/행위   | 파라미터                                       | 반환값                  | 비지니스 의도 및 제약                                                         |
+|-----------|--------------------------------------------|----------------------|----------------------------------------------------------------------|
+| `create`  | `IdGenerator`, `ExecutionType`, `SagaStep` | `OrderSagaExecution` | SAGA의 특정 단계를 실행하기 위한 실행 이력을 생성한다. 식별자를 생성하고 초기 상태를 `PENDING`으로 설정한다. |
+| `success` | 없음                                         | `void`               | 현재 실행을 성공 상태로 변경한다. 이미 실패한 실행은 성공으로 변경할 수 없다.                        |
+| `fail`    | 없음                                         | `void`               | 현재 실행을 실패 상태로 변경한다. 이미 성공한 실행은 실패로 변경할 수 없다.                         |
+
+### 2.5.6 SAGA 실행 단계
+
+| 단계        | 의미      | 정방향 이벤트              | 보상 이벤트                |
+|-----------|---------|----------------------|-----------------------|
+| INVENTORY | 재고 차감   | ReduceInventoryEvent | RestoreInventoryEvent |
+| COUPON    | 쿠폰 사용   | UsedCouponEvent      | RestoreCouponEvent    |
+| POINT     | 포인트 사용  | UsedPointEvent       | 없음                    |
+| END       | SAGA 종료 | 없음                   | 없음                    |
+
 ## 3. 공통 도메인 요소 (Common Domain Elements)
 
 ### 3.1 주문자 정보 (`Orderer`)
@@ -688,404 +839,3 @@ stateDiagram-v2
 
 - [규칙 1: 옵션의 종류와 값은 필수이다.]
     1. 옵션 타입명과 값은 빈 문자열일 수 없다.
-
-### 결제(Payment)
-
-주문에 대한 결제 정보를 저장하는 엔티티
-
-#### 속성
-
-| 필드명         | 타입              | 설명       |
-|-------------|-----------------|----------|
-| id          | Long            | 결제 아이디   |
-| orderId     | Long            | 주문 아이디   |
-| userId      | Long            | 유저 아이디   |
-| status      | PaymentStatus   | 결제 상태    |
-| method      | PaymentMethod   | 결제 방식    |
-| provider    | PaymentProvider | 결제사      |
-| paymentKey  | String          | 결제 키     |
-| totalAmount | Money           | 결제한 금액   |
-| approvedAt  | LocalDateTime   | 결제 승인 시간 |
-| failure     | PaymentFailure  | 결제 실패 사유 |
-
-#### 행위
-
-- create(결제 생성): 결제를 생성한다.
-- approvePending(결제 승인 대기): 결제를 승인 대기 상태로 변경한다.
-- approve(결제 승인): 결제를 승인한다.
-- abort(결제 실패): 결제를 실패 처리한다.
-
-#### 규칙
-
-- 결제를 생성할 때 주문 번호가 필요하다.
-- 결제를 생성할 때 유저 아이디가 필요하다.
-- 결제를 생성할 때 결제 금액이 필요하다.
-- 결제를 생성할 때 결제 금액이 0원이면 결제 상태는 결제 완료(`DONE`) 상태이다.
-- 생성된 결제는 준비(`READY`) 상태이다.
-- 결제를 승인 대기 상태로 변경할때 결제 상태는 준비(`READY`)상태여야 한다.
-- 결제를 승인 대기 상태로 변경할때 승인 금액은 결제 금액과 동일해야한다.
-- 결제를 승인 대기 상태로 변경할때 지원하지 않는 결제사인 경우 승인 대기로 변경할 수 없다.
-- 결제를 승인 대기로 변경하면 결제 상태는 승인 대기로 변경되고 결제사와 결제 키가 초기화 된다.
-- 결제를 승인할 때 결제 방식이 필요하다.
-- 결제를 승인할 때 결제사가 필요하다.
-- 결제를 승인할 때 결제 키가 필요하다.
-- 결제를 승인할 때 결제 트랜잭션 키가 필요하다.
-- 결제를 승인할 때 승인 가격이 필요하다.
-- 결제를 승인할 때 승인 시간이 필요하다.
-- 결제를 승인할때 결제는 승인 대기 상태여야 한다.
-- 결제를 승인할때 가상 계좌 결제는 지원하지 않는다.
-- 결제를 실패 처리할때 실패 사유가 필요하다.
-- 결제를 실패 처리할때 결제의 상태는 준비(`READY`) 또는 승인 대기(`APPROVAL_PENDING`) 이어야 한다.
-
-### 결제 거래 내역(PaymentTransaction)
-
-결제에 대한 거래 내역을 저장하는 엔티티
-
-#### 속성
-
-| 필드명            | 타입              | 설명                    |
-|----------------|-----------------|-----------------------|
-| id             | Long            | 결제 내역 아이디             |
-| payment        | Payment         | 결제                    |
-| transactionKey | String          | 고유 거래 키               |
-| type           | TransactionType | 거래 종류                 |
-| amount         | Money           | 거래(승인 또는 취소)에서 변동된 금액 |
-| reason         | String          | 거래 발생 사유              |
-| occurredAt     | LocalDateTime   | 거래 발생 일시              |
-
-#### 행위
-
-- 결제 승인 내역 저장: 결제 승인 내역을 저장한다.
-
-#### 규칙
-
-### 주문 사가(OrderSaga)
-
-주문 자원 정보를 저장하는 엔티티
-
-#### 속성
-
-| 필드명           | 타입               | 설명       |
-|---------------|------------------|----------|
-| id            | Long             | 사가 아이디   |
-| orderId       | Long             | 주문 아이디   |
-| status        | SagaStatus       | 사가 상태    |
-| currentStep   | SagaStep         | 현재 진행 단계 |
-| payload       | OrderSagaPayload | 주문 자원    |
-| failureReason | String           | 실패 사유    |
-| version       | Long             | 낙관적 락 버전 |
-| createdAt     | LocalDateTime    | 생성일      |
-| updatedAt     | LocalDateTime    | 수정일      |
-
-#### 행위
-
-- create(주문 사가 생성): 주문 사가를 생성한다.
-- completeForward(스텝을 완료한다): 주문 사가 스텝을 완료한다
-- failForward(스텝을 실패한다): 주문 사가 스텝을 실패 처리한다.
-- completeCompensate(보상을 완료한다: 주문사가 보상을 완료한다.
-
-#### 규칙
-
-- 주문 사가를 생성할때 주문 아이디는 필수이다.
-- 주문 사가를 생성할때 페이로드는 필수이다.
-- 주문 사가를 생성하면 상태는 PROCESSING, 단계는 INVENTORY 이다.
-- 주문 사가를 생성하면 사가 작업(SagaExecution) 을 추가한다.
-- 주문 사가 스텝을 완료하면 해당 execution의 상태를 완료 처리한다.
-
-### 주문 사가 작업(OrderSagaExecution)
-
-#### 속성
-
-| 필드명       | 타입              | 설명          |
-|-----------|-----------------|-------------|
-| id        | Long            | 작업 아이디      |
-| orderSaga | OrderSaga       | 주문 사가 아이디   |
-| status    | ExecutionStatus | 주문 사가 작업 상태 |
-| type      | ExecutionType   | 작업 종류       |
-| step      | SagaStep        | 사가 스텝       |
-| createdAt | LocalDateTime   | 생성일         |
-| updatedAt | LocalDateTime   | 수정일         |
-
-#### 행위
-
-- create(작업 생성): 사가 작업을 생성한다.
-- complete(작업 완료): 사가 작업을 완료한다.
-- fail(작업 실패): 사가 작업을 실패로 변경한다.
-
-#### 규칙
-
-- 사가 작업을 생성할때 상태는 PENDING, 타입은 FORWARD 이다.
-- 사가 작업을 완료할때 상태는 FAIL일 수 없다.
-- 사가 작업을 실패할때 상태는 SUCCESS일 수 없다.
-
----
-
-## 값 객체(VO)
-
-### 1. 금액(Money)
-
-금액 정보를 관리하는 값 객체
-
-### 2. 주문자(Orderer)
-
-주문을 생성한 주문자 정보
-
-#### 속성
-
-| 필드명         | 타입     | 설명              |
-|-------------|--------|-----------------|
-| userId      | Long   | 주문을 생성한 유저 아이디  |
-| userName    | String | 주문을 생성한 유저 이름   |
-| phoneNumber | String | 주문을 생성한 유저 전화번호 |
-
-#### 행위
-
-- 주문자 생성 : 주문자 정보를 생성한다.
-
-#### 규칙
-
-- 주문자 정보를 생성할때 주문자 아이디가 필요하다.
-- 주문자 정보를 생성할때 주문자 이름이 필요하다.
-- 주문자 정보를 생성할때 주문자 전화번호가 필요하다,.
-- 주문자 전화번호는 올바른 형식이여야 한다.
-
-### 3. 배송 정보(ShippingAddress)
-
-주문 배송 정보
-
-| 필드명           | 타입     | 설명        |
-|---------------|--------|-----------|
-| receiverName  | String | 수령인 이름    |
-| receiverPhone | String | 수령인 전화번호  |
-| zipCode       | String | 우편번호      |
-| address       | String | 배송지 주소    |
-| addressDetail | String | 배송지 상세 주소 |
-
-#### 행위
-
-- 배송정보 생성: 배송정보를 생성한다.
-
-#### 규칙
-
-- 배송정보를 생성할때 수령인 이름이 필요하다.
-- 배송정보를 생성할때 수령인 전화번호가 필요하다.
-- 배송정보를 생성할때 우편변호가 필요하다.
-- 배송정보를 생성할때 주소가 필요하다.
-- 배송정보를 생성할때 상세주소가 필요하다.
-- 수령인 전화번호는 올바른 형식이여야 한다.
-- 우편 번호는 올바른 형식이여야 한다.
-
-### 4-1. 상품 쿠폰(ItemCouponSnapshot)
-
-주문 적용 상품 쿠폰 정보
-
-#### 속성
-
-| 필드명                | 타입                   | 설명        |
-|--------------------|----------------------|-----------|
-| itemCouponId       | Long                 | 적용 쿠폰 아이디 |
-| name               | String               | 쿠폰 이름     |
-| discountPolicy     | CouponDiscountPolicy | 쿠폰 할인 정책  |
-| applyQuantityLimit | int                  | 적용 가능 수량  |
-
-#### 행위
-
-- 상품 쿠폰 할인 금액을 계산한다
-
-#### 규칙
-
-- 주문 항목의 수량이 쿠폰 적용 가능 수량을 초과하는 경우 쿠폰의 최대 적용 가능 수량을 기준으로 계산된다.
-
-### 4-2. 장바구니 쿠폰(CartCouponSnapshot)
-
-주문서(OrderSheet) 단계에서 장바구니 쿠폰의 유효성을 검증하고 할인 금액을 동적으로 계산하기 위한 스냅샷 정보.
-
-#### 속성
-
-| 필드명                  | 타입                   | 설명        |
-|----------------------|----------------------|-----------|
-| cartCouponId         | Long                 | 적용 쿠폰 아이디 |
-| name                 | String               | 쿠폰 이름     |
-| discountPolicy       | CouponDiscountPolicy | 쿠폰 할인 정책  |
-| minimumPaymentAmount | Money                | 최소 결제 금액  |
-
-#### 행위
-
-- 장바구니 쿠폰 적용 가능 여부를 검증한다.
-- 장바구니 쿠폰 할인 금액을 계산한다.
-
-### 5. 상품 정보(ProductSnapshot)
-
-주문 시점의 상품 정보
-
-### 속성
-
-| 필드명              | 타입     | 설명        |
-|------------------|--------|-----------|
-| productId        | Long   | 상품 아이디    |
-| productVariantId | Long   | 상품 변형 아이디 |
-| sku              | String | 상품 SKU    |
-| productName      | String | 상품 이름     |           
-| thumbnail        | String | 상품 대표 이미지 |
-
-### 6. 상품 가격 정보(ProductPriceSnapshot)
-
-상품 가격 관련 정보
-
-| 필드명             | 타입      | 설명       |
-|-----------------|---------|----------|
-| originalPrice   | Money   | 상품 정상가   |
-| discountRate    | Integer | 상품 할인율   |
-| discountAmount  | Money   | 상품 할인 가격 |
-| discountedPrice | Money   | 상품 판매가   |
-
-### 7. 상품 옵션(ProductOptionSnapshot)
-
-주문 시점의 상품 옵션 정보
-
-### 속성
-
-| 필드명             | 타입     | 설명    |
-|-----------------|--------|-------|
-| optionTypeName  | String | 옵션 이름 |
-| optionValueName | String | 옵션 값  |
-
-### 8. 적용 장바구니 쿠폰 정보(AppliedCartCoupon)
-
-주문(Order)에 실제 적용이 완료된 장바구니 쿠폰의 정보.
-
-### 속성
-
-| 필드명          | 타입     | 설명          |
-|--------------|--------|-------------|
-| cartCouponId | Long   | 장바구니 쿠폰 아이디 |
-| name         | String | 장바구니 쿠폰 이름  |
-
-### 9. 주문 가격 정보(OrderAmount)
-
-주문 가격 요약 정보
-
-| 필드명                     | 타입    | 설명            |
-|-------------------------|-------|---------------|
-| totalOriginalAmount     | Money | 총 주문 상품 원 가격  |
-| totalItemDiscount       | Money | 총 주문 상품 할인 가격 |
-| totalItemCouponDiscount | Money | 총 상품 쿠폰 할인 가격 |
-| cartCouponDiscount      | Money | 장바구니 쿠폰 할인 가격 |
-| usedPoints              | Money | 적용 포인트        |
-| totalPaymentAmount      | Money | 최종 결제 금액      |
-
-### 10. 주문 취소 사유(OrderCancelInfo)
-
-주문 취소 정보
-
-### 속성
-
-| 필드명        | 타입            | 설명     |
-|------------|---------------|--------|
-| reason     | String        | 취소 사유  |
-| canceledAt | LocalDateTime | 주문 취소일 |
-
-### 11. 적용 상품 쿠폰 정보(AppliedItemCoupon)
-
-주문 항목(OrderItem)에 실제 적용이 완료된 상품 쿠폰의 정보.
-
-### 속성
-
-| 필드명          | 타입     | 설명        |
-|--------------|--------|-----------|
-| itemCouponId | Long   | 상품 쿠폰 아이디 |
-| name         | String | 상품 쿠폰 이름  |
-
-### 12. 주문 항목 가격 정보(OrderItemAmount)
-
-### 속성
-
-| 필드명                | 타입    | 설명             |
-|--------------------|-------|----------------|
-| originalAmount     | Money | 항목 원가 총액       |
-| itemDiscount       | Money | 항목 상품 할인 총액    |
-| lineTotal          | Money | 상품 판매가 총액      |
-| itemCouponDiscount | Money | 항목 상품 쿠폰 할인 금액 |
-| finalAmount        | Money | 항목 최종 결제 금액    |
-
-### 13. 결제 취소 사유(PaymentFailure)
-
-### 속성
-
-| 필드명     | 타입     | 설명     |
-|---------|--------|--------|
-| code    | String | 실패 코드  |
-| message | String | 실패 메시지 |
-
-### 14. 주문 사가 페이로드(OrderSagaPayload)
-
-### 속성
-
-| 필드명         | 타입              | 설명       |
-|-------------|-----------------|----------|
-| userId      | Long            | 유저 아이디   |
-| orderLines  | List<OrderLine> | 주문 항목    |
-| usedCoupons | UsedCoupons     | 사용 쿠폰 정보 |
-| usedPoints  | Money           | 사용 포인트   |
-
---
-
-## 도메인 정책
-
-### 1-1. 정액 할인 쿠폰 정책(FixedCouponDiscountPolicy)
-
-정액 할인 쿠폰에 대한 정책
-
-#### 속성
-
-| 필드명            | 타입    | 설명    |
-|----------------|-------|-------|
-| discountAmount | Money | 할인 금액 |
-
-#### 행위
-
-- 할인 금액을 계산한다
-
-#### 규칙
-
-- 대상 금액의 크기와 상관없이 지정된 고정 금액이 할인 금액이다.
-
-### 1-2. 정률 할인 쿠폰 정책(RateCouponDiscountPolicy)
-
-정률 할인 쿠폰에 대한 정책
-
-#### 속성
-
-| 필드명               | 타입    | 설명           |
-|-------------------|-------|--------------|
-| discountRate      | int   | 할인 비율        |
-| maxDiscountAmount | Money | 쿠폰의 최대 할인 금액 |
-
-#### 행위
-
-- 할인 금액을 계산한다.
-
-#### 규칙
-
-- 대상 금액에 지정된 비율을 곱하여 할인 금액이 계산된다.
-- 할인 금액은 최대 할인 금액을 초과할 수 없다.
-- 할인 금액이 최대 할인 금액을 초과하는 경우, 할인 금액 한도는 최대 할인 금액으로 적용된다.
-- 할인 금액이 1원단위라면 10원단위로 절삭된다.
-
-### 2. 기본 포인트 정책(DefaultPointUsagePolicy)
-
-포인트 사용에 대한 정책
-
-#### 속성
-
-| 필드명       | 타입         | 설명              |
-|-----------|------------|-----------------|
-| limitRate | BigDecimal | 최대 사용 가능 포인트 비율 |
-
-#### 행위
-
-- 사용 가능 포인트 금액을 계산한다.
-
-#### 규칙
-
-- 할인 비율은 0%(0.0) 에서 100%(1.0) 사이값이여야 한다.
