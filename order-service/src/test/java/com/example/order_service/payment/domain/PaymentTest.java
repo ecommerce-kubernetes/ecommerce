@@ -6,6 +6,7 @@ import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
+import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -303,5 +304,67 @@ class PaymentTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.PAYMENT_CANNOT_REFUND_PENDING);
+    }
+
+    @Test
+    @DisplayName("결제를 취소한다.")
+    void cancel(){
+        //given
+        Payment payment = PaymentFixtureBuilder.given().asRefundPending().build();
+
+        CancelPaymentContext context = CancelPaymentContext.builder()
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .cancelReason("단순 변심")
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        payment.cancel(context, idGenerator);
+        //then
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(payment.getPaymentTransactions()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("결제가 취소 대기가 아니면 예외가 발생한다.")
+    void cancel_whenStatusNotRefundPending_thenThrownException(){
+        //given
+        Payment payment = PaymentFixtureBuilder.given().asDone().build();
+
+        CancelPaymentContext context = CancelPaymentContext.builder()
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .cancelReason("단순 변심")
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> payment.cancel(context, idGenerator))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_CANNOT_CANCEL);
+    }
+
+    @Test
+    @DisplayName("환불 금액과 결제 금액이 동일하지 않으면 예외가 발생한다.")
+    void cancel_whenCancelAmountMismatches_thenThrownException(){
+        //given
+        Payment payment = PaymentFixtureBuilder.given()
+                .withTotalAmount(Money.wons(1000L))
+                .asRefundPending().build();
+
+
+        CancelPaymentContext context = CancelPaymentContext.builder()
+                .transactionKey("transactionKey")
+                .amount(Money.wons(2000L))
+                .cancelReason("단순 변심")
+                .occurredAt(LocalDateTime.now())
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> payment.cancel(context, idGenerator))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.CANCEL_AMOUNT_MISMATCH);
     }
 }

@@ -32,7 +32,7 @@ class PaymentTransactionTest {
 
     @Test
     @DisplayName("결제 승인 내역 생성시 아이디 생성기가 누락되면 예외가 발생한다.")
-    void createApproval_idGenerator_null() {
+    void createApproval_whenIdGeneratorIsNull_thenThrownException() {
         //given
         //when
         //then
@@ -47,7 +47,7 @@ class PaymentTransactionTest {
 
     @Test
     @DisplayName("결제 승인 내역 생성시 아이디가 누락되면 예외가 발생한다.")
-    void createApproval_id_null() {
+    void createApproval_whenIdGeneratorGenerateNullId_thenThrownException() {
         //given
         IdGenerator nullIdGenerator = () -> null;
         //when
