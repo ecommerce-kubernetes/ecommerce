@@ -326,7 +326,7 @@ stateDiagram-v2
 - [규칙 8: 주문 생성 시 주문명은 주문 항목을 기반으로 생성된다.]
     1. 주문 항목이 하나이면 첫 번째 상품명을 주문명으로 사용하고, 여러 항목이면 첫 번째 상품명 뒤에 나머지 항목 수를 표시한다.
 
-### 2.1.3 주요 행위 (Behavior / Commands)
+### 2.3.3 주요 행위 (Behavior / Commands)
 
 | 메서드명/행위        | 파라미터                                | 반환값     | 비지니스 의도 및 제약                                                                                        |
 |----------------|-------------------------------------|---------|-----------------------------------------------------------------------------------------------------|
@@ -460,6 +460,134 @@ stateDiagram-v2
 
 - [규칙 1: 상품 쿠폰 식별자는 필수이다.]
 - [규칙 2: 상품 쿠폰 이름은 비어 있을 수 없다.]
+
+### 2.4 Payment (Aggregate Root)
+
+결제 대상 주문의 결제 상태와 결제 수단 정보를 관리하고, 결제 승인 및 환불 과정에서 발생하는 결제 거래 내역을 함께 관리한다.
+
+### 2.4.1 속성 (Attribute)
+
+| 필드명                 | 타입                       | 설명               |
+|---------------------|--------------------------|------------------|
+| id                  | Long                     | 결제 식별자           |
+| orderId             | Long                     | 결제 대상 주문 식별자     |
+| userId              | Long                     | 결제 사용자 식별자       |
+| status              | PaymentStatus            | 결제 처리 상태         |
+| method              | PaymentMethod            | 결제 수단            |
+| provider            | PaymentProvider          | 결제 제공자           |
+| paymentKey          | String                   | 외부 결제 시스템의 결제 키  |
+| totalAmount         | Money                    | 결제 총액            |
+| failure             | PaymentFailure           | 결제 실패 정보         |
+| paymentTransactions | List<PaymentTransaction> | 결제 승인 및 환불 거래 내역 |
+
+### 2.4.2 생명 주기 및 상태 흐름 (Lifecycle & State)
+
+결제는 결제 생성 이후 승인 준비, 승인 완료 또는 실패, 환불 준비 및 환불 완료의 상태 전이를 따른다. 허용되지 않은 상태에서의 결제 행위는 차단된다.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "READY(결제 준비)" as READY
+    state "APPROVAL_PENDING(승인 대기)" as APPROVAL_PENDING
+    state "DONE(승인 완료)" as DONE
+    state "REFUND_PENDING(환불 대기)" as REFUND_PENDING
+    state "CANCELED(취소)" as CANCELED
+    [*] --> READY: create()
+    READY --> APPROVAL_PENDING: approvePending()
+    READY --> ABORTED: abort()
+    APPROVAL_PENDING --> DONE: approve()
+    APPROVAL_PENDING --> ABORTED: abort()
+    DONE --> REFUND_PENDING: refundPending()
+    REFUND_PENDING --> CANCELED: cancel()
+    ABORTED --> [*]
+    CANCELED --> [*]
+    DONE --> [*]
+```
+
+#### 상태 전이 규칙
+
+| 이전 상태            | 행위/메서드           | 다음 상태            | 비지니스 제약 및 의도                                    |
+|------------------|------------------|------------------|-------------------------------------------------|
+| (None)           | create()         | READY            | 결제 애그리거트를 생성하고 결제 준비 상태로 초기화한다.                 |
+| READY            | approvePending() | APPROVAL_PENDING | 결제 준비 상태에서 외부 결제 승인 요청에 필요한 결제 제공자와 결제 키를 등록한다. |
+| READY            | abort()          | ABORTED          | 결제 승인 전 결제를 실패 처리하고 실패 정보를 저장한다.                |
+| APPROVAL_PENDING | complete()       | DONE             | 승인 대기 상태에서 결제 수단과 결제 거래 내역을 등록하고 결제를 완료한다.      |
+| APPROVAL_PENDING | failed()         | ABORTED          | 승인 대기 중인 결제를 실패 처리하고 실패 정보를 저장한다.               |
+| DONE             | refundPending()  | REFUND_PENDING   | 완료된 결제를 환불 가능한 상태로 전환한다.                        |
+| REFUND_PENDING   | cancel()         | CANCELED         | 환불 대기 상태에서 환불 거래 내역을 등록하고 결제를 취소 완료한다.          |
+
+### 2.4.3 핵심 도메인 규칙 (Invariants / Business Rules)
+
+- [규칙 1: 결제는 `READY` 상태로 생성된다.]
+    1. 결제 생성 시 초기 상태는 `READY`로 설정한다.
+- [규칙 2: 결제 승인 준비는 `READY` 상태에서만 가능하다.]
+    1. READY 상태가 아닌 결제는 `approvePending()`을 수행할 수 없다.
+- [규칙 3: 지원하지 않는 결제 제공자로는 승인 준비를 진행할 수 없다.]
+- [규칙 4: 승인 준비 시 결제 금액은 결제 애그리거트의 총 결제 금액과 일치해야 한다.]
+    1. 외부 승인 요청 금액과 `totalAmount`가 다르면 승인 준비를 진행할 수 없다.
+- [규칙 5: 실제 결제 승인은 `APPROVAL_PENDING` 상태에서만 가능하다.]
+    1. 승인 대기 상태가 아니면 `approve()`를 수행할 수 없다.
+- [규칙 6: 가상계좌 결제 수단은 현재 승인할 수 없다.]
+    1. `VIRTUAL_ACCOUNT`인 경우 승인에 실패한다.
+- [규칙 7: 실제 승인 금액은 결제 총액과 일치해야 한다.]
+    1. 승인 요청 금액과 `totalAmount`가 다르면 결제를 완료할 수 없다.
+- [규칙 8: 결제가 승인되면 승인 거래 내역을 반드시 생성한다.]
+    1. 승인 완료 시 `PaymentTransaction`을 생성하여 결제에 추가한다.
+- [규칙 9: 결제가 실패 처리될 수 있는 상태는 `READY`와 `APPROVAL_PENDING`이다.]
+    1. 그 외 상태에서는 결제를 실패 처리할 수 없다.
+- [규칙 10: 결제 실패 처리 시 실패 정보가 함께 저장되어야 한다.]
+    1. `abort()` 호출 시 실패 정보가 필수이며 결제 상태와 함께 저장한다.
+- [규칙 11: 환불 준비는 완료된 결제에서만 가능하다.]
+    1. `DONE` 상태가 아닌 결제는 `refundPending()`을 수행할 수 없다.
+- [규칙 12: 환불 금액은 최초 결제 총액과 일치해야 한다.]
+    1. 환불 요청 금액이 `totalAmount`와 다르면 환불을 완료할 수 없다.
+- [규칙 13: 결제 취소가 완료되면 환불 거래 내역을 생성한다.]
+    1. `cancel()` 수행 시 `PaymentTransaction`을 생성하여 결제에 추가한다.
+- [규칙 14: 결제 승인 완료 시 결제 완료 이벤트를 등록한다.]
+    1. `DONE` 상태로 전환되면 `PaymentCompletedEvent`를 등록한다.
+
+### 2.4.4 주요 행위 (Behavior / Commands)
+
+| 메서드명/행위          | 파라미터                                   | 반환값       | 비지니스 의도 및 제약                                                                                                        |
+|------------------|----------------------------------------|-----------|---------------------------------------------------------------------------------------------------------------------|
+| `create`         | `CreatePaymentContext`, `IdGenerator`  | `Payment` | 결제를 생성한다. 식별자를 생성하고 주문 및 사용자 식별자와 결제 총액을 저장하며 초기 상태를 `READY`로 설정한다.                                                 |
+| `approvePending` | `ApprovePendingPaymentContext`         | `void`    | 결제 승인 요청을 준비한다. `READY` 상태인지 확인하고 지원 가능한 결제 제공자인지 검증하며 결제 금액이 일치하는 경우 `APPROVAL_PENDING`으로 전환하고 결제 제공자와 결제 키를 저장한다. |
+| `approve`        | `ApprovePaymentContext`, `IdGenerator` | `void`    | 승인 대기 중인 결제를 완료한다. 지원하지 않는 결제 수단 및 승인 금액 불일치를 검증한 후 `DONE`으로 전환하고 승인 거래를 생성하며 결제 완료 이벤트를 등록한다.                      |
+| `abort`          | `PaymentFailure`                       | `void`    | 승인 전 또는 승인 대기 중인 결제를 실패 처리한다. 허용된 상태인지 검증하고 실패 정보를 저장한 뒤 `ABORTED`로 전환한다.                                           |
+| `refundPending`  | 없음                                     | `void`    | 완료된 결제를 환불 준비 상태로 변경한다. 현재 상태가 `DONE`이어야 한다.                                                                        |
+| `cancel`         | `CancelPaymentContext`, `IdGenerator`  | `void`    | 환불 대기 중인 결제를 취소 완료한다. 환불 금액이 결제 총액과 일치하는지 검증한 후 `CANCELED`로 전환하고 환불 거래 내역을 생성한다.                                    |
+
+### 2.4.5 내부 구성 요소 (Entities & Value Objects)
+
+#### 하위 엔티티: 결제 거래 (`PaymentTransaction`)
+
+하나의 결제에서 발생한 승인 또는 환불 거래를 기록한다. 결제 애그리거트에 종속되어 거래 유형, 금액, 사유 및 발생 시점을 보관한다.
+
+**속성 (Attribute)**
+
+| 필드명            | 타입              | 설명                |
+|----------------|-----------------|-------------------|
+| id             | Long            | 결제 거래 식별자         |
+| payment        | Payment         | 소속 결제             |
+| transactionKey | String          | 외부 결제 시스템 거래 식별 키 |
+| type           | TransactionType | 거래 유형             |
+| amount         | Money           | 거래 금액             |
+| reason         | String          | 거래 사유             |
+| occurredAt     | LocalDateTime   | 거래 발생 시각          |
+
+**도메인 규칙**
+
+- [규칙 1: 결제 승인 거래는 `PAYMENT` 유형으로 기록된다.]
+    1. `createApproval()`로 생성된 거래는 `TransactionType.PAYMENT`를 사용한다.
+- [규칙 2: 결제 환불 거래는 `REFUND` 유형으로 기록된다.]
+    1. `createCancel()`로 생성된 거래는 `TransactionType.REFUND`를 사용한다.
+
+**주요 행위**
+
+| 메서드명/행위          | 파라미터                                                                                                      | 반환값                  | 비지니스 의도 및 제약                                            |
+|------------------|-----------------------------------------------------------------------------------------------------------|----------------------|---------------------------------------------------------|
+| `createApproval` | `String transactionKey`, `Money amount`, `LocalDateTime occurredAt`, `IdGenerator`                        | `PaymentTransaction` | 결제 승인 거래를 생성한다. 거래 유형을 `PAYMENT`로 설정하고 정상 승인 사유를 기록한다.  |
+| `createCancel`   | `String transactionKey`, `Money amount`, `LocalDateTime occurredAt`, `String cancelReason`, `IdGenerator` | `PaymentTransaction` | 결제 환불 거래를 생성한다. 거래 유형을 `REFUND`로 설정하고 전달받은 환불 사유를 기록한다. |
 
 ## 3. 공통 도메인 요소 (Common Domain Elements)
 
