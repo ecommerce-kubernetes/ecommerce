@@ -1,25 +1,20 @@
 package com.example.order_service.payment.application.service;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.payment.application.port.PaymentRepository;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.Payment;
-import com.example.order_service.payment.domain.PaymentMethod;
-import com.example.order_service.payment.domain.PaymentProvider;
-import com.example.order_service.payment.domain.context.ApprovePaymentContext;
-import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
-import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.domain.PaymentFixtureBuilder;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.support.annotation.IsolatedTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,25 +32,29 @@ class PaymentQueryServiceTest {
     @Autowired
     private PaymentRepository paymentRepository;
 
+    @Autowired
+    private EntityManager em;
+
+
     @Test
     @DisplayName("결제를 조회한다.")
     void getPayment() {
         //given
-        CreatePaymentContext context = createContext();
-        Payment payment = Payment.create(context, idGenerator);
-
+        Payment payment = PaymentFixtureBuilder.given().build();
         paymentRepository.save(payment);
+        flushAndClear();
         //when
-        PaymentResult result = paymentQueryService.getPayment(payment.getId(), 1L);
+        PaymentResult result = paymentQueryService.getPayment(payment.getId(), payment.getUserId());
+        flushAndClear();
         //then
         assertThat(result.paymentId()).isEqualTo(payment.getId());
-        assertThat(result.orderId()).isEqualTo(1L);
-        assertThat(result.userId()).isEqualTo(1L);
+        assertThat(result.orderId()).isEqualTo(payment.getOrderId());
+        assertThat(result.userId()).isEqualTo(payment.getUserId());
     }
 
     @Test
     @DisplayName("결제를 찾을 수 없으면 예외가 발생한다.")
-    void getPayment_notFound() {
+    void getPayment_whenPaymentNotFound_thenThrownException() {
         //given
         //when
         //then
@@ -69,35 +68,17 @@ class PaymentQueryServiceTest {
     @DisplayName("완료 상태의 결제를 조회한다.")
     void findCompletedPaymentByOrderId() {
         //given
-        CreatePaymentContext context = createContext();
-        Payment payment = Payment.create(context, idGenerator);
-        ApprovePendingPaymentContext approvePendingContext = ApprovePendingPaymentContext.builder()
-                .amount(Money.wons(10000L))
-                .provider(PaymentProvider.TOSS)
-                .paymentKey("paymentKey")
-                .build();
-        payment.approvePending(approvePendingContext);
-        ApprovePaymentContext approveContext = ApprovePaymentContext.builder()
-                .method(PaymentMethod.CARD)
-                .transactionKey("transactionKey")
-                .amount(Money.wons(10000L))
-                .occurredAt(LocalDateTime.now())
-                .build();
-
-        payment.approve(approveContext, idGenerator);
+        Payment payment = PaymentFixtureBuilder.given().asDone().build();
         paymentRepository.save(payment);
+        flushAndClear();
         //when
         Optional<PaymentResult> result = paymentQueryService.findCompletedPaymentByOrderId(1L);
         //then
         assertThat(result).isPresent();
     }
 
-    private CreatePaymentContext createContext() {
-        return CreatePaymentContext.builder()
-                .orderId(1L)
-                .userId(1L)
-                .totalAmount(Money.wons(10000L))
-                .build();
+    private void flushAndClear() {
+        em.flush();
+        em.clear();
     }
-
 }
