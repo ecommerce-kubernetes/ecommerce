@@ -49,18 +49,15 @@ public class OrderQueryServiceTest {
     @DisplayName("주문 아이디와 주문자 아이디로 주문을 조회한다.")
     void getOrder() {
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext orderContext = createOrderContext();
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        Order order = orderRepository.save(Order.create(orderContext, idGenerator));
+        Order order = OrderFixtureBuilder.given().build();
+        orderRepository.save(order);
         flushAndClear();
         //when
-        OrderResult findOrder = orderQueryService.getOrder(order.getId(), 1L);
+        OrderResult findOrder = orderQueryService.getOrder(order.getId(), order.getOrderer().getUserId());
         //then
         assertThat(findOrder.orderId()).isEqualTo(order.getId());
-        assertThat(findOrder.orderer()).isEqualTo(orderer);
-        assertThat(findOrder.shippingAddress()).isEqualTo(shippingAddress);
+        assertThat(findOrder.orderer()).isEqualTo(order.getOrderer());
+        assertThat(findOrder.shippingAddress()).isEqualTo(order.getShippingAddress());
         assertThat(findOrder.orderItems()).hasSize(1);
     }
 
@@ -80,11 +77,8 @@ public class OrderQueryServiceTest {
     @DisplayName("주문 목록을 조회한다.")
     void getOrders() {
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext orderContext1 = createOrderContext();
-        CreateOrderContext orderContext2 = createOrderContext();
-        Order order1 = Order.create(orderContext1, idGenerator);
-        Order order2 = Order.create(orderContext2, idGenerator);
+        Order order1 = OrderFixtureBuilder.given().build();
+        Order order2 = OrderFixtureBuilder.given().build();
         Pageable pageable = PageRequest.of(0, 10);
         OrderSearchCommand command = OrderSearchCommand.of("latest", null, null, pageable);
         orderRepository.save(order1);

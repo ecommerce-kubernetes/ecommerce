@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class PaymentFixtureBuilder {
 
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     private Long orderId = 1L;

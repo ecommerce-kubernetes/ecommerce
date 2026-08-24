@@ -184,8 +184,7 @@ class OrderTest {
     @DisplayName("주문을 완료한다.")
     void complete(){
         //given
-        Order order = OrderFixtureBuilder.given().build();
-        order.accept();
+        Order order = OrderFixtureBuilder.given().asAccepted().build();
         //when
         order.complete();
         //then

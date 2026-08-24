@@ -26,7 +26,7 @@ public class OrderSheetFixtureBuilder {
 
     private List<CreateOrderSheetItemContext> itemContexts;
 
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     public static OrderSheetFixtureBuilder given() {

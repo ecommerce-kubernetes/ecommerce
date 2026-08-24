@@ -12,7 +12,7 @@ public class CartFixtureBuilder {
 
     private Long userId = 1L;
     private List<AddCartItemsContext.Item> items = new ArrayList<>();
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     public static CartFixtureBuilder given() {

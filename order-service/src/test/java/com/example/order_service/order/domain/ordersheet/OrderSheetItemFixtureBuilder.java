@@ -19,7 +19,7 @@ public class OrderSheetItemFixtureBuilder {
     private int quantity = 1;
     private List<ProductOptionSnapshot> options = List.of(ProductOptionSnapshot.of("사이즈", "XL"));
 
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     public static OrderSheetItemFixtureBuilder given() {

@@ -77,12 +77,11 @@ public class OrderCommandServiceTest {
     }
 
     @Test
-    @DisplayName("주문을 결제 완료로 변경한다.")
+    @DisplayName("주문을 접수로 변경한다.")
     void changeAccept() {
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext context = createOrderContext();
-        Order order = orderRepository.save(Order.create(context, idGenerator));
+        Order order = OrderFixtureBuilder.given().build();
+        orderRepository.save(order);
         flushAndClear();
         //when
         orderCommandService.changeAccepted(order.getId());
@@ -93,7 +92,7 @@ public class OrderCommandServiceTest {
     }
 
     @Test
-    @DisplayName("주문을 결제 완료로 변경할때 주문을 찾을 수 없는 경우 예외가 발생한다.")
+    @DisplayName("주문을 접수로 변경할때 주문을 찾을 수 없는 경우 예외가 발생한다.")
     void changeAccept_whenOrderNotFound_thenThrownException() {
         //given
         //when
@@ -108,9 +107,8 @@ public class OrderCommandServiceTest {
     @DisplayName("주문이 접수로 변경되면 주문 접수 이벤트가 발행된다.")
     void changeAccept_whenOrderChangeAccepted_thenPublishAcceptedEvent() {
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext context = createOrderContext();
-        Order order = orderRepository.save(Order.create(context, idGenerator));
+        Order order = OrderFixtureBuilder.given().build();
+        orderRepository.save(order);
         flushAndClear();
         //when
         orderCommandService.changeAccepted(order.getId());
@@ -124,17 +122,14 @@ public class OrderCommandServiceTest {
     @DisplayName("주문을 완료한다.")
     void changeCompleted(){
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext context = createOrderContext();
-        Order order = Order.create(context, idGenerator);
-        order.accept();
-        Order savedOrder = orderRepository.save(order);
+        Order order = OrderFixtureBuilder.given().asAccepted().build();
+        orderRepository.save(order);
         flushAndClear();
         //when
-        orderCommandService.changeCompleted(savedOrder.getId());
+        orderCommandService.changeCompleted(order.getId());
         flushAndClear();
         //then
-        Order findOrder = orderRepository.findById(savedOrder.getId()).orElseThrow();
+        Order findOrder = orderRepository.findById(order.getId()).orElseThrow();
         assertThat(findOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
     }
 
@@ -154,16 +149,14 @@ public class OrderCommandServiceTest {
     @DisplayName("주문을 실패로 변경한다.")
     void changeFailed(){
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext context = createOrderContext();
-        Order order = Order.create(context, idGenerator);
-        Order savedOrder = orderRepository.save(order);
+        Order order = OrderFixtureBuilder.given().build();
+        orderRepository.save(order);
         flushAndClear();
         //when
-        orderCommandService.changeFailed(savedOrder.getId(), "주문 실패");
+        orderCommandService.changeFailed(order.getId(), "주문 실패");
         flushAndClear();
         //then
-        Order findOrder = orderRepository.findById(savedOrder.getId()).orElseThrow();
+        Order findOrder = orderRepository.findById(order.getId()).orElseThrow();
         assertThat(findOrder.getStatus()).isEqualTo(OrderStatus.FAILED);
         assertThat(findOrder.getOrderCancelInfo().getReason()).isEqualTo("주문 실패");
     }
@@ -172,13 +165,11 @@ public class OrderCommandServiceTest {
     @DisplayName("주문을 실패로 변경하면 주문 실패 이벤트가 발행된다")
     void changeFailed_whenChangeFailed_thenPublishOrderFailedEvent(){
         //given
-        IdGenerator idGenerator = new TsidGenerator();
-        CreateOrderContext context = createOrderContext();
-        Order order = Order.create(context, idGenerator);
-        Order savedOrder = orderRepository.save(order);
+        Order order = OrderFixtureBuilder.given().build();
+        orderRepository.save(order);
         flushAndClear();
         //when
-        orderCommandService.changeFailed(savedOrder.getId(), "주문 실패");
+        orderCommandService.changeFailed(order.getId(), "주문 실패");
         flushAndClear();
         //then
         long eventCount = events.stream(OrderFailedEvent.class).count();

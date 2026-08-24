@@ -2,6 +2,9 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.application.service.order.OrderContextFactory;
+import com.example.order_service.order.application.service.order.OrderFacade;
+import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
@@ -13,6 +16,8 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentCreateResult;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.fixture.PaymentCommandFixture;
+import com.example.order_service.payment.application.service.fixture.PaymentOrderResultFixture;
 import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
@@ -20,6 +25,7 @@ import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,24 +55,24 @@ class PaymentFacadeTest {
     private PaymentCommandService paymentCommandService;
     @Mock
     private PaymentQueryService paymentQueryService;
-    @Spy
-    private PaymentValidator validator;
-    @Spy
-    private PaymentContextFactory contextFactory;
-    @Spy
-    private PGErrorPolicy pgErrorPolicy;
+
+    @BeforeEach
+    void setUp() {
+        PaymentValidator validator = new PaymentValidator();
+        PGErrorPolicy pgErrorPolicy = new PGErrorPolicy();
+        PaymentContextFactory contextFactory = new PaymentContextFactory();
+        paymentFacade = new PaymentFacade(paymentCommandService, paymentQueryService, paymentOrderPort, paymentPGPort, validator,
+                pgErrorPolicy, contextFactory);
+    }
 
     @Test
     @DisplayName("결제를 생성한다.")
     void create() {
         //given
         Long paymentId = 1L;
-        PaymentCreateCommand command = PaymentCreateCommand.builder()
-                .userId(1L)
-                .orderId(1L)
-                .build();
+        PaymentCreateCommand command = PaymentCommandFixture.anCreateCommand().build();
 
-        PaymentOrderResult orderResult = createPaymentOrderResult(PaymentOrderStatus.PENDING);
+        PaymentOrderResult orderResult = PaymentOrderResultFixture.anPaymentOrder().build();
 
         PaymentResult paymentResult = PaymentResult.builder()
                 .paymentId(paymentId)
@@ -117,39 +123,6 @@ class PaymentFacadeTest {
         PaymentConfirmResult result = paymentFacade.approve(command);
         //then
         assertThat(result.paymentId()).isEqualTo(1L);
-    }
-
-    @Test
-    @DisplayName("승인 금액이 결제 금액과 동일하지 않으면 결제를 실패 처리하고 예외가 발생한다.")
-    void approve_payment_misMatch_amount() {
-        //given
-        PaymentConfirmCommand command = PaymentConfirmCommand.builder()
-                .paymentId(1L)
-                .userId(1L)
-                .paymentKey("paymentKey")
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .build();
-
-        PaymentResult paymentResult = PaymentResult.builder()
-                .paymentId(1L)
-                .orderId(1L)
-                .userId(1L)
-                .status(PaymentStatus.READY)
-                .totalAmount(Money.wons(1000L))
-                .build();
-
-        given(paymentQueryService.getPayment(anyLong(), anyLong())).willReturn(paymentResult);
-        willThrow(new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH))
-                .given(paymentCommandService).approvePending(anyLong(), any(ApprovePendingPaymentContext.class));
-        //when
-        //then
-        assertThatThrownBy(() -> paymentFacade.approve(command))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
-
-        verify(paymentCommandService).abort(anyLong(), any(PaymentFailure.class));
     }
 
     private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {

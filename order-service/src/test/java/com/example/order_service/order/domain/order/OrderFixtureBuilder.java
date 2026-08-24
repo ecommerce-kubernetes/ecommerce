@@ -9,21 +9,43 @@ import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class OrderFixtureBuilder {
 
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     private Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
     private ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
             "12345", "서울시 테헤란로 123", "123동 1234호");
 
+    private TargetState targetState = TargetState.PENDING;
+    private OrderCancelInfo cancelInfo;
+
+    private enum TargetState { PENDING, ACCEPTED, COMPLETED, FAILED }
+
     public static OrderFixtureBuilder given() {
         return new OrderFixtureBuilder();
+    }
+
+    public OrderFixtureBuilder asAccepted() {
+        this.targetState = TargetState.ACCEPTED;
+        return this;
+    }
+
+    public OrderFixtureBuilder asCompleted() {
+        this.targetState = TargetState.COMPLETED;
+        return this;
+    }
+
+    public OrderFixtureBuilder asFailed(String reason) {
+        this.targetState = TargetState.FAILED;
+        this.cancelInfo = OrderCancelInfo.of(reason, LocalDateTime.now());
+        return this;
     }
 
     public Order build() {
@@ -45,7 +67,24 @@ public class OrderFixtureBuilder {
                 .orderAmount(orderAmount)
                 .build();
 
-        return Order.create(context, idGenerator);
+        Order order = Order.create(context, idGenerator);
+
+        if (targetState == TargetState.PENDING) {
+            return order;
+        }
+
+        if (targetState == TargetState.FAILED) {
+            order.failed(this.cancelInfo);
+            return order;
+        }
+
+        order.accept();
+        if (targetState == TargetState.ACCEPTED) {
+            return order;
+        }
+
+        order.complete();
+        return order;
     }
 
     private CreateOrderItemContext createOrderItemContext() {

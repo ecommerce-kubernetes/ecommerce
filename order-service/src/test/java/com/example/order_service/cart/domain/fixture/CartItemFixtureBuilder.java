@@ -12,7 +12,7 @@ public class CartItemFixtureBuilder {
     private int quantity = 1;
     private int maxLimit = 100;
 
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     public static CartItemFixtureBuilder given(){
