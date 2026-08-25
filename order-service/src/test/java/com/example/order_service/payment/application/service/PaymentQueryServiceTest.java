@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +36,6 @@ class PaymentQueryServiceTest {
 
     @Autowired
     private EntityManager em;
-
 
     @Test
     @DisplayName("결제를 조회한다.")
@@ -75,6 +76,33 @@ class PaymentQueryServiceTest {
         Optional<PaymentResult> result = paymentQueryService.findCompletedPaymentByOrderId(1L);
         //then
         assertThat(result).isPresent();
+    }
+
+    @Test
+    @DisplayName("타임아웃된 준비중 결제를 조회한다.")
+    void getPaymentsByReadyAndCreatedAtBefore() {
+        //given
+        Payment payment1 = PaymentFixtureBuilder.given().build();
+        Payment payment2 = PaymentFixtureBuilder.given().build();
+
+        paymentRepository.save(payment1);
+        paymentRepository.save(payment2);
+
+        LocalDateTime pastTime = LocalDateTime.now().minusMinutes(40);
+        em.createNativeQuery("UPDATE payment SET created_at = :pastTime WHERE id IN (:id)")
+                .setParameter("pastTime", pastTime)
+                .setParameter("id", payment1.getId())
+                .executeUpdate();
+
+        flushAndClear();
+
+        LocalDateTime timeoutThreshold = LocalDateTime.now().minusMinutes(30);
+        //when
+        List<PaymentResult> result = paymentQueryService.getPaymentsByReadyAndCreatedAtBefore(timeoutThreshold);
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting("paymentId")
+                .containsExactlyInAnyOrder(payment1.getId());
     }
 
     private void flushAndClear() {

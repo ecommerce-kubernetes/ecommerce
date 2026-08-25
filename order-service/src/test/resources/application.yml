@@ -44,6 +44,8 @@ payment:
   toss:
     url: https://api.tosspayments.com
     secret-key: secretKey
+  timeout-minute:
+    timeout-ready: 30
 
 order:
   timeout-minute: 30

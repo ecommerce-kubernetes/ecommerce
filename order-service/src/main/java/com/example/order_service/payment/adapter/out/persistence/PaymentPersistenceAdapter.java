@@ -6,6 +6,8 @@ import com.example.order_service.payment.domain.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -32,5 +34,10 @@ public class PaymentPersistenceAdapter implements PaymentRepository {
     @Override
     public Optional<Payment> findByOrderIdAndStatus(Long orderId, PaymentStatus status) {
         return paymentJpaRepository.findByOrderIdAndStatus(orderId, status);
+    }
+
+    @Override
+    public List<Payment> findPaymentsByStatusAndCreatedAtBefore(PaymentStatus status, LocalDateTime threshold) {
+        return paymentJpaRepository.findPaymentsByStatusAndCreatedAtBefore(status, threshold);
     }
 }

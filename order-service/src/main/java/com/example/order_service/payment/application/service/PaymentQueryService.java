@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,5 +30,10 @@ public class PaymentQueryService {
     public Optional<PaymentResult> findCompletedPaymentByOrderId(Long orderId) {
         return paymentRepository.findByOrderIdAndStatus(orderId, PaymentStatus.DONE)
                 .map(PaymentResult::from);
+    }
+
+    public List<PaymentResult> getPaymentsByReadyAndCreatedAtBefore(LocalDateTime threshold) {
+        List<Payment> payments = paymentRepository.findPaymentsByStatusAndCreatedAtBefore(PaymentStatus.READY, threshold);
+        return payments.stream().map(PaymentResult::from).toList();
     }
 }
