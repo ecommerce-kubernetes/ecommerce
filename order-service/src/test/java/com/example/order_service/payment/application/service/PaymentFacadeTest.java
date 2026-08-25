@@ -4,8 +4,10 @@ import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentOrderResult;
+import com.example.order_service.payment.application.service.dto.command.PaymentCancelCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentConfirmResult;
@@ -15,9 +17,11 @@ import com.example.order_service.payment.application.service.fixture.PaymentComm
 import com.example.order_service.payment.application.service.fixture.PaymentOrderResultFixture;
 import com.example.order_service.payment.application.service.fixture.PaymentPGResultFixture;
 import com.example.order_service.payment.application.service.fixture.PaymentResultFixture;
+import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.domain.PaymentStatus;
 import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
+import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
@@ -30,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -193,5 +198,35 @@ class PaymentFacadeTest {
                 .isEqualTo(PaymentErrorCode.PAYMENT_REFUND_PENDING);
 
         then(paymentPGPort).should(times(1)).netCancel(eq(command.paymentKey()), anyString(), eq(command.provider()));
+    }
+    
+    @Test
+    @DisplayName("취소할 결제가 없는 경우 스킵된다")
+    void cancel_whenPaymentNotFound_thenSkip() {
+        //given
+        PaymentCancelCommand command = PaymentCommandFixture.anCancelCommand().build();
+
+        given(paymentQueryService.findCompletedPaymentByOrderId(anyLong())).willReturn(Optional.empty());
+        //when
+        paymentFacade.cancel(command);
+        //then
+        verify(paymentCommandService, never()).refundPending(anyLong());
+    }
+
+    @Test
+    @DisplayName("취소할 결제가 존재하는 경우 결제 취소를 진행한다.")
+    void cancel_whenPaymentExist_thenCancel() {
+        //given
+        PaymentResult paymentResult = PaymentResultFixture.anPaymentResult().build();
+        PGCancelResult cancelResult = PaymentPGResultFixture.anPGCancelResult().build();
+
+        PaymentCancelCommand command = PaymentCommandFixture.anCancelCommand().build();
+
+        given(paymentQueryService.findCompletedPaymentByOrderId(anyLong())).willReturn(Optional.of(paymentResult));
+        given(paymentPGPort.cancel(anyString(), anyString(), any(PaymentProvider.class))).willReturn(cancelResult);
+        //when
+        paymentFacade.cancel(command);
+        //then
+        verify(paymentCommandService).cancel(anyLong(), any(CancelPaymentContext.class));
     }
 }

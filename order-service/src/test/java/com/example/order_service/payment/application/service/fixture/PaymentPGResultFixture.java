@@ -1,6 +1,7 @@
 package com.example.order_service.payment.application.service.fixture;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;
@@ -15,5 +16,15 @@ public class PaymentPGResultFixture {
                 .method(PaymentMethod.CARD)
                 .transactionKey("transactionKey")
                 .approvedAt(LocalDateTime.now());
+    }
+
+    public static PGCancelResult.PGCancelResultBuilder anPGCancelResult() {
+        return PGCancelResult.builder()
+                .status(PaymentPGStatus.CANCELED)
+                .transactionKey("transactionKey")
+                .amount(Money.wons(1000L))
+                .cancelReason("결제 취소")
+                .canceledAt(LocalDateTime.now());
+
     }
 }

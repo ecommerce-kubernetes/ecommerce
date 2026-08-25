@@ -1,6 +1,7 @@
 package com.example.order_service.payment.application.service.fixture;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.payment.application.service.dto.command.PaymentCancelCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentConfirmCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentCreateCommand;
 import com.example.order_service.payment.domain.PaymentProvider;
@@ -20,5 +21,12 @@ public class PaymentCommandFixture {
                 .paymentKey("paymentKey")
                 .amount(Money.wons(1000L))
                 .provider(PaymentProvider.TOSS);
+    }
+
+    public static PaymentCancelCommand.PaymentCancelCommandBuilder anCancelCommand() {
+        return PaymentCancelCommand.builder()
+                .orderId(1L)
+                .userId(1L)
+                .cancelReason("주문 취소");
     }
 }
