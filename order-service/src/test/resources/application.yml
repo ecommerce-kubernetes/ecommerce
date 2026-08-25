@@ -46,6 +46,7 @@ payment:
     secret-key: secretKey
 
 order:
+  timeout-minute: 30
   topics:
     # 상품 재고 차감/보상 명령
     product-saga-command: "product.saga.command"

@@ -12,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -27,5 +30,9 @@ public class OrderQueryService {
     public Page<OrderSummaryResult> getOrders(Long userId, OrderSearchCommand command) {
         Page<Order> orders = orderRepository.searchOrders(userId, command);
         return orders.map(OrderSummaryResult::from);
+    }
+
+    public List<OrderSummaryResult> getOrdersByPendingAndCreatedAtBefore(LocalDateTime threshold) {
+        return List.of();
     }
 }
