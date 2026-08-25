@@ -45,9 +45,6 @@ public class PaymentControllerDocsTest extends RestDocSupport {
         HttpHeaders authHeader = createAuthHeader("ROLE_USER");
         PaymentCreateResult result = PaymentCreateResult.builder()
                 .paymentId(1L)
-                .orderId(1L)
-                .orderName("상품")
-                .totalAmount(Money.wons(10000L))
                 .build();
         given(paymentFacade.create(any(PaymentCreateCommand.class)))
                 .willReturn(result);

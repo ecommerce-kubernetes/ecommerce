@@ -55,9 +55,7 @@ public class PaymentControllerTest {
                 .orderId(1L)
                 .build();
 
-        PaymentCreateResult result = Instancio.of(PaymentCreateResult.class)
-                .set(field("totalAmount"), Money.wons(10000L))
-                .create();
+        PaymentCreateResult result = PaymentCreateResult.from(1L);
 
         given(paymentFacade.create(any(PaymentCreateCommand.class)))
                 .willReturn(result);
@@ -67,10 +65,7 @@ public class PaymentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.paymentId").value(result.paymentId()))
-                .andExpect(jsonPath("$.orderId").value(result.orderId()))
-                .andExpect(jsonPath("$.orderName").value(result.orderName()))
-                .andExpect(jsonPath("$.totalAmount").value(result.totalAmount().longValue()));
+                .andExpect(jsonPath("$.paymentId").value(result.paymentId()));
     }
 
     @Test

@@ -46,16 +46,7 @@ public class PaymentDescriptor {
         return new FieldDescriptor[] {
                 fieldWithPath("paymentId")
                         .type(JsonFieldType.STRING)
-                        .description("결제 식별자"),
-                fieldWithPath("orderId")
-                        .type(JsonFieldType.STRING)
-                        .description("주문 식별자"),
-                fieldWithPath("orderName")
-                        .type(JsonFieldType.STRING)
-                        .description("주문 이름"),
-                fieldWithPath("totalAmount")
-                        .type(JsonFieldType.NUMBER)
-                        .description("결제 금액")
+                        .description("결제 식별자")
         };
     }
 }

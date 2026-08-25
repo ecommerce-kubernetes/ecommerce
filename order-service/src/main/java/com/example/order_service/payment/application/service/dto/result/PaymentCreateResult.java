@@ -7,19 +7,11 @@ import lombok.Builder;
 
 @Builder
 public record PaymentCreateResult(
-        Long paymentId,
-        PaymentStatus status,
-        Long orderId,
-        String orderName,
-        Money totalAmount
+        Long paymentId
 ) {
-    public static PaymentCreateResult from(PaymentResult payment, PaymentOrderResult order) {
+    public static PaymentCreateResult from(Long paymentId) {
         return PaymentCreateResult.builder()
-                .paymentId(payment.paymentId())
-                .status(payment.status())
-                .orderId(order.orderId())
-                .orderName(order.orderName())
-                .totalAmount(payment.totalAmount())
+                .paymentId(paymentId)
                 .build();
     }
 }

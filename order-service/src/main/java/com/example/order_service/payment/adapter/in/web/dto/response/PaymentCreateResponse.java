@@ -7,18 +7,11 @@ import lombok.Builder;
 @Builder
 public record PaymentCreateResponse(
         @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Long paymentId,
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Long orderId,
-        String orderName,
-        Long totalAmount
+        Long paymentId
 ) {
     public static PaymentCreateResponse from(PaymentCreateResult result) {
         return PaymentCreateResponse.builder()
                 .paymentId(result.paymentId())
-                .orderId(result.orderId())
-                .orderName(result.orderName())
-                .totalAmount(result.totalAmount().longValue())
                 .build();
     }
 }

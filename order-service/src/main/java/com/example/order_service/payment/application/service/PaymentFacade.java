@@ -47,8 +47,7 @@ public class PaymentFacade {
         CreatePaymentContext context = contextFactory.create(order.orderId(), command.userId(), order.totalAmount());
         Long paymentId = paymentCommandService.create(context);
 
-        PaymentResult payment = paymentQueryService.getPayment(paymentId, command.userId());
-        return PaymentCreateResult.from(payment, order);
+        return PaymentCreateResult.from(paymentId);
     }
 
     public PaymentConfirmResult approve(PaymentConfirmCommand command) {
