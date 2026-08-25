@@ -18,6 +18,7 @@ import com.example.order_service.payment.application.service.dto.result.PaymentC
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.application.service.fixture.PaymentCommandFixture;
 import com.example.order_service.payment.application.service.fixture.PaymentOrderResultFixture;
+import com.example.order_service.payment.application.service.fixture.PaymentPGResultFixture;
 import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
@@ -98,21 +99,9 @@ class PaymentFacadeTest {
     @DisplayName("결제를 승인한다.")
     void approve() {
         //given
-        PaymentConfirmCommand command = PaymentConfirmCommand.builder()
-                .paymentId(1L)
-                .userId(1L)
-                .paymentKey("paymentKey")
-                .amount(Money.wons(1000L))
-                .provider(PaymentProvider.TOSS)
-                .build();
+        PaymentConfirmCommand command = PaymentCommandFixture.anConfirmCommand().build();
 
-        PGConfirmResult pgResult = PGConfirmResult.builder()
-                .status(PaymentPGStatus.DONE)
-                .amount(Money.wons(1000L))
-                .method(PaymentMethod.CARD)
-                .transactionKey("transactionKey")
-                .approvedAt(LocalDateTime.now())
-                .build();
+        PGConfirmResult pgResult = PaymentPGResultFixture.anPGConfirmResult().build();
 
         willDoNothing()
                 .given(paymentCommandService)
@@ -123,14 +112,5 @@ class PaymentFacadeTest {
         PaymentConfirmResult result = paymentFacade.approve(command);
         //then
         assertThat(result.paymentId()).isEqualTo(1L);
-    }
-
-    private PaymentOrderResult createPaymentOrderResult(PaymentOrderStatus status) {
-        return PaymentOrderResult.builder()
-                .orderId(1L)
-                .status(status)
-                .orderName("상품")
-                .totalAmount(Money.wons(10000L))
-                .build();
     }
 }
