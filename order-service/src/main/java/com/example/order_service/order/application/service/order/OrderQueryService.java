@@ -6,6 +6,7 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
 import com.example.order_service.order.domain.order.Order;
+import com.example.order_service.order.domain.order.OrderStatus;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,7 @@ public class OrderQueryService {
     }
 
     public List<OrderSummaryResult> getOrdersByPendingAndCreatedAtBefore(LocalDateTime threshold) {
-        return List.of();
+        List<Order> orders = orderRepository.findOrdersByStatusAndCreatedAtBefore(OrderStatus.PENDING, threshold);
+        return orders.stream().map(OrderSummaryResult::from).toList();
     }
 }

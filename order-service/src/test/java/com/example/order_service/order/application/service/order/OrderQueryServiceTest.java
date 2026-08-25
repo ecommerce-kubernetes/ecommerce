@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,41 +98,31 @@ public class OrderQueryServiceTest {
                 );
     }
 
-    private CreateOrderContext createOrderContext() {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        AppliedCartCoupon appliedCartCoupon = AppliedCartCoupon.of(10L, "장바구니 1000원 할인 쿠폰");
+    @Test
+    @DisplayName("타임아웃된 대기중 주문을 조회한다.")
+    void getOrdersByPendingAndCreatedAtBefore() {
+        //given
+        Order order1 = OrderFixtureBuilder.given().build();
+        Order order2 = OrderFixtureBuilder.given().build();
 
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "SKU", "상품", "/product/product.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        AppliedItemCoupon appliedItemCoupon = AppliedItemCoupon.of(1L, "1000원 할인 쿠폰");
-        OrderItemAmount orderItemAmount = OrderItemAmount.of(
-                Money.wons(30000L),
-                Money.wons(3000L),
-                Money.wons(27000L),
-                Money.wons(1000L),
-                Money.wons(26000L)
-        );
+        orderRepository.save(order1);
+        orderRepository.save(order2);
 
-        CreateOrderItemContext itemContext = CreateOrderItemContext.builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .appliedItemCoupon(appliedItemCoupon)
-                .quantity(3)
-                .options(Collections.emptyList())
-                .orderItemAmount(orderItemAmount)
-                .build();
+        LocalDateTime pastTime = LocalDateTime.now().minusMinutes(40);
+        em.createNativeQuery("UPDATE orders SET created_at = :pastTime WHERE id IN (:id)")
+                .setParameter("pastTime", pastTime)
+                .setParameter("id", order1.getId())
+                .executeUpdate();
 
-        OrderAmount orderAmount = OrderAmount.of(Money.wons(30000L), Money.wons(3000L), Money.wons(1000L),
-                Money.wons(1000L), Money.wons(1000L), Money.wons(24000L));
+        flushAndClear();
 
-        return CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .items(List.of(itemContext))
-                .appliedCartCoupon(appliedCartCoupon)
-                .orderAmount(orderAmount)
-                .build();
+        LocalDateTime timeoutThreshold = LocalDateTime.now().minusMinutes(30);
+        //when
+        List<OrderSummaryResult> result = orderQueryService.getOrdersByPendingAndCreatedAtBefore(timeoutThreshold);
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting("orderId")
+                .containsExactlyInAnyOrder(order1.getId());
     }
 
     private void flushAndClear() {
