@@ -1,5 +1,7 @@
 package com.example.order_service.payment.application.service;
 
+import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.application.port.PaymentOrderPort;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
@@ -14,8 +16,11 @@ import com.example.order_service.payment.application.service.fixture.PaymentOrde
 import com.example.order_service.payment.application.service.fixture.PaymentPGResultFixture;
 import com.example.order_service.payment.application.service.fixture.PaymentResultFixture;
 import com.example.order_service.payment.domain.PaymentStatus;
+import com.example.order_service.payment.domain.context.ApprovePaymentContext;
 import com.example.order_service.payment.domain.context.ApprovePendingPaymentContext;
 import com.example.order_service.payment.domain.context.CreatePaymentContext;
+import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
@@ -77,7 +83,32 @@ class PaymentFacadeTest {
         //given
         PaymentConfirmCommand command = PaymentCommandFixture.anConfirmCommand().build();
 
+        PaymentResult paymentResult = PaymentResultFixture.anPaymentResult()
+                .status(PaymentStatus.APPROVAL_PENDING)
+                .transactions(Collections.emptyList())
+                .method(null)
+                .build();
+
         PGConfirmResult pgResult = PaymentPGResultFixture.anPGConfirmResult().build();
+
+        given(paymentQueryService.getPayment(anyLong(), anyLong())).willReturn(paymentResult);
+        willDoNothing()
+                .given(paymentCommandService)
+                .approvePending(anyLong(), any(ApprovePendingPaymentContext.class));
+        given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
+                .willReturn(pgResult);
+        //when
+        PaymentConfirmResult result = paymentFacade.approve(command);
+        //then
+        assertThat(result.paymentId()).isEqualTo(1L);
+        verify(paymentCommandService).approve(anyLong(), any(ApprovePaymentContext.class));
+    }
+
+    @Test
+    @DisplayName("pg 결제 승인이 실패한 경우 결제를 실패로 변경하고 예외를 던진다.")
+    void approve_whenPgApproveFailed_thenAbortAndThrownException() {
+        //given
+        PaymentConfirmCommand command = PaymentCommandFixture.anConfirmCommand().build();
 
         PaymentResult paymentResult = PaymentResultFixture.anPaymentResult()
                 .status(PaymentStatus.APPROVAL_PENDING)
@@ -90,10 +121,77 @@ class PaymentFacadeTest {
                 .given(paymentCommandService)
                 .approvePending(anyLong(), any(ApprovePendingPaymentContext.class));
         given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
-                .willReturn(pgResult);
+                .willThrow(new PortException(PaymentPGPortErrorCode.PG_METHOD_REJECTED, "reject", "결제 거부"));
         //when
-        PaymentConfirmResult result = paymentFacade.approve(command);
         //then
-        assertThat(result.paymentId()).isEqualTo(1L);
+        assertThatThrownBy(() -> paymentFacade.approve(command))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_METHOD_REJECTED);
+
+        verify(paymentCommandService, never()).approve(anyLong(), any());
+        verify(paymentCommandService).abort(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("결제 도메인 저장중 예외가 발생하면 PG 망취소를 호출하고 결제를 실패한다.")
+    void approve_whenDbApproveFails_thenExecuteNetCancelAndAbort() {
+        //given
+        PaymentConfirmCommand command = PaymentCommandFixture.anConfirmCommand().build();
+        PGConfirmResult pgResult = PaymentPGResultFixture.anPGConfirmResult().build();
+        PaymentResult paymentResult = PaymentResultFixture.anPaymentResult()
+                .status(PaymentStatus.APPROVAL_PENDING)
+                .transactions(Collections.emptyList())
+                .method(null)
+                .build();
+
+        given(paymentQueryService.getPayment(anyLong(), anyLong())).willReturn(paymentResult);
+        willDoNothing().given(paymentCommandService).approvePending(anyLong(), any());
+        given(paymentPGPort.confirm(anyLong(), anyString(), any(), any())).willReturn(pgResult);
+
+        willThrow(new RuntimeException("DB 저장 실패"))
+                .given(paymentCommandService).approve(anyLong(), any());
+
+        willDoNothing().given(paymentPGPort).netCancel(anyString(), anyString(), any());
+        willDoNothing().given(paymentCommandService).abort(anyLong(), any());
+        //when
+        //then
+        assertThatThrownBy(() -> paymentFacade.approve(command))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("DB 저장 실패");
+
+        then(paymentPGPort).should(times(1)).netCancel(eq(command.paymentKey()), anyString(), eq(command.provider()));
+        then(paymentCommandService).should(times(1)).abort(eq(paymentResult.paymentId()), any());
+    }
+
+    @Test
+    @DisplayName("pg 망취소 과정이 실패된 경우 예외가 발생한다.")
+    void approve_whenNetCancelFails_thenThrownException() {
+        //given
+        PaymentConfirmCommand command = PaymentCommandFixture.anConfirmCommand().build();
+        PGConfirmResult pgResult = PaymentPGResultFixture.anPGConfirmResult().build();
+        PaymentResult paymentResult = PaymentResultFixture.anPaymentResult()
+                .status(PaymentStatus.APPROVAL_PENDING)
+                .transactions(Collections.emptyList())
+                .method(null)
+                .build();
+
+        given(paymentQueryService.getPayment(anyLong(), anyLong())).willReturn(paymentResult);
+        willDoNothing().given(paymentCommandService).approvePending(anyLong(), any());
+        given(paymentPGPort.confirm(anyLong(), anyString(), any(), any())).willReturn(pgResult);
+
+        willThrow(new RuntimeException("DB 저장 실패"))
+                .given(paymentCommandService).approve(anyLong(), any());
+
+        willThrow(new PortException(PaymentPGPortErrorCode.PG_CANCEL_REJECTED, "reject cancel", "환불 실패"))
+                .given(paymentPGPort).netCancel(anyString(), anyString(), any());
+        //when
+        //then
+        assertThatThrownBy(() -> paymentFacade.approve(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentErrorCode.PAYMENT_REFUND_PENDING);
+
+        then(paymentPGPort).should(times(1)).netCancel(eq(command.paymentKey()), anyString(), eq(command.provider()));
     }
 }
