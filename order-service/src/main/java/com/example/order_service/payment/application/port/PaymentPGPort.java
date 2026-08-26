@@ -14,5 +14,5 @@ public interface PaymentPGPort {
 
     PGCancelResult cancel(String paymentKey, String cancelReason, PaymentProvider provider);
 
-    PGInquiryResult inquiry(String paymentKey);
+    PGInquiryResult inquiry(String paymentKey, PaymentProvider provider);
 }

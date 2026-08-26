@@ -7,10 +7,12 @@ import com.example.order_service.common.exception.external.ExternalSystemExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossInquiryResponse;
 import com.example.order_service.infrastructure.gateway.TossGateway;
 import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,25 @@ public class TossPGProcessor implements PGProcessor {
     private TossCancelResponse executeCancel(String paymentKey, String cancelReason) {
         try {
             return tossGateway.cancelPayment(paymentKey, cancelReason, null);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
+        } catch (ExternalCircuitBreakerException e) {
+            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN, "TOSS_CIRCUIT_OPEN", "토스 서킷 열림");
+        } catch (ExternalSystemException e) {
+            PaymentPGPortErrorCode code = translator.translate(e.getErrorCode());
+            throw new PortException(code, e.getErrorCode(), e.getMessage());
+        }
+    }
+
+    @Override
+    public PGInquiryResult inquiry(String paymentKey) {
+        TossInquiryResponse response = executeInquiry(paymentKey);
+        return mapper.toInquiryResult(response);
+    }
+
+    private TossInquiryResponse executeInquiry(String paymentKey) {
+        try {
+            return tossGateway.inquiryPayment(paymentKey);
         } catch (ExternalSystemUnavailableException e) {
             throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
         } catch (ExternalCircuitBreakerException e) {

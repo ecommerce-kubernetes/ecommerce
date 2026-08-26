@@ -43,4 +43,18 @@ public class PaymentScheduler {
 
         log.info("[PaymentScheduler] 결제 승인 대기 타임아웃 배치 종료");
     }
+
+    @Scheduled(cron = "0 0/3 * * * *")
+    @SchedulerLock(
+            name = "refund_pending_reconciliation_lock",
+            lockAtLeastFor = "PT1M",
+            lockAtMostFor = "PT2M"
+    )
+    private void scheduleRefundPendingReconciliation() {
+        log.info("[PaymentScheduler] 결제 환불 대기 타임아웃 배치 시작");
+
+        expirationService.processTimeoutRefundPendingPayments(LocalDateTime.now());
+
+        log.info("[PaymentScheduler] 결제 환불 대기 타임아웃 배치 종료");
+    }
 }

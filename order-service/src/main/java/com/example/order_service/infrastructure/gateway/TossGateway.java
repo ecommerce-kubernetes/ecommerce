@@ -5,6 +5,7 @@ import com.example.order_service.infrastructure.dto.request.TossCancelRequest;
 import com.example.order_service.infrastructure.dto.request.TossConfirmRequest;
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossInquiryResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,15 @@ public class TossGateway {
     }
 
     private TossCancelResponse cancelPaymentFallback(String paymentKey, String cancelReason, Long cancelAmount, Throwable throwable) throws Throwable {
+        throw translator.translate("TOSS-PAYMENTS", throwable);
+    }
+
+    @CircuitBreaker(name = "tossPaymentService", fallbackMethod = "inquiryPaymentFallback")
+    public TossInquiryResponse inquiryPayment(String paymentKey) {
+        return client.inquiryPayment(paymentKey);
+    }
+
+    private TossInquiryResponse inquiryPaymentFallback(String paymentKey, Throwable throwable) throws Throwable {
         throw translator.translate("TOSS-PAYMENTS", throwable);
     }
 }

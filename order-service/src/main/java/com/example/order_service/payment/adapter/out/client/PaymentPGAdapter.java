@@ -45,8 +45,9 @@ public class PaymentPGAdapter implements PaymentPGPort {
     }
 
     @Override
-    public PGInquiryResult inquiry(String paymentKey) {
-        return null;
+    public PGInquiryResult inquiry(String paymentKey, PaymentProvider provider) {
+        PGProcessor processor = getProcessor(provider);
+        return processor.inquiry(paymentKey);
     }
 
     private PGProcessor getProcessor(PaymentProvider provider) {

@@ -3,8 +3,10 @@ package com.example.order_service.payment.adapter.out.client.pg.toss;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossInquiryResponse;
 import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;
 import org.springframework.stereotype.Component;
@@ -40,8 +42,45 @@ public class TossPGMapper {
                 .build();
     }
 
+    public PGInquiryResult toInquiryResult(TossInquiryResponse response) {
+        PaymentPGStatus status = mapToPGStatus(response.status());
+        PGInquiryResult.PGFailureResult inquiryFailure = toInquiryFailure(response.failure());
+
+        Money cancelAmount = null;
+        String cancelReason = null;
+        LocalDateTime canceledAt = null;
+
+        if (response.cancels() != null && !response.cancels().isEmpty()) {
+            TossInquiryResponse.CancelReceipt latestCancel = response.cancels().getLast();
+            cancelAmount = Money.wons(latestCancel.cancelAmount());
+            cancelReason = latestCancel.cancelReason();
+            canceledAt = latestCancel.canceledAt().toLocalDateTime();
+        }
+
+        return PGInquiryResult.builder()
+                .transactionKey(response.lastTransactionKey())
+                .status(status)
+                .failure(inquiryFailure)
+                .cancelAmount(cancelAmount)
+                .cancelReason(cancelReason)
+                .canceledAt(canceledAt)
+                .build();
+    }
+
+    private PGInquiryResult.PGFailureResult toInquiryFailure(TossInquiryResponse.FailureResponse failure) {
+        if (failure == null) {
+            return null;
+        }
+        return PGInquiryResult.PGFailureResult.builder()
+                .code(failure.code())
+                .message(failure.message())
+                .build();
+    }
+
     private PaymentPGStatus mapToPGStatus(String status) {
         return switch (status) {
+            case "READY" -> PaymentPGStatus.READY;
+            case "IN_PROGRESS" -> PaymentPGStatus.IN_PROGRESS;
             case "WAITING_FOR_DEPOSIT" -> PaymentPGStatus.WAITING_FOR_DEPOSIT;
             case "DONE" -> PaymentPGStatus.DONE;
             case "CANCELED" -> PaymentPGStatus.CANCELED;
