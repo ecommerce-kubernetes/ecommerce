@@ -46,6 +46,8 @@ payment:
     secret-key: secretKey
   timeout-minute:
     timeout-ready: 30
+    timeout-approve-pending: 5
+    timeout-refund-pending: 5
 
 order:
   timeout-minute: 30

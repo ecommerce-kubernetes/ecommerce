@@ -13,4 +13,5 @@ public interface PaymentRepository {
     Optional<Payment> findByIdAndUserId(Long paymentId, Long userId);
     Optional<Payment> findByOrderIdAndStatus(Long orderId, PaymentStatus status);
     List<Payment> findPaymentsByStatusAndCreatedAtBefore(PaymentStatus status, LocalDateTime threshold);
+    List<Payment> findPaymentsByStatusAndUpdatedAtBefore(PaymentStatus status, LocalDateTime threshold);
 }

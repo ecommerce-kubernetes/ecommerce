@@ -30,13 +30,17 @@ public class PaymentScheduler {
         log.info("[PaymentScheduler] 결제 준비 타임아웃 배치 종료");
     }
 
-    @Scheduled(initialDelay = 20000, fixedDelay = 180000)
+    @Scheduled(cron = "0 0/3 * * * *")
     @SchedulerLock(
-            name = "paymentRefundReconciliationLock",
-            lockAtLeastFor = "PT10S",
-            lockAtMostFor = "PT5M"
+            name = "approval_pending_reconciliation_lock",
+            lockAtLeastFor = "PT1M",
+            lockAtMostFor = "PT2M"
     )
-    public void runPaymentRefundReconciliation(){
+    private void scheduleApprovalPendingReconciliation() {
+        log.info("[PaymentScheduler] 결제 승인 대기 타임아웃 배치 시작");
 
+        expirationService.processTimeoutApprovePendingPayments(LocalDateTime.now());
+
+        log.info("[PaymentScheduler] 결제 승인 대기 타임아웃 배치 종료");
     }
 }

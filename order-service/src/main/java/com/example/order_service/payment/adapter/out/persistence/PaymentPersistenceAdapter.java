@@ -40,4 +40,9 @@ public class PaymentPersistenceAdapter implements PaymentRepository {
     public List<Payment> findPaymentsByStatusAndCreatedAtBefore(PaymentStatus status, LocalDateTime threshold) {
         return paymentJpaRepository.findPaymentsByStatusAndCreatedAtBefore(status, threshold);
     }
+
+    @Override
+    public List<Payment> findPaymentsByStatusAndUpdatedAtBefore(PaymentStatus status, LocalDateTime threshold) {
+        return paymentJpaRepository.findPaymentsByStatusAndUpdatedAtBefore(status, threshold);
+    }
 }

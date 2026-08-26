@@ -36,4 +36,9 @@ public class PaymentQueryService {
         List<Payment> payments = paymentRepository.findPaymentsByStatusAndCreatedAtBefore(PaymentStatus.READY, threshold);
         return payments.stream().map(PaymentResult::from).toList();
     }
+
+    public List<PaymentResult> getPaymentsByApprovePendingAndUpdatedAtBefore(LocalDateTime threshold) {
+        List<Payment> payments = paymentRepository.findPaymentsByStatusAndUpdatedAtBefore(PaymentStatus.REFUND_PENDING, threshold);
+        return payments.stream().map(PaymentResult::from).toList();
+    }
 }

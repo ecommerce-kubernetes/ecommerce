@@ -6,6 +6,7 @@ import com.example.order_service.payment.adapter.out.client.pg.PGProcessor;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,11 @@ public class PaymentPGAdapter implements PaymentPGPort {
     public PGCancelResult cancel(String paymentKey, String cancelReason, PaymentProvider provider) {
         PGProcessor processor = getProcessor(provider);
         return processor.cancel(paymentKey, cancelReason);
+    }
+
+    @Override
+    public PGInquiryResult inquiry(String paymentKey) {
+        return null;
     }
 
     private PGProcessor getProcessor(PaymentProvider provider) {
