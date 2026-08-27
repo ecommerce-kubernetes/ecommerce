@@ -49,13 +49,13 @@ public class OrderCouponAdapter implements OrderCouponPort {
         try {
             return apiCall.get();
         } catch (ExternalClientException e) {
-            throw new PortException(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            throw new PortException(OrderCouponPortErrorCode.COUPON_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_SERVER_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

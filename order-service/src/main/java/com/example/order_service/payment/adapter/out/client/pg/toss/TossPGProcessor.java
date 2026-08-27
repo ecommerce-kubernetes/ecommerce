@@ -35,12 +35,12 @@ public class TossPGProcessor implements PGProcessor {
         try {
             return tossGateway.confirmPayment(orderId, paymentKey, amount.longValue());
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
+            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN, "TOSS_CIRCUIT_OPEN", "토스 서킷 열림");
+            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN);
         } catch (ExternalSystemException e) {
             PaymentPGPortErrorCode code = translator.translate(e.getErrorCode());
-            throw new PortException(code, e.getErrorCode(), e.getMessage());
+            throw new PortException(code);
         }
     }
 
@@ -53,12 +53,12 @@ public class TossPGProcessor implements PGProcessor {
         try {
             tossGateway.cancelPayment(paymentKey, cancelReason, null);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
+            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN, "TOSS_CIRCUIT_OPEN", "토스 서킷 열림");
+            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN);
         } catch (ExternalSystemException e) {
             PaymentPGPortErrorCode code = translator.translate(e.getErrorCode());
-            throw new PortException(code, e.getErrorCode(), e.getMessage());
+            throw new PortException(code);
         }
     }
 
@@ -72,12 +72,12 @@ public class TossPGProcessor implements PGProcessor {
         try {
             return tossGateway.cancelPayment(paymentKey, cancelReason, null);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
+            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN, "TOSS_CIRCUIT_OPEN", "토스 서킷 열림");
+            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN);
         } catch (ExternalSystemException e) {
             PaymentPGPortErrorCode code = translator.translate(e.getErrorCode());
-            throw new PortException(code, e.getErrorCode(), e.getMessage());
+            throw new PortException(code);
         }
     }
 
@@ -91,12 +91,12 @@ public class TossPGProcessor implements PGProcessor {
         try {
             return tossGateway.inquiryPayment(paymentKey);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR, "TOSS_UNAVAILABLE", "토스 통신 장애");
+            throw new PortException(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN, "TOSS_CIRCUIT_OPEN", "토스 서킷 열림");
+            throw new PortException(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN);
         } catch (ExternalSystemException e) {
             PaymentPGPortErrorCode code = translator.translate(e.getErrorCode());
-            throw new PortException(code, e.getErrorCode(), e.getMessage());
+            throw new PortException(code);
         }
     }
 

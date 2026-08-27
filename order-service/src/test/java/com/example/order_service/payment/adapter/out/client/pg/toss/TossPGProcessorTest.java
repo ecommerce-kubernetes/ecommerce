@@ -8,8 +8,11 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossInquiryResponse;
 import com.example.order_service.infrastructure.gateway.TossGateway;
+import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
@@ -230,6 +233,195 @@ class TossPGProcessorTest {
         //when
         //then
         assertThatThrownBy(() -> tossPGProcessor.netCancel(paymentKey, cancelReason))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);
+    }
+
+    @Test
+    @DisplayName("토스 결제를 취소한다.")
+    void cancel() {
+        //given
+        String paymentKey = "paymentKey";
+        String cancelReason = "단순 변심";
+        OffsetDateTime canceledAt = OffsetDateTime.now();
+
+        TossCancelResponse.CancelReceipt receipt = TossCancelResponse.CancelReceipt.builder()
+                .transactionKey("transactionKey")
+                .cancelAmount(1000L)
+                .canceledAt(canceledAt)
+                .cancelReason(cancelReason)
+                .build();
+
+        TossCancelResponse response = TossCancelResponse.builder()
+                .status("CANCELED")
+                .cancels(List.of(receipt))
+                .build();
+
+        given(tossGateway.cancelPayment(anyString(), anyString(), nullable(Long.class)))
+                .willReturn(response);
+        //when
+        PGCancelResult result = tossPGProcessor.cancel(paymentKey, cancelReason);
+        //then
+        assertThat(result.status()).isEqualTo(PaymentPGStatus.CANCELED);
+        assertThat(result.transactionKey()).isEqualTo("transactionKey");
+        assertThat(result.amount()).isEqualTo(Money.wons(1000L));
+        assertThat(result.cancelReason()).isEqualTo(cancelReason);
+        assertThat(result.canceledAt()).isEqualTo(canceledAt.toLocalDateTime());
+    }
+
+    @Test
+    @DisplayName("토스 결제 취소시 토스 클라이언트 예외가 던져진 경우 포트 예외로 번역한다")
+    void cancel_ExternalClientException() {
+        //given
+        String paymentKey = "paymentKey";
+        String cancelReason = "단순 변심";
+
+        given(tossGateway.cancelPayment(anyString(), anyString(), nullable(Long.class)))
+                .willThrow(new ExternalClientException("NOT_CANCELABLE_PAYMENT", "취소할 수 없는 결제 입니다."));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.cancel(paymentKey, cancelReason))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_CANCEL_REJECTED);
+    }
+
+    @Test
+    @DisplayName("토스 결제 취소시 토스 서버 예외가 던져진 경우 포트 예외로 번역한다.")
+    void cancel_ExternalServerException() {
+        //given
+        String paymentKey = "paymentKey";
+        String cancelReason = "단순 변심";
+
+        given(tossGateway.cancelPayment(anyString(), anyString(), nullable(Long.class)))
+                .willThrow(new ExternalServerException("FAILED_REFUND_PROCESS", "은행 응답시간 지연이나 일시적인 오류로 환불요청에 실패했습니다."));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.cancel(paymentKey, cancelReason))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_SERVER_ERROR);
+    }
+
+    @Test
+    @DisplayName("토스 결제 취소시 토스 서킷 브레이커 예외가 던져진 경우 포트 예외로 번역한다.")
+    void cancel_ExternalCircuitBreakerException() {
+        //given
+        String paymentKey = "paymentKey";
+        String cancelReason = "단순 변심";
+
+        given(tossGateway.cancelPayment(anyString(), anyString(), nullable(Long.class)))
+                .willThrow(new ExternalCircuitBreakerException("CIRCUIT_BREAKER_OPEN", "토스 서비스 서킷 차단"));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.cancel(paymentKey, cancelReason))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN);
+    }
+
+    @Test
+    @DisplayName("토스 결제 취소시 토스 통신 불가 예외가 던져진 경우 포트 예외로 번역한다.")
+    void cancel_ExternalUnavailableServerException() {
+        //given
+        String paymentKey = "paymentKey";
+        String cancelReason = "단순 변심";
+
+        given(tossGateway.cancelPayment(anyString(), anyString(), nullable(Long.class)))
+                .willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "토스 통신 오류"));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.cancel(paymentKey, cancelReason))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);
+    }
+
+    @Test
+    @DisplayName("토스 결제를 조회한다.")
+    void inquiry() {
+        //given
+        String paymentKey = "paymentKey";
+        OffsetDateTime canceledAt = OffsetDateTime.now();
+
+        TossInquiryResponse.CancelReceipt receipt = TossInquiryResponse.CancelReceipt.builder()
+                .transactionKey("transactionKey")
+                .cancelAmount(1000L)
+                .canceledAt(canceledAt)
+                .cancelReason("단순 변심")
+                .build();
+
+        TossInquiryResponse response = new TossInquiryResponse(
+                "transactionKey",
+                "CANCELED",
+                null,
+                List.of(receipt)
+        );
+
+        given(tossGateway.inquiryPayment(anyString())).willReturn(response);
+        //when
+        PGInquiryResult result = tossPGProcessor.inquiry(paymentKey);
+        //then
+        assertThat(result.status()).isEqualTo(PaymentPGStatus.CANCELED);
+        assertThat(result.transactionKey()).isEqualTo("transactionKey");
+        assertThat(result.cancelAmount()).isEqualTo(Money.wons(1000L));
+        assertThat(result.cancelReason()).isEqualTo("단순 변심");
+        assertThat(result.canceledAt()).isEqualTo(canceledAt.toLocalDateTime());
+        assertThat(result.failure()).isNull();
+    }
+
+    @Test
+    @DisplayName("토스 결제 조회시 토스 클라이언트 예외가 던져진 경우 포트 예외로 번역한다")
+    void inquiry_ExternalClientException() {
+        //given
+        given(tossGateway.inquiryPayment(anyString()))
+                .willThrow(new ExternalClientException("NOT_FOUND_PAYMENT", "존재하지 않는 결제 입니다."));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.inquiry("paymentKey"))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("토스 결제 조회시 토스 서버 예외가 던져진 경우 포트 예외로 번역한다.")
+    void inquiry_ExternalServerException() {
+        //given
+        given(tossGateway.inquiryPayment(anyString()))
+                .willThrow(new ExternalServerException("UNKNOWN_PAYMENT_ERROR", "결제에 실패했어요. 같은 문제가 반복된다면 은행이나 카드사로 문의해주세요."));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.inquiry("paymentKey"))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_SERVER_ERROR);
+    }
+
+    @Test
+    @DisplayName("토스 결제 조회시 토스 서킷 브레이커 예외가 던져진 경우 포트 예외로 번역한다.")
+    void inquiry_ExternalCircuitBreakerException() {
+        //given
+        given(tossGateway.inquiryPayment(anyString()))
+                .willThrow(new ExternalCircuitBreakerException("CIRCUIT_BREAKER_OPEN", "토스 서비스 서킷 차단"));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.inquiry("paymentKey"))
+                .isInstanceOf(PortException.class)
+                .extracting("errorCode")
+                .isEqualTo(PaymentPGPortErrorCode.PG_CIRCUIT_OPEN);
+    }
+
+    @Test
+    @DisplayName("토스 결제 조회시 토스 통신 불가 예외가 던져진 경우 포트 예외로 번역한다.")
+    void inquiry_ExternalUnavailableServerException() {
+        //given
+        given(tossGateway.inquiryPayment(anyString()))
+                .willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "토스 통신 오류"));
+        //when
+        //then
+        assertThatThrownBy(() -> tossPGProcessor.inquiry("paymentKey"))
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentPGPortErrorCode.PG_UNAVAILABLE_ERROR);

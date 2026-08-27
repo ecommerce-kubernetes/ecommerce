@@ -1,9 +1,9 @@
 package com.example.order_service.saga.domain;
 
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.saga.exception.SagaErrorCode;
-import com.example.order_service.saga.exception.SagaSystemException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +81,7 @@ class OrderSagaExecutionTest {
         //when
         //then
         assertThatThrownBy(execution::success)
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.ALREADY_FAILED_EXECUTION);
     }
@@ -106,7 +106,7 @@ class OrderSagaExecutionTest {
         //when
         //then
         assertThatThrownBy(execution::fail)
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.ALREADY_SUCCEED_EXECUTION);
     }

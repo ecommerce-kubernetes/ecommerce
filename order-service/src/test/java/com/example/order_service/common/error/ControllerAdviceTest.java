@@ -37,4 +37,20 @@ public class ControllerAdviceTest {
                 .andExpect(jsonPath("timestamp").isNotEmpty())
                 .andExpect(jsonPath("path").value("/exception"));
     }
+
+    @Test
+    @DisplayName("PortException 발생시 에러 코드의 카테고리에 매핑된 상태 코드와 메시지가 반환된다")
+    @WithCustomMockUser
+    void handlePortException() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/exception/port")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("code").value("PRODUCT_CIRCUIT_OPEN"))
+                .andExpect(jsonPath("message").value("상품 연동이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해주세요."))
+                .andExpect(jsonPath("timestamp").isNotEmpty())
+                .andExpect(jsonPath("path").value("/exception/port"));
+    }
 }

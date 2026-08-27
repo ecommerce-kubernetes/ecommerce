@@ -105,6 +105,60 @@ class PaymentQueryServiceTest {
                 .containsExactlyInAnyOrder(payment1.getId());
     }
 
+    @Test
+    @DisplayName("타임아웃된 승인 대기중 결제를 조회한다.")
+    void getPaymentsByApprovePendingAndUpdatedAtBefore() {
+        //given
+        Payment payment1 = PaymentFixtureBuilder.given().asApprovePending().build();
+        Payment payment2 = PaymentFixtureBuilder.given().asApprovePending().build();
+
+        paymentRepository.save(payment1);
+        paymentRepository.save(payment2);
+
+        LocalDateTime pastTime = LocalDateTime.now().minusMinutes(10);
+        em.createNativeQuery("UPDATE payment SET updated_at = :pastTime WHERE id IN (:id)")
+                .setParameter("pastTime", pastTime)
+                .setParameter("id", payment1.getId())
+                .executeUpdate();
+
+        flushAndClear();
+
+        LocalDateTime timeoutThreshold = LocalDateTime.now().minusMinutes(5);
+        //when
+        List<PaymentResult> result = paymentQueryService.getPaymentsByApprovePendingAndUpdatedAtBefore(timeoutThreshold);
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting("paymentId")
+                .containsExactlyInAnyOrder(payment1.getId());
+    }
+
+    @Test
+    @DisplayName("타임아웃된 환불 대기중 결제를 조회한다.")
+    void getPaymentsByRefundPendingAndUpdatedAtBefore() {
+        //given
+        Payment payment1 = PaymentFixtureBuilder.given().asRefundPending().build();
+        Payment payment2 = PaymentFixtureBuilder.given().asRefundPending().build();
+
+        paymentRepository.save(payment1);
+        paymentRepository.save(payment2);
+
+        LocalDateTime pastTime = LocalDateTime.now().minusMinutes(15);
+        em.createNativeQuery("UPDATE payment SET updated_at = :pastTime WHERE id IN (:id)")
+                .setParameter("pastTime", pastTime)
+                .setParameter("id", payment1.getId())
+                .executeUpdate();
+
+        flushAndClear();
+
+        LocalDateTime timeoutThreshold = LocalDateTime.now().minusMinutes(10);
+        //when
+        List<PaymentResult> result = paymentQueryService.getPaymentsByRefundPendingAndUpdatedAtBefore(timeoutThreshold);
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting("paymentId")
+                .containsExactlyInAnyOrder(payment1.getId());
+    }
+
     private void flushAndClear() {
         em.flush();
         em.clear();
