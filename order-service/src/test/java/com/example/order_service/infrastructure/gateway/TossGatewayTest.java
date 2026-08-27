@@ -6,6 +6,7 @@ import com.example.order_service.infrastructure.dto.request.TossCancelRequest;
 import com.example.order_service.infrastructure.dto.request.TossConfirmRequest;
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossInquiryResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -99,6 +100,39 @@ public class TossGatewayTest {
         //when
         //then
         assertThatThrownBy(() -> tossGateway.cancelPayment(paymentKey, cancelReason, cancelAmount))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
+    }
+
+    @Test
+    @DisplayName("토스 페이먼츠에 결제 조회를 요청한다")
+    void inquiryPayment(){
+        //given
+        TossInquiryResponse mockResponse = Instancio.create(TossInquiryResponse.class);
+        given(client.inquiryPayment(anyString()))
+                .willReturn(mockResponse);
+        //when
+        TossInquiryResponse response = tossGateway.inquiryPayment("paymentKey");
+        //then
+        assertThat(response)
+                .usingRecursiveComparison()
+                .isEqualTo(mockResponse);
+    }
+
+    @Test
+    @DisplayName("토스 페이먼츠 결제 조회 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
+    void inquiryPayment_fallback_delegate_to_translator() throws Throwable {
+        //given
+        String paymentKey = "paymentKey";
+
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        willThrow(feignException).given(client).inquiryPayment(anyString());
+        given(translator.translate(anyString(), any(Throwable.class)))
+                .willReturn(translatedException);
+        //when
+        //then
+        assertThatThrownBy(() -> tossGateway.inquiryPayment(paymentKey))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

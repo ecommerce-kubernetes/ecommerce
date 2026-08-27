@@ -6,6 +6,7 @@ import com.example.order_service.infrastructure.dto.request.TossCancelRequest;
 import com.example.order_service.infrastructure.dto.request.TossConfirmRequest;
 import com.example.order_service.infrastructure.dto.response.pg.TossCancelResponse;
 import com.example.order_service.infrastructure.dto.response.pg.TossConfirmResponse;
+import com.example.order_service.infrastructure.dto.response.pg.TossInquiryResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -279,5 +280,120 @@ public class TossFeignClientTest {
                 .hasMessage("은행 응답시간 지연이나 일시적인 오류로 환불요청에 실패했습니다.")
                 .extracting("errorCode")
                 .isEqualTo("FAILED_REFUND_PROCESS");
+    }
+
+    @Test
+    @DisplayName("토스 결제 조회를 요청한다")
+    void inquiryPayment() {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        String mockJsonResponse = """
+                    {
+                        "lastTransactionKey": "9C62B18EEF0DE3EB7F4422EB6D14BC6E",
+                        "status": "CANCELED",
+                        "failure": null,
+                        "cancels": [
+                          {
+                            "transactionKey": "090A796806E726BBB929F4A2CA7DB9A7",
+                            "cancelReason": "테스트 결제 취소",
+                            "canceledAt": "2024-02-13T12:20:23+09:00",
+                            "cancelAmount": 1000
+                          }
+                        ]
+                    }
+                    """;
+        stubFor(get(urlEqualTo("/v1/payments/" + paymentKey))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        TossInquiryResponse response = client.inquiryPayment(paymentKey);
+        //then
+        assertThat(response.status()).isEqualTo("CANCELED");
+        assertThat(response.lastTransactionKey()).isEqualTo("9C62B18EEF0DE3EB7F4422EB6D14BC6E");
+        assertThat(response.failure()).isNull();
+
+        TossInquiryResponse.CancelReceipt cancel = response.cancels().getFirst();
+        assertThat(cancel.transactionKey()).isEqualTo("090A796806E726BBB929F4A2CA7DB9A7");
+        assertThat(cancel.cancelReason()).isEqualTo("테스트 결제 취소");
+        assertThat(cancel.cancelAmount()).isEqualTo(1000L);
+        assertThat(cancel.canceledAt())
+                .isEqualTo(OffsetDateTime.parse("2024-02-13T12:20:23+09:00"));
+    }
+
+    @Test
+    @DisplayName("토스 결제 조회를 요청할때 헤더에 시크릿 키를 포함하여 요청한다")
+    void inquiryPayment_header_contain_auth_key() {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        String mockJsonResponse = """
+                    {
+                        "lastTransactionKey": "9C62B18EEF0DE3EB7F4422EB6D14BC6E",
+                        "status": "DONE",
+                        "failure": null,
+                        "cancels": null
+                    }
+                    """;
+        stubFor(get(urlEqualTo("/v1/payments/" + paymentKey))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        client.inquiryPayment(paymentKey);
+        //then
+        verify(getRequestedFor(urlMatching("/v1/payments/" + paymentKey))
+                .withHeader("Authorization", matching("Basic .*")));
+    }
+
+    @Test
+    @DisplayName("토스 페이먼츠에서 클라이언트 오류 응답 반환시 클라이언트 예외를 던진다")
+    void inquiryPayment_thrown_client_error_response() {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        String mockJsonResponse = """
+                    {
+                        "code": "NOT_FOUND_PAYMENT",
+                        "message": "존재하지 않는 결제 입니다."
+                    }
+                    """;
+        stubFor(get(urlEqualTo("/v1/payments/" + paymentKey))
+                .willReturn(aResponse()
+                        .withStatus(400)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        //then
+        assertThatThrownBy(() -> client.inquiryPayment(paymentKey))
+                .isInstanceOf(ExternalClientException.class)
+                .hasMessage("존재하지 않는 결제 입니다.")
+                .extracting("errorCode")
+                .isEqualTo("NOT_FOUND_PAYMENT");
+    }
+
+    @Test
+    @DisplayName("토스 페이먼츠에서 서버 오류 응답 반환시 서버 예외를 던진다")
+    void inquiryPayment_thrown_server_error_response() {
+        //given
+        String paymentKey = "5EnNZRJGvaBX7zk2yd8ydw26XvwXkLrx9POLqKQjmAw4b0e1";
+        String mockJsonResponse = """
+                    {
+                        "code": "FAILED_INTERNAL_SYSTEM_PROCESSING",
+                        "message": "일시적인 시스템 오류로 결제 조회에 실패했습니다."
+                    }
+                    """;
+        stubFor(get(urlEqualTo("/v1/payments/" + paymentKey))
+                .willReturn(aResponse()
+                        .withStatus(500)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(mockJsonResponse)));
+        //when
+        //then
+        assertThatThrownBy(() -> client.inquiryPayment(paymentKey))
+                .isInstanceOf(ExternalServerException.class)
+                .hasMessage("일시적인 시스템 오류로 결제 조회에 실패했습니다.")
+                .extracting("errorCode")
+                .isEqualTo("FAILED_INTERNAL_SYSTEM_PROCESSING");
     }
 }
