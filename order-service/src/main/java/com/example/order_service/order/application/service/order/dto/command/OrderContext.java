@@ -1,6 +1,8 @@
 package com.example.order_service.order.application.service.order.dto.command;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
+import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
 
@@ -13,7 +15,7 @@ public class OrderContext {
             Orderer orderer,
             ShippingAddress shippingAddress,
             List<ItemContext> orderItems,
-            OrderCouponSnapshot cartCoupon,
+            CartCouponSnapshot cartCoupon,
             Money totalOriginalPrice,
             Money totalProductDiscountAmount,
             Money totalCouponDiscountAmount,
@@ -25,8 +27,8 @@ public class OrderContext {
     public record ItemContext(
             ProductSnapshot productSnapshot,
             ProductPriceSnapshot itemPrice,
-            OrderCouponSnapshot itemCoupon,
+            ItemCouponSnapshot itemCouponSnapshot,
             Integer quantity,
-            List<ProductOptionSnapshot> options
+            List<ProductOptionSnapshot> optionSnapshots
     ) {}
 }

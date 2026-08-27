@@ -1,72 +1,61 @@
 package com.example.order_service.payment.application.service.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.payment.domain.model.Payment;
-import com.example.order_service.payment.domain.model.PaymentMethod;
-import com.example.order_service.payment.domain.model.PaymentRecord;
-import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.*;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-public class PaymentResult {
+@Builder
+public record PaymentResult(
+        Long paymentId,
+        Long orderId,
+        Long userId,
+        PaymentStatus status,
+        PaymentMethod method,
+        PaymentProvider provider,
+        List<PaymentTransactionResult> transactions,
+        String paymentKey,
+        Money totalAmount
+) {
 
     @Builder
-    public record Default(
-            Long id,
-            String orderNo,
-            String paymentKey,
-            Money totalAmount,
-            PaymentStatus status
+    public record PaymentTransactionResult(
+            Long transactionId,
+            String transactionKey,
+            TransactionType type,
+            Money amount,
+            String reason,
+            LocalDateTime occurredAt
     ) {
-        public static Default from(Payment payment) {
-            return Default.builder()
-                    .id(payment.getId())
-                    .orderNo(payment.getOrderNo())
-                    .paymentKey(payment.getPaymentKey())
-                    .totalAmount(payment.getTotalAmount())
-                    .status(payment.getStatus())
+        public static PaymentTransactionResult from(PaymentTransaction paymentTransaction) {
+            return PaymentTransactionResult.builder()
+                    .transactionId(paymentTransaction.getId())
+                    .transactionKey(paymentTransaction.getTransactionKey())
+                    .type(paymentTransaction.getType())
+                    .amount(paymentTransaction.getAmount())
+                    .reason(paymentTransaction.getReason())
+                    .occurredAt(paymentTransaction.getOccurredAt())
                     .build();
+        }
+
+        public static List<PaymentTransactionResult> from(List<PaymentTransaction> paymentTransactions) {
+            return paymentTransactions.stream().map(PaymentTransactionResult::from).toList();
         }
     }
 
-    @Builder
-    public record PaymentApproval(
-            String paymentKey,
-            String orderNo,
-            Money totalAmount,
-            PaymentMethod method,
-            PaymentStatus status,
-            LocalDateTime approvedAt
-    ) {
-        public static PaymentApproval of(Payment payment, PaymentRecord paymentRecord) {
-            return PaymentApproval.builder()
-                    .paymentKey(payment.getPaymentKey())
-                    .orderNo(payment.getOrderNo())
-                    .totalAmount(payment.getTotalAmount())
-                    .method(payment.getMethod())
-                    .status(payment.getStatus())
-                    .approvedAt(paymentRecord.getOccurredAt())
-                    .build();
-        }
-    }
-
-    @Builder
-    public record PaymentCancel(
-            String paymentKey,
-            String orderNo,
-            Money canceledAmount,
-            PaymentStatus status,
-            LocalDateTime canceledAt
-    ) {
-        public static PaymentCancel of(Payment payment, PaymentRecord paymentRecord) {
-            return PaymentCancel.builder()
-                    .paymentKey(payment.getPaymentKey())
-                    .orderNo(payment.getOrderNo())
-                    .canceledAmount(paymentRecord.getAmount())
-                    .status(payment.getStatus())
-                    .canceledAt(paymentRecord.getOccurredAt())
-                    .build();
-        }
+    public static PaymentResult from(Payment payment) {
+        return PaymentResult.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .status(payment.getStatus())
+                .method(payment.getMethod())
+                .provider(payment.getProvider())
+                .transactions(PaymentTransactionResult.from(payment.getPaymentTransactions()))
+                .paymentKey(payment.getPaymentKey())
+                .totalAmount(payment.getTotalAmount())
+                .build();
     }
 }

@@ -1,9 +1,9 @@
 package com.example.order_service.cart.application.service;
 
-import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.domain.model.Cart;
-import com.example.order_service.cart.domain.model.CartItem;
-import com.example.order_service.cart.domain.repository.CartRepository;
+import com.example.order_service.cart.application.port.CartRepository;
+import com.example.order_service.cart.application.service.dto.data.CartItemData;
+import com.example.order_service.cart.domain.Cart;
+import com.example.order_service.cart.domain.CartItem;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +31,15 @@ public class CartQueryService {
         return cartRepository.findByUserId(userId)
                 .map(cart -> productVariantIds.stream()
                         .flatMap(id -> cart.findItemByProductVariantId(id).stream())
+                        .map(CartItemData::from)
+                        .toList())
+                .orElse(Collections.emptyList());
+    }
+
+    public List<CartItemData> findCartItemsByCartItemIds(Long userId, List<Long> cartItemIds) {
+        return cartRepository.findByUserId(userId)
+                .map(cart -> cartItemIds.stream()
+                        .flatMap(id -> cart.findItemByCartItemId(id).stream())
                         .map(CartItemData::from)
                         .toList())
                 .orElse(Collections.emptyList());

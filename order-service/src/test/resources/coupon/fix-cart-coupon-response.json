@@ -1,0 +1,10 @@
+{
+  "userId": 1,
+  "status": "AVAILABLE",
+  "cartCouponId": 1,
+  "name": "장바구니 1000원 할인 쿠폰",
+  "minimumPaymentAmount": 50000,
+  "discountType": "FIXED",
+  "discountAmount": 1000,
+  "expiresAt": "2026-12-25 23:59:59"
+}

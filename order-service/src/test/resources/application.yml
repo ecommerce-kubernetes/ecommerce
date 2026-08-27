@@ -44,8 +44,18 @@ payment:
   toss:
     url: https://api.tosspayments.com
     secret-key: secretKey
+  timeout-minute:
+    timeout-ready: 30
+    timeout-approve-pending: 5
+    timeout-refund-pending: 5
+
+saga:
+  timeout-minute:
+    timeout-forward-pending: 5
+    timeout-compensate-pending: 5
 
 order:
+  timeout-minute: 30
   topics:
     # 상품 재고 차감/보상 명령
     product-saga-command: "product.saga.command"

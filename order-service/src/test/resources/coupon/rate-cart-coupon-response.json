@@ -1,0 +1,11 @@
+{
+  "userId" : 1,
+  "status": "AVAILABLE",
+  "cartCouponId" : 1,
+  "name": "장바구니 5% 할인 쿠폰",
+  "minimumPaymentAmount": 50000,
+  "discountType" : "RATE",
+  "discountRate" : 5,
+  "maxDiscountAmount": 10000,
+  "expiresAt": "2026-12-25 23:59:59"
+}

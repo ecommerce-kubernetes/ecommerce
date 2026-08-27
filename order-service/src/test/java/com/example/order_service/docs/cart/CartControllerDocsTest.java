@@ -1,14 +1,13 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.cart.api.CartController;
-import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
-import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
-import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
-import com.example.order_service.cart.application.dto.result.*;
-import com.example.order_service.cart.application.facade.CartFacade;
-
+import com.example.order_service.cart.adapter.in.web.CartController;
+import com.example.order_service.cart.adapter.in.web.dto.request.AddCartItemsRequest;
+import com.example.order_service.cart.adapter.in.web.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.service.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.service.dto.command.UpdateCartItemQuantityCommand;
+import com.example.order_service.cart.application.service.dto.result.*;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +19,8 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 import static com.example.order_service.docs.descriptor.CartDescriptor.*;
-import static com.example.order_service.docs.descriptor.CartDescriptor.updateCartItemQuantityRequest;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -259,8 +258,6 @@ public class CartControllerDocsTest extends RestDocSupport {
     private AddCartItemsResult createAddCartItemsResult() {
         AddCartItemsResult.AddedItemResult item = AddCartItemsResult.AddedItemResult.builder()
                 .cartItemId(1L)
-                .productVariantId(1L)
-                .quantity(2)
                 .build();
         return AddCartItemsResult.builder()
                 .items(List.of(item))
@@ -270,8 +267,6 @@ public class CartControllerDocsTest extends RestDocSupport {
     private UpdateCartItemQuantityResult createUpdateCartItemQuantityResult() {
         return UpdateCartItemQuantityResult.builder()
                 .cartItemId(1L)
-                .productVariantId(1L)
-                .quantity(3)
                 .build();
     }
 }

@@ -1,7 +1,8 @@
 package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.infrastructure.config.DefaultFeignConfig;
-import com.example.order_service.infrastructure.dto.response.UserClientResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserPointsResponse;
+import com.example.order_service.infrastructure.dto.response.user.UserProfileResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,8 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface UserFeignClient {
 
     @GetMapping("/internal/users/{userId}/profile")
-    UserClientResponse.Profile getUserProfile(@PathVariable("userId") Long userId);
+    UserProfileResponse getUserProfile(@PathVariable("userId") Long userId);
 
     @GetMapping("/internal/users/{userId}/points")
-    UserClientResponse.UserPoints getUserPoints(@PathVariable("userId") Long userId);
+    UserPointsResponse getUserPoints(@PathVariable("userId") Long userId);
+
 }

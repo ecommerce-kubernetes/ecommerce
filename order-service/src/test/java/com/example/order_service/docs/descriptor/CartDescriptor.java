@@ -23,21 +23,15 @@ public class CartDescriptor {
     public static FieldDescriptor[] addCartItemsResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("items[].cartItemId")
-                        .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 ID(장바구니 항목 식별자)"),
-                fieldWithPath("items[].productVariantId")
-                        .type(JsonFieldType.NUMBER)
-                        .description("상품 변형 ID(상품 판매 단위 식별자)"),
-                fieldWithPath("items[].quantity")
-                        .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 수량")
+                        .type(JsonFieldType.STRING)
+                        .description("장바구니 항목 ID(장바구니 항목 식별자)")
         };
     }
 
     public static FieldDescriptor[] cartResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("items[].cartItemId")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("장바구니 항목 ID(장바구니 항목 식별자)"),
                 fieldWithPath("items[].status")
                         .type(JsonFieldType.STRING)
@@ -91,7 +85,7 @@ public class CartDescriptor {
     public static FieldDescriptor[] cartItemResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("cartItemId")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("장바구니 항목 ID(장바구니 항목 식별자)"),
                 fieldWithPath("status")
                         .type(JsonFieldType.STRING)
@@ -150,14 +144,8 @@ public class CartDescriptor {
     public static FieldDescriptor[] updateCartItemQuantityResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("cartItemId")
-                        .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 ID(장바구니 항목 식별자)"),
-                fieldWithPath("productVariantId")
-                        .type(JsonFieldType.NUMBER)
-                        .description("상품 변형 ID(상품 판매 단위 식별자)"),
-                fieldWithPath("quantity")
-                        .type(JsonFieldType.NUMBER)
-                        .description("장바구니 항목 수량")
+                        .type(JsonFieldType.STRING)
+                        .description("장바구니 항목 ID(장바구니 항목 식별자)")
         };
     }
 }

@@ -1,111 +1,64 @@
 package com.example.order_service.order.application.service.order.dto.result;
 
-import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.model.Order;
-import com.example.order_service.order.domain.model.OrderItem;
-import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class OrderResult {
+@Builder
+public record OrderResult(
+        Long orderId,
+        OrderStatus status,
+        String orderName,
+        Orderer orderer,
+        ShippingAddress shippingAddress,
+        List<OrderItemResult> orderItems,
+        AppliedCartCoupon appliedCartCoupon,
+        OrderAmount orderAmount,
+
+        LocalDateTime createdAt
+) {
 
     @Builder
-    public record Create(
-            String orderNo,
-            OrderStatus status,
-            String orderName,
-            Money totalPaymentAmount,
-            LocalDateTime createdAt
-    ) {
-        public static Create from(Order order) {
-            return Create.builder()
-                    .orderNo(order.getOrderNo())
-                    .status(order.getStatus())
-                    .orderName(order.getOrderName())
-                    .totalPaymentAmount(order.getTotalPaymentAmount())
-                    .createdAt(order.getCreatedAt())
-                    .build();
-        }
-    }
-
-    @Builder
-    public record Detail(
-            String orderNo,
-            OrderStatus status,
-            String orderName,
-            Orderer orderer,
-            ShippingAddress shippingAddress,
-            OrderCouponSnapshot cartCoupon,
-            List<OrderedItem> items,
-            Money totalOriginalPrice,
-            Money totalProductDiscountAmount,
-            Money totalCouponDiscountAmount,
-            Money usedPoints,
-            Money totalPaymentAmount,
-            LocalDateTime createdAt
-    ) {
-        public static Detail from(Order order) {
-            return Detail.builder()
-                    .orderNo(order.getOrderNo())
-                    .status(order.getStatus())
-                    .orderName(order.getOrderName())
-                    .orderer(order.getOrderer())
-                    .shippingAddress(order.getShippingAddress())
-                    .cartCoupon(order.getCartCoupon())
-                    .items(OrderedItem.from(order.getOrderItems()))
-                    .totalOriginalPrice(order.getTotalOriginalPrice())
-                    .totalProductDiscountAmount(order.getTotalProductDiscountAmount())
-                    .totalCouponDiscountAmount(order.getTotalCouponDiscountAmount())
-                    .usedPoints(order.getUsedPoints())
-                    .totalPaymentAmount(order.getTotalPaymentAmount())
-                    .createdAt(order.getCreatedAt())
-                    .build();
-        }
-    }
-
-    @Builder
-    public record Summary(
-            String orderNo,
-            OrderStatus status,
-            String orderName,
-            List<OrderedItem> orderItems,
-            LocalDateTime createdAt
-    ) {
-        public static Summary from(Order order) {
-            return Summary.builder()
-                    .orderNo(order.getOrderNo())
-                    .status(order.getStatus())
-                    .orderName(order.getOrderName())
-                    .orderItems(OrderedItem.from(order.getOrderItems()))
-                    .createdAt(order.getCreatedAt())
-                    .build();
-
-        }
-    }
-
-    @Builder
-    public record OrderedItem(
+    public record OrderItemResult(
+            Long orderItemId,
             ProductSnapshot product,
             ProductPriceSnapshot productPrice,
-            OrderCouponSnapshot itemCoupon,
-            Integer quantity,
-            List<ProductOptionSnapshot> options
+            List<ProductOptionSnapshot> options,
+            AppliedItemCoupon appliedItemCoupon,
+            int quantity,
+            OrderItemAmount orderItemAmount
     ) {
-        public static OrderedItem from(OrderItem item) {
-            return OrderedItem.builder()
-                    .product(item.getProduct())
-                    .productPrice(item.getProductPrice())
-                    .itemCoupon(item.getItemCoupon())
-                    .quantity(item.getQuantity())
-                    .options(item.getOptions())
+        public static OrderItemResult from(OrderItem orderItem) {
+            return OrderItemResult.builder()
+                    .orderItemId(orderItem.getId())
+                    .product(orderItem.getProduct())
+                    .productPrice(orderItem.getProductPrice())
+                    .options(orderItem.getOptions())
+                    .appliedItemCoupon(orderItem.getAppliedItemCoupon())
+                    .quantity(orderItem.getQuantity())
+                    .orderItemAmount(orderItem.getOrderItemAmount())
                     .build();
         }
 
-        public static List<OrderedItem> from(List<OrderItem> items) {
-            return items.stream().map(OrderedItem::from).toList();
+        public static List<OrderItemResult> from(List<OrderItem> orderItems) {
+            return orderItems.stream().map(OrderItemResult::from).toList();
         }
+    }
+
+    public static OrderResult from(Order order) {
+        return OrderResult.builder()
+                .orderId(order.getId())
+                .status(order.getStatus())
+                .orderName(order.getOrderName())
+                .orderer(order.getOrderer())
+                .shippingAddress(order.getShippingAddress())
+                .orderItems(OrderItemResult.from(order.getOrderItems()))
+                .appliedCartCoupon(order.getAppliedCartCoupon())
+                .orderAmount(order.getOrderAmount())
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 }
