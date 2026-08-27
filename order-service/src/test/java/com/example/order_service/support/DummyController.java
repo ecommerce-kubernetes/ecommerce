@@ -1,9 +1,11 @@
 package com.example.order_service.support;
 
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.order.exception.OrderProductPortErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,5 +31,10 @@ public class DummyController {
     @GetMapping("/exception")
     public String throwBusinessException(){
         throw new BusinessException(OrderErrorCode.ORDER_NOT_FOUND);
+    }
+
+    @GetMapping("/exception/port")
+    public String throwPortException(){
+        throw new PortException(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN);
     }
 }

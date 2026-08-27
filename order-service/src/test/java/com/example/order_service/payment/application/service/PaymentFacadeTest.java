@@ -126,7 +126,7 @@ class PaymentFacadeTest {
                 .given(paymentCommandService)
                 .approvePending(anyLong(), any(ApprovePendingPaymentContext.class));
         given(paymentPGPort.confirm(anyLong(), anyString(), any(), any()))
-                .willThrow(new PortException(PaymentPGPortErrorCode.PG_METHOD_REJECTED, "reject", "결제 거부"));
+                .willThrow(new PortException(PaymentPGPortErrorCode.PG_METHOD_REJECTED));
         //when
         //then
         assertThatThrownBy(() -> paymentFacade.approve(command))
@@ -188,7 +188,7 @@ class PaymentFacadeTest {
         willThrow(new RuntimeException("DB 저장 실패"))
                 .given(paymentCommandService).approve(anyLong(), any());
 
-        willThrow(new PortException(PaymentPGPortErrorCode.PG_CANCEL_REJECTED, "reject cancel", "환불 실패"))
+        willThrow(new PortException(PaymentPGPortErrorCode.PG_CANCEL_REJECTED))
                 .given(paymentPGPort).netCancel(anyString(), anyString(), any());
         //when
         //then

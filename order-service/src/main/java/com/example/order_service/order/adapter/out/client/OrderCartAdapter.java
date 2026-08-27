@@ -38,7 +38,7 @@ public class OrderCartAdapter implements OrderCartPort {
         try {
             return cartQueryService.findCartItemsByCartItemIds(userId, cartItemIds);
         } catch (Exception e) {
-            throw new PortException(OrderCartPortErrorCode.CART_SERVER_ERROR, e.getMessage(), "장바구니 상품 조회중 에러 발생");
+            throw new PortException(OrderCartPortErrorCode.CART_SERVER_ERROR);
         }
     }
 }

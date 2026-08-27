@@ -1,6 +1,7 @@
 package com.example.order_service.saga.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.saga.application.port.OrderSagaRepository;
 import com.example.order_service.saga.domain.*;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
@@ -79,7 +80,7 @@ class OrderSagaCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaCommandService.completeForward(999L, 1L))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_SAGA);
     }
@@ -110,7 +111,7 @@ class OrderSagaCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaCommandService.failForward(999L, 1L, "실패"))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_SAGA);
     }
@@ -138,7 +139,7 @@ class OrderSagaCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaCommandService.completeCompensate(999L, 1L))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_SAGA);
     }
@@ -166,7 +167,7 @@ class OrderSagaCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaCommandService.failCompensate(999L, 1L))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_SAGA);
     }
@@ -194,7 +195,7 @@ class OrderSagaCommandServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaCommandService.retryCompensate(999L, 1L))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_SAGA);
     }

@@ -53,7 +53,7 @@ public class PaymentPGAdapter implements PaymentPGPort {
     private PGProcessor getProcessor(PaymentProvider provider) {
         PGProcessor pgProcessor = pgProcessorMap.get(provider);
         if (pgProcessor == null) {
-            throw new PortException(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER, "UNSUPPORTED_PROVIDER", "지원하지 않는 결제사 입니다.");
+            throw new PortException(PaymentPGPortErrorCode.UNSUPPORTED_PROVIDER);
         }
         return pgProcessor;
     }

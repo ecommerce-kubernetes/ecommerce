@@ -1,6 +1,7 @@
 package com.example.order_service.saga.domain;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.common.util.IdGenerator;
 import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
@@ -185,7 +186,7 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.completeForward(999L, idGenerator))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
@@ -288,7 +289,7 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.failForward(999L, "재고 감소 실패", idGenerator))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
@@ -357,7 +358,7 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.completeCompensate(999L, idGenerator))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
@@ -406,7 +407,7 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.failCompensate(999L))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }
@@ -483,7 +484,7 @@ class OrderSagaTest {
         //when
         //then
         assertThatThrownBy(() -> orderSaga.retryCompensate(999L))
-                .isInstanceOf(SagaSystemException.class)
+                .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
     }

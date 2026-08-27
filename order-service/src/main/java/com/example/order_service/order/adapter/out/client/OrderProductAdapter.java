@@ -32,13 +32,13 @@ public class OrderProductAdapter implements OrderProductPort {
         try {
             return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
-            throw new PortException(OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            throw new PortException(OrderProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderProductPortErrorCode.PRODUCT_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(OrderProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN);
         }
     }
 }

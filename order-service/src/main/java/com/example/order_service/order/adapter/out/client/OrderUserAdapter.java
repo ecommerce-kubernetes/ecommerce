@@ -30,13 +30,13 @@ public class OrderUserAdapter implements OrderUserPort {
         try {
             return userGateway.getUserProfile(userId);
         } catch (ExternalClientException e) {
-            throw new PortException(OrderUserPortErrorCode.USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderUserPortErrorCode.USER_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            throw new PortException(OrderUserPortErrorCode.USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderUserPortErrorCode.USER_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(OrderUserPortErrorCode.USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderUserPortErrorCode.USER_UNAVAILABLE_SERVER_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(OrderUserPortErrorCode.USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PortException(OrderUserPortErrorCode.USER_CIRCUIT_OPEN);
         }
     }
 
