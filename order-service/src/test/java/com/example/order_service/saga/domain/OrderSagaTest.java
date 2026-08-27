@@ -427,6 +427,67 @@ class OrderSagaTest {
         assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.FAILED);
     }
 
+    @Test
+    @DisplayName("보상 대기중인 작업을 재시도해도 사가와 작업의 상태는 변경되지 않는다.")
+    void retryCompensate_whenPendingCompensateExecution_thenStateUnchanged() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
+        int executionCountBefore = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.retryCompensate(execution.getId());
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(executionCountBefore);
+        assertThat(execution.getStatus()).isEqualTo(ExecutionStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("이미 완료된 보상 작업을 재시도해도 상태가 변경되지 않는다.")
+    void retryCompensate_whenExecutionAlreadySucceeded_thenDoNothing() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.COMPENSATE, SagaStep.INVENTORY);
+        orderSaga.completeCompensate(execution.getId(), idGenerator);
+
+        SagaStatus statusBefore = orderSaga.getStatus();
+        int executionCountBefore = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.retryCompensate(execution.getId());
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(statusBefore);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(executionCountBefore);
+    }
+
+    @Test
+    @DisplayName("정방향 대기 작업을 재시도해도 상태가 변경되지 않는다.")
+    void retryCompensate_whenExecutionIsForwardType_thenDoNothing() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().buildAndForwardTo(SagaStep.INVENTORY);
+        OrderSagaExecution execution = orderSaga.getExecution(ExecutionStatus.PENDING, ExecutionType.FORWARD, SagaStep.INVENTORY);
+
+        SagaStatus statusBefore = orderSaga.getStatus();
+        int executionCountBefore = orderSaga.getOrderSagaExecutions().size();
+        //when
+        orderSaga.retryCompensate(execution.getId());
+        //then
+        assertThat(orderSaga.getStatus()).isEqualTo(statusBefore);
+        assertThat(orderSaga.getOrderSagaExecutions()).hasSize(executionCountBefore);
+    }
+
+    @Test
+    @DisplayName("재시도할 작업을 찾을 수 없으면 예외가 발생한다.")
+    void retryCompensate_whenExecutionNotFound_thenThrowException() {
+        //given
+        OrderSaga orderSaga = OrderSagaFixtureBuilder.given().withCoupon().buildAndFailAt(SagaStep.COUPON, "쿠폰 만료");
+        //when
+        //then
+        assertThatThrownBy(() -> orderSaga.retryCompensate(999L))
+                .isInstanceOf(SagaSystemException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.NOT_FOUND_EXECUTION);
+    }
+
     private CreateOrderSagaContext createContext() {
         OrderSagaPayload.UsedCoupons usedCoupons = OrderSagaPayload.UsedCoupons.builder()
                 .cartCouponId(1L)

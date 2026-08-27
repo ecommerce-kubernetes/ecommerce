@@ -16,7 +16,7 @@ public class OrderSagaFixtureBuilder {
     private boolean hasCoupon = false;
     private Money usedPoints = Money.ZERO;
 
-    private AtomicLong idSeq = new AtomicLong(100L);
+    private static AtomicLong idSeq = new AtomicLong(100L);
     private IdGenerator idGenerator = idSeq::getAndIncrement;
 
     public static OrderSagaFixtureBuilder given() {
