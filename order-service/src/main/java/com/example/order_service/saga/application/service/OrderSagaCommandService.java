@@ -48,6 +48,12 @@ public class OrderSagaCommandService {
         orderSagaRepository.save(orderSaga);
     }
 
+    public void retryCompensate(Long sagaId, Long executionId) {
+        OrderSaga orderSaga = getOrderSaga(sagaId);
+        orderSaga.retryCompensate(executionId);
+        orderSagaRepository.save(orderSaga);
+    }
+
     private OrderSaga getOrderSaga(Long sagaId) {
         return orderSagaRepository.findById(sagaId)
                 .orElseThrow(() -> new SagaSystemException(SagaErrorCode.NOT_FOUND_SAGA));

@@ -29,10 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import(SecurityConfig.class)
 @WebMvcTest(
-        controllers = DummyController.class, //더미 컨트롤러
+        controllers = DummyController.class,
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {ControllerAdvice.class} //ControllerAdvice 제외 (필터 작동 테스트)
+                classes = {ControllerAdvice.class}
         )
 )
 public class SecurityTest {
@@ -53,7 +53,7 @@ public class SecurityTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));
     }
@@ -151,7 +151,7 @@ public class SecurityTest {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security/permission"));
     }

@@ -49,6 +49,11 @@ payment:
     timeout-approve-pending: 5
     timeout-refund-pending: 5
 
+saga:
+  timeout-minute:
+    timeout-forward-pending: 5
+    timeout-compensate-pending: 5
+
 order:
   timeout-minute: 30
   topics:

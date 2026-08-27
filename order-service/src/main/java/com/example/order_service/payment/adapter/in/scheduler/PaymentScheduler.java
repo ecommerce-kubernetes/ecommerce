@@ -36,7 +36,7 @@ public class PaymentScheduler {
             lockAtLeastFor = "PT1M",
             lockAtMostFor = "PT2M"
     )
-    private void scheduleApprovalPendingReconciliation() {
+    public void scheduleApprovalPendingReconciliation() {
         log.info("[PaymentScheduler] 결제 승인 대기 타임아웃 배치 시작");
 
         expirationService.processTimeoutApprovePendingPayments(LocalDateTime.now());
@@ -50,7 +50,7 @@ public class PaymentScheduler {
             lockAtLeastFor = "PT1M",
             lockAtMostFor = "PT2M"
     )
-    private void scheduleRefundPendingReconciliation() {
+    public void scheduleRefundPendingReconciliation() {
         log.info("[PaymentScheduler] 결제 환불 대기 타임아웃 배치 시작");
 
         expirationService.processTimeoutRefundPendingPayments(LocalDateTime.now());

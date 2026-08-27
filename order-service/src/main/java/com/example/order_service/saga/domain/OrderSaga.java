@@ -148,6 +148,16 @@ public class OrderSaga extends BaseAggregateRoot {
         transitToCompensateStep(rollbackExecution.getStep(), idGenerator);
     }
 
+    public void retryCompensate(Long executionId) {
+        OrderSagaExecution execution = getExecution(executionId);
+
+        if (execution.getType() != ExecutionType.COMPENSATE || execution.getStatus() != ExecutionStatus.PENDING) {
+            return;
+        }
+
+        registerCompensateEvent(execution.getStep(), execution.getId());
+    }
+
     public void failCompensate(Long executionId) {
         OrderSagaExecution execution = getExecution(executionId);
 
