@@ -1,20 +1,12 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.result.OrderSummaryResult;
-import com.example.order_service.order.domain.order.*;
-import com.example.order_service.order.domain.order.context.CreateOrderContext;
-import com.example.order_service.order.domain.order.context.CreateOrderItemContext;
-import com.example.order_service.order.domain.vo.Orderer;
-import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
-import com.example.order_service.order.domain.vo.ProductSnapshot;
-import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.domain.order.Order;
+import com.example.order_service.order.domain.order.OrderFixtureBuilder;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.support.annotation.IsolatedTest;
 import jakarta.persistence.EntityManager;
@@ -24,11 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;

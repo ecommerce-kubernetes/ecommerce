@@ -1,11 +1,8 @@
 package com.example.order_service.cart.adapter.out.client;
 
 import com.example.order_service.cart.adapter.out.client.mapper.CartProductAdapterMapper;
-import com.example.order_service.cart.application.fixture.CartProductFixture;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
-import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartProductPortErrorCode;
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;

@@ -3,14 +3,12 @@ package com.example.order_service.payment.application.service;
 import com.example.order_service.payment.application.port.PaymentPGPort;
 import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGInquiryResult;
-import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.config.PaymentProperties;
 import com.example.order_service.payment.domain.PaymentFailure;
 import com.example.order_service.payment.domain.context.CancelPaymentContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

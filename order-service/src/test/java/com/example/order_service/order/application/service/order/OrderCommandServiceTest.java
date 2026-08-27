@@ -2,8 +2,6 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.common.util.TsidGenerator;
 import com.example.order_service.order.application.port.OrderRepository;
 import com.example.order_service.order.domain.order.*;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;

@@ -9,7 +9,7 @@ import com.example.order_service.order.application.service.fixture.OrderSheetCom
 import com.example.order_service.order.application.service.fixture.OrderUserResultFixture;
 import com.example.order_service.order.application.service.ordersheet.dto.command.CreateDirectOrderSheetCommand;
 import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -13,9 +13,12 @@ import com.example.order_service.order.application.service.ordersheet.dto.result
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetUpdateResult;
 import com.example.order_service.order.application.service.validator.OrderValidator;
 import com.example.order_service.order.config.OrderSheetProperties;
-import com.example.order_service.order.domain.ordersheet.*;
-import com.example.order_service.order.domain.policy.*;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.ordersheet.OrderSheet;
+import com.example.order_service.order.domain.ordersheet.OrderSheetFixtureBuilder;
+import com.example.order_service.order.domain.ordersheet.OrderSheetItem;
+import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

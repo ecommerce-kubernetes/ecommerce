@@ -6,12 +6,7 @@ import com.example.order_service.order.application.port.dto.*;
 import com.example.order_service.order.application.service.fixture.OrderCartResultFixture;
 import com.example.order_service.order.application.service.fixture.OrderCouponResultFixture;
 import com.example.order_service.order.application.service.fixture.OrderProductResultFixture;
-import com.example.order_service.order.domain.ordersheet.CartCouponSnapshot;
-import com.example.order_service.order.domain.ordersheet.ItemCouponSnapshot;
-import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
-import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
 import com.example.order_service.order.exception.OrderErrorCode;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.instancio.Select.field;
 
 class OrderValidatorTest {
 
