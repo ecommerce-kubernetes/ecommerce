@@ -3,6 +3,8 @@ package com.example.order_service.common.error;
 import com.example.order_service.common.error.dto.response.ErrorResponse;
 import com.example.order_service.common.error.dto.response.ValidationErrorResponse;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.exception.ErrorCategory;
+import com.example.order_service.common.exception.PortException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,7 +51,32 @@ public class ControllerAdvice {
                 .timestamp(now.toString())
                 .path(request.getRequestURI())
                 .build();
-        return ResponseEntity.status(e.getErrorCode().getStatus()).body(errorResponse);
+        HttpStatus status = determineHttpStatus(e.getErrorCode().getCategory());
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    @ExceptionHandler(PortException.class)
+    public ResponseEntity<ErrorResponse> portExceptionHandler(HttpServletRequest request, PortException e) {
+        LocalDateTime now = LocalDateTime.now();
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .code(e.getErrorCode().getCode())
+                .message(e.getErrorCode().getMessage())
+                .timestamp(now.toString())
+                .path(request.getRequestURI())
+                .build();
+
+        HttpStatus status = determineHttpStatus(e.getErrorCode().getCategory());
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    private HttpStatus determineHttpStatus(ErrorCategory category) {
+        return switch (category) {
+            case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case BUSINESS_CONFLICT -> HttpStatus.CONFLICT;
+            case EXTERNAL_API_ERROR -> HttpStatus.SERVICE_UNAVAILABLE;
+            case SYSTEM_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 
 }

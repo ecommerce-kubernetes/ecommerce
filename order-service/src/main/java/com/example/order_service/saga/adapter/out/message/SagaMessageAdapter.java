@@ -1,9 +1,9 @@
 package com.example.order_service.saga.adapter.out.message;
 
+import com.example.order_service.common.exception.PortException;
 import com.example.order_service.saga.adapter.out.message.processor.SagaMessageProcessor;
 import com.example.order_service.saga.domain.event.SagaEvent;
 import com.example.order_service.saga.exception.SagaErrorCode;
-import com.example.order_service.saga.exception.SagaSystemException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -27,6 +27,6 @@ public class SagaMessageAdapter {
         return this.processors.stream()
                 .filter(processor -> processor.supports(event))
                 .findFirst()
-                .orElseThrow(() -> new SagaSystemException(SagaErrorCode.UNSUPPORTED_SAGA_EVENT));
+                .orElseThrow(() -> new PortException(SagaErrorCode.UNSUPPORTED_SAGA_EVENT));
     }
 }

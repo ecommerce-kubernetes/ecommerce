@@ -34,13 +34,13 @@ public class CartProductAdapter implements CartProductPort {
         try {
             return productGateway.getProducts(productVariantIds);
         } catch (ExternalClientException e) {
-            throw new PortException(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            throw new PortException(CartProductPortErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
-            throw new PortException(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR);
         } catch (ExternalCircuitBreakerException e) {
-            throw new PortException(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PortException(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN);
         }
     }
 }

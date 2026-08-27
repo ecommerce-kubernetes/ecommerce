@@ -63,7 +63,6 @@ class OrderCartAdapterTest {
         //then
         assertThatThrownBy(() -> orderCartAdapter.getCartItems(1L, List.of(1L, 2L)))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", errorCode, "장바구니 상품 조회중 에러 발생"))
                 .extracting("errorCode")
                 .isEqualTo(OrderCartPortErrorCode.CART_SERVER_ERROR);
     }

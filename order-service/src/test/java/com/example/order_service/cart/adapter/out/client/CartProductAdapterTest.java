@@ -1,11 +1,8 @@
 package com.example.order_service.cart.adapter.out.client;
 
 import com.example.order_service.cart.adapter.out.client.mapper.CartProductAdapterMapper;
-import com.example.order_service.cart.application.fixture.CartProductFixture;
 import com.example.order_service.cart.application.port.dto.CartProductResult;
-import com.example.order_service.cart.application.port.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartProductPortErrorCode;
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
@@ -78,9 +75,8 @@ class CartProductAdapterTest {
         //then
         assertThatThrownBy(() -> cartProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CartProductPortErrorCode.PRODUCT_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(CartProductPortErrorCode.PRODUCT_SERVER_ERROR);
     }
 
 
@@ -97,9 +93,8 @@ class CartProductAdapterTest {
         //then
         assertThatThrownBy(() -> cartProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(CartProductPortErrorCode.PRODUCT_CLIENT_ERROR);
     }
 
     @Test
@@ -115,9 +110,8 @@ class CartProductAdapterTest {
         //then
         assertThatThrownBy(() -> cartProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(CartProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR);
     }
 
     @Test
@@ -133,8 +127,7 @@ class CartProductAdapterTest {
         //then
         assertThatThrownBy(() -> cartProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, code);
+                .extracting("errorCode")
+                .isEqualTo(CartProductPortErrorCode.PRODUCT_CIRCUIT_OPEN);
     }
 }

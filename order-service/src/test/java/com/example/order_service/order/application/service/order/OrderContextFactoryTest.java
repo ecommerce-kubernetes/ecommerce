@@ -1,28 +1,17 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.common.util.TsidGenerator;
-import com.example.order_service.order.application.service.fixture.OrderProductResultFixture;
 import com.example.order_service.order.domain.order.AppliedCartCoupon;
 import com.example.order_service.order.domain.order.AppliedItemCoupon;
 import com.example.order_service.order.domain.order.OrderAmount;
 import com.example.order_service.order.domain.order.OrderItemAmount;
 import com.example.order_service.order.domain.order.context.CreateOrderContext;
 import com.example.order_service.order.domain.ordersheet.*;
-import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetContext;
-import com.example.order_service.order.domain.ordersheet.context.CreateOrderSheetItemContext;
 import com.example.order_service.order.domain.policy.CouponDiscountPolicy;
-import com.example.order_service.order.domain.policy.DefaultPointUsagePolicy;
 import com.example.order_service.order.domain.policy.FixedCouponDiscountPolicy;
-import com.example.order_service.order.domain.policy.PointUsagePolicy;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;

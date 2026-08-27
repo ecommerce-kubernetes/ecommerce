@@ -1,5 +1,7 @@
 package com.example.order_service.common.domain.vo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +16,8 @@ public class Money {
     private Money(BigDecimal amount) {
         this.amount = amount;
     }
+
+    @JsonCreator
     public static Money wons(Long amount) {
         if (amount == null) {
             throw new IllegalArgumentException("금액은 null 이 될 수 없습니다.");
@@ -84,6 +88,7 @@ public class Money {
         return new Money(multipliedAmount);
     }
 
+    @JsonValue
     public long longValue() {
         return amount.longValue();
     }

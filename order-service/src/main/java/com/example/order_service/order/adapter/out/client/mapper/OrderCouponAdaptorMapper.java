@@ -78,7 +78,7 @@ public class OrderCouponAdaptorMapper {
         return switch (type) {
             case "FIXED" -> new FixedCouponDiscountPolicy(Money.wons(amount));
             case "RATE" -> new RateCouponDiscountPolicy(rate, Money.wons(maxAmount));
-            default -> throw new PortException(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR, "UNSUPPORTED_TYPE", "처리할 수 없는 쿠폰 타입입니다.");
+            default -> throw new PortException(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR);
         };
     }
 

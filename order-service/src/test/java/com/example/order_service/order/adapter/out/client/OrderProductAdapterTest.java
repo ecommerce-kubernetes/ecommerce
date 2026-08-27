@@ -91,9 +91,8 @@ public class OrderProductAdapterTest {
         //then
         assertThatThrownBy(() -> orderProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderProductPortErrorCode.PRODUCT_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderProductPortErrorCode.PRODUCT_SERVER_ERROR);
     }
 
     @Test
@@ -109,9 +108,8 @@ public class OrderProductAdapterTest {
         //then
         assertThatThrownBy(() -> orderProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderProductPortErrorCode.PRODUCT_CLIENT_ERROR);
     }
 
     @Test
@@ -127,9 +125,8 @@ public class OrderProductAdapterTest {
         //then
         assertThatThrownBy(() -> orderProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderProductPortErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR);
     }
 
     @Test
@@ -145,8 +142,7 @@ public class OrderProductAdapterTest {
         //then
         assertThatThrownBy(() -> orderProductAdapter.getProducts(variantIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderProductPortErrorCode.PRODUCT_CIRCUIT_OPEN);
     }
 }

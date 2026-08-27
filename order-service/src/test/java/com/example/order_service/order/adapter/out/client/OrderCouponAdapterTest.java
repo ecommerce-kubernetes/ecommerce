@@ -92,9 +92,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getItemCoupons(userId, itemCouponIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_SERVER_ERROR);
     }
 
     @Test
@@ -110,9 +109,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getItemCoupons(userId, itemCouponIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR);
     }
 
     @Test
@@ -128,9 +126,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getItemCoupons(userId, itemCouponIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN);
     }
 
     @Test
@@ -146,9 +143,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getItemCoupons(userId, itemCouponIds))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR);
     }
 
     @Test
@@ -189,9 +185,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getCartCoupon(1L, 1L))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_SERVER_ERROR);
     }
 
     @Test
@@ -205,9 +200,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getCartCoupon(1L, 1L))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_CLIENT_ERROR);
     }
 
     @Test
@@ -221,9 +215,8 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getCartCoupon(1L, 1L))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_CIRCUIT_OPEN);
     }
 
     @Test
@@ -237,8 +230,7 @@ public class OrderCouponAdapterTest {
         //then
         assertThatThrownBy(() -> orderCouponAdapter.getCartCoupon(1L, 1L))
                 .isInstanceOf(PortException.class)
-                .hasMessage(String.format("Port Error: [%s] %s", code, message))
-                .extracting("errorCode", "externalErrorCode")
-                .containsExactly(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR, code);
+                .extracting("errorCode")
+                .isEqualTo(OrderCouponPortErrorCode.COUPON_UNAVAILABLE_SERVER_ERROR);
     }
 }

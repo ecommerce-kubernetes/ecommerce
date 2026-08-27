@@ -1,5 +1,7 @@
 package com.example.order_service.saga.domain;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
@@ -8,7 +10,8 @@ import jakarta.persistence.Converter;
 @Converter
 public class OrderSagaPayloadConverter implements AttributeConverter<OrderSagaPayload, String> {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
     @Override
     public String convertToDatabaseColumn(OrderSagaPayload attribute) {
