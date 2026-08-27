@@ -85,7 +85,7 @@ public class TossPGMapper {
             case "DONE" -> PaymentPGStatus.DONE;
             case "CANCELED" -> PaymentPGStatus.CANCELED;
             case "PARTIAL_CANCELED" -> PaymentPGStatus.PARTIAL_CANCELED;
-            case "ABORT" -> PaymentPGStatus.ABORTED;
+            case "ABORTED" -> PaymentPGStatus.ABORTED;
             case "EXPIRED" -> PaymentPGStatus.EXPIRED;
             default -> PaymentPGStatus.UNKNOWN;
         };

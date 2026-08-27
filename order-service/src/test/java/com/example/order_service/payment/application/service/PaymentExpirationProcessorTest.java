@@ -1,6 +1,10 @@
 package com.example.order_service.payment.application.service;
 
+import com.example.order_service.payment.application.port.PaymentPGPort;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
+import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.application.service.fixture.PaymentPGResultFixture;
 import com.example.order_service.payment.application.service.fixture.PaymentResultFixture;
 import com.example.order_service.payment.config.PaymentProperties;
 import com.example.order_service.payment.domain.PaymentFailure;
@@ -18,8 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +38,9 @@ class PaymentExpirationProcessorTest {
 
     @Mock
     private PaymentCommandService paymentCommandService;
+
+    @Mock
+    private PaymentPGPort pgPort;
 
     @Test
     @DisplayName("타임아웃 대상 준비 결제가 존재하면, 해당 결제들을 실패 처리한다.")
@@ -103,5 +109,100 @@ class PaymentExpirationProcessorTest {
         // then
         verify(paymentCommandService, times(1)).abort(1L, paymentFailure);
         verify(paymentCommandService, times(1)).abort(2L, paymentFailure);
+    }
+
+    @Test
+    @DisplayName("타임아웃 대상 승인 대기 결제가 존재하지 않으면 스킵한다.")
+    void processTimeoutApprovePendingPayments_whenNotExistTimeoutApprovePendingPayments_thenSkip() {
+        // given
+        LocalDateTime currentTime = LocalDateTime.now();
+        given(paymentProperties.timeoutApprovePending()).willReturn(5);
+
+        given(paymentQueryService.getPaymentsByApprovePendingAndUpdatedAtBefore(any(LocalDateTime.class)))
+                .willReturn(Collections.emptyList());
+
+        // when
+        expirationService.processTimeoutApprovePendingPayments(currentTime);
+        // then
+        verify(pgPort, never()).inquiry(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("결제 승인대기 처리 중 PG 결제 상태가 완료이면 망취소를 진행하고 결제를 실패한다.")
+    void processTimeoutApprovePendingPayments_whenPGStatusIsDone_thenNetCancelAndAbortPayment() {
+        //given
+        LocalDateTime currentTime = LocalDateTime.now();
+        given(paymentProperties.timeoutApprovePending()).willReturn(5);
+
+        PaymentResult payment1 = PaymentResultFixture.anPaymentResult()
+                .paymentId(1L)
+                .status(PaymentStatus.APPROVAL_PENDING).build();
+
+        PGInquiryResult paymentResult = PaymentPGResultFixture.anPGInquiryResult()
+                .status(PaymentPGStatus.DONE).build();
+        given(paymentQueryService.getPaymentsByApprovePendingAndUpdatedAtBefore(any(LocalDateTime.class)))
+                .willReturn(List.of(payment1));
+
+        given(pgPort.inquiry(anyString(), any())).willReturn(paymentResult);
+        willDoNothing().given(pgPort).netCancel(anyString(), anyString(), any());
+        //when
+        expirationService.processTimeoutApprovePendingPayments(currentTime);
+        //then
+        verify(pgPort).netCancel(anyString(), anyString(), any());
+        verify(paymentCommandService).abort(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("결제 승인대기 처리 중 PG 결제 상태가 실패이면 결제를 실패한다.")
+    void processTimeoutApprovePendingPayments_whenPGStatusIsAbort_thenAbortPayment() {
+        //given
+        LocalDateTime currentTime = LocalDateTime.now();
+        given(paymentProperties.timeoutApprovePending()).willReturn(5);
+
+        PaymentResult payment1 = PaymentResultFixture.anPaymentResult()
+                .paymentId(1L)
+                .status(PaymentStatus.APPROVAL_PENDING).build();
+
+        PGInquiryResult paymentResult = PaymentPGResultFixture.anPGInquiryResult()
+                .status(PaymentPGStatus.ABORTED)
+                .failure(PGInquiryResult.PGFailureResult.builder()
+                        .code("잔액부족")
+                        .message("잔액이 부족합니다.")
+                        .build())
+                .build();
+        given(paymentQueryService.getPaymentsByApprovePendingAndUpdatedAtBefore(any(LocalDateTime.class)))
+                .willReturn(List.of(payment1));
+
+        given(pgPort.inquiry(anyString(), any())).willReturn(paymentResult);
+        //when
+        expirationService.processTimeoutApprovePendingPayments(currentTime);
+        //then
+        verify(paymentCommandService).abort(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("결제 승인대기 처리 중 PG 결제 상태가 취소이면 결제를 실패한다.")
+    void processTimeoutApprovePendingPayments_whenPGStatusIsCanceled_thenAbortPayment() {
+        //given
+        LocalDateTime currentTime = LocalDateTime.now();
+        given(paymentProperties.timeoutApprovePending()).willReturn(5);
+
+        PaymentResult payment1 = PaymentResultFixture.anPaymentResult()
+                .paymentId(1L)
+                .status(PaymentStatus.APPROVAL_PENDING).build();
+
+        PGInquiryResult paymentResult = PaymentPGResultFixture.anPGInquiryResult()
+                .status(PaymentPGStatus.CANCELED)
+                .cancelReason("결제 타임아웃으로 인한 취소")
+                .build();
+
+        given(paymentQueryService.getPaymentsByApprovePendingAndUpdatedAtBefore(any(LocalDateTime.class)))
+                .willReturn(List.of(payment1));
+
+        given(pgPort.inquiry(anyString(), any())).willReturn(paymentResult);
+        //when
+        expirationService.processTimeoutApprovePendingPayments(currentTime);
+        //then
+        verify(paymentCommandService).abort(anyLong(), any());
     }
 }

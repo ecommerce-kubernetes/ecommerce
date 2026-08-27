@@ -7,6 +7,7 @@ import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
+import java.util.Collections;
 import java.util.List;
 
 @Builder
@@ -45,6 +46,9 @@ public record CartResponse(
         }
 
         public static List<Item> from(List<CartItemResult> items) {
+            if (items == null || items.isEmpty()) {
+                return Collections.emptyList();
+            }
             return items.stream().map(Item::from).toList();
         }
     }

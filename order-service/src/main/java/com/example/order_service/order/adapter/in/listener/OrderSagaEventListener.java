@@ -12,7 +12,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class OrderSagaEventListener {
 
-    private OrderCommandService orderCommandService;
+    private final OrderCommandService orderCommandService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSagaSuccessEvent(SagaSuccessEvent event) {

@@ -3,6 +3,7 @@ package com.example.order_service.payment.application.service.fixture;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.payment.application.port.dto.PGCancelResult;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
 import com.example.order_service.payment.domain.PaymentMethod;
 
@@ -25,6 +26,11 @@ public class PaymentPGResultFixture {
                 .amount(Money.wons(1000L))
                 .cancelReason("결제 취소")
                 .canceledAt(LocalDateTime.now());
+    }
 
+    public static PGInquiryResult.PGInquiryResultBuilder anPGInquiryResult() {
+        return PGInquiryResult.builder()
+                .transactionKey("transactionKey")
+                .status(PaymentPGStatus.DONE);
     }
 }
