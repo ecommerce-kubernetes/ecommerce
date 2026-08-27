@@ -4,7 +4,9 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.PortException;
 import com.example.order_service.payment.adapter.out.client.pg.toss.TossPGProcessor;
 import com.example.order_service.payment.application.port.dto.PGConfirmResult;
+import com.example.order_service.payment.application.port.dto.PGInquiryResult;
 import com.example.order_service.payment.application.port.dto.PaymentPGStatus;
+import com.example.order_service.payment.application.service.fixture.PaymentPGResultFixture;
 import com.example.order_service.payment.domain.PaymentMethod;
 import com.example.order_service.payment.domain.PaymentProvider;
 import com.example.order_service.payment.exception.PaymentPGPortErrorCode;
@@ -91,5 +93,20 @@ class PaymentPGAdapterTest {
         //then
         assertThatCode(() -> paymentPGAdapter.netCancel(paymentKey, cancelReason, provider))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("결제사 프로세서를 찾아 결제 조회를 위임한다.")
+    void inquiry() {
+        //given
+        String paymentKey = "paymentKey";
+        PaymentProvider provider = PaymentProvider.TOSS;
+
+        PGInquiryResult result = PaymentPGResultFixture.anPGInquiryResult().build();
+        given(tossPGProcessor.inquiry(anyString())).willReturn(result);
+        //when
+        PGInquiryResult inquiry = paymentPGAdapter.inquiry(paymentKey, provider);
+        //then
+        assertThat(inquiry.status()).isEqualTo(PaymentPGStatus.DONE);
     }
 }

@@ -2,7 +2,6 @@ package com.example.order_service.saga.domain;
 
 import com.example.order_service.common.entity.BaseAggregateRoot;
 import com.example.order_service.common.util.IdGenerator;
-import com.example.order_service.common.util.OrderSagaPayloadConverter;
 import com.example.order_service.saga.domain.context.CreateOrderSagaContext;
 import com.example.order_service.saga.domain.event.*;
 import com.example.order_service.saga.exception.SagaErrorCode;

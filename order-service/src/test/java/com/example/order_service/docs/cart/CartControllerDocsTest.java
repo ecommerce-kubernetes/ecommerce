@@ -1,8 +1,8 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.cart.adaptor.in.web.CartController;
-import com.example.order_service.cart.adaptor.in.web.dto.request.AddCartItemsRequest;
-import com.example.order_service.cart.adaptor.in.web.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.adapter.in.web.CartController;
+import com.example.order_service.cart.adapter.in.web.dto.request.AddCartItemsRequest;
+import com.example.order_service.cart.adapter.in.web.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.service.dto.command.DeleteCartItemsCommand;
