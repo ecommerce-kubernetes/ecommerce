@@ -13,20 +13,20 @@ import java.time.Duration;
 public class RefreshToken {
     private Long userId;
     private String token;
-    private Duration expiresAt;
+    private Duration ttl;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private RefreshToken(Long userId, String token, Duration expiresAt) {
+    private RefreshToken(Long userId, String token, Duration ttl) {
         this.userId = userId;
         this.token = token;
-        this.expiresAt = expiresAt;
+        this.ttl = ttl;
     }
 
     public static RefreshToken create(CreateRefreshTokenContext context) {
         return RefreshToken.builder()
                 .userId(context.userId())
                 .token(context.token())
-                .expiresAt(context.expiresAt())
+                .ttl(context.ttl())
                 .build();
     }
 }

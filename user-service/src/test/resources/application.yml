@@ -35,9 +35,9 @@ logging:
     url: http://localhost:3100/loki/api/v1/push
 
 token:
-  expiration_time: 3000000
-  refresh_expiration_time: 604800000
   secret: sRwFJewa3JqnGtFZJsMREtKh9ApEy3RS
+  access-token-ttl: 30m
+  refresh-token-ttl: 7d
 
 user:
   topics:

@@ -17,13 +17,13 @@ class RefreshTokenTest {
         CreateRefreshTokenContext context = CreateRefreshTokenContext.builder()
                 .userId(1L)
                 .token("refresh-token")
-                .expiresAt(Duration.ofDays(7))
+                .ttl(Duration.ofDays(7))
                 .build();
         //when
         RefreshToken refreshToken = RefreshToken.create(context);
         //then
         assertThat(refreshToken.getUserId()).isEqualTo(1L);
         assertThat(refreshToken.getToken()).isEqualTo("refresh-token");
-        assertThat(refreshToken.getExpiresAt()).isEqualTo(Duration.ofDays(7));
+        assertThat(refreshToken.getTtl()).isEqualTo(Duration.ofDays(7));
     }
 }

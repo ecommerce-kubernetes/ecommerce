@@ -1,7 +1,6 @@
 package com.example.userservice.auth.fixture;
 
-import com.example.userservice.auth.service.dto.LoginResponse;
-import com.example.userservice.auth.service.dto.TokenData;
+import com.example.userservice.auth.application.service.dto.TokenData;
 
 public class AuthResponseFixture {
 

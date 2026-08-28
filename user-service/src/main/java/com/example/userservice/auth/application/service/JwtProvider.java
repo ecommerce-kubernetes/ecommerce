@@ -1,8 +1,8 @@
-package com.example.userservice.auth.service;
+package com.example.userservice.auth.application.service;
 
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
-import com.example.userservice.auth.service.dto.TokenData;
-import com.example.userservice.auth.service.properties.TokenProperties;
+import com.example.userservice.auth.application.service.dto.TokenData;
+import com.example.userservice.auth.application.service.properties.TokenProperties;
 import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
 import io.jsonwebtoken.Claims;
@@ -28,19 +28,27 @@ public class JwtProvider {
 
     public TokenData generateTokenData(AuthUserResult user) {
         Date now = new Date();
-        String accessToken = genAccessToken(user, now);
-        String refreshToken = genRefreshToken(user.id(), now);
-        return TokenData.of(accessToken, refreshToken);
+
+        long accessTtlMillis = tokenProperties.getAccessTokenTtl().toMillis();
+        long refreshTtlMillis = tokenProperties.getRefreshTokenTtl().toMillis();
+
+        Date accessExpiration = new Date(now.getTime() + accessTtlMillis);
+        Date refreshExpiration = new Date(now.getTime() + refreshTtlMillis);
+
+        String accessToken = genAccessToken(user, now, accessExpiration);
+        String refreshToken = genRefreshToken(user.id(), now, refreshExpiration);
+
+        return TokenData.of(accessToken, refreshToken, tokenProperties.getRefreshTokenTtl());
     }
 
-
-    public Claims getValidClaims(String token) {
+    public Long getUserId(String token) {
         try {
-            return Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(getSecretKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+            return Long.parseLong(claims.getSubject());
         } catch (ExpiredJwtException e) {
             throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_EXPIRED);
         } catch (SignatureException e) {
@@ -56,7 +64,7 @@ public class JwtProvider {
         return Keys.hmacShaKeyFor(tokenProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private String genAccessToken(AuthUserResult user, Date date){
+    private String genAccessToken(AuthUserResult user, Date date, Date expiration){
         return Jwts.builder()
                 .subject(String.valueOf(user.id()))
                 .issuer("buynest-user-service")
@@ -65,18 +73,18 @@ public class JwtProvider {
                 .claim("role", user.role().name())
                 .claim("token_type", "ACCESS")
                 .issuedAt(date)
-                .expiration(new Date(date.getTime() + tokenProperties.getExpirationTime()))
+                .expiration(expiration)
                 .signWith(getSecretKey())
                 .compact();
     }
 
-    private String genRefreshToken(Long userId, Date date) {
+    private String genRefreshToken(Long userId, Date date, Date expiration) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .issuer("buynest-user-service")
                 .claim("token_type", "REFRESH")
                 .issuedAt(date)
-                .expiration(new Date(date.getTime() + tokenProperties.getRefreshExpirationTime()))
+                .expiration(expiration)
                 .signWith(getSecretKey())
                 .compact();
     }

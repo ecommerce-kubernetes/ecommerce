@@ -1,4 +1,4 @@
-package com.example.userservice.auth.service;
+package com.example.userservice.auth.application.service;
 
 import com.example.userservice.api.support.ExcludeInfraTest;
 import org.springframework.transaction.annotation.Transactional;

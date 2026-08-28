@@ -2,8 +2,8 @@ package com.example.userservice.docs.auth;
 
 import com.example.userservice.auth.adapter.in.web.AuthController;
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
-import com.example.userservice.auth.service.AuthService;
-import com.example.userservice.auth.service.dto.TokenData;
+import com.example.userservice.auth.application.service.AuthService;
+import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.docs.RestDocsSupport;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;

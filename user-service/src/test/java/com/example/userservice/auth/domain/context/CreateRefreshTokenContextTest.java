@@ -18,7 +18,7 @@ class CreateRefreshTokenContextTest {
         assertThatThrownBy(() -> CreateRefreshTokenContext.builder()
                 .userId(null)
                 .token("refresh-token")
-                .expiresAt(Duration.ofDays(7))
+                .ttl(Duration.ofDays(7))
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("리프레시 토큰 생성시 유저 아이디는 필수이다.");
@@ -33,7 +33,7 @@ class CreateRefreshTokenContextTest {
         assertThatThrownBy(() -> CreateRefreshTokenContext.builder()
                 .userId(1L)
                 .token(null)
-                .expiresAt(Duration.ofDays(7))
+                .ttl(Duration.ofDays(7))
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("리프레시 토큰 생성시 토큰 값은 필수이다.");
@@ -48,7 +48,7 @@ class CreateRefreshTokenContextTest {
         assertThatThrownBy(() -> CreateRefreshTokenContext.builder()
                 .userId(1L)
                 .token("refresh-token")
-                .expiresAt(null)
+                .ttl(null)
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("리프레시 토큰 생성시 만료 기간은 필수이다.");

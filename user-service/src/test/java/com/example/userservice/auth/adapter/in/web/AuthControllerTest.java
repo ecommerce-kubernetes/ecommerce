@@ -1,8 +1,8 @@
 package com.example.userservice.auth.adapter.in.web;
 
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
-import com.example.userservice.auth.service.AuthService;
-import com.example.userservice.auth.service.dto.TokenData;
+import com.example.userservice.auth.application.service.AuthService;
+import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.api.support.security.annotation.WithCustomMockUser;
 import com.example.userservice.api.support.security.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,8 +56,8 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value(token.getAccessToken()))
-                .andExpect(cookie().value("refreshToken", token.getRefreshToken()));
+                .andExpect(jsonPath("$.accessToken").value(token.accessToken()))
+                .andExpect(cookie().value("refreshToken", token.refreshToken()));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -89,8 +89,8 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(new Cookie("refreshToken", "token")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value(token.getAccessToken()))
-                .andExpect(cookie().value("refreshToken", token.getRefreshToken()));
+                .andExpect(jsonPath("$.accessToken").value(token.accessToken()))
+                .andExpect(cookie().value("refreshToken", token.refreshToken()));
     }
 
     @Test

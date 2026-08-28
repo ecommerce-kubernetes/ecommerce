@@ -1,7 +1,7 @@
 package com.example.userservice.api.support;
 
 import com.example.userservice.auth.adapter.in.web.AuthController;
-import com.example.userservice.auth.service.AuthService;
+import com.example.userservice.auth.application.service.AuthService;
 import com.example.userservice.api.user.controller.UserController;
 import com.example.userservice.api.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;

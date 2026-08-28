@@ -1,13 +1,13 @@
-package com.example.userservice.auth.service;
+package com.example.userservice.auth.application.service;
 
 import com.example.userservice.auth.application.port.AuthUserPort;
+import com.example.userservice.auth.application.port.TokenRepository;
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.domain.RefreshToken;
-import com.example.userservice.auth.domain.repository.RefreshTokenRepository;
-import com.example.userservice.auth.service.dto.TokenData;
+import com.example.userservice.auth.domain.context.CreateRefreshTokenContext;
+import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class AuthService {
 
     private final JwtProvider jwtProvider;
     private final AuthUserPort authUserPort;
-    private final RefreshTokenRepository tokenRepository;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
 
     public TokenData login(String email, String password) {
@@ -29,31 +29,39 @@ public class AuthService {
 
         TokenData tokenData = jwtProvider.generateTokenData(user);
 
+        RefreshToken refreshToken = createRefreshToken(user, tokenData);
+        tokenRepository.save(refreshToken);
         return tokenData;
     }
 
     public TokenData refresh(String refreshToken) {
-        Claims validClaims = jwtProvider.getValidClaims(refreshToken);
-        Long userId = Long.parseLong(validClaims.getSubject());
-        RefreshToken savedToken = tokenRepository.findById(userId);
-
-        if (savedToken == null || !savedToken.getToken().equals(refreshToken)){
-            throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID);
-        }
+        Long userId = jwtProvider.getUserId(refreshToken);
 
         AuthUserResult user = authUserPort.getUserById(userId);
         TokenData tokenData = jwtProvider.generateTokenData(user);
+
+        RefreshToken newRefreshToken = createRefreshToken(user, tokenData);
+        tokenRepository.save(newRefreshToken);
         return tokenData;
     }
 
     public void logout(Long userId) {
-        tokenRepository.deleteById(userId);
+        tokenRepository.deleteByUserId(userId);
     }
-
 
     private void validatePassword(String password, String encryptPassword) {
         if (!passwordEncoder.matches(password, encryptPassword)) {
             throw new BusinessException(AuthErrorCode.PASSWORD_NOT_MATCH);
         }
+    }
+
+    private RefreshToken createRefreshToken(AuthUserResult userResult, TokenData tokenData) {
+        CreateRefreshTokenContext context = CreateRefreshTokenContext.builder()
+                .userId(userResult.id())
+                .token(tokenData.refreshToken())
+                .ttl(tokenData.refreshTokenTtl())
+                .build();
+
+        return RefreshToken.create(context);
     }
 }
