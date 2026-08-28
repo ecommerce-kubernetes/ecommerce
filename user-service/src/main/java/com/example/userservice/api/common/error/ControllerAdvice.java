@@ -1,6 +1,8 @@
 package com.example.userservice.api.common.error;
 
 import com.example.userservice.api.common.error.dto.response.ErrorResponse;
+import com.example.userservice.api.common.error.dto.response.ValidationErrorResponse;
+import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.common.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,9 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +27,50 @@ import java.util.List;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ControllerAdvice {
+
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestCookieException(HttpServletRequest request,
+                                                                             MissingRequestCookieException e) {
+        LocalDateTime now = LocalDateTime.now();
+        String cookieName = e.getCookieName();
+        ErrorResponse response = createErrorResponse("VALIDATION", cookieName + "은 필수 입니다.", now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> constraintViolationExceptionHandler(HttpServletRequest request,
+                                                                             ConstraintViolationException e){
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.of(
+                "VALIDATION",
+                message,
+                now.toString(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleHandlerMethodValidationException(HttpServletRequest request,
+                                                                                          HandlerMethodValidationException e) {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<ValidationErrorResponse.FieldDetail> fields = e.getParameterValidationResults().stream().map(result ->
+                ValidationErrorResponse.FieldDetail.of(result.getMethodParameter().getParameterName(),
+                        result.getResolvableErrors().getFirst().getDefaultMessage())).toList();
+
+        ValidationErrorResponse response = ValidationErrorResponse.builder()
+                .code("VALIDATION")
+                .message("입력값이 올바르지 않습니다.")
+                .errors(fields)
+                .timestamp(now)
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validationExceptionHandler(HttpServletRequest request,
@@ -36,21 +85,7 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> constraintViolationExceptionHandler(HttpServletRequest request,
-                                                                             ConstraintViolationException e){
-        LocalDateTime now = LocalDateTime.now();
-        String message = e.getConstraintViolations().iterator().next().getMessage();
-        CommonErrorCode errorCode = CommonErrorCode.INVALID_INPUT_VALUE;
-        ErrorResponse response = ErrorResponse.of(
-                errorCode.getCode(),
-                message,
-                now.toString(),
-                request.getRequestURI()
-        );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleJsonErrors(HttpServletRequest request,
