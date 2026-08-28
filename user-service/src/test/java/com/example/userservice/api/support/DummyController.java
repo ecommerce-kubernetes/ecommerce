@@ -1,9 +1,9 @@
 package com.example.userservice.api.support;
 
-import com.example.userservice.api.common.exception.BusinessException;
-import com.example.userservice.api.common.exception.UserErrorCode;
-import com.example.userservice.api.common.security.model.UserPrincipal;
-import com.example.userservice.api.user.domain.model.Role;
+import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.common.exception.UserErrorCode;
+import com.example.userservice.common.security.model.UserPrincipal;
+import com.example.userservice.user.domain.model.Role;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

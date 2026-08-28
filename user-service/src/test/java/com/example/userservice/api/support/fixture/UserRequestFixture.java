@@ -1,6 +1,6 @@
 package com.example.userservice.api.support.fixture;
 
-import com.example.userservice.api.user.controller.dto.UserCreateRequest;
+import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
 
 import java.time.LocalDate;
 

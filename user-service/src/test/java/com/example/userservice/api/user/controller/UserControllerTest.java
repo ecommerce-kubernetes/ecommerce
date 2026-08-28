@@ -2,10 +2,10 @@ package com.example.userservice.api.user.controller;
 
 import com.example.userservice.api.support.ControllerTestSupport;
 import com.example.userservice.api.support.security.config.TestSecurityConfig;
-import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
-import com.example.userservice.api.user.controller.dto.UserCreateRequest;
-import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
-import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
+import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
+import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
+import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.result.UserCreateResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

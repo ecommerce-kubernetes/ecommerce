@@ -1,7 +1,7 @@
 package com.example.userservice.api.common.security;
 
-import com.example.userservice.api.common.error.ControllerAdvice;
-import com.example.userservice.api.common.security.config.SecurityConfig;
+import com.example.userservice.common.error.ControllerAdvice;
+import com.example.userservice.common.security.config.SecurityConfig;
 import com.example.userservice.api.support.DummyController;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.DisplayName;

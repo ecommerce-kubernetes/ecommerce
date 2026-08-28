@@ -1,6 +1,6 @@
 package com.example.userservice.auth.exception;
 
-import com.example.userservice.api.common.exception.ErrorCode;
+import com.example.userservice.common.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

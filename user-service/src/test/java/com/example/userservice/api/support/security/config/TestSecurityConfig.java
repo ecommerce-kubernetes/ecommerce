@@ -1,7 +1,7 @@
 package com.example.userservice.api.support.security.config;
 
-import com.example.userservice.api.common.security.filter.CustomAccessDeniedHandler;
-import com.example.userservice.api.common.security.filter.CustomAuthenticationEntryPoint;
+import com.example.userservice.common.security.filter.CustomAccessDeniedHandler;
+import com.example.userservice.common.security.filter.CustomAuthenticationEntryPoint;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;

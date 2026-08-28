@@ -2,10 +2,12 @@ package com.example.userservice.api.user.saga.service;
 
 import com.example.common.user.UserCommandType;
 import com.example.common.user.UserSagaCommand;
-import com.example.userservice.api.common.exception.BusinessException;
-import com.example.userservice.api.common.exception.SagaErrorCode;
-import com.example.userservice.api.common.exception.UserErrorCode;
-import com.example.userservice.api.user.saga.producer.SagaEventProducer;
+import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.common.exception.SagaErrorCode;
+import com.example.userservice.common.exception.UserErrorCode;
+import com.example.userservice.saga.producer.SagaEventProducer;
+import com.example.userservice.saga.service.SagaProcessor;
+import com.example.userservice.saga.service.UserSagaCommandExecutor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

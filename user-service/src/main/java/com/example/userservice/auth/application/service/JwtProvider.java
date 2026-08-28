@@ -4,7 +4,7 @@ import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.auth.application.service.properties.TokenProperties;
 import com.example.userservice.auth.exception.AuthErrorCode;
-import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.common.exception.BusinessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

@@ -1,14 +1,15 @@
 package com.example.userservice.api.user.service;
 
-import com.example.userservice.api.common.exception.BusinessException;
-import com.example.userservice.api.common.exception.UserErrorCode;
+import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.common.exception.UserErrorCode;
 import com.example.userservice.api.support.ExcludeInfraTest;
-import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
-import com.example.userservice.api.user.domain.model.User;
-import com.example.userservice.api.user.domain.repository.UserRepository;
-import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
-import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
-import com.example.userservice.api.user.service.dto.result.UserOrderResponse;
+import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
+import com.example.userservice.user.domain.model.User;
+import com.example.userservice.user.domain.repository.UserRepository;
+import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.result.UserCreateResponse;
+import com.example.userservice.user.application.service.dto.result.UserOrderResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

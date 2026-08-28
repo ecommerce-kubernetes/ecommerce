@@ -8,7 +8,7 @@ import com.example.userservice.auth.domain.RefreshToken;
 import com.example.userservice.auth.domain.context.CreateRefreshTokenContext;
 import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.auth.exception.AuthErrorCode;
-import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

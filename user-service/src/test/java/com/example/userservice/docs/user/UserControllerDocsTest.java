@@ -1,12 +1,12 @@
 package com.example.userservice.docs.user;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.example.userservice.api.user.controller.UserController;
-import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
-import com.example.userservice.api.user.controller.dto.UserCreateRequest;
-import com.example.userservice.api.user.service.UserService;
-import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
-import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
+import com.example.userservice.user.adapter.in.web.UserController;
+import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
+import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
+import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.result.UserCreateResponse;
 import com.example.userservice.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

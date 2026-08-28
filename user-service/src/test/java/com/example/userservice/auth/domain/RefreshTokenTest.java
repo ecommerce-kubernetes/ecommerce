@@ -1,7 +1,5 @@
 package com.example.userservice.auth.domain;
 
-import com.example.userservice.auth.exception.AuthErrorCode;
-import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.auth.domain.context.CreateRefreshTokenContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

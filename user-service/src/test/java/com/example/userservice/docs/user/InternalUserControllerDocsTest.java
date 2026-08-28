@@ -1,8 +1,8 @@
 package com.example.userservice.docs.user;
 
-import com.example.userservice.api.user.controller.InternalUserController;
-import com.example.userservice.api.user.service.UserService;
-import com.example.userservice.api.user.service.dto.result.UserOrderResponse;
+import com.example.userservice.user.adapter.in.web.InternalUserController;
+import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.dto.result.UserOrderResponse;
 import com.example.userservice.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

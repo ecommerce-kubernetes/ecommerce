@@ -1,8 +1,8 @@
 package com.example.userservice.api.support.fixture;
 
-import com.example.userservice.api.user.domain.model.Gender;
-import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
-import com.example.userservice.api.user.service.dto.result.UserOrderResponse;
+import com.example.userservice.user.domain.model.Gender;
+import com.example.userservice.user.application.service.dto.result.UserCreateResponse;
+import com.example.userservice.user.application.service.dto.result.UserOrderResponse;
 
 import java.time.LocalDate;
 

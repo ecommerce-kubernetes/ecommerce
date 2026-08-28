@@ -1,8 +1,8 @@
 package com.example.userservice.api.support.security;
 
-import com.example.userservice.api.common.security.model.UserPrincipal;
+import com.example.userservice.common.security.model.UserPrincipal;
 import com.example.userservice.api.support.security.annotation.WithCustomMockUser;
-import com.example.userservice.api.user.domain.model.Role;
+import com.example.userservice.user.domain.model.Role;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;

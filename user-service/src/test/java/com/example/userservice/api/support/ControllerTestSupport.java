@@ -2,8 +2,8 @@ package com.example.userservice.api.support;
 
 import com.example.userservice.auth.adapter.in.web.AuthController;
 import com.example.userservice.auth.application.service.AuthService;
-import com.example.userservice.api.user.controller.UserController;
-import com.example.userservice.api.user.service.UserService;
+import com.example.userservice.user.adapter.in.web.UserController;
+import com.example.userservice.user.application.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
