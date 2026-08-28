@@ -10,16 +10,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SagaEventProducer {
 
-    private final UserTopicProperties userTopicProperties;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
     public void sendSagaSuccess(Long sagaId, String orderNo) {
         SagaProcessResult result = SagaProcessResult.success(sagaId, orderNo);
-        kafkaTemplate.send(userTopicProperties.getUserSagaReply(), String.valueOf(sagaId), result);
     }
 
     public void sendSagaFailure(Long sagaId, String orderNo, String errorCode, String failureReason) {
         SagaProcessResult result = SagaProcessResult.fail(sagaId, orderNo, errorCode, failureReason);
-        kafkaTemplate.send(userTopicProperties.getUserSagaReply(), String.valueOf(sagaId), result);
     }
 }

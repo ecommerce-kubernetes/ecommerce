@@ -1,6 +1,6 @@
 package com.example.userservice.auth.application.service;
 
-import com.example.userservice.api.common.exception.AuthErrorCode;
+import com.example.userservice.auth.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.application.service.dto.TokenData;
@@ -39,6 +39,21 @@ class JwtProviderTest {
         assertThat(tokenData.accessToken()).isNotBlank();
         assertThat(tokenData.refreshToken()).isNotBlank();
         assertThat(tokenData.refreshTokenTtl()).isEqualTo(REFRESH_TOKEN_TTL);
+    }
+
+    @Test
+    @DisplayName("유효한 토큰인 경우 유저 아이디를 반환한다.")
+    void getUserId(){
+        //given
+        String validToken = generateToken(
+                SECRET,
+                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + 10000)
+        );
+        //when
+        Long userId = jwtProvider.getUserId(validToken);
+        //then
+        assertThat(userId).isEqualTo(1L);
     }
 
     @Test

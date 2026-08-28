@@ -14,6 +14,5 @@ public class SagaEventListener {
 
     @KafkaListener(topics = "${user.topics.user-saga-command}")
     public void handleOrderEvent(@Payload UserSagaCommand command) {
-        sagaProcessor.userSagaProcess(command);
     }
 }

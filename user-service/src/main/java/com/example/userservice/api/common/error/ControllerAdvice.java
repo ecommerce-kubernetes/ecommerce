@@ -2,7 +2,6 @@ package com.example.userservice.api.common.error;
 
 import com.example.userservice.api.common.error.dto.response.ErrorResponse;
 import com.example.userservice.api.common.error.dto.response.ValidationErrorResponse;
-import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.common.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;

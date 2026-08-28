@@ -2,9 +2,9 @@ package com.example.userservice.auth.adapter.in.web;
 
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
 import com.example.userservice.auth.application.service.AuthService;
-import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.api.support.security.annotation.WithCustomMockUser;
 import com.example.userservice.api.support.security.config.TestSecurityConfig;
+import com.example.userservice.auth.application.service.dto.TokenResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.stream.Stream;
 
 import static com.example.userservice.auth.fixture.AuthRequestFixture.anLoginRequest;
-import static com.example.userservice.auth.fixture.AuthResponseFixture.anTokenData;
+import static com.example.userservice.auth.fixture.AuthResponseFixture.anTokenResult;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -47,7 +47,7 @@ class AuthControllerTest {
     void login() throws Exception {
         //given
         LoginRequest request = anLoginRequest().build();
-        TokenData token = anTokenData().build();
+        TokenResult token = anTokenResult().build();
         given(authService.login(anyString(), anyString())).willReturn(token);
         //when
         //then
@@ -81,7 +81,7 @@ class AuthControllerTest {
     @DisplayName("토큰 리프레시")
     void refresh() throws Exception {
         //given
-        TokenData token = anTokenData().build();
+        TokenResult token = anTokenResult().build();
         given(authService.refresh(anyString())).willReturn(token);
         //when
         //then

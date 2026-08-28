@@ -2,9 +2,10 @@ package com.example.userservice.auth.adapter.in.web;
 
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
 import com.example.userservice.auth.application.service.AuthService;
-import com.example.userservice.auth.application.service.dto.LoginResponse;
+import com.example.userservice.auth.adapter.in.web.dto.TokenResponse;
 import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.api.common.security.model.UserPrincipal;
+import com.example.userservice.auth.application.service.dto.TokenResult;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,9 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Validated @RequestBody LoginRequest request) {
-        TokenData token = authService.login(request.email(), request.password());
-        LoginResponse response = LoginResponse.of(token.accessToken());
+    public ResponseEntity<TokenResponse> login(@Validated @RequestBody LoginRequest request) {
+        TokenResult token = authService.login(request.email(), request.password());
+        TokenResponse response = TokenResponse.of(token.accessToken());
         ResponseCookie refreshTokenCookie = setRefreshTokenCookie(token.refreshToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
@@ -34,11 +35,11 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refresh(
+    public ResponseEntity<TokenResponse> refresh(
             @CookieValue(value = "refreshToken") @NotBlank(message = "{refresh.token.notBlank}") String refreshToken
     ) {
-        TokenData token = authService.refresh(refreshToken);
-        LoginResponse response = LoginResponse.of(token.accessToken());
+        TokenResult token = authService.refresh(refreshToken);
+        TokenResponse response = TokenResponse.of(token.accessToken());
         ResponseCookie refreshTokenCookie = setRefreshTokenCookie(token.refreshToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
