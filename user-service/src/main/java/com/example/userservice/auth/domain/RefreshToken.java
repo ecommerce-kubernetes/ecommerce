@@ -1,5 +1,6 @@
 package com.example.userservice.auth.domain;
 
+import com.example.userservice.auth.domain.context.CreateRefreshTokenContext;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,11 +22,11 @@ public class RefreshToken {
         this.expiresAt = expiresAt;
     }
 
-    public static RefreshToken create(Long userId, String token, Duration expiresAt) {
+    public static RefreshToken create(CreateRefreshTokenContext context) {
         return RefreshToken.builder()
-                .userId(userId)
-                .token(token)
-                .expiresAt(expiresAt)
+                .userId(context.userId())
+                .token(context.token())
+                .expiresAt(context.expiresAt())
                 .build();
     }
 }
