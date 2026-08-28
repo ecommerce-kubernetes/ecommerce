@@ -1,6 +1,6 @@
 package com.example.userservice.auth.domain.repository;
 
-import com.example.userservice.auth.domain.model.RefreshToken;
+import com.example.userservice.auth.domain.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;

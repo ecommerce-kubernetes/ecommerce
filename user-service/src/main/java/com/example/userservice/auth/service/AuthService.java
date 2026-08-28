@@ -2,9 +2,8 @@ package com.example.userservice.auth.service;
 
 import com.example.userservice.auth.application.port.AuthUserPort;
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
-import com.example.userservice.auth.domain.model.RefreshToken;
+import com.example.userservice.auth.domain.RefreshToken;
 import com.example.userservice.auth.domain.repository.RefreshTokenRepository;
-import com.example.userservice.auth.service.dto.JwtClaims;
 import com.example.userservice.auth.service.dto.TokenData;
 import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
@@ -27,10 +26,9 @@ public class AuthService {
     public TokenData login(String email, String password) {
         AuthUserResult user = authUserPort.getUserByEmail(email);
         validatePassword(password, user.encryptedPwd());
-        JwtClaims jwtClaims = toJwtClaims(user);
-        TokenData tokenData = jwtProvider.generateTokenData(jwtClaims);
-        RefreshToken refreshToken = RefreshToken.create(user.id(), tokenData.getRefreshToken());
-        tokenRepository.save(refreshToken, jwtProvider.getRefreshTokenExpiration());
+
+        TokenData tokenData = jwtProvider.generateTokenData(user);
+
         return tokenData;
     }
 
@@ -44,10 +42,7 @@ public class AuthService {
         }
 
         AuthUserResult user = authUserPort.getUserById(userId);
-        JwtClaims jwtClaims = toJwtClaims(user);
-        TokenData tokenData = jwtProvider.generateTokenData(jwtClaims);
-        RefreshToken newRefreshToken = RefreshToken.create(user.id(), tokenData.getRefreshToken());
-        tokenRepository.save(newRefreshToken, jwtProvider.getRefreshTokenExpiration());
+        TokenData tokenData = jwtProvider.generateTokenData(user);
         return tokenData;
     }
 
@@ -55,14 +50,6 @@ public class AuthService {
         tokenRepository.deleteById(userId);
     }
 
-    private JwtClaims toJwtClaims(AuthUserResult user) {
-        return JwtClaims.builder()
-                .id(user.id())
-                .email(user.email())
-                .name(user.name())
-                .role(user.role())
-                .build();
-    }
 
     private void validatePassword(String password, String encryptPassword) {
         if (!passwordEncoder.matches(password, encryptPassword)) {

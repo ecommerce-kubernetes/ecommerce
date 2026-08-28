@@ -1,6 +1,6 @@
 package com.example.userservice.auth.service;
 
-import com.example.userservice.auth.service.dto.JwtClaims;
+import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.service.dto.TokenData;
 import com.example.userservice.auth.service.properties.TokenProperties;
 import com.example.userservice.api.common.exception.AuthErrorCode;
@@ -26,16 +26,13 @@ public class JwtProvider {
 
     private final TokenProperties tokenProperties;
 
-    public TokenData generateTokenData(JwtClaims claims) {
+    public TokenData generateTokenData(AuthUserResult user) {
         Date now = new Date();
-        String accessToken = genAccessToken(claims, now);
-        String refreshToken = genRefreshToken(claims.getId(), now);
+        String accessToken = genAccessToken(user, now);
+        String refreshToken = genRefreshToken(user.id(), now);
         return TokenData.of(accessToken, refreshToken);
     }
 
-    public long getRefreshTokenExpiration() {
-        return tokenProperties.getRefreshExpirationTime();
-    }
 
     public Claims getValidClaims(String token) {
         try {
@@ -59,13 +56,13 @@ public class JwtProvider {
         return Keys.hmacShaKeyFor(tokenProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private String genAccessToken(JwtClaims claims, Date date){
+    private String genAccessToken(AuthUserResult user, Date date){
         return Jwts.builder()
-                .subject(String.valueOf(claims.getId()))
+                .subject(String.valueOf(user.id()))
                 .issuer("buynest-user-service")
-                .claim("email", claims.getEmail())
-                .claim("name", claims.getName())
-                .claim("role", claims.getRole().name())
+                .claim("email", user.email())
+                .claim("name", user.name())
+                .claim("role", user.role().name())
                 .claim("token_type", "ACCESS")
                 .issuedAt(date)
                 .expiration(new Date(date.getTime() + tokenProperties.getExpirationTime()))
