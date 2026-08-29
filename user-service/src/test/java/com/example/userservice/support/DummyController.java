@@ -30,19 +30,6 @@ public class DummyController {
         return "OK";
     }
 
-    @GetMapping("/security")
-    public String securityGetMapping(@AuthenticationPrincipal UserPrincipal userPrincipal) throws JsonProcessingException {
-        Long userId = userPrincipal.getUserId();
-        Role userRole = userPrincipal.getUserRole();
-        return "userId=" + userId + ",userRole="+userRole.name();
-    }
-
-    @GetMapping("/security/permission")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String permissionError() {
-        return "ok";
-    }
-
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter

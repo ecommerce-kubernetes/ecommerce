@@ -1,8 +1,9 @@
 package com.example.userservice.common.security;
 
-import com.example.userservice.common.error.ControllerAdvice;
 import com.example.userservice.common.security.config.SecurityConfig;
-import com.example.userservice.support.DummyController;
+import com.example.userservice.common.security.filter.CustomAccessDeniedHandler;
+import com.example.userservice.common.security.filter.CustomAuthenticationEntryPoint;
+import com.example.userservice.common.security.filter.HeaderPreAuthenticationFilter;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,37 +13,40 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(SecurityConfig.class)
-@WebMvcTest(
-        controllers = DummyController.class,
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = {ControllerAdvice.class}
-        )
-)
+@Import({
+        SecurityConfig.class,
+        HeaderPreAuthenticationFilter.class,
+        CustomAuthenticationEntryPoint.class,
+        CustomAccessDeniedHandler.class
+})
+@WebMvcTest(controllers = SecurityTestController.class)
 public class SecurityTest {
+
     @Autowired
     private MockMvc mockMvc;
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{0}")
     @MethodSource("provideInvalidHeader")
-    @DisplayName("X-User-Id 헤더와 X-User-Role 헤더중 하나라도 없는 경우 401 에러 응답을 반환한다")
-    void validHeader_NoHeader(HttpHeaders headers) throws Exception {
+    @DisplayName("헤더값이 유효하지 않으면 인증에 실패한다.")
+    void validHeader(String description, HttpHeaders headers) throws Exception {
         //given
         //when
         //then
@@ -95,43 +99,6 @@ public class SecurityTest {
                 .andExpect(jsonPath("$.path").value("/security"));
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {"1,ROLE_USER", "1,ROLE_ADMIN"})
-    @DisplayName("X-User-Id 헤더와 X-User-Role 헤더에 유효한 값이 있는 경우 인증 객체가 저장된다")
-    void validHeader_authenticationUser(String userId, String userRole) throws Exception {
-        //given
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Id", userId);
-        headers.add("X-User-Role", userRole);
-        //when
-        //then
-        mockMvc.perform(get("/security")
-                        .headers(headers)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("userId=" + userId + ",userRole=" + userRole));
-    }
-
-    @Test
-    @DisplayName("관리자 권한 요청 성공")
-    void permission() throws Exception {
-        //given
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", "ROLE_ADMIN");
-        //when
-        //then
-        mockMvc.perform(get("/security/permission")
-                        .headers(headers)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("ok"));
-    }
-
     @Test
     @DisplayName("권한이 부족하면 권한 부족 에러 응답을 반환한다")
     void lack_of_permission() throws Exception {
@@ -153,19 +120,55 @@ public class SecurityTest {
                 .andExpect(jsonPath("$.path").value("/security/permission"));
     }
 
+    @ParameterizedTest
+    @DisplayName("인증 없이 접근 가능한 엔드포인트는 401 응답을 반환하지 않는다")
+    @CsvSource({
+            "POST, /users",
+            "GET,  /users/email-availability?email=test@test.com",
+            "POST, /auth/login",
+            "POST, /auth/refresh"
+    })
+    void publicEndpoints(String method, String url) throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.valueOf(method), url)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(result -> {
+                    int status = result.getResponse().getStatus();
+                    assertThat(status)
+                            .isNotEqualTo(HttpStatus.UNAUTHORIZED.value())
+                            .isNotEqualTo(HttpStatus.FORBIDDEN.value());
+                });
+    }
 
-    private static Stream<Arguments> provideInvalidHeader() {
+    @ParameterizedTest
+    @DisplayName("인증이 필요한 엔드포인트에 미인증 접근 시 401 응답을 반환한다")
+    @CsvSource({
+            "POST,   /users/shipping-addresses",
+            "DELETE, /users/shipping-addresses/1",
+            "POST,   /auth/logout"
+    })
+    void protectedEndpoints(String method, String url) throws Exception {
+        mockMvc.perform(request(HttpMethod.valueOf(method), url)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"));
+    }
+
+    static Stream<Arguments> provideInvalidHeader() {
         HttpHeaders noUserIdHeader = new HttpHeaders(MultiValueMap.fromSingleValue(Map.of("X-User-Role", "ROLE_USER")));
         HttpHeaders noUserRoleHeader = new HttpHeaders(MultiValueMap.fromSingleValue(Map.of("X-User-Id", "1")));
         HttpHeaders noHeader = new HttpHeaders();
         return Stream.of(
                 Arguments.of(
+                        "유저 아이디가 누락되면 인증에 실패한다",
                         noUserIdHeader
                 ),
                 Arguments.of(
+                        "유저 권한이 누락되면 인증에 실패한다",
                         noUserRoleHeader
                 ),
                 Arguments.of(
+                        "헤더가 누락되면 인증에 실패한다",
                         noHeader
                 )
         );

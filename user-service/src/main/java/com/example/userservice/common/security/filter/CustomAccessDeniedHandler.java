@@ -1,6 +1,6 @@
 package com.example.userservice.common.security.filter;
 
-import com.example.userservice.common.error.dto.response.ErrorResponse;
+import com.example.userservice.common.error.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

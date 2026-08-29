@@ -39,8 +39,8 @@ public class UserController {
 
     @GetMapping("/email-availability")
     public ResponseEntity<EmailAvailableResponse> checkEmailAvailable(@RequestParam(name = "email")
-                                                                          @NotBlank(message = "{user.emailAvailable.notBlank}")
-                                                                          @Email(message = "{user.emailAvailable.pattern}") String email){
+                                                                          @NotBlank(message = "{user.email.notBlank}")
+                                                                          @Email(message = "{user.email.pattern}") String email){
         EmailAvailableResult result = userQueryService.checkAvailableEmail(email);
         EmailAvailableResponse response = EmailAvailableResponse.from(result);
         return ResponseEntity.ok(response);

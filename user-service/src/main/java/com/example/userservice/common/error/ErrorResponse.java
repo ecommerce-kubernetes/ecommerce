@@ -1,4 +1,4 @@
-package com.example.userservice.common.error.dto.response;
+package com.example.userservice.common.error;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

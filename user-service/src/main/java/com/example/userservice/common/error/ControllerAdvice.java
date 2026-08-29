@@ -1,11 +1,9 @@
 package com.example.userservice.common.error;
 
-import com.example.userservice.common.error.dto.response.ErrorResponse;
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -18,7 +16,6 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 
 import java.util.List;
 
-@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ControllerAdvice {

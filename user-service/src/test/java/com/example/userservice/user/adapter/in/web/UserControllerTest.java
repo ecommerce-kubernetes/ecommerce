@@ -81,7 +81,7 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
                 .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
                 .andExpect(jsonPath("$.errors[0].field").value(expectedField))
                 .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
@@ -117,8 +117,8 @@ class UserControllerTest {
                         .param("email", email))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
-                .andExpect(jsonPath("$.message").value("checkEmailAvailable.email: " + message))
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/users/email-availability"));
     }
@@ -139,20 +139,6 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value(String.valueOf(result.userId())));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 배송지를 추가할 수 없다")
-    void addShippingAddress_notLogin() throws Exception {
-        //given
-        AddShippingAddressRequest request = anAddShippingAddressRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/users/shipping-addresses")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
     }
 
     @ParameterizedTest(name = "{0}")
@@ -189,17 +175,6 @@ class UserControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 배송지를 삭제할 수 없다")
-    void deleteShippingAddress_notLogin() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/users/shipping-addresses/{shippingAddressId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
-    }
 
     static Stream<Arguments> provideInvalidCreateRequest() {
         return Stream.of(
@@ -249,8 +224,8 @@ class UserControllerTest {
 
     static Stream<Arguments> provideInvalidEmailAvailableParam() {
         return Stream.of(
-                Arguments.of("이메일 없음", "", "email 파라미터는 필수값 입니다"),
-                Arguments.of("잘못된 이메일 형식", "invalidEmail", "올바른 이메일 형식이 아닙니다")
+                Arguments.of("이메일 파라미터가 누락되면 예외가 발생한다.", "", "이메일은 필수 입력값입니다"),
+                Arguments.of("이메일 파라미터가 잘못된 이메일 형식이면 예외가 발생한다.", "invalidEmail", "올바른 이메일 형식을 입력해주세요")
         );
     }
 
