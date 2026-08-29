@@ -20,6 +20,7 @@ public class TestSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
+                                .requestMatchers("/internal/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/users/email-availability").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()

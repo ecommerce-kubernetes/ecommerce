@@ -2,12 +2,11 @@ package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.exception.UserErrorCode;
-import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
+import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
+import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.result.*;
 import com.example.userservice.user.domain.model.User;
 import com.example.userservice.user.domain.repository.UserRepository;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.application.service.dto.result.UserCreateResponse;
-import com.example.userservice.user.application.service.dto.result.UserOrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,13 +20,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserCreateResponse createUser(UserCreateCommand command) {
-        if (userRepository.existsByEmail(command.getEmail())){
-            throw new BusinessException(UserErrorCode.DUPLICATE_EMAIL);
-        }
-        String encryptPwd = passwordEncoder.encode(command.getPassword());
-        User user = userRepository.save(User.createUser(command, encryptPwd));
-        return UserCreateResponse.from(user);
+    public UserCreateResult createUser(UserCreateCommand command) {
+        return null;
     }
 
     @Transactional(readOnly = true)
@@ -37,11 +31,25 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public EmailAvailableResponse checkAvailableEmail(String email) {
-        boolean isExist = userRepository.existsByEmail(email);
-        return EmailAvailableResponse.builder()
-                .available(!isExist)
-                .build();
+    public EmailAvailableResult checkAvailableEmail(String email) {
+        return null;
+    }
+
+    public AddShippingAddressResult addShippingAddress(AddShippingAddressCommand command) {
+        return null;
+    }
+
+    public void deleteShippingAddress(Long userId, Long shippingAddressId) {
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileResult getUserProfile(Long userId) {
+        return null;
+    }
+
+    @Transactional(readOnly = true)
+    public UserPointsResult getUserPoints(Long userId) {
+        return null;
     }
 
     public void deductPoints(Long userId, Long point) {

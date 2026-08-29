@@ -1,45 +1,77 @@
 package com.example.userservice.docs.user;
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters;
+import com.example.userservice.common.security.model.UserPrincipal;
+import com.example.userservice.docs.RestDocsSupport;
 import com.example.userservice.user.adapter.in.web.UserController;
-import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
+import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
 import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.application.service.dto.result.UserCreateResponse;
-import com.example.userservice.docs.RestDocsSupport;
+import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
+import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
+import com.example.userservice.user.application.service.dto.result.UserCreateResult;
+import com.example.userservice.user.domain.model.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.core.MethodParameter;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.request.ParameterDescriptor;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static com.example.userservice.api.support.fixture.UserRequestFixture.anUserCreateRequest;
-import static com.example.userservice.api.support.fixture.UserResponseFixture.anUserCreateResponse;
+import static com.example.userservice.user.fixture.UserRequestFixture.anAddShippingAddressRequest;
+import static com.example.userservice.user.fixture.UserRequestFixture.anUserCreateRequest;
+import static com.example.userservice.user.fixture.UserResultFixture.anAddShippingAddressResult;
+import static com.example.userservice.user.fixture.UserResultFixture.anEmailAvailableResult;
+import static com.example.userservice.user.fixture.UserResultFixture.anUserCreateResult;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class UserControllerDocsTest extends RestDocsSupport {
-    private UserService userService = mock(UserService.class);
 
-    private static final String TAG = "USER";
+    private UserService userService = Mockito.mock(UserService.class);
 
     @Override
     protected Object initController() {
         return new UserController(userService);
+    }
+
+    @Override
+    protected HandlerMethodArgumentResolver[] getArgumentResolvers() {
+        return new HandlerMethodArgumentResolver[]{
+                new PageableHandlerMethodArgumentResolver(),
+                new HandlerMethodArgumentResolver() {
+                    @Override
+                    public boolean supportsParameter(MethodParameter parameter) {
+                        return parameter.getParameterType().equals(UserPrincipal.class);
+                    }
+
+                    @Override
+                    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                        return UserPrincipal.of(1L, Role.ROLE_USER);
+                    }
+                }
+        };
     }
 
     @Test
@@ -47,90 +79,88 @@ class UserControllerDocsTest extends RestDocsSupport {
     void createUser() throws Exception {
         //given
         UserCreateRequest request = anUserCreateRequest().build();
-        UserCreateResponse response = anUserCreateResponse().build();
-        given(userService.createUser(any(UserCreateCommand.class)))
-                .willReturn(response);
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("email").description("이메일"),
-                fieldWithPath("password").description("비밀번호"),
-                fieldWithPath("name").description("이름"),
-                fieldWithPath("birthDate").type(JsonFieldType.STRING).description("생년월일"),
-                fieldWithPath("gender").description("성별"),
-                fieldWithPath("phoneNumber").description("전화번호")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("id").description("유저 id(식별자)"),
-                fieldWithPath("email").description("이메일"),
-                fieldWithPath("name").description("이름"),
-                fieldWithPath("birthDate").description("생년월일"),
-                fieldWithPath("gender").description("성별"),
-                fieldWithPath("phoneNumber").description("전화번호")
-        };
-
+        UserCreateResult result = anUserCreateResult().build();
+        given(userService.createUser(any(UserCreateCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
+                .andExpect(status().isCreated())
                 .andDo(
-                        document(
-                                "01-user-01-create",
+                        document("user/create",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("유저 생성")
-                                                .description("신규 유저를 생성한다")
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
+                                requestFields(UserDescriptor.userCreateRequest()),
+                                responseFields(UserDescriptor.userCreateResponse())
                         )
                 );
-
     }
 
     @Test
-    @DisplayName("이메일 사용 가능 검사")
+    @DisplayName("이메일 사용 가능 여부 확인")
     void checkEmailAvailable() throws Exception {
         //given
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("available").description("사용가능 여부"),
-        };
-        ParameterDescriptor[] queryParameters = new ParameterDescriptor[] {
-                parameterWithName("email").description("확인할 이메일")
-        };
-        given(userService.checkAvailableEmail(anyString()))
-                .willReturn(EmailAvailableResponse.builder().available(true).build());
+        EmailAvailableResult result = anEmailAvailableResult().build();
+        given(userService.checkAvailableEmail(anyString())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/users/email-availability")
-                .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .param("email", "test@naver.com"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("01-user-02-email-available", 
+                        document("user/email-availability",
+                                preprocessResponse(prettyPrint()),
+                                queryParameters(
+                                        parameterWithName("email").description("확인할 이메일")
+                                ),
+                                responseFields(UserDescriptor.emailAvailableResponse())
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("배송지 추가")
+    void addShippingAddress() throws Exception {
+        //given
+        AddShippingAddressRequest request = anAddShippingAddressRequest().build();
+        AddShippingAddressResult result = anAddShippingAddressResult().build();
+        given(userService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
+        //when
+        //then
+        mockMvc.perform(post("/users/shipping-addresses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(
+                        document("user/shipping-address-create",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("사용 가능한 이메일 확인")
-                                                .description("사용 가능한 이메일인지 확인한다")
-                                                .queryParameters(queryParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                queryParameters(queryParameters),
-                                responseFields(responseFields)
+                                requestFields(UserDescriptor.addShippingAddressRequest()),
+                                responseFields(UserDescriptor.addShippingAddressResponse())
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("배송지 삭제")
+    void deleteShippingAddress() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/users/shipping-addresses/{shippingAddressId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andDo(
+                        document("user/shipping-address-delete",
+                                pathParameters(
+                                        parameterWithName("shippingAddressId").description("삭제할 배송지 id(식별자)")
+                                )
                         )
                 );
     }

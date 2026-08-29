@@ -1,5 +1,7 @@
 package com.example.userservice.user.adapter.in.web.dto;
 
+import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.domain.model.Gender;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -36,4 +38,15 @@ public class UserCreateRequest {
     @NotBlank(message = "전화번호는 필수 입력값 입니다")
     @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
     private String phoneNumber;
+
+    public UserCreateCommand toCommand() {
+        return UserCreateCommand.builder()
+                .email(email)
+                .password(password)
+                .name(name)
+                .birthDate(birthDate)
+                .gender(Gender.from(gender))
+                .phoneNumber(phoneNumber)
+                .build();
+    }
 }
