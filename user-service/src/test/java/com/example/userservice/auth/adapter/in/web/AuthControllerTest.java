@@ -2,7 +2,7 @@ package com.example.userservice.auth.adapter.in.web;
 
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
 import com.example.userservice.auth.application.service.AuthService;
-import com.example.userservice.support.security.annotation.WithCustomMockUser;
+import com.example.userservice.support.annotation.WithCustomMockUser;
 import com.example.userservice.support.security.config.TestSecurityConfig;
 import com.example.userservice.auth.application.service.dto.TokenResult;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -22,7 +22,9 @@ public record AddShippingAddressRequest(
         String address,
 
         @NotBlank(message = "{user.shippingAddress.addressDetail.notBlank}")
-        String addressDetail
+        String addressDetail,
+
+        boolean isDefault
 ) {
     public AddShippingAddressCommand toCommand(Long userId) {
         return AddShippingAddressCommand.builder()
@@ -32,6 +34,7 @@ public record AddShippingAddressRequest(
                 .zipCode(zipCode)
                 .address(address)
                 .addressDetail(addressDetail)
+                .isDefault(isDefault)
                 .build();
     }
 }

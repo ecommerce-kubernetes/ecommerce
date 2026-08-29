@@ -70,7 +70,11 @@ public class UserDescriptor {
                 fieldWithPath("addressDetail")
                         .type(JsonFieldType.STRING)
                         .description("상세주소")
-                        .attributes(key("constraint").value("필수"))
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("isDefault")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("대표 배송지 여부")
+                        .attributes(key("constraint").value("선택, 기본값 false"))
         };
     }
 

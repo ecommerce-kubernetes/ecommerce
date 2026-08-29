@@ -51,7 +51,7 @@ class InternalUserControllerTest {
                 .andExpect(jsonPath("$.userId").value(result.userId()))
                 .andExpect(jsonPath("$.userName").value(result.userName()))
                 .andExpect(jsonPath("$.phoneNumber").value(result.phoneNumber()))
-                .andExpect(jsonPath("$.availablePoints").value(result.availablePoints()))
+                .andExpect(jsonPath("$.availablePoints").value(result.availablePoints().longValue()))
                 .andExpect(jsonPath("$.defaultShippingAddress.receiverName").value(result.defaultShippingAddress().receiverName()));
     }
 
@@ -68,6 +68,6 @@ class InternalUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(result.userId()))
-                .andExpect(jsonPath("$.availablePoints").value(result.availablePoints()));
+                .andExpect(jsonPath("$.availablePoints").value(result.availablePoints().longValue()));
     }
 }

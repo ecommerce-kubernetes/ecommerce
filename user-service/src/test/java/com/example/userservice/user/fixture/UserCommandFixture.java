@@ -25,6 +25,7 @@ public class UserCommandFixture {
                 .receiverPhone("010-1234-5678")
                 .zipCode("12345")
                 .address("서울시 테헤란로 123")
-                .addressDetail("123동 1234호");
+                .addressDetail("123동 1234호")
+                .isDefault(false);
     }
 }

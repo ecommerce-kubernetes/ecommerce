@@ -11,7 +11,7 @@ public record UserPointsResponse(
     public static UserPointsResponse from(UserBalanceResult result) {
         return UserPointsResponse.builder()
                 .userId(result.userId())
-                .availablePoints(result.availablePoints())
+                .availablePoints(result.availablePoints().longValue())
                 .build();
     }
 }

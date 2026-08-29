@@ -28,22 +28,12 @@ public class UserQueryService {
 
         user.authenticate(password, passwordManager);
 
-        return UserIdentityResult.builder()
-                .userId(user.getId())
-                .role(user.getRole())
-                .build();
+        return UserIdentityResult.from(user);
     }
 
     public UserProfileResult getUserProfile(Long userId) {
         User user = findByIdOrThrow(userId);
-
-        return UserProfileResult.builder()
-                .userId(user.getId())
-                .userName(user.getName())
-                .phoneNumber(user.getPhoneNumber())
-                .availablePoints(user.getPoint().longValue())
-                .defaultShippingAddress(toShippingAddressResult(user.getDefaultShippingAddress()))
-                .build();
+        return UserProfileResult.from(user);
     }
 
     public EmailAvailableResult checkAvailableEmail(String email) {
@@ -53,28 +43,11 @@ public class UserQueryService {
     public UserBalanceResult getUserPoints(Long userId) {
         User user = findByIdOrThrow(userId);
 
-        return UserBalanceResult.builder()
-                .userId(user.getId())
-                .availablePoints(user.getPoint().longValue())
-                .build();
+        return UserBalanceResult.from(user);
     }
 
     private User findByIdOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-    }
-
-    private UserProfileResult.ShippingAddressResult toShippingAddressResult(ShippingAddress shippingAddress) {
-        if (shippingAddress == null) {
-            return null;
-        }
-
-        return UserProfileResult.ShippingAddressResult.builder()
-                .receiverName(shippingAddress.getReceiverName())
-                .receiverPhone(shippingAddress.getReceiverPhone())
-                .zipCode(shippingAddress.getZipCode())
-                .address(shippingAddress.getAddress())
-                .addressDetail(shippingAddress.getAddressDetail())
-                .build();
     }
 }

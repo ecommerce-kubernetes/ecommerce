@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
@@ -75,7 +76,7 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public static User createUser(CreateUserContext context, PasswordManager passwordManager, IdGenerator idGenerator) {
+    public static User create(CreateUserContext context, PasswordManager passwordManager, IdGenerator idGenerator) {
         Long id = idGenerator.generate();
         String encryptPassword = passwordManager.encrypt(context.password());
 
@@ -135,17 +136,6 @@ public class User extends BaseEntity {
             return null;
         }
         return this.shippingAddresses.stream().filter(ShippingAddress::isDefault).findFirst().orElse(null);
-    }
-
-    public void deductPoint(Money point) {
-        if (this.point.isLessThan(point)) {
-            throw new BusinessException(UserErrorCode.INSUFFICIENT_POINT);
-        }
-        this.point = this.point.subtract(point);
-    }
-
-    public void refundPoint(Money point) {
-        this.point = this.point.add(point);
     }
 
     private void addShippingAddress(ShippingAddress shippingAddress) {

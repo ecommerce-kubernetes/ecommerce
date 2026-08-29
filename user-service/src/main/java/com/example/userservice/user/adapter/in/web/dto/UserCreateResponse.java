@@ -1,6 +1,5 @@
 package com.example.userservice.user.adapter.in.web.dto;
 
-import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -9,9 +8,9 @@ public record UserCreateResponse(
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long userId
 ) {
-    public static UserCreateResponse from(UserCreateResult result) {
+    public static UserCreateResponse from(Long userId) {
         return UserCreateResponse.builder()
-                .userId(result.userId())
+                .userId(userId)
                 .build();
     }
 }

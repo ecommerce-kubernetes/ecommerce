@@ -10,7 +10,6 @@ import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
-import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,8 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserCreateResponse> createUser(@Validated @RequestBody UserCreateRequest request) {
         UserCreateCommand command = request.toCommand();
-        UserCreateResult result = userCommandService.createUser(command);
-        UserCreateResponse response = UserCreateResponse.from(result);
+        Long userId = userCommandService.createUser(command);
+        UserCreateResponse response = UserCreateResponse.from(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

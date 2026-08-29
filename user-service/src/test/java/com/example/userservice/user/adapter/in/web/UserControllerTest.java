@@ -1,6 +1,6 @@
 package com.example.userservice.user.adapter.in.web;
 
-import com.example.userservice.support.security.annotation.WithCustomMockUser;
+import com.example.userservice.support.annotation.WithCustomMockUser;
 import com.example.userservice.support.security.config.TestSecurityConfig;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
@@ -9,7 +9,6 @@ import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
-import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,11 +54,11 @@ class UserControllerTest {
 
     @Test
     @DisplayName("회원을 생성한다")
-    void createUser() throws Exception {
+    void create() throws Exception {
         //given
         UserCreateRequest request = anUserCreateRequest().build();
-        UserCreateResult result = anUserCreateResult().build();
-        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(result);
+        Long userId = 1L;
+        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(userId);
         //when
         //then
         mockMvc.perform(post("/users")
@@ -67,13 +66,13 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(String.valueOf(result.userId())));
+                .andExpect(jsonPath("$.userId").value(String.valueOf(userId)));
     }
 
     @ParameterizedTest(name = "{0}")
     @DisplayName("회원 생성 요청 검증")
     @MethodSource("provideInvalidCreateRequest")
-    void createUser_validation(String description, UserCreateRequest request, String expectedField, String expectedMessage) throws Exception {
+    void create_validation(String description, UserCreateRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         //when
         //then

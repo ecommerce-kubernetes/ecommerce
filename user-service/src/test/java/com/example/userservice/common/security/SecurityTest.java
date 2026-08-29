@@ -35,7 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SecurityConfig.class,
         HeaderPreAuthenticationFilter.class,
         CustomAuthenticationEntryPoint.class,
-        CustomAccessDeniedHandler.class
+        CustomAccessDeniedHandler.class,
+        SecurityTestController.class
 })
 @WebMvcTest(controllers = SecurityTestController.class)
 public class SecurityTest {

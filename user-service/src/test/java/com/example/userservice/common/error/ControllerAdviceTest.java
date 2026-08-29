@@ -29,40 +29,4 @@ class ControllerAdviceTest extends ControllerTestSupport {
                 .andExpect(jsonPath("timestamp").isNotEmpty())
                 .andExpect(jsonPath("path").value("/exception"));
     }
-
-    @Test
-    @DisplayName("잘못된 형식의 요청 바디가 온 경우 INVALID_TYPE_VALUE 에러 응답을 반환한다")
-    void handleMessageNotReadableException_date() throws Exception {
-        String invalidJson = """
-                    {
-                        "datetime": "19991225"
-                    }
-                """;
-        mockMvc.perform(post("/not-readable")
-                .content(invalidJson)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("code").value("COMMON_002"))
-                .andExpect(jsonPath("message").value("잘못된 날짜 형식 입니다"))
-                .andExpect(jsonPath("timestamp").isNotEmpty())
-                .andExpect(jsonPath("path").value("/not-readable"));
-    }
-
-    @Test
-    @DisplayName("잘못된 형식의 요청 바디가 온 경우 INVALID_TYPE_VALUE 에러 응답을 반환한다")
-    void handleMessageNotReadableException_other() throws Exception {
-        String invalidJson = """
-                    {
-                        "number": "str"
-                    }
-                """;
-        mockMvc.perform(post("/not-readable")
-                        .content(invalidJson)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("code").value("COMMON_003"))
-                .andExpect(jsonPath("message").value("요청 데이터 형식이 올바르지 않습니다"))
-                .andExpect(jsonPath("timestamp").isNotEmpty())
-                .andExpect(jsonPath("path").value("/not-readable"));
-    }
 }

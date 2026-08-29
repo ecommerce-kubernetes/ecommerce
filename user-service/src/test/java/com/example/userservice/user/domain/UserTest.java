@@ -32,7 +32,7 @@ class UserTest {
 
     @Test
     @DisplayName("유저를 생성한다.")
-    void createUser() {
+    void create() {
         //given
         given(passwordManager.encrypt("password1234*")).willReturn("encryptedPassword");
         CreateUserContext context = CreateUserContext.builder()
@@ -44,7 +44,7 @@ class UserTest {
                 .phoneNumber("010-1234-5678")
                 .build();
         //when
-        User user = User.createUser(context, passwordManager, idGenerator);
+        User user = User.create(context, passwordManager, idGenerator);
         //then
         assertThat(user.getId()).isNotNull();
         assertThat(user.getEmail()).isEqualTo("la9814@naver.com");
@@ -61,8 +61,8 @@ class UserTest {
     @DisplayName("비밀번호가 일치하면 인증에 성공한다.")
     void authenticate() {
         //given
-        User user = aUser();
-        given(passwordManager.matches("password1234*", "encryptedPassword")).willReturn(true);
+        User user = UserFixtureBuilder.given().build();
+        given(passwordManager.matches(anyString(), anyString())).willReturn(true);
         //when
         //then
         assertThatCode(() -> user.authenticate("password1234*", passwordManager))
@@ -73,8 +73,8 @@ class UserTest {
     @DisplayName("비밀번호가 일치하지 않으면 예외가 발생한다.")
     void authenticate_whenPasswordNotMatch_thenThrownException() {
         //given
-        User user = aUser();
-        given(passwordManager.matches("wrongPassword", "encryptedPassword")).willReturn(false);
+        User user = UserFixtureBuilder.given().build();
+        given(passwordManager.matches(anyString(), anyString())).willReturn(false);
         //when
         //then
         assertThatThrownBy(() -> user.authenticate("wrongPassword", passwordManager))
@@ -84,47 +84,10 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("포인트를 차감한다.")
-    void deductPoint() {
-        //given
-        User user = aUser();
-        user.refundPoint(Money.wons(10000L));
-        //when
-        user.deductPoint(Money.wons(3000L));
-        //then
-        assertThat(user.getPoint()).isEqualTo(Money.wons(7000L));
-    }
-
-    @Test
-    @DisplayName("보유 포인트보다 많은 포인트를 차감하면 예외가 발생한다.")
-    void deductPoint_whenInsufficientPoint_thenThrownException() {
-        //given
-        User user = aUser();
-        user.refundPoint(Money.wons(1000L));
-        //when
-        //then
-        assertThatThrownBy(() -> user.deductPoint(Money.wons(2000L)))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(UserErrorCode.INSUFFICIENT_POINT);
-    }
-
-    @Test
-    @DisplayName("포인트를 환불한다.")
-    void refundPoint() {
-        //given
-        User user = aUser();
-        //when
-        user.refundPoint(Money.wons(5000L));
-        //then
-        assertThat(user.getPoint()).isEqualTo(Money.wons(5000L));
-    }
-
-    @Test
     @DisplayName("배송지를 추가한다.")
     void addShippingAddress() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         //when
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         //then
@@ -140,7 +103,7 @@ class UserTest {
     @DisplayName("첫번째로 추가한 배송지는 대표 배송지가 된다.")
     void addShippingAddress_whenFirstAddress_thenBecomesDefault() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         //when
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         //then
@@ -151,7 +114,7 @@ class UserTest {
     @DisplayName("대표 배송지가 있는 상태에서 대표 여부를 지정하지 않고 배송지를 추가하면 기존 대표 배송지가 유지된다.")
     void addShippingAddress_whenDefaultExistsAndNotRequested_thenKeepsExistingDefault() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         //when
@@ -166,7 +129,7 @@ class UserTest {
     @DisplayName("대표로 지정하여 배송지를 추가하면 기존 대표 배송지는 대표에서 해제된다.")
     void addShippingAddress_whenRequestedAsDefault_thenDemotesPreviousDefault() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         //when
@@ -181,7 +144,7 @@ class UserTest {
     @DisplayName("배송지를 삭제한다.")
     void removeShippingAddress() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         ShippingAddress shippingAddress = user.getShippingAddresses().getFirst();
         //when
@@ -194,7 +157,7 @@ class UserTest {
     @DisplayName("대표 배송지를 삭제하면 남은 배송지 중 하나가 새 대표 배송지가 된다.")
     void removeShippingAddress_whenDefaultRemoved_thenPromotesAnotherAddress() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
@@ -210,7 +173,7 @@ class UserTest {
     @DisplayName("대표가 아닌 배송지를 삭제하면 기존 대표 배송지는 유지된다.")
     void removeShippingAddress_whenNonDefaultRemoved_thenDefaultUnchanged() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
@@ -226,7 +189,7 @@ class UserTest {
     @DisplayName("존재하지 않는 배송지를 삭제하면 예외가 발생한다.")
     void removeShippingAddress_whenNotFound_thenThrownException() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         //when
         //then
         assertThatThrownBy(() -> user.removeShippingAddress(999L))
@@ -239,7 +202,7 @@ class UserTest {
     @DisplayName("배송지가 없으면 대표 배송지는 null이다.")
     void getDefaultShippingAddress_whenEmpty_thenReturnNull() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         //when
         ShippingAddress defaultShippingAddress = user.getDefaultShippingAddress();
         //then
@@ -250,7 +213,7 @@ class UserTest {
     @DisplayName("배송지가 있으면 대표 배송지를 반환한다.")
     void getDefaultShippingAddress_whenExists_thenReturnDefault() {
         //given
-        User user = aUser();
+        User user = UserFixtureBuilder.given().build();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         user.addShippingAddress(aShippingAddressContext(false), idGenerator);
@@ -258,20 +221,6 @@ class UserTest {
         ShippingAddress defaultShippingAddress = user.getDefaultShippingAddress();
         //then
         assertThat(defaultShippingAddress).isEqualTo(firstAddress);
-    }
-
-    private User aUser() {
-        given(passwordManager.encrypt(anyString())).willReturn("encryptedPassword");
-        CreateUserContext context = CreateUserContext.builder()
-                .email("la9814@naver.com")
-                .password("password1234*")
-                .name("김이박")
-                .birthDate(LocalDate.of(1999, 12, 25))
-                .gender(Gender.MALE)
-                .phoneNumber("010-1234-5678")
-                .build();
-
-        return User.createUser(context, passwordManager, idGenerator);
     }
 
     private CreateShippingAddressContext aShippingAddressContext(boolean isDefault) {

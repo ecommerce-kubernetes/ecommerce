@@ -39,7 +39,7 @@ public record UserProfileResponse(
                 .userId(result.userId())
                 .userName(result.userName())
                 .phoneNumber(result.phoneNumber())
-                .availablePoints(result.availablePoints())
+                .availablePoints(result.availablePoints().longValue())
                 .defaultShippingAddress(ShippingAddressResponse.from(result.defaultShippingAddress()))
                 .build();
     }

@@ -1,4 +1,4 @@
-package com.example.userservice.support.security.annotation;
+package com.example.userservice.support.annotation;
 
 import com.example.userservice.support.security.WithCustomMockUserSecurityContextFactory;
 import com.example.userservice.user.domain.vo.Role;

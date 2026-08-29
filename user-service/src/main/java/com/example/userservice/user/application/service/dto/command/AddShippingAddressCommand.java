@@ -9,6 +9,7 @@ public record AddShippingAddressCommand(
         String receiverPhone,
         String zipCode,
         String address,
-        String addressDetail
+        String addressDetail,
+        boolean isDefault
 ) {
 }

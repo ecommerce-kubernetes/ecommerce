@@ -10,7 +10,6 @@ import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
-import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.example.userservice.user.domain.vo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import static com.example.userservice.user.fixture.UserRequestFixture.anAddShippingAddressRequest;
 import static com.example.userservice.user.fixture.UserRequestFixture.anUserCreateRequest;
 import static com.example.userservice.user.fixture.UserResultFixture.anEmailAvailableResult;
-import static com.example.userservice.user.fixture.UserResultFixture.anUserCreateResult;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -77,11 +75,10 @@ class UserControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("유저 생성")
-    void createUser() throws Exception {
+    void create() throws Exception {
         //given
         UserCreateRequest request = anUserCreateRequest().build();
-        UserCreateResult result = anUserCreateResult().build();
-        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(result);
+        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(1L);
         //when
         //then
         mockMvc.perform(post("/users")

@@ -1,6 +1,7 @@
 package com.example.userservice.common.security;
 
 import com.example.userservice.common.security.model.UserPrincipal;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@TestComponent
 @RestController
 public class SecurityTestController {
 
