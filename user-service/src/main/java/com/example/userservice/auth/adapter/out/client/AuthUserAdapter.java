@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthUserAdapter implements AuthUserPort {
     @Override
-    public AuthUserResult getUserByEmail(String email) {
+    public AuthUserResult authenticate(String email, String password) {
         return null;
     }
 

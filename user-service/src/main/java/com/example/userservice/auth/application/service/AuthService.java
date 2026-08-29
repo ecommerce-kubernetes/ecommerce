@@ -20,13 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final JwtProvider jwtProvider;
+
     private final AuthUserPort authUserPort;
+
     private final TokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public TokenResult login(String email, String password) {
-        AuthUserResult user = authUserPort.getUserByEmail(email);
-        validatePassword(password, user.encryptedPwd());
+        AuthUserResult user = authUserPort.authenticate(email, password);
 
         TokenData tokenData = jwtProvider.generateTokenData(user);
 
@@ -56,12 +56,6 @@ public class AuthService {
 
     public void logout(Long userId) {
         tokenRepository.deleteByUserId(userId);
-    }
-
-    private void validatePassword(String password, String encryptPassword) {
-        if (!passwordEncoder.matches(password, encryptPassword)) {
-            throw new BusinessException(AuthErrorCode.PASSWORD_NOT_MATCH);
-        }
     }
 
     private RefreshToken createRefreshToken(AuthUserResult userResult, TokenData tokenData) {

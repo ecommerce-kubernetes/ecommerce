@@ -48,8 +48,7 @@ class AuthServiceTest {
         AuthUserResult user = AuthUserResultFixture.anAuthUserResult().build();
         TokenData tokenData = TokenData.of("accessToken", "refreshToken", Duration.ofDays(14));
 
-        given(authUserPort.getUserByEmail(anyString())).willReturn(user);
-        given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
+        given(authUserPort.authenticate(anyString(), anyString())).willReturn(user);
         given(jwtProvider.generateTokenData(user)).willReturn(tokenData);
         //when
         TokenResult result = authService.login("la9814@naver.com", "password1234*");
@@ -64,24 +63,6 @@ class AuthServiceTest {
         assertThat(savedRefreshToken.getUserId()).isEqualTo(user.id());
         assertThat(savedRefreshToken.getToken()).isEqualTo(tokenData.refreshToken());
         assertThat(savedRefreshToken.getTtl()).isEqualTo(tokenData.refreshTokenTtl());
-    }
-
-    @Test
-    @DisplayName("비밀번호가 일치하지 않으면 예외가 발생하고 리프레시 토큰을 저장하지 않는다.")
-    void login_whenPasswordNotMatch_thenThrownException() {
-        //given
-        AuthUserResult user = AuthUserResultFixture.anAuthUserResult().build();
-
-        given(authUserPort.getUserByEmail(anyString())).willReturn(user);
-        given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
-        //when
-        //then
-        assertThatThrownBy(() -> authService.login("la9814@naver.com", "wrongPassword1*"))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.PASSWORD_NOT_MATCH);
-
-        then(tokenRepository).should(never()).save(any());
     }
 
     @Test

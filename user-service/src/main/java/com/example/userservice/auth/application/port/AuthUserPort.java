@@ -4,7 +4,7 @@ import com.example.userservice.auth.application.port.dto.AuthUserResult;
 
 public interface AuthUserPort {
 
-    AuthUserResult getUserByEmail(String email);
+    AuthUserResult authenticate(String email, String password);
 
     AuthUserResult getUserById(Long id);
 }
