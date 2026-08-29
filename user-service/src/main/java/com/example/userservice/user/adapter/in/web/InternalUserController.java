@@ -3,7 +3,7 @@ package com.example.userservice.user.adapter.in.web;
 import com.example.userservice.user.adapter.in.web.dto.UserPointsResponse;
 import com.example.userservice.user.adapter.in.web.dto.UserProfileResponse;
 import com.example.userservice.user.application.service.UserService;
-import com.example.userservice.user.application.service.dto.result.UserPointsResult;
+import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,7 @@ public class InternalUserController {
 
     @GetMapping("/{userId}/points")
     public ResponseEntity<UserPointsResponse> getUserPoints(@PathVariable("userId") Long userId) {
-        UserPointsResult result = userService.getUserPoints(userId);
+        UserBalanceResult result = userService.getUserPoints(userId);
         UserPointsResponse response = UserPointsResponse.from(result);
         return ResponseEntity.ok(response);
     }

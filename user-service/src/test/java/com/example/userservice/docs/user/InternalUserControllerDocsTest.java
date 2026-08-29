@@ -3,7 +3,7 @@ package com.example.userservice.docs.user;
 import com.example.userservice.docs.RestDocsSupport;
 import com.example.userservice.user.adapter.in.web.InternalUserController;
 import com.example.userservice.user.application.service.UserService;
-import com.example.userservice.user.application.service.dto.result.UserPointsResult;
+import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ class InternalUserControllerDocsTest extends RestDocsSupport {
     @DisplayName("유저 포인트 정보를 조회한다")
     void getUserPoints() throws Exception {
         //given
-        UserPointsResult result = anUserPointsResult().build();
+        UserBalanceResult result = anUserPointsResult().build();
         given(userService.getUserPoints(anyLong())).willReturn(result);
         //when
         //then

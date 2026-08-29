@@ -1,8 +1,8 @@
 package com.example.userservice.user.adapter.in.web;
 
-import com.example.userservice.api.support.security.config.TestSecurityConfig;
+import com.example.userservice.support.security.config.TestSecurityConfig;
 import com.example.userservice.user.application.service.UserService;
-import com.example.userservice.user.application.service.dto.result.UserPointsResult;
+import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +59,7 @@ class InternalUserControllerTest {
     @DisplayName("유저 포인트 정보를 조회한다")
     void getUserPoints() throws Exception {
         //given
-        UserPointsResult result = anUserPointsResult().build();
+        UserBalanceResult result = anUserPointsResult().build();
         given(userService.getUserPoints(anyLong())).willReturn(result);
         //when
         //then

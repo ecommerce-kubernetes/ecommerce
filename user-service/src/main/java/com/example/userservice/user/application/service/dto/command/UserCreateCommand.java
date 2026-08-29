@@ -1,6 +1,6 @@
 package com.example.userservice.user.application.service.dto.command;
 
-import com.example.userservice.user.domain.model.Gender;
+import com.example.userservice.user.domain.vo.Gender;
 import lombok.Builder;
 import lombok.Getter;
 

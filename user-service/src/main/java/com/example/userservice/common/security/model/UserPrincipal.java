@@ -1,6 +1,6 @@
 package com.example.userservice.common.security.model;
 
-import com.example.userservice.user.domain.model.Role;
+import com.example.userservice.user.domain.vo.Role;
 import lombok.Builder;
 import lombok.Getter;
 

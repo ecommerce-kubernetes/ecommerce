@@ -3,7 +3,7 @@ package com.example.userservice.user.fixture;
 import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
-import com.example.userservice.user.application.service.dto.result.UserPointsResult;
+import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 
 public class UserResultFixture {
@@ -40,8 +40,8 @@ public class UserResultFixture {
                 .defaultShippingAddress(defaultShippingAddress);
     }
 
-    public static UserPointsResult.UserPointsResultBuilder anUserPointsResult() {
-        return UserPointsResult.builder()
+    public static UserBalanceResult.UserPointsResultBuilder anUserPointsResult() {
+        return UserBalanceResult.builder()
                 .userId(1L)
                 .availablePoints(10000L);
     }

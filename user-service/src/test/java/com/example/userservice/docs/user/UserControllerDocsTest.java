@@ -11,7 +11,7 @@ import com.example.userservice.user.application.service.dto.command.UserCreateCo
 import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
-import com.example.userservice.user.domain.model.Role;
+import com.example.userservice.user.domain.vo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

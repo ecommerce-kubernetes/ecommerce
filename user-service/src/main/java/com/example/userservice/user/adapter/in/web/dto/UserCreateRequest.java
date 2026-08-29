@@ -1,7 +1,7 @@
 package com.example.userservice.user.adapter.in.web.dto;
 
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.domain.model.Gender;
+import com.example.userservice.user.domain.vo.Gender;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Builder;

@@ -1,7 +1,7 @@
 package com.example.userservice.user.adapter.in.web;
 
-import com.example.userservice.api.support.security.annotation.WithCustomMockUser;
-import com.example.userservice.api.support.security.config.TestSecurityConfig;
+import com.example.userservice.support.security.annotation.WithCustomMockUser;
+import com.example.userservice.support.security.config.TestSecurityConfig;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
 import com.example.userservice.user.application.service.UserService;

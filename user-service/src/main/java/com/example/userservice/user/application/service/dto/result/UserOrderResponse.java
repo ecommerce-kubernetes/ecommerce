@@ -1,6 +1,6 @@
 package com.example.userservice.user.application.service.dto.result;
 
-import com.example.userservice.user.domain.model.User;
+import com.example.userservice.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;
 
