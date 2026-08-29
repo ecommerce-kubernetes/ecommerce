@@ -8,7 +8,6 @@ public record AuthUserResult(
         Long id,
         String email,
         String name,
-        String encryptedPwd,
         Role role
 ) {
 }

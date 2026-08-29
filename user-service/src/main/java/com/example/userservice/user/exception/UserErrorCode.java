@@ -1,5 +1,6 @@
-package com.example.userservice.common.exception;
+package com.example.userservice.user.exception;
 
+import com.example.userservice.common.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

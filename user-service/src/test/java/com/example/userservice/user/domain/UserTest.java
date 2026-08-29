@@ -2,7 +2,7 @@ package com.example.userservice.user.domain;
 
 import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.common.exception.UserErrorCode;
+import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.common.util.TsidGenerator;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;

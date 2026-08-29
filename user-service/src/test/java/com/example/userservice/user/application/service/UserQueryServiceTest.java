@@ -2,7 +2,7 @@ package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.common.exception.UserErrorCode;
+import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.support.annotation.IsolatedTest;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
@@ -16,7 +16,6 @@ import com.example.userservice.user.domain.vo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.userservice.user.fixture.UserCommandFixture.anAddShippingAddressCommand;

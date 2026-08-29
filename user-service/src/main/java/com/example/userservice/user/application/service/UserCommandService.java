@@ -1,7 +1,7 @@
 package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.common.exception.UserErrorCode;
+import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;

@@ -1,13 +1,12 @@
 package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.common.exception.UserErrorCode;
+import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserIdentityResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
-import com.example.userservice.user.domain.ShippingAddress;
 import com.example.userservice.user.domain.User;
 import com.example.userservice.user.domain.util.PasswordManager;
 import lombok.RequiredArgsConstructor;
