@@ -5,6 +5,7 @@ import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.exception.UserErrorCode;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.common.util.TsidGenerator;
+import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.domain.vo.Gender;
@@ -125,12 +126,55 @@ class UserTest {
         //given
         User user = aUser();
         //when
-        ShippingAddress shippingAddress = user.addShippingAddress("수령인", "010-1234-5678", "12345",
-                "서울시 테헤란로 123", "123동 1234호", idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         //then
+        assertThat(user.getShippingAddresses()).hasSize(1);
+
+        ShippingAddress shippingAddress = user.getShippingAddresses().getFirst();
         assertThat(shippingAddress.getId()).isNotNull();
         assertThat(shippingAddress.getUser()).isEqualTo(user);
-        assertThat(user.getShippingAddresses()).containsExactly(shippingAddress);
+        assertThat(shippingAddress.getReceiverName()).isEqualTo("수령인");
+    }
+
+    @Test
+    @DisplayName("첫번째로 추가한 배송지는 대표 배송지가 된다.")
+    void addShippingAddress_whenFirstAddress_thenBecomesDefault() {
+        //given
+        User user = aUser();
+        //when
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        //then
+        assertThat(user.getShippingAddresses().getFirst().isDefault()).isTrue();
+    }
+
+    @Test
+    @DisplayName("대표 배송지가 있는 상태에서 대표 여부를 지정하지 않고 배송지를 추가하면 기존 대표 배송지가 유지된다.")
+    void addShippingAddress_whenDefaultExistsAndNotRequested_thenKeepsExistingDefault() {
+        //given
+        User user = aUser();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
+        //when
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        //then
+        assertThat(user.getShippingAddresses()).hasSize(2);
+        assertThat(firstAddress.isDefault()).isTrue();
+        assertThat(user.getShippingAddresses().getLast().isDefault()).isFalse();
+    }
+
+    @Test
+    @DisplayName("대표로 지정하여 배송지를 추가하면 기존 대표 배송지는 대표에서 해제된다.")
+    void addShippingAddress_whenRequestedAsDefault_thenDemotesPreviousDefault() {
+        //given
+        User user = aUser();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
+        //when
+        user.addShippingAddress(aShippingAddressContext(true), idGenerator);
+        //then
+        ShippingAddress newAddress = user.getShippingAddresses().getLast();
+        assertThat(firstAddress.isDefault()).isFalse();
+        assertThat(newAddress.isDefault()).isTrue();
     }
 
     @Test
@@ -138,12 +182,44 @@ class UserTest {
     void removeShippingAddress() {
         //given
         User user = aUser();
-        ShippingAddress shippingAddress = user.addShippingAddress("수령인", "010-1234-5678", "12345",
-                "서울시 테헤란로 123", "123동 1234호", idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress shippingAddress = user.getShippingAddresses().getFirst();
         //when
         user.removeShippingAddress(shippingAddress.getId());
         //then
         assertThat(user.getShippingAddresses()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("대표 배송지를 삭제하면 남은 배송지 중 하나가 새 대표 배송지가 된다.")
+    void removeShippingAddress_whenDefaultRemoved_thenPromotesAnotherAddress() {
+        //given
+        User user = aUser();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress secondAddress = user.getShippingAddresses().getLast();
+        //when
+        user.removeShippingAddress(firstAddress.getId());
+        //then
+        assertThat(user.getShippingAddresses()).containsExactly(secondAddress);
+        assertThat(secondAddress.isDefault()).isTrue();
+    }
+
+    @Test
+    @DisplayName("대표가 아닌 배송지를 삭제하면 기존 대표 배송지는 유지된다.")
+    void removeShippingAddress_whenNonDefaultRemoved_thenDefaultUnchanged() {
+        //given
+        User user = aUser();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress secondAddress = user.getShippingAddresses().getLast();
+        //when
+        user.removeShippingAddress(secondAddress.getId());
+        //then
+        assertThat(user.getShippingAddresses()).containsExactly(firstAddress);
+        assertThat(firstAddress.isDefault()).isTrue();
     }
 
     @Test
@@ -171,14 +247,13 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("배송지가 있으면 첫번째로 등록된 배송지를 대표 배송지로 반환한다.")
-    void getDefaultShippingAddress_whenExists_thenReturnFirst() {
+    @DisplayName("배송지가 있으면 대표 배송지를 반환한다.")
+    void getDefaultShippingAddress_whenExists_thenReturnDefault() {
         //given
         User user = aUser();
-        ShippingAddress firstAddress = user.addShippingAddress("첫번째 수령인", "010-1234-5678", "12345",
-                "서울시 테헤란로 123", "123동 1234호", idGenerator);
-        user.addShippingAddress("두번째 수령인", "010-9876-5432", "54321",
-                "서울시 강남대로 456", "456동 4567호", idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
+        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
         //when
         ShippingAddress defaultShippingAddress = user.getDefaultShippingAddress();
         //then
@@ -197,5 +272,16 @@ class UserTest {
                 .build();
 
         return User.createUser(context, passwordManager, idGenerator);
+    }
+
+    private CreateShippingAddressContext aShippingAddressContext(boolean isDefault) {
+        return CreateShippingAddressContext.builder()
+                .receiverName("수령인")
+                .receiverPhone("010-1234-5678")
+                .zipCode("12345")
+                .address("서울시 테헤란로 123")
+                .addressDetail("123동 1234호")
+                .isDefault(isDefault)
+                .build();
     }
 }

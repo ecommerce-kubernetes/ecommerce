@@ -8,7 +8,6 @@ import com.example.userservice.user.application.service.UserCommandService;
 import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +31,8 @@ import static com.example.userservice.user.fixture.UserResultFixture.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -129,16 +130,16 @@ class UserControllerTest {
     void addShippingAddress() throws Exception {
         //given
         AddShippingAddressRequest request = anAddShippingAddressRequest().build();
-        AddShippingAddressResult result = anAddShippingAddressResult().build();
-        given(userCommandService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
+        willDoNothing().given(userCommandService).addShippingAddress(any(AddShippingAddressCommand.class));
         //when
         //then
         mockMvc.perform(post("/users/shipping-addresses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(String.valueOf(result.userId())));
+                .andExpect(status().isCreated());
+
+        then(userCommandService).should().addShippingAddress(any(AddShippingAddressCommand.class));
     }
 
     @ParameterizedTest(name = "{0}")

@@ -1,6 +1,5 @@
 package com.example.userservice.user.fixture;
 
-import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
@@ -16,11 +15,6 @@ public class UserResultFixture {
     public static EmailAvailableResult.EmailAvailableResultBuilder anEmailAvailableResult() {
         return EmailAvailableResult.builder()
                 .available(true);
-    }
-
-    public static AddShippingAddressResult.AddShippingAddressResultBuilder anAddShippingAddressResult() {
-        return AddShippingAddressResult.builder()
-                .userId(1L);
     }
 
     public static UserProfileResult.UserProfileResultBuilder anUserProfileResult() {

@@ -2,7 +2,6 @@ package com.example.userservice.user.adapter.in.web;
 
 import com.example.userservice.common.security.model.UserPrincipal;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
-import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressResponse;
 import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateResponse;
@@ -10,7 +9,6 @@ import com.example.userservice.user.application.service.UserCommandService;
 import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import jakarta.validation.constraints.Email;
@@ -47,12 +45,11 @@ public class UserController {
     }
 
     @PostMapping("/shipping-addresses")
-    public ResponseEntity<AddShippingAddressResponse> addShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                          @Validated @RequestBody AddShippingAddressRequest request) {
+    public ResponseEntity<Void> addShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                    @Validated @RequestBody AddShippingAddressRequest request) {
         AddShippingAddressCommand command = request.toCommand(userPrincipal.getUserId());
-        AddShippingAddressResult result = userCommandService.addShippingAddress(command);
-        AddShippingAddressResponse response = AddShippingAddressResponse.from(result);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        userCommandService.addShippingAddress(command);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/shipping-addresses/{shippingAddressId}")

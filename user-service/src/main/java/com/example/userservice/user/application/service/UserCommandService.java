@@ -7,9 +7,9 @@ import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.example.userservice.user.domain.User;
+import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.util.PasswordManager;
 import lombok.RequiredArgsConstructor;
@@ -44,14 +44,20 @@ public class UserCommandService {
         return UserCreateResult.from(savedUser);
     }
 
-    public AddShippingAddressResult addShippingAddress(AddShippingAddressCommand command) {
+    public void addShippingAddress(AddShippingAddressCommand command) {
         User user = findByIdOrThrow(command.userId());
 
-        user.addShippingAddress(command.receiverName(), command.receiverPhone(), command.zipCode(),
-                command.address(), command.addressDetail(), idGenerator);
+        CreateShippingAddressContext context = CreateShippingAddressContext.builder()
+                .receiverName(command.receiverName())
+                .receiverPhone(command.receiverPhone())
+                .zipCode(command.zipCode())
+                .address(command.address())
+                .addressDetail(command.addressDetail())
+                .isDefault(false)
+                .build();
 
+        user.addShippingAddress(context, idGenerator);
         userRepository.save(user);
-        return AddShippingAddressResult.of(user.getId());
     }
 
     public void deleteShippingAddress(Long userId, Long shippingAddressId) {

@@ -5,6 +5,7 @@ import com.example.userservice.common.entity.BaseEntity;
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.exception.UserErrorCode;
 import com.example.userservice.common.util.IdGenerator;
+import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.domain.vo.Gender;
@@ -97,16 +98,35 @@ public class User extends BaseEntity {
         }
     }
 
-    public ShippingAddress addShippingAddress(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail, IdGenerator idGenerator) {
-        ShippingAddress shippingAddress = ShippingAddress.create(idGenerator.generate(), this, receiverName, receiverPhone, zipCode, address, addressDetail);
-        this.shippingAddresses.add(shippingAddress);
-        return shippingAddress;
+    public void addShippingAddress(CreateShippingAddressContext context, IdGenerator idGenerator) {
+        boolean shouldBeDefault = context.isDefault() ||
+                this.shippingAddresses.isEmpty() ||
+                this.shippingAddresses.stream().noneMatch(ShippingAddress::isDefault);
+
+        if (shouldBeDefault) {
+            ShippingAddress currentDefault = getDefaultShippingAddress();
+            if (currentDefault != null) {
+                currentDefault.demoteFromDefault();
+            }
+        }
+
+        ShippingAddress shippingAddress = ShippingAddress.create(context, idGenerator, shouldBeDefault);
+        addShippingAddress(shippingAddress);
     }
 
     public void removeShippingAddress(Long shippingAddressId) {
-        boolean removed = this.shippingAddresses.removeIf(shippingAddress -> shippingAddress.getId().equals(shippingAddressId));
-        if (!removed) {
-            throw new BusinessException(UserErrorCode.SHIPPING_ADDRESS_NOT_FOUND);
+        ShippingAddress addressToRemove = this.shippingAddresses.stream()
+                .filter(address -> address.getId().equals(shippingAddressId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(UserErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
+
+        boolean wasDefault = addressToRemove.isDefault();
+
+        this.shippingAddresses.remove(addressToRemove);
+
+        if (wasDefault && !this.shippingAddresses.isEmpty()) {
+            ShippingAddress newDefaultAddress = this.shippingAddresses.getFirst();
+            newDefaultAddress.promoteToDefault();
         }
     }
 
@@ -114,7 +134,7 @@ public class User extends BaseEntity {
         if (this.shippingAddresses.isEmpty()) {
             return null;
         }
-        return this.shippingAddresses.get(0);
+        return this.shippingAddresses.stream().filter(ShippingAddress::isDefault).findFirst().orElse(null);
     }
 
     public void deductPoint(Money point) {
@@ -126,5 +146,10 @@ public class User extends BaseEntity {
 
     public void refundPoint(Money point) {
         this.point = this.point.add(point);
+    }
+
+    private void addShippingAddress(ShippingAddress shippingAddress) {
+        shippingAddress.setUser(this);
+        this.shippingAddresses.add(shippingAddress);
     }
 }

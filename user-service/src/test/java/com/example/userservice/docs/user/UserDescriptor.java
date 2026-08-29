@@ -74,12 +74,6 @@ public class UserDescriptor {
         };
     }
 
-    public static FieldDescriptor[] addShippingAddressResponse() {
-        return new FieldDescriptor[]{
-                fieldWithPath("userId").description("배송지를 추가한 유저 id(식별자)")
-        };
-    }
-
     public static FieldDescriptor[] userProfileResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("userId").description("유저 id(식별자)"),

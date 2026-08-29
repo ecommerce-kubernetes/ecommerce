@@ -9,7 +9,6 @@ import com.example.userservice.user.application.service.UserCommandService;
 import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
-import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.user.application.service.dto.result.UserCreateResult;
 import com.example.userservice.user.domain.vo.Role;
@@ -26,12 +25,12 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import static com.example.userservice.user.fixture.UserRequestFixture.anAddShippingAddressRequest;
 import static com.example.userservice.user.fixture.UserRequestFixture.anUserCreateRequest;
-import static com.example.userservice.user.fixture.UserResultFixture.anAddShippingAddressResult;
 import static com.example.userservice.user.fixture.UserResultFixture.anEmailAvailableResult;
 import static com.example.userservice.user.fixture.UserResultFixture.anUserCreateResult;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
@@ -129,8 +128,7 @@ class UserControllerDocsTest extends RestDocsSupport {
     void addShippingAddress() throws Exception {
         //given
         AddShippingAddressRequest request = anAddShippingAddressRequest().build();
-        AddShippingAddressResult result = anAddShippingAddressResult().build();
-        given(userCommandService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
+        willDoNothing().given(userCommandService).addShippingAddress(any(AddShippingAddressCommand.class));
         //when
         //then
         mockMvc.perform(post("/users/shipping-addresses")
@@ -141,9 +139,7 @@ class UserControllerDocsTest extends RestDocsSupport {
                 .andDo(
                         document("user/shipping-address-create",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                requestFields(UserDescriptor.addShippingAddressRequest()),
-                                responseFields(UserDescriptor.addShippingAddressResponse())
+                                requestFields(UserDescriptor.addShippingAddressRequest())
                         )
                 );
     }
