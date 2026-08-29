@@ -40,7 +40,7 @@ public class UserResultFixture {
                 .defaultShippingAddress(defaultShippingAddress);
     }
 
-    public static UserBalanceResult.UserPointsResultBuilder anUserPointsResult() {
+    public static UserBalanceResult.UserBalanceResultBuilder anUserPointsResult() {
         return UserBalanceResult.builder()
                 .userId(1L)
                 .availablePoints(10000L);

@@ -2,7 +2,7 @@ package com.example.userservice.docs.user;
 
 import com.example.userservice.docs.RestDocsSupport;
 import com.example.userservice.user.adapter.in.web.InternalUserController;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 import org.junit.jupiter.api.DisplayName;
@@ -26,11 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class InternalUserControllerDocsTest extends RestDocsSupport {
 
-    private UserService userService = Mockito.mock(UserService.class);
+    private UserQueryService userQueryService = Mockito.mock(UserQueryService.class);
 
     @Override
     protected Object initController() {
-        return new InternalUserController(userService);
+        return new InternalUserController(userQueryService);
     }
 
     @Test
@@ -38,7 +38,7 @@ class InternalUserControllerDocsTest extends RestDocsSupport {
     void getUserProfile() throws Exception {
         //given
         UserProfileResult result = anUserProfileResult().build();
-        given(userService.getUserProfile(anyLong())).willReturn(result);
+        given(userQueryService.getUserProfile(anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/internal/users/{userId}/profile", 1L)
@@ -61,7 +61,7 @@ class InternalUserControllerDocsTest extends RestDocsSupport {
     void getUserPoints() throws Exception {
         //given
         UserBalanceResult result = anUserPointsResult().build();
-        given(userService.getUserPoints(anyLong())).willReturn(result);
+        given(userQueryService.getUserPoints(anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/internal/users/{userId}/points", 1L)

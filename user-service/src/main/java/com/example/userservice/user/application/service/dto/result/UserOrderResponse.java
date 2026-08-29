@@ -15,7 +15,7 @@ public class UserOrderResponse {
     public static UserOrderResponse from(User user) {
         return UserOrderResponse.builder()
                 .userId(user.getId())
-                .pointBalance(user.getPoint())
+                .pointBalance(user.getPoint().longValue())
                 .userName(user.getName())
                 .phoneNumber(user.getPhoneNumber())
                 .build();

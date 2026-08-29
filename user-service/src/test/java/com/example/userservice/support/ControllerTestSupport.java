@@ -3,7 +3,8 @@ package com.example.userservice.support;
 import com.example.userservice.auth.adapter.in.web.AuthController;
 import com.example.userservice.auth.application.service.AuthService;
 import com.example.userservice.user.adapter.in.web.UserController;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserCommandService;
+import com.example.userservice.user.application.service.UserQueryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -17,7 +18,9 @@ public class ControllerTestSupport {
     @Autowired
     protected ObjectMapper objectMapper;
     @MockitoBean
-    protected UserService userService;
+    protected UserCommandService userCommandService;
+    @MockitoBean
+    protected UserQueryService userQueryService;
     @MockitoBean
     protected AuthService authService;
 }

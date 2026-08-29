@@ -6,7 +6,8 @@ import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRespons
 import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateResponse;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserCommandService;
+import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
@@ -24,23 +25,23 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@Validated
 public class UserController {
-    private final UserService userService;
+    private final UserCommandService userCommandService;
+    private final UserQueryService userQueryService;
 
     @PostMapping
     public ResponseEntity<UserCreateResponse> createUser(@Validated @RequestBody UserCreateRequest request) {
         UserCreateCommand command = request.toCommand();
-        UserCreateResult result = userService.createUser(command);
+        UserCreateResult result = userCommandService.createUser(command);
         UserCreateResponse response = UserCreateResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/email-availability")
     public ResponseEntity<EmailAvailableResponse> checkEmailAvailable(@RequestParam(name = "email")
-                                                                          @NotBlank(message = "email 파라미터는 필수값 입니다")
-                                                                          @Email(message = "올바른 이메일 형식이 아닙니다") String email){
-        EmailAvailableResult result = userService.checkAvailableEmail(email);
+                                                                          @NotBlank(message = "{user.emailAvailable.notBlank}")
+                                                                          @Email(message = "{user.emailAvailable.pattern}") String email){
+        EmailAvailableResult result = userQueryService.checkAvailableEmail(email);
         EmailAvailableResponse response = EmailAvailableResponse.from(result);
         return ResponseEntity.ok(response);
     }
@@ -49,7 +50,7 @@ public class UserController {
     public ResponseEntity<AddShippingAddressResponse> addShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                           @Validated @RequestBody AddShippingAddressRequest request) {
         AddShippingAddressCommand command = request.toCommand(userPrincipal.getUserId());
-        AddShippingAddressResult result = userService.addShippingAddress(command);
+        AddShippingAddressResult result = userCommandService.addShippingAddress(command);
         AddShippingAddressResponse response = AddShippingAddressResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -57,7 +58,7 @@ public class UserController {
     @DeleteMapping("/shipping-addresses/{shippingAddressId}")
     public ResponseEntity<Void> deleteShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                        @PathVariable Long shippingAddressId) {
-        userService.deleteShippingAddress(userPrincipal.getUserId(), shippingAddressId);
+        userCommandService.deleteShippingAddress(userPrincipal.getUserId(), shippingAddressId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -5,7 +5,8 @@ import com.example.userservice.docs.RestDocsSupport;
 import com.example.userservice.user.adapter.in.web.UserController;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserCommandService;
+import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
@@ -48,11 +49,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class UserControllerDocsTest extends RestDocsSupport {
 
-    private UserService userService = Mockito.mock(UserService.class);
+    private UserCommandService userCommandService = Mockito.mock(UserCommandService.class);
+    private UserQueryService userQueryService = Mockito.mock(UserQueryService.class);
 
     @Override
     protected Object initController() {
-        return new UserController(userService);
+        return new UserController(userCommandService, userQueryService);
     }
 
     @Override
@@ -80,7 +82,7 @@ class UserControllerDocsTest extends RestDocsSupport {
         //given
         UserCreateRequest request = anUserCreateRequest().build();
         UserCreateResult result = anUserCreateResult().build();
-        given(userService.createUser(any(UserCreateCommand.class))).willReturn(result);
+        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/users")
@@ -103,7 +105,7 @@ class UserControllerDocsTest extends RestDocsSupport {
     void checkEmailAvailable() throws Exception {
         //given
         EmailAvailableResult result = anEmailAvailableResult().build();
-        given(userService.checkAvailableEmail(anyString())).willReturn(result);
+        given(userQueryService.checkAvailableEmail(anyString())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/users/email-availability")
@@ -128,7 +130,7 @@ class UserControllerDocsTest extends RestDocsSupport {
         //given
         AddShippingAddressRequest request = anAddShippingAddressRequest().build();
         AddShippingAddressResult result = anAddShippingAddressResult().build();
-        given(userService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
+        given(userCommandService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/users/shipping-addresses")

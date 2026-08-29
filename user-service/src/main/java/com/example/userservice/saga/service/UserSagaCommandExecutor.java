@@ -4,7 +4,7 @@ import com.example.common.user.UserCommandType;
 import com.example.common.user.UserSagaCommand;
 import com.example.userservice.saga.domain.model.ProcessedSagaEvent;
 import com.example.userservice.saga.domain.repository.ProcessedSagaEventRepository;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserSagaCommandExecutor {
 
-    private final UserService userService;
+    private final UserCommandService userCommandService;
     private final ProcessedSagaEventRepository eventRepository;
 
     public boolean processSagaCommand(UserSagaCommand command) {
@@ -23,9 +23,9 @@ public class UserSagaCommandExecutor {
         }
 
         if (command.getType() == UserCommandType.USE_POINT) {
-            userService.deductPoints(command.getUserId(), command.getUsedPoint());
+            userCommandService.deductPoints(command.getUserId(), command.getUsedPoint());
         } else {
-            userService.refundPoints(command.getUserId(), command.getUsedPoint());
+            userCommandService.refundPoints(command.getUserId(), command.getUsedPoint());
         }
 
         ProcessedSagaEvent event = ProcessedSagaEvent.create(command.getSagaId(), command.getType().name());

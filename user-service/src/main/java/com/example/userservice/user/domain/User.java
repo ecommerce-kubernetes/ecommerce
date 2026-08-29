@@ -63,6 +63,7 @@ public class User extends BaseEntity {
         Assert.notNull(point, "유저를 생성할때 포인트는 필수이다.");
         Assert.notNull(role, "유저를 생성할때 권한은 필수이다.");
 
+        this.id = id;
         this.email = email;
         this.name = name;
         this.encryptedPwd = encryptedPwd;
@@ -91,8 +92,39 @@ public class User extends BaseEntity {
     }
 
     public void authenticate(String password, PasswordManager passwordManager) {
-        if (passwordManager.matches(password, this.encryptedPwd)) {
+        if (!passwordManager.matches(password, this.encryptedPwd)) {
             throw new BusinessException(UserErrorCode.PASSWORD_NOT_MATCH);
         }
+    }
+
+    public ShippingAddress addShippingAddress(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail, IdGenerator idGenerator) {
+        ShippingAddress shippingAddress = ShippingAddress.create(idGenerator.generate(), this, receiverName, receiverPhone, zipCode, address, addressDetail);
+        this.shippingAddresses.add(shippingAddress);
+        return shippingAddress;
+    }
+
+    public void removeShippingAddress(Long shippingAddressId) {
+        boolean removed = this.shippingAddresses.removeIf(shippingAddress -> shippingAddress.getId().equals(shippingAddressId));
+        if (!removed) {
+            throw new BusinessException(UserErrorCode.SHIPPING_ADDRESS_NOT_FOUND);
+        }
+    }
+
+    public ShippingAddress getDefaultShippingAddress() {
+        if (this.shippingAddresses.isEmpty()) {
+            return null;
+        }
+        return this.shippingAddresses.get(0);
+    }
+
+    public void deductPoint(Money point) {
+        if (this.point.isLessThan(point)) {
+            throw new BusinessException(UserErrorCode.INSUFFICIENT_POINT);
+        }
+        this.point = this.point.subtract(point);
+    }
+
+    public void refundPoint(Money point) {
+        this.point = this.point.add(point);
     }
 }

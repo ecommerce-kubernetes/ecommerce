@@ -1,7 +1,7 @@
 package com.example.userservice.user.adapter.in.web;
 
 import com.example.userservice.support.security.config.TestSecurityConfig;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class InternalUserControllerTest {
 
     @MockitoBean
-    private UserService userService;
+    private UserQueryService userQueryService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,7 +41,7 @@ class InternalUserControllerTest {
     void getUserProfile() throws Exception {
         //given
         UserProfileResult result = anUserProfileResult().build();
-        given(userService.getUserProfile(anyLong())).willReturn(result);
+        given(userQueryService.getUserProfile(anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/internal/users/{userId}/profile", 1L)
@@ -60,7 +60,7 @@ class InternalUserControllerTest {
     void getUserPoints() throws Exception {
         //given
         UserBalanceResult result = anUserPointsResult().build();
-        given(userService.getUserPoints(anyLong())).willReturn(result);
+        given(userQueryService.getUserPoints(anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/internal/users/{userId}/points", 1L)

@@ -2,6 +2,8 @@ package com.example.userservice.support.security.config;
 
 import com.example.userservice.common.security.filter.CustomAccessDeniedHandler;
 import com.example.userservice.common.security.filter.CustomAuthenticationEntryPoint;
+import com.example.userservice.common.security.filter.HeaderPreAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -9,10 +11,16 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @TestConfiguration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class TestSecurityConfig {
+
+    private final HeaderPreAuthenticationFilter headerPreAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -28,21 +36,13 @@ public class TestSecurityConfig {
                                 .requestMatchers("/not-readable").permitAll()
                                 .requestMatchers("/exception").permitAll()
                                 .anyRequest().authenticated())
+
+                .addFilterBefore(headerPreAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(handler -> handler
-                        .authenticationEntryPoint(customAuthenticationEntryPoint())
-                        .accessDeniedHandler(customAccessDeniedHandler())
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 );
         return http.build();
     }
 
-
-    @Bean
-    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
-        return new CustomAuthenticationEntryPoint();
-    }
-
-    @Bean
-    public CustomAccessDeniedHandler customAccessDeniedHandler() {
-        return new CustomAccessDeniedHandler();
-    }
 }

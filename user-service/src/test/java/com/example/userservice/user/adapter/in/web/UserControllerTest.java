@@ -4,7 +4,8 @@ import com.example.userservice.support.security.annotation.WithCustomMockUser;
 import com.example.userservice.support.security.config.TestSecurityConfig;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
 import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserCommandService;
+import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.AddShippingAddressResult;
@@ -40,7 +41,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest {
 
     @MockitoBean
-    private UserService userService;
+    private UserCommandService userCommandService;
+
+    @MockitoBean
+    private UserQueryService userQueryService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,7 +58,7 @@ class UserControllerTest {
         //given
         UserCreateRequest request = anUserCreateRequest().build();
         UserCreateResult result = anUserCreateResult().build();
-        given(userService.createUser(any(UserCreateCommand.class))).willReturn(result);
+        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/users")
@@ -68,7 +72,7 @@ class UserControllerTest {
     @ParameterizedTest(name = "{0}")
     @DisplayName("회원 생성 요청 검증")
     @MethodSource("provideInvalidCreateRequest")
-    void createUser_validation(String description, UserCreateRequest request, String message) throws Exception {
+    void createUser_validation(String description, UserCreateRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         //when
         //then
@@ -77,8 +81,10 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("COMMON_001"))
-                .andExpect(jsonPath("$.message").value(message))
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/users"));
     }
@@ -88,7 +94,7 @@ class UserControllerTest {
     void checkEmailAvailable() throws Exception {
         //given
         EmailAvailableResult result = anEmailAvailableResult().build();
-        given(userService.checkAvailableEmail(anyString())).willReturn(result);
+        given(userQueryService.checkAvailableEmail(anyString())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/users/email-availability")
@@ -124,7 +130,7 @@ class UserControllerTest {
         //given
         AddShippingAddressRequest request = anAddShippingAddressRequest().build();
         AddShippingAddressResult result = anAddShippingAddressResult().build();
-        given(userService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
+        given(userCommandService.addShippingAddress(any(AddShippingAddressCommand.class))).willReturn(result);
         //when
         //then
         mockMvc.perform(post("/users/shipping-addresses")
@@ -153,7 +159,7 @@ class UserControllerTest {
     @DisplayName("배송지 추가 요청 검증")
     @MethodSource("provideInvalidAddShippingAddressRequest")
     @WithCustomMockUser
-    void addShippingAddress_validation(String description, AddShippingAddressRequest request, String message) throws Exception {
+    void addShippingAddress_validation(String description, AddShippingAddressRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         //when
         //then
@@ -162,8 +168,10 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("COMMON_001"))
-                .andExpect(jsonPath("$.message").value(message))
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/users/shipping-addresses"));
     }
@@ -195,22 +203,47 @@ class UserControllerTest {
 
     static Stream<Arguments> provideInvalidCreateRequest() {
         return Stream.of(
-                Arguments.of("이메일이 없음", anUserCreateRequest().email(null).build(), "이메일은 필수 입력값입니다"),
-                Arguments.of("잘못된 이메일 형식", anUserCreateRequest().email("invalidEmail").build(), "올바른 이메일 형식을 입력해주세요"),
+                Arguments.of("이메일이 누락되면 예외가 발생한다.",
+                        anUserCreateRequest().email(null).build(),
+                        "email", "이메일은 필수 입력값입니다"),
 
-                Arguments.of("비밀번호가 없음", anUserCreateRequest().password(null).build(), "비밀번호는 필수 입력값입니다"),
-                Arguments.of("잘못된 비밀번호 형식", anUserCreateRequest().password("asdf").build(), "비밀번호는 최소 8자 이상이며, 영문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다"),
+                Arguments.of("이메일 형식이 잘못되면 예외가 발생한다.",
+                        anUserCreateRequest().email("invalidEmail").build(),
+                        "email", "올바른 이메일 형식을 입력해주세요"),
 
-                Arguments.of("이름이 없음", anUserCreateRequest().name(null).build(), "이름은 필수 입력값입니다"),
-                Arguments.of("잘못된 이름 형식", anUserCreateRequest().name("이").build(), "이름은 2글자~12글자 사이여야 합니다"),
+                Arguments.of("비밀번호가 누락되면 예외가 발생한다.",
+                        anUserCreateRequest().password(null).build(),
+                        "password", "비밀번호는 필수 입력값입니다"),
 
-                Arguments.of("생년월일이 없음", anUserCreateRequest().birthDate(null).build(), "생년월일은 필수 입력값입니다"),
+                Arguments.of("비밀번호 형식이 잘못되면 예외가 발생한다.",
+                        anUserCreateRequest().password("asdf").build(),
+                        "password", "비밀번호는 최소 8자 이상이며, 영문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다"),
 
-                Arguments.of("성별이 없음", anUserCreateRequest().gender(null).build(), "성별은 필수 입력값입니다"),
-                Arguments.of("잘못된 성별 형식", anUserCreateRequest().gender("남자").build(), "성별은 MALE 또는 FEMALE 이어야 합니다"),
+                Arguments.of("이름이 누락되면 예외가 발생한다.",
+                        anUserCreateRequest().name(null).build(),
+                        "name", "이름은 필수 입력값입니다"),
+                Arguments.of("이름 형식이 잘못되면 예외가 발생한다.",
+                        anUserCreateRequest().name("이").build(),
+                        "name", "이름은 2글자~12글자 사이여야 합니다"),
 
-                Arguments.of("전화번호가 없음", anUserCreateRequest().phoneNumber(null).build(), "전화번호는 필수 입력값 입니다"),
-                Arguments.of("잘못된 전화번호 형식", anUserCreateRequest().phoneNumber("01012345678").build(), "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
+                Arguments.of("생년월일이 누락되면 예외가 발생한다.",
+                        anUserCreateRequest().birthDate(null).build(),
+                        "birthDate", "생년월일은 필수 입력값입니다"),
+
+                Arguments.of("성별이 누락되면 예외가 발생한다.",
+                        anUserCreateRequest().gender(null).build(),
+                        "gender", "성별은 필수 입력값입니다"),
+                Arguments.of("성별 형식이 잘못되면 예외가 발생한다.",
+                        anUserCreateRequest().gender("남자").build(),
+                        "gender", "성별은 MALE 또는 FEMALE 이어야 합니다"),
+
+                Arguments.of("전호번호가 누락되면 예외가 발생한다.",
+                        anUserCreateRequest().phoneNumber(null).build(),
+                        "phoneNumber", "전화번호는 필수 입력값 입니다"),
+
+                Arguments.of("전화번호 형식이 잘못되면 예외가 발생한다.",
+                        anUserCreateRequest().phoneNumber("01012345678").build(),
+                        "phoneNumber", "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
         );
     }
 
@@ -223,13 +256,27 @@ class UserControllerTest {
 
     static Stream<Arguments> provideInvalidAddShippingAddressRequest() {
         return Stream.of(
-                Arguments.of("수령인 이름이 없음", anAddShippingAddressRequest().receiverName(null).build(), "수령인 이름은 필수 입력값입니다"),
-                Arguments.of("수령인 전화번호가 없음", anAddShippingAddressRequest().receiverPhone(null).build(), "수령인 전화번호는 필수 입력값입니다"),
-                Arguments.of("잘못된 수령인 전화번호 형식", anAddShippingAddressRequest().receiverPhone("01012345678").build(), "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)"),
-                Arguments.of("우편번호가 없음", anAddShippingAddressRequest().zipCode(null).build(), "우편번호는 필수 입력값입니다"),
-                Arguments.of("잘못된 우편번호 형식", anAddShippingAddressRequest().zipCode("123").build(), "우편번호는 5자리 숫자여야 합니다"),
-                Arguments.of("주소가 없음", anAddShippingAddressRequest().address(null).build(), "주소는 필수 입력값입니다"),
-                Arguments.of("상세주소가 없음", anAddShippingAddressRequest().addressDetail(null).build(), "상세주소는 필수 입력값입니다")
+                Arguments.of("수령인 이름이 누락되면 예외가 발생한다.",
+                        anAddShippingAddressRequest().receiverName(null).build(),
+                        "receiverName", "수령인 이름은 필수 입력값입니다"),
+                Arguments.of("수령인 전화번호가 누락되면 예외가 발생한다.",
+                        anAddShippingAddressRequest().receiverPhone(null).build(),
+                        "receiverPhone", "수령인 전화번호는 필수 입력값입니다"),
+                Arguments.of("잘못된 수령인 전화번호 형식",
+                        anAddShippingAddressRequest().receiverPhone("01012345678").build(),
+                        "receiverPhone", "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)"),
+                Arguments.of("우편번호가 누락되면 예외가 발생한다.",
+                        anAddShippingAddressRequest().zipCode(null).build(),
+                        "zipCode", "우편번호는 필수 입력값입니다"),
+                Arguments.of("잘못된 우편번호 형식이면 예외가 발생한다.",
+                        anAddShippingAddressRequest().zipCode("123").build(),
+                        "zipCode", "우편번호는 5자리 숫자여야 합니다"),
+                Arguments.of("주소가 없으면 예외가 발생한다.",
+                        anAddShippingAddressRequest().address(null).build(),
+                        "address", "주소는 필수 입력값입니다"),
+                Arguments.of("상세주소가 없으면 예외가 발생한다.",
+                        anAddShippingAddressRequest().addressDetail(null).build(),
+                        "addressDetail", "상세주소는 필수 입력값입니다")
         );
     }
 }

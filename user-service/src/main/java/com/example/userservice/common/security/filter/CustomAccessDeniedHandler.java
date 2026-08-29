@@ -6,30 +6,29 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.MediaType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
+@Component
+@RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        LocalDateTime now = LocalDateTime.now();
-        writeErrorResponse(response, "요청 권한이 부족합니다", now, request.getRequestURI());
+        writeErrorResponse(response, "요청 권한이 부족합니다", request.getRequestURI());
     }
 
-    private void writeErrorResponse(HttpServletResponse response, String message, LocalDateTime requestAt, String requestUrl) throws IOException {
+    private void writeErrorResponse(HttpServletResponse response, String message, String requestUrl) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON);
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .code("FORBIDDEN")
-                .message(message)
-                .timestamp(requestAt.toString())
-                .path(requestUrl)
-                .build();
+
+        ErrorResponse errorResponse = ErrorResponse.of("FORBIDDEN", message, requestUrl);
+
         response.getWriter()
                 .write(objectMapper.writeValueAsString(errorResponse));
     }

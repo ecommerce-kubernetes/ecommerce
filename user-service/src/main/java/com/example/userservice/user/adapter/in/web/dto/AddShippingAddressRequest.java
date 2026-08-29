@@ -7,21 +7,21 @@ import lombok.Builder;
 
 @Builder
 public record AddShippingAddressRequest(
-        @NotBlank(message = "수령인 이름은 필수 입력값입니다")
+        @NotBlank(message = "{user.shippingAddress.receiverName.notBlank}")
         String receiverName,
 
-        @NotBlank(message = "수령인 전화번호는 필수 입력값입니다")
-        @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
+        @NotBlank(message = "{user.shippingAddress.receiverPhone.notBlank}")
+        @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "{user.phoneNumber.pattern}")
         String receiverPhone,
 
-        @NotBlank(message = "우편번호는 필수 입력값입니다")
-        @Pattern(regexp = "^[0-9]{5}$", message = "우편번호는 5자리 숫자여야 합니다")
+        @NotBlank(message = "{user.shippingAddress.zipCode.notBlank}")
+        @Pattern(regexp = "^[0-9]{5}$", message = "{user.shippingAddress.zipCode.pattern}")
         String zipCode,
 
-        @NotBlank(message = "주소는 필수 입력값입니다")
+        @NotBlank(message = "{user.shippingAddress.address.notBlank}")
         String address,
 
-        @NotBlank(message = "상세주소는 필수 입력값입니다")
+        @NotBlank(message = "{user.shippingAddress.addressDetail.notBlank}")
         String addressDetail
 ) {
     public AddShippingAddressCommand toCommand(Long userId) {

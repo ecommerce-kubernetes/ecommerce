@@ -5,7 +5,7 @@ import com.example.common.user.UserSagaCommand;
 import com.example.userservice.saga.domain.model.ProcessedSagaEvent;
 import com.example.userservice.saga.domain.repository.ProcessedSagaEventRepository;
 import com.example.userservice.saga.service.UserSagaCommandExecutor;
-import com.example.userservice.user.application.service.UserService;
+import com.example.userservice.user.application.service.UserCommandService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class UserSagaCommandExecutorTest {
     private UserSagaCommandExecutor executor;
 
     @Mock
-    private UserService userService;
+    private UserCommandService userCommandService;
     @Mock
     private ProcessedSagaEventRepository repository;
 
@@ -48,7 +48,7 @@ class UserSagaCommandExecutorTest {
             boolean isProcessed = executor.processSagaCommand(command);
             //then
             assertThat(isProcessed).isFalse();
-            verify(userService, times(1)).deductPoints(command.getUserId(), command.getUsedPoint());
+            verify(userCommandService, times(1)).deductPoints(command.getUserId(), command.getUsedPoint());
             verify(repository, times(1)).save(any(ProcessedSagaEvent.class));
         }
         
@@ -64,7 +64,7 @@ class UserSagaCommandExecutorTest {
             boolean isProcessed = executor.processSagaCommand(command);
             //then
             assertThat(isProcessed).isTrue();
-            verify(userService, never()).deductPoints(anyLong(), anyLong());
+            verify(userCommandService, never()).deductPoints(anyLong(), anyLong());
             verify(repository, never()).save(any());
         }
     }
