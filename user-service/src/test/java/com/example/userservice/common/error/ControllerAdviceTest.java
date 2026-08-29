@@ -24,7 +24,7 @@ class ControllerAdviceTest extends ControllerTestSupport {
         mockMvc.perform(get("/exception")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("code").value("USER_001"))
+                .andExpect(jsonPath("code").value("USER_NOT_FOUND"))
                 .andExpect(jsonPath("message").value("해당 유저를 찾을 수 없습니다"))
                 .andExpect(jsonPath("timestamp").isNotEmpty())
                 .andExpect(jsonPath("path").value("/exception"));

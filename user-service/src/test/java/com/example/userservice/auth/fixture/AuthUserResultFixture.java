@@ -10,7 +10,6 @@ public class AuthUserResultFixture {
                 .id(1L)
                 .email("la9814@naver.com")
                 .name("민식")
-                .encryptedPwd("encryptedPassword")
                 .role(Role.ROLE_USER);
     }
 }
