@@ -11,7 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {UserController.class, AuthController.class, DummyController.class})
+@WebMvcTest(controllers = {UserController.class, AuthController.class, ExceptionTestController.class})
 public class ControllerTestSupport {
     @Autowired
     protected MockMvc mockMvc;

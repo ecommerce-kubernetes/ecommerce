@@ -3,6 +3,7 @@ package com.example.userservice.common.error;
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.exception.ErrorCategory;
 import com.example.userservice.common.exception.ErrorCode;
+import com.example.userservice.common.exception.PortException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -53,6 +54,16 @@ public class ControllerAdvice {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> businessExceptionHandler(HttpServletRequest request, BusinessException e) {
+        ErrorCode errorCode = e.getErrorCode();
+
+        ErrorResponse response = ErrorResponse.of(errorCode.getCode(), errorCode.getMessage(), request.getRequestURI());
+
+        HttpStatus status = determineHttpStatus(errorCode.getCategory());
+        return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(PortException.class)
+    public ResponseEntity<ErrorResponse> portExceptionHandler(HttpServletRequest request, PortException e) {
         ErrorCode errorCode = e.getErrorCode();
 
         ErrorResponse response = ErrorResponse.of(errorCode.getCode(), errorCode.getMessage(), request.getRequestURI());

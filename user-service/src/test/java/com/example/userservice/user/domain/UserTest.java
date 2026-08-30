@@ -223,6 +223,42 @@ class UserTest {
         assertThat(defaultShippingAddress).isEqualTo(firstAddress);
     }
 
+    @Test
+    @DisplayName("포인트를 추가한다.")
+    void addPoints(){
+        //given
+        User user = UserFixtureBuilder.given().build();
+        //when
+        user.addPoints(Money.wons(1000L));
+        //then
+        assertThat(user.getPoint()).isEqualTo(Money.wons(1000L));
+    }
+
+    @Test
+    @DisplayName("포인트를 차감한다.")
+    void deductPoints(){
+        //given
+        User user = UserFixtureBuilder.given().build();
+        user.addPoints(Money.wons(1000L));
+        //when
+        user.deductPoints(Money.wons(1000L));
+        //then
+        assertThat(user.getPoint()).isEqualTo(Money.ZERO);
+    }
+
+    @Test
+    @DisplayName("포인트를 차감할때 보유 포인트가 부족하면 예외가 발생한다.")
+    void deductPoints_whenInsufficientPoint_thenThrownException(){
+        //given
+        User user = UserFixtureBuilder.given().build();
+        //when
+        //then
+        assertThatThrownBy(() -> user.deductPoints(Money.wons(1000L)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(UserErrorCode.INSUFFICIENT_POINTS);
+    }
+
     private CreateShippingAddressContext aShippingAddressContext(boolean isDefault) {
         return CreateShippingAddressContext.builder()
                 .receiverName("수령인")

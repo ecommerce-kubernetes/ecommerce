@@ -138,6 +138,17 @@ public class User extends BaseEntity {
         return this.shippingAddresses.stream().filter(ShippingAddress::isDefault).findFirst().orElse(null);
     }
 
+    public void addPoints(Money addPoints) {
+        this.point = this.point.add(addPoints);
+    }
+
+    public void deductPoints(Money deductPoint) {
+        if (this.point.isLessThan(deductPoint)) {
+            throw new BusinessException(UserErrorCode.INSUFFICIENT_POINTS);
+        }
+        this.point = this.point.subtract(deductPoint);
+    }
+
     private void addShippingAddress(ShippingAddress shippingAddress) {
         shippingAddress.setUser(this);
         this.shippingAddresses.add(shippingAddress);
