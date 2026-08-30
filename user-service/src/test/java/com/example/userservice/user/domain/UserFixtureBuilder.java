@@ -7,11 +7,13 @@ import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.domain.vo.Gender;
 
 import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class UserFixtureBuilder {
 
-    private static final IdGenerator ID_GENERATOR = new TsidGenerator();
-    private static final PasswordManager PASSWORD_MANAGER = new FixturePasswordManager();
+    private static AtomicLong idSeq = new AtomicLong(100L);
+    private static final IdGenerator ID_GENERATOR = idSeq::getAndIncrement;
+    private PasswordManager passwordManager = new FixturePasswordManager();
 
     private String email = "la9814@naver.com";
     private String password = "password1234*";
@@ -39,6 +41,16 @@ public class UserFixtureBuilder {
         return this;
     }
 
+    public UserFixtureBuilder withPassword(String password) {
+        this.password = password;
+        return this;
+    }
+
+    public UserFixtureBuilder withPasswordManager(PasswordManager passwordManager) {
+        this.passwordManager = passwordManager;
+        return this;
+    }
+
     public User build() {
         CreateUserContext context = CreateUserContext.builder()
                 .email(email)
@@ -49,7 +61,7 @@ public class UserFixtureBuilder {
                 .phoneNumber(phoneNumber)
                 .build();
 
-        return User.create(context, PASSWORD_MANAGER, ID_GENERATOR);
+        return User.create(context, passwordManager, ID_GENERATOR);
     }
 
     private static class FixturePasswordManager implements PasswordManager {

@@ -2,6 +2,7 @@ package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.support.annotation.IsolatedTest;
 import com.example.userservice.user.application.port.UserRepository;
@@ -33,17 +34,23 @@ class UserQueryServiceTest {
     private UserCommandService userCommandService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordManager passwordManager;
 
     @Test
     @DisplayName("이메일과 비밀번호로 인증한다.")
     void authenticate() {
         //given
-        UserCreateCommand createCommand = anUserCreateCommand().build();
-        Long userId = userCommandService.createUser(createCommand);
+        User user = UserFixtureBuilder.given()
+                .withEmail("la9814@naver.com")
+                .withPassword("password1234*")
+                .withPasswordManager(passwordManager)
+                .build();
+        userRepository.save(user);
         //when
-        UserIdentityResult result = userQueryService.authenticate(createCommand.getEmail(), createCommand.getPassword());
+        UserIdentityResult result = userQueryService.authenticate(user.getEmail(), "password1234*");
         //then
-        assertThat(result.userId()).isEqualTo(userId);
+        assertThat(result.userId()).isEqualTo(user.getId());
         assertThat(result.email()).isEqualTo("la9814@naver.com");
         assertThat(result.name()).isEqualTo("김이박");
         assertThat(result.role()).isEqualTo(Role.ROLE_USER);
@@ -65,14 +72,45 @@ class UserQueryServiceTest {
     @DisplayName("비밀번호가 일치하지 않으면 예외가 발생한다.")
     void authenticate_whenPasswordNotMatch_thenThrownException() {
         //given
-        UserCreateCommand createCommand = anUserCreateCommand().build();
-        userCommandService.createUser(createCommand);
+        User user = UserFixtureBuilder.given()
+                .withEmail("la9814@naver.com")
+                .withPassword("password1234*")
+                .withPasswordManager(passwordManager)
+                .build();
+        userRepository.save(user);
         //when
         //then
-        assertThatThrownBy(() -> userQueryService.authenticate(createCommand.getEmail(), "wrongPassword1*"))
+        assertThatThrownBy(() -> userQueryService.authenticate(user.getEmail(), "wrongPassword1*"))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.PASSWORD_NOT_MATCH);
+    }
+
+    @Test
+    @DisplayName("유저 인증 정보를 반환한다.")
+    void getUserIdentity(){
+        //given
+        User user = UserFixtureBuilder.given().build();
+        userRepository.save(user);
+        //when
+        UserIdentityResult result = userQueryService.getUserIdentity(user.getId());
+        //then
+        assertThat(result.userId()).isEqualTo(user.getId());
+        assertThat(result.email()).isEqualTo(user.getEmail());
+        assertThat(result.name()).isEqualTo(user.getName());
+        assertThat(result.role()).isEqualTo(user.getRole());
+    }
+
+    @Test
+    @DisplayName("유저를 찾을 수 없으면 예외가 발생한다.")
+    void getUserIdentity_whenUserNotFound_thenThrownException(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> userQueryService.getUserIdentity(999L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(UserErrorCode.USER_NOT_FOUND);
     }
 
     @Test

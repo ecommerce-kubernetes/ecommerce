@@ -30,8 +30,15 @@ public class UserQueryService {
         return UserIdentityResult.from(user);
     }
 
+    public UserIdentityResult getUserIdentity(Long userId) {
+        User user = findByIdOrThrow(userId);
+
+        return UserIdentityResult.from(user);
+    }
+
     public UserProfileResult getUserProfile(Long userId) {
         User user = findByIdOrThrow(userId);
+
         return UserProfileResult.from(user);
     }
 

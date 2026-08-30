@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum AuthUserPortErrorCode implements ErrorCode {
-
+    INVALID_CREDENTIALS(ErrorCategory.UNAUTHORIZED, "AUTH_INVALID_CREDENTIALS", "아이디 또는 비밀번호를 확인해주세요."),
     USER_SERVER_ERROR(ErrorCategory.SYSTEM_ERROR, "USER_SERVER_ERROR", "유저 포트 에러");
 
     private final ErrorCategory category;
