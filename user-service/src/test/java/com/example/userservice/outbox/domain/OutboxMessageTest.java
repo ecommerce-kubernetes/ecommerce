@@ -1,0 +1,45 @@
+package com.example.userservice.outbox.domain;
+
+import com.example.userservice.common.util.IdGenerator;
+import com.example.userservice.common.util.TsidGenerator;
+import com.example.userservice.outbox.domain.context.CreateOutboxMessageContext;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+class OutboxMessageTest {
+
+    private final IdGenerator idGenerator = new TsidGenerator();
+
+    @Test
+    @DisplayName("아웃박스 메시지를 생성한다.")
+    void create() {
+        //given
+        CreateOutboxMessageContext context = aContext();
+        //when
+        OutboxMessage outboxMessage = OutboxMessage.create(context, idGenerator);
+        //then
+        assertThat(outboxMessage.getId()).isNotNull();
+        assertThat(outboxMessage.getTopic()).isEqualTo("user-saga-command");
+        assertThat(outboxMessage.getRoutingKey()).isEqualTo("1");
+        assertThat(outboxMessage.getHeaders()).isEqualTo("{\"X-Command-Type\":\"DEDUCT_POINT\"}");
+        assertThat(outboxMessage.getPayload()).isEqualTo("{\"executionId\":1,\"userId\":1,\"usedPoints\":1000}");
+        assertThat(outboxMessage.getStatus()).isEqualTo(OutboxStatus.PENDING);
+    }
+
+    private static CreateOutboxMessageContext aContext() {
+        return CreateOutboxMessageContext.builder()
+                .topic("user-saga-command")
+                .routingKey("1")
+                .headers("{\"X-Command-Type\":\"DEDUCT_POINT\"}")
+                .payload("{\"executionId\":1,\"userId\":1,\"usedPoints\":1000}")
+                .build();
+    }
+}

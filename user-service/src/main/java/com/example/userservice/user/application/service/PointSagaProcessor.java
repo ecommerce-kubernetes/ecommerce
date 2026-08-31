@@ -17,11 +17,11 @@ public class PointSagaProcessor {
 
     public void deduct(Long sagaId, Long executionId, Long userId, Money amount) {
         pointCommandService.deductPoint(userId, executionId, amount);
-        userOutboxPort.recordPointDeduct(sagaId, executionId);
+        userOutboxPort.recordForwardSuccess(sagaId, executionId);
     }
 
     public void refund(Long sagaId, Long executionId, Long userId, Money amount) {
         pointCommandService.addPoint(userId, executionId, amount);
-        userOutboxPort.recordPointRefund(sagaId, executionId);
+        userOutboxPort.recordCompensateSuccess(sagaId, executionId);
     }
 }
