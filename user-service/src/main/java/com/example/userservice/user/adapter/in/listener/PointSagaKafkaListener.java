@@ -1,7 +1,7 @@
 package com.example.userservice.user.adapter.in.listener;
 
 import com.example.userservice.common.domain.vo.Money;
-import com.example.userservice.outbox.domain.MessageCommandType;
+import com.example.userservice.user.adapter.in.listener.dto.MessageCommandType;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommandPayload;
 import com.example.userservice.user.application.service.PointSagaProcessor;
 import lombok.RequiredArgsConstructor;

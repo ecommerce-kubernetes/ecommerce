@@ -1,4 +1,4 @@
-package com.example.userservice.outbox.domain;
+package com.example.userservice.user.adapter.in.listener.dto;
 
 public enum MessageCommandType {
 
