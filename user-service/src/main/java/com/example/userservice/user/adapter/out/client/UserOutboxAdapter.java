@@ -22,4 +22,14 @@ public class UserOutboxAdapter implements UserOutboxPort {
     public void recordCompensateSuccess(Long sagaId, Long executionId) {
 
     }
+
+    @Override
+    public void recordForwardFail(Long sagaId, Long executionId, String reason) {
+
+    }
+
+    @Override
+    public void recordCompensateFail(Long sagaId, Long executionId, String reason) {
+
+    }
 }

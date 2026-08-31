@@ -24,4 +24,12 @@ public class PointSagaProcessor {
         pointCommandService.addPoint(userId, executionId, amount);
         userOutboxPort.recordCompensateSuccess(sagaId, executionId);
     }
+
+    public void failDeduct(Long sagaId, Long executionId, String reason) {
+        userOutboxPort.recordForwardFail(sagaId, executionId, reason);
+    }
+
+    public void failRefund(Long sagaId, Long executionId, String reason) {
+        userOutboxPort.recordCompensateFail(sagaId, executionId, reason);
+    }
 }

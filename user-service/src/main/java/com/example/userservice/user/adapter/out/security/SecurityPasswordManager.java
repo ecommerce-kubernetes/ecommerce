@@ -1,4 +1,4 @@
-package com.example.userservice.user.application.service;
+package com.example.userservice.user.adapter.out.security;
 
 import com.example.userservice.user.domain.util.PasswordManager;
 import lombok.RequiredArgsConstructor;
