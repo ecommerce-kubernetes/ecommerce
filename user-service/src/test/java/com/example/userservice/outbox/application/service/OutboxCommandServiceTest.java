@@ -29,10 +29,10 @@ class OutboxCommandServiceTest {
     void createOutbox() {
         //given
         CreateOutboxMessageContext context = CreateOutboxMessageContext.builder()
-                .topic("user-saga-command")
+                .topic("order.saga.reply")
                 .routingKey("1")
-                .headers("{\"X-Command-Type\":\"DEDUCT_POINT\"}")
-                .payload("{\"executionId\":1,\"userId\":1,\"usedPoints\":1000}")
+                .headers("{\"X-Reply-Type\":\"FORWARD\"}")
+                .payload("{\"executionId\":1,\"result\":\"SUCCESS\"}")
                 .build();
         //when
         outboxCommandService.createOutbox(context);
