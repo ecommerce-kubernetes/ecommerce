@@ -4,4 +4,5 @@ import com.example.userservice.user.domain.PointHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PointHistoryJpaRepository extends JpaRepository<PointHistory, Long> {
+    boolean existsByReferenceId(Long referenceId);
 }

@@ -15,4 +15,9 @@ public class PointHistoryPersistenceAdapter implements PointHistoryRepository {
     public PointHistory save(PointHistory pointHistory) {
         return pointHistoryJpaRepository.save(pointHistory);
     }
+
+    @Override
+    public boolean existsByReferenceId(Long referenceId) {
+        return pointHistoryJpaRepository.existsByReferenceId(referenceId);
+    }
 }
