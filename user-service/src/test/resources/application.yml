@@ -34,5 +34,7 @@ token:
 
 user:
   topics:
-    user-saga-command: "user.saga.command"
-    user-saga-reply: "user.saga.reply"
+    saga:
+      order:
+        command: "user.saga.command"
+        reply: "order.saga.reply"

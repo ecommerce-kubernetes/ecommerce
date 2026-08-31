@@ -18,7 +18,7 @@ public class PointSagaKafkaListener {
 
     private final PointSagaProcessor processor;
 
-    @KafkaListener(topics = "${user.topics.user-saga-command}", groupId = "user-service-point-saga-group")
+    @KafkaListener(topics = "${user.topics.saga.order.command}", groupId = "user-service-point-saga-group")
     public void handlePointMessage(@Payload PointSagaCommandPayload payload,
                                     @Header(KafkaHeaders.RECEIVED_KEY) Long sagaId,
                                     @Header("X-Command-Type") PointSagaCommand commandType) {
