@@ -18,10 +18,13 @@ public class PointSagaKafkaListener {
 
     private final PointSagaProcessor processor;
 
-    @KafkaListener(topics = "${user.topics.saga.order.command}", groupId = "user-service-point-saga-group")
+    @KafkaListener(topics = "${user.topics.saga.order.command}",
+            groupId = "user-service-point-saga-group",
+            containerFactory = "sagaKafkaListenerContainerFactory")
     public void handlePointMessage(@Payload PointSagaCommandPayload payload,
-                                    @Header(KafkaHeaders.RECEIVED_KEY) Long sagaId,
-                                    @Header("X-Command-Type") PointSagaCommand commandType) {
+                                   @Header(KafkaHeaders.RECEIVED_KEY) Long sagaId,
+                                   @Header("X-Command-Type") String commandTypeHeader) {
+        PointSagaCommand commandType = PointSagaCommand.valueOf(commandTypeHeader);
         Money amount = Money.wons(payload.usedPoints());
 
         try {

@@ -22,6 +22,8 @@ spring:
   cloud:
     config:
       enabled: false
+    bus:
+      enabled: false
 
 logging:
   loki:
