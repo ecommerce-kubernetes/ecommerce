@@ -1,7 +1,7 @@
 package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.domain.vo.Money;
-import com.example.userservice.user.application.port.UserOutboxPort;
+import com.example.userservice.user.application.port.PointSagaReplyPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +20,7 @@ class PointSagaProcessorTest {
     @Mock
     private PointCommandService pointCommandService;
     @Mock
-    private UserOutboxPort userOutboxPort;
+    private PointSagaReplyPort pointSagaReplyPort;
 
     @Test
     @DisplayName("포인트를 차감하고 아웃박스에 정방향 성공을 기록한다.")
@@ -34,7 +34,7 @@ class PointSagaProcessorTest {
         pointSagaProcessor.deduct(sagaId, executionId, userId, amount);
         //then
         then(pointCommandService).should().deductPoint(userId, executionId, amount);
-        then(userOutboxPort).should().recordForwardSuccess(sagaId, executionId);
+        then(pointSagaReplyPort).should().recordForwardSuccess(sagaId, executionId);
     }
 
     @Test
@@ -49,7 +49,7 @@ class PointSagaProcessorTest {
         pointSagaProcessor.refund(sagaId, executionId, userId, amount);
         //then
         then(pointCommandService).should().addPoint(userId, executionId, amount);
-        then(userOutboxPort).should().recordCompensateSuccess(sagaId, executionId);
+        then(pointSagaReplyPort).should().recordCompensateSuccess(sagaId, executionId);
     }
 
     @Test
@@ -62,7 +62,7 @@ class PointSagaProcessorTest {
         //when
         pointSagaProcessor.failDeduct(sagaId, executionId, reason);
         //then
-        then(userOutboxPort).should().recordForwardFail(sagaId, executionId, reason);
+        then(pointSagaReplyPort).should().recordForwardFail(sagaId, executionId, reason);
     }
 
     @Test
@@ -75,6 +75,6 @@ class PointSagaProcessorTest {
         //when
         pointSagaProcessor.failRefund(sagaId, executionId, reason);
         //then
-        then(userOutboxPort).should().recordCompensateFail(sagaId, executionId, reason);
+        then(pointSagaReplyPort).should().recordCompensateFail(sagaId, executionId, reason);
     }
 }

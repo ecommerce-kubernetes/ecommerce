@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ConsumerRecordRecoverer;
@@ -48,6 +47,8 @@ public class KafkaConsumerConfig {
     private DefaultErrorHandler sagaErrorHandler() {
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(createSagaRecoverer(), new FixedBackOff(1000L, 3));
         errorHandler.addNotRetryableExceptions(BusinessException.class);
+        errorHandler.addNotRetryableExceptions(IllegalArgumentException.class);
+        errorHandler.addNotRetryableExceptions(UnsupportedOperationException.class);
         return errorHandler;
     }
 

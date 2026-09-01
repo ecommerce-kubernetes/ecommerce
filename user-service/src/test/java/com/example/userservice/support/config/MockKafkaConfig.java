@@ -4,6 +4,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @TestConfiguration
@@ -12,5 +13,10 @@ public class MockKafkaConfig {
     @Primary
     public KafkaTemplate<String, String> mockKafkaTemplate() {
         return Mockito.mock(KafkaTemplate.class);
+    }
+
+    @Bean
+    public ConsumerFactory<Object, Object> mockConsumerFactory() {
+        return Mockito.mock(ConsumerFactory.class);
     }
 }

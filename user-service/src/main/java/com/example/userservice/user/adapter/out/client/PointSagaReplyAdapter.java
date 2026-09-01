@@ -1,11 +1,13 @@
 package com.example.userservice.user.adapter.out.client;
 
+import com.example.userservice.common.exception.PortException;
 import com.example.userservice.common.properties.SagaTopicProperties;
 import com.example.userservice.outbox.application.service.OutboxCommandService;
 import com.example.userservice.outbox.domain.context.CreateOutboxMessageContext;
 import com.example.userservice.user.adapter.out.client.dto.PointSagaReplyPayload;
 import com.example.userservice.user.adapter.out.client.dto.PointSagaReplyType;
-import com.example.userservice.user.application.port.UserOutboxPort;
+import com.example.userservice.user.application.port.PointSagaReplyPort;
+import com.example.userservice.user.exception.UserPortErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class UserOutboxAdapter implements UserOutboxPort {
+public class PointSagaReplyAdapter implements PointSagaReplyPort {
 
     private final SagaTopicProperties topicProperties;
 
@@ -59,7 +61,7 @@ public class UserOutboxAdapter implements UserOutboxPort {
 
             outboxCommandService.createOutbox(context);
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
+            throw new PortException(UserPortErrorCode.SAGA_MESSAGE_SERIALIZATION_FAILED);
         }
     }
 }

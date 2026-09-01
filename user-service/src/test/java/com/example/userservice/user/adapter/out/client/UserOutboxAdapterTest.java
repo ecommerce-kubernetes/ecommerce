@@ -24,7 +24,7 @@ class UserOutboxAdapterTest {
 
     private static final String REPLY_TOPIC = "user.point.saga.reply";
 
-    private UserOutboxAdapter userOutboxAdapter;
+    private PointSagaReplyAdapter userOutboxAdapter;
 
     @Mock
     private OutboxCommandService outboxCommandService;
@@ -36,7 +36,7 @@ class UserOutboxAdapterTest {
         SagaTopicProperties topicProperties = new SagaTopicProperties(
                 new SagaTopicProperties.TopicConfig("user.point.saga.command", REPLY_TOPIC)
         );
-        userOutboxAdapter = new UserOutboxAdapter(topicProperties, outboxCommandService, objectMapper);
+        userOutboxAdapter = new PointSagaReplyAdapter(topicProperties, outboxCommandService, objectMapper);
     }
 
     @Test

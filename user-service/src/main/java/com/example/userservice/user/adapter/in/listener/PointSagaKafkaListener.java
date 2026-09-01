@@ -1,10 +1,9 @@
 package com.example.userservice.user.adapter.in.listener;
 
-import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommand;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommandPayload;
-import com.example.userservice.user.application.service.PointSagaProcessor;
+import com.example.userservice.user.adapter.in.listener.router.PointSagaCommandRouter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -12,31 +11,37 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class PointSagaKafkaListener {
-
-    private final PointSagaProcessor processor;
+    private final List<PointSagaCommandRouter> routers;
 
     @KafkaListener(topics = "${user.topics.saga.order.command}",
             groupId = "user-service-point-saga-group",
             containerFactory = "sagaKafkaListenerContainerFactory")
     public void handlePointMessage(@Payload PointSagaCommandPayload payload,
                                    @Header(KafkaHeaders.RECEIVED_KEY) Long sagaId,
-                                   @Header("X-Command-Type") String commandTypeHeader) {
-        PointSagaCommand commandType = PointSagaCommand.valueOf(commandTypeHeader);
-        Money amount = Money.wons(payload.usedPoints());
+                                   @Header("X-Command-Type") String commandHeader) {
+
+        PointSagaCommand command = PointSagaCommand.valueOf(commandHeader);
+        PointSagaCommandRouter router = getRouter(command);
 
         try {
-            switch (commandType) {
-                case USE_POINT -> processor.deduct(sagaId, payload.executionId(), payload.userId(), amount);
-                case RESTORE_POINT -> processor.refund(sagaId, payload.executionId(), payload.userId(), amount);
-            }
+            router.execute(sagaId, payload);
         } catch (BusinessException e) {
-            switch (commandType) {
-                case USE_POINT -> processor.failDeduct(sagaId, payload.executionId(), e.getErrorCode().name());
-                case RESTORE_POINT -> processor.failRefund(sagaId, payload.executionId(), e.getErrorCode().name());
-            }
+            router.fail(sagaId, payload, e.getErrorCode().name());
+        } catch (IllegalArgumentException e) {
+            router.fail(sagaId, payload, "INVALID_INPUT_VALUE");
         }
     }
+
+    private PointSagaCommandRouter getRouter(PointSagaCommand command) {
+        return routers.stream()
+                .filter(s -> s.supports(command))
+                .findFirst()
+                .orElseThrow(() -> new UnsupportedOperationException("라우터 구현체가 없습니다:" + command));
+    }
+
 }
