@@ -1,7 +1,9 @@
 package com.example.userservice.outbox.domain;
 
+import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.outbox.domain.context.CreateOutboxMessageContext;
+import com.example.userservice.outbox.exception.OutboxErrorCode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -59,5 +61,12 @@ public class OutboxMessage {
                 .payload(context.payload())
                 .status(OutboxStatus.PENDING)
                 .build();
+    }
+
+    public void sent() {
+        if (!this.status.equals(OutboxStatus.PENDING)) {
+            throw new BusinessException(OutboxErrorCode.INVALID_OUTBOX_MESSAGE_STATUS);
+        }
+        this.status = OutboxStatus.SENT;
     }
 }
