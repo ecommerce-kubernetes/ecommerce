@@ -53,6 +53,9 @@ public class User extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ShippingAddress> shippingAddresses = new ArrayList<>();
 
+    @Version
+    private Long version;
+
     @Builder(access = AccessLevel.PRIVATE)
     public User(Long id, String email, String name, String encryptedPwd, String phoneNumber, Gender gender, LocalDate birthDate, Money point, Role role) {
         Assert.notNull(id, "유저를 생성할때 아이디는 필수이다.");

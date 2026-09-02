@@ -13,12 +13,19 @@ import org.springframework.util.Assert;
 
 @Getter
 @Entity
+@Table(
+        name = "point_history",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_point_history_reference_id", columnNames = {"reference_id"})
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointHistory extends BaseEntity {
 
     @Id
     private Long id;
 
+    @Column(name = "reference_id")
     private Long referenceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
