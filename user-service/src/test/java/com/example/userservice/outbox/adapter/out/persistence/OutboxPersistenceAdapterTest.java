@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,15 +27,17 @@ class OutboxPersistenceAdapterTest {
     private OutboxJpaRepository outboxJpaRepository;
 
     @Test
-    @DisplayName("상태로 아웃박스 메시지 목록 조회를 위임한다.")
-    void findOutboxMessageByStatus() {
+    @DisplayName("상태와 생성시각 기준으로 아웃박스 메시지 목록 조회를 위임한다.")
+    void findOutboxMessageByStatusAndCreatedAtBefore() {
         //given
         OutboxMessage outboxMessage = OutboxFixtureBuilder.given().build();
-        given(outboxJpaRepository.findOutboxMessageByStatus(OutboxStatus.PENDING)).willReturn(List.of(outboxMessage));
+        LocalDateTime threshold = LocalDateTime.of(2024, 1, 1, 0, 0);
+        given(outboxJpaRepository.findOutboxMessageByStatusAndCreatedAtBefore(OutboxStatus.PENDING, threshold))
+                .willReturn(List.of(outboxMessage));
         //when
-        List<OutboxMessage> result = outboxPersistenceAdapter.findOutboxMessageByStatus(OutboxStatus.PENDING);
+        List<OutboxMessage> result = outboxPersistenceAdapter.findOutboxMessageByStatusAndCreatedAtBefore(OutboxStatus.PENDING, threshold);
         //then
         assertThat(result).containsExactly(outboxMessage);
-        then(outboxJpaRepository).should().findOutboxMessageByStatus(OutboxStatus.PENDING);
+        then(outboxJpaRepository).should().findOutboxMessageByStatusAndCreatedAtBefore(OutboxStatus.PENDING, threshold);
     }
 }

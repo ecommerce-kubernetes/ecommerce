@@ -6,6 +6,7 @@ import com.example.userservice.outbox.domain.OutboxStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,8 +22,8 @@ public class OutboxPersistenceAdapter implements OutboxRepository {
     }
 
     @Override
-    public List<OutboxMessage> findOutboxMessageByStatus(OutboxStatus status) {
-        return outboxJpaRepository.findOutboxMessageByStatus(status);
+    public List<OutboxMessage> findOutboxMessageByStatusAndCreatedAtBefore(OutboxStatus status, LocalDateTime threshold) {
+        return outboxJpaRepository.findOutboxMessageByStatusAndCreatedAtBefore(status, threshold);
     }
 
     @Override

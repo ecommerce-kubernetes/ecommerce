@@ -8,17 +8,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class OutboxRelayScheduler {
+public class OutboxSweepScheduler {
 
     private final OutboxMessagePublisher publisher;
 
-    @Scheduled(cron = "0 0/3 * * * *")
+    @Scheduled(fixedDelayString = "${outbox.scheduler.delay}")
     @SchedulerLock(
             name = "outbox_scheduler_lock",
-            lockAtLeastFor = "PT1M",
-            lockAtMostFor = "PT2M"
+            lockAtLeastFor = "PT30S",
+            lockAtMostFor = "PT3M"
     )
     public void sendPendingOutboxMessage() {
-        publisher.sendPendingMessage();
+        publisher.sweepZombieMessages();
     }
 }

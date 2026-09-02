@@ -40,3 +40,10 @@ user:
       order:
         command: "user.saga.command"
         reply: "order.saga.reply"
+
+
+outbox:
+  sweep:
+    threshold-second: 30s
+  scheduler:
+    delay: PT10M

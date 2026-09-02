@@ -1,5 +1,6 @@
 package com.example.userservice.outbox.domain;
 
+import com.example.userservice.common.entity.BaseEntity;
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.outbox.domain.context.CreateOutboxMessageContext;
@@ -17,7 +18,7 @@ import org.springframework.util.Assert;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OutboxMessage {
+public class OutboxMessage extends BaseEntity {
 
     @Id
     private Long id;
