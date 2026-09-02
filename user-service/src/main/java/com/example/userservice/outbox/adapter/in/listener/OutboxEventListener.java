@@ -14,7 +14,7 @@ public class OutboxEventListener {
 
     private final OutboxMessagePublisher publisher;
 
-    @Async
+    @Async("outboxEventExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOutboxCreatedEvent(OutboxCreatedEvent event) {
         publisher.publishMessage(event.outboxId());

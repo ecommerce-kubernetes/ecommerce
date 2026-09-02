@@ -1,10 +1,10 @@
 package com.example.userservice.auth.adapter.in.web;
 
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
-import com.example.userservice.auth.application.service.AuthService;
 import com.example.userservice.auth.adapter.in.web.dto.TokenResponse;
+import com.example.userservice.auth.application.service.AuthService;
+import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.common.security.model.UserPrincipal;
-import com.example.userservice.auth.application.service.dto.TokenResult;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +25,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Validated @RequestBody LoginRequest request) {
-        TokenResult token = authService.login(request.email(), request.password());
+        TokenData token = authService.login(request.email(), request.password());
         TokenResponse response = TokenResponse.of(token.accessToken());
-        ResponseCookie refreshTokenCookie = setRefreshTokenCookie(token.refreshToken());
+        ResponseCookie refreshTokenCookie = setRefreshTokenCookie(token.refreshToken(), token.refreshTokenTtl());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(response);
@@ -37,9 +37,9 @@ public class AuthController {
     public ResponseEntity<TokenResponse> refresh(
             @CookieValue(value = "refreshToken") @NotBlank(message = "{refresh.token.notBlank}") String refreshToken
     ) {
-        TokenResult token = authService.refresh(refreshToken);
+        TokenData token = authService.refresh(refreshToken);
         TokenResponse response = TokenResponse.of(token.accessToken());
-        ResponseCookie refreshTokenCookie = setRefreshTokenCookie(token.refreshToken());
+        ResponseCookie refreshTokenCookie = setRefreshTokenCookie(token.refreshToken(), token.refreshTokenTtl());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(response);
@@ -54,12 +54,12 @@ public class AuthController {
                 .build();
     }
 
-    private ResponseCookie setRefreshTokenCookie(String refreshToken){
+    private ResponseCookie setRefreshTokenCookie(String refreshToken, Duration refreshTokenTtl){
         return ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(Duration.ofDays(1))
+                .maxAge(refreshTokenTtl)
                 .sameSite("None")
                 .build();
     }
@@ -73,5 +73,4 @@ public class AuthController {
                 .sameSite("None")
                 .build();
     }
-
 }

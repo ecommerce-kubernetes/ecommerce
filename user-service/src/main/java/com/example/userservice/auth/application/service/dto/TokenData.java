@@ -1,10 +1,8 @@
 package com.example.userservice.auth.application.service.dto;
 
 import lombok.Builder;
-import lombok.Getter;
 
 import java.time.Duration;
-import java.util.Date;
 
 @Builder
 public record TokenData(

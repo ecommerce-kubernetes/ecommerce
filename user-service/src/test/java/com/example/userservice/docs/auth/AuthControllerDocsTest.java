@@ -3,7 +3,7 @@ package com.example.userservice.docs.auth;
 import com.example.userservice.auth.adapter.in.web.AuthController;
 import com.example.userservice.auth.adapter.in.web.dto.LoginRequest;
 import com.example.userservice.auth.application.service.AuthService;
-import com.example.userservice.auth.application.service.dto.TokenResult;
+import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.docs.RestDocsSupport;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.example.userservice.auth.fixture.AuthRequestFixture.anLoginRequest;
-import static com.example.userservice.auth.fixture.AuthResponseFixture.anTokenResult;
+import static com.example.userservice.auth.fixture.AuthResponseFixture.anTokenData;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -42,7 +42,7 @@ class AuthControllerDocsTest extends RestDocsSupport {
     void login() throws Exception {
         //given
         LoginRequest request = anLoginRequest().build();
-        TokenResult token = anTokenResult().build();
+        TokenData token = anTokenData().build();
         given(authService.login(anyString(), anyString()))
                         .willReturn(token);
 
@@ -70,7 +70,7 @@ class AuthControllerDocsTest extends RestDocsSupport {
     @DisplayName("토큰 리프레시")
     void refresh() throws Exception {
         //given
-        TokenResult token = anTokenResult().build();
+        TokenData token = anTokenData().build();
         given(authService.refresh(anyString()))
                 .willReturn(token);
         //when

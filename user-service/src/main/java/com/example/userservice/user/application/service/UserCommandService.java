@@ -1,7 +1,6 @@
 package com.example.userservice.user.application.service;
 
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
@@ -10,6 +9,7 @@ import com.example.userservice.user.domain.User;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.util.PasswordManager;
+import com.example.userservice.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -3,14 +3,12 @@ package com.example.userservice.auth.application.service;
 import com.example.userservice.auth.application.port.AuthUserPort;
 import com.example.userservice.auth.application.port.TokenRepository;
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
-import com.example.userservice.auth.application.service.dto.TokenResult;
+import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.auth.domain.RefreshToken;
 import com.example.userservice.auth.domain.context.CreateRefreshTokenContext;
-import com.example.userservice.auth.application.service.dto.TokenData;
 import com.example.userservice.auth.exception.AuthErrorCode;
 import com.example.userservice.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +23,17 @@ public class AuthService {
 
     private final TokenRepository tokenRepository;
 
-    public TokenResult login(String email, String password) {
+    public TokenData login(String email, String password) {
         AuthUserResult user = authUserPort.authenticate(email, password);
 
         TokenData tokenData = jwtProvider.generateTokenData(user);
 
         RefreshToken refreshToken = createRefreshToken(user, tokenData);
         tokenRepository.save(refreshToken);
-        return TokenResult.of(tokenData.accessToken(), tokenData.refreshToken());
+        return tokenData;
     }
 
-    public TokenResult refresh(String refreshToken) {
+    public TokenData refresh(String refreshToken) {
         Long userId = jwtProvider.getUserId(refreshToken);
 
         RefreshToken findToken = tokenRepository.findByUserId(userId)
@@ -51,7 +49,7 @@ public class AuthService {
 
         RefreshToken newRefreshToken = createRefreshToken(user, tokenData);
         tokenRepository.save(newRefreshToken);
-        return TokenResult.of(tokenData.accessToken(), tokenData.refreshToken());
+        return tokenData;
     }
 
     public void logout(Long userId) {

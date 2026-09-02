@@ -2,9 +2,9 @@ package com.example.userservice.auth.application.service;
 
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.application.service.dto.TokenData;
-import com.example.userservice.auth.application.service.properties.TokenProperties;
 import com.example.userservice.auth.exception.AuthErrorCode;
 import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.common.properties.TokenProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -19,9 +19,9 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class JwtProvider {
 
     private final TokenProperties tokenProperties;
@@ -29,8 +29,8 @@ public class JwtProvider {
     public TokenData generateTokenData(AuthUserResult user) {
         Date now = new Date();
 
-        long accessTtlMillis = tokenProperties.getAccessTokenTtl().toMillis();
-        long refreshTtlMillis = tokenProperties.getRefreshTokenTtl().toMillis();
+        long accessTtlMillis = tokenProperties.accessTokenTtl().toMillis();
+        long refreshTtlMillis = tokenProperties.refreshTokenTtl().toMillis();
 
         Date accessExpiration = new Date(now.getTime() + accessTtlMillis);
         Date refreshExpiration = new Date(now.getTime() + refreshTtlMillis);
@@ -38,7 +38,7 @@ public class JwtProvider {
         String accessToken = genAccessToken(user, now, accessExpiration);
         String refreshToken = genRefreshToken(user.id(), now, refreshExpiration);
 
-        return TokenData.of(accessToken, refreshToken, tokenProperties.getRefreshTokenTtl());
+        return TokenData.of(accessToken, refreshToken, tokenProperties.refreshTokenTtl());
     }
 
     public Long getUserId(String token) {
@@ -61,7 +61,7 @@ public class JwtProvider {
     }
 
     private SecretKey getSecretKey() {
-        return Keys.hmacShaKeyFor(tokenProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(tokenProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
     private String genAccessToken(AuthUserResult user, Date date, Date expiration){

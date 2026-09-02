@@ -4,7 +4,7 @@ import com.example.userservice.auth.exception.AuthErrorCode;
 import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.application.service.dto.TokenData;
-import com.example.userservice.auth.application.service.properties.TokenProperties;
+import com.example.userservice.common.properties.TokenProperties;
 import com.example.userservice.auth.fixture.AuthUserResultFixture;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -104,11 +104,7 @@ class JwtProviderTest {
     }
 
     private TokenProperties createTokenProperties() {
-        TokenProperties properties = new TokenProperties();
-        properties.setSecret(SECRET);
-        properties.setAccessTokenTtl(ACCESS_TOKEN_TTL);
-        properties.setRefreshTokenTtl(REFRESH_TOKEN_TTL);
-        return properties;
+        return new TokenProperties(ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL, SECRET);
     }
 
     private String generateToken(String secret, Date issuedAt, Date expiration) {

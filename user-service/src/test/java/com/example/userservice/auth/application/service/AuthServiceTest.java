@@ -7,7 +7,6 @@ import com.example.userservice.auth.application.port.AuthUserPort;
 import com.example.userservice.auth.application.port.TokenRepository;
 import com.example.userservice.auth.application.port.dto.AuthUserResult;
 import com.example.userservice.auth.application.service.dto.TokenData;
-import com.example.userservice.auth.application.service.dto.TokenResult;
 import com.example.userservice.auth.domain.RefreshToken;
 import com.example.userservice.auth.fixture.AuthUserResultFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -51,7 +50,7 @@ class AuthServiceTest {
         given(authUserPort.authenticate(anyString(), anyString())).willReturn(user);
         given(jwtProvider.generateTokenData(user)).willReturn(tokenData);
         //when
-        TokenResult result = authService.login("la9814@naver.com", "password1234*");
+        TokenData result = authService.login("la9814@naver.com", "password1234*");
         //then
         assertThat(result.accessToken()).isEqualTo(tokenData.accessToken());
         assertThat(result.refreshToken()).isEqualTo(tokenData.refreshToken());
@@ -78,7 +77,7 @@ class AuthServiceTest {
         given(authUserPort.getUserById(anyLong())).willReturn(user);
         given(jwtProvider.generateTokenData(user)).willReturn(tokenData);
         //when
-        TokenResult result = authService.refresh(refreshToken.getToken());
+        TokenData result = authService.refresh(refreshToken.getToken());
         //then
         assertThat(result.accessToken()).isEqualTo(tokenData.accessToken());
         assertThat(result.refreshToken()).isEqualTo(tokenData.refreshToken());
