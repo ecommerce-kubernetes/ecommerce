@@ -27,8 +27,7 @@ public class KafkaConsumerConfig {
 
     private final ObjectMapper objectMapper;
 
-    @Bean
-    public RecordMessageConverter recordMessageConverter() {
+    private RecordMessageConverter recordMessageConverter() {
         return new StringJsonMessageConverter();
     }
 
