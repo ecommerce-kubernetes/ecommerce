@@ -1,8 +1,9 @@
 package com.example.product_service.option.adapter.in.web;
 
-import com.example.product_service.option.adapter.in.web.dto.request.OptionRequest;
-import com.example.product_service.option.adapter.in.web.dto.request.OptionRequest.Create;
-import com.example.product_service.option.adapter.in.web.dto.response.OptionResponse;
+import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
+import com.example.product_service.option.adapter.in.web.dto.response.OptionDetailResponse;
 import com.example.product_service.option.application.service.OptionService;
 import com.example.product_service.option.application.service.dto.command.OptionCommand;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
@@ -24,34 +25,34 @@ public class OptionController {
 
     @PostMapping("/options")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OptionResponse.Detail> saveOption(@RequestBody @Validated Create request) {
+    public ResponseEntity<OptionDetailResponse> saveOption(@RequestBody @Validated CreateOptionRequest request) {
         OptionCommand.Create command = request.toCommand();
         OptionResult result = optionService.saveOption(command);
-        OptionResponse.Detail response = OptionResponse.Detail.from(result);
+        OptionDetailResponse response = OptionDetailResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/options/{optionTypeId}")
-    public ResponseEntity<OptionResponse.Detail> getOption(@PathVariable("optionTypeId") Long optionTypeId) {
+    public ResponseEntity<OptionDetailResponse> getOption(@PathVariable("optionTypeId") Long optionTypeId) {
         OptionResult result = optionService.getOption(optionTypeId);
-        OptionResponse.Detail response = OptionResponse.Detail.from(result);
+        OptionDetailResponse response = OptionDetailResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/options")
-    public ResponseEntity<List<OptionResponse.Detail>> getOptions() {
+    public ResponseEntity<List<OptionDetailResponse>> getOptions() {
         List<OptionResult> results = optionService.getOptions();
-        List<OptionResponse.Detail> responses = OptionResponse.Detail.from(results);
+        List<OptionDetailResponse> responses = OptionDetailResponse.from(results);
         return ResponseEntity.ok(responses);
     }
 
     @PatchMapping("/options/{optionTypeId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OptionResponse.Detail> updateOptionType(@PathVariable("optionTypeId") Long optionTypeId,
-                                                         @RequestBody @Validated OptionRequest.UpdateOptionType request) {
+    public ResponseEntity<OptionDetailResponse> updateOptionType(@PathVariable("optionTypeId") Long optionTypeId,
+                                                         @RequestBody @Validated UpdateOptionTypeRequest request) {
         OptionCommand.UpdateOptionType command = request.toCommand();
         OptionResult result = optionService.updateOptionTypeName(command);
-        OptionResponse.Detail response = OptionResponse.Detail.from(result);
+        OptionDetailResponse response = OptionDetailResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
@@ -65,7 +66,7 @@ public class OptionController {
     @PatchMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OptionValueResult> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
-                                                               @RequestBody @Validated OptionRequest.UpdateOptionValue request) {
+                                                               @RequestBody @Validated UpdateOptionValueRequest request) {
         OptionCommand.UpdateOptionValue command = request.toCommand();
         OptionValueResult response = optionService.updateOptionValueName(command);
         return ResponseEntity.ok(response);

@@ -2,8 +2,23 @@ package com.example.product_service.docs.product;
 
 import com.example.product_service.common.dto.PageDto;
 import com.example.product_service.product.adapter.in.web.ProductController;
-import com.example.product_service.product.adapter.in.web.dto.request.ProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.response.ProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.request.AddProductDescriptionImageRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.AddProductImageRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.AddProductVariantRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.CreateProductRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.ProductVariantDetailRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.RegisterProductOptionRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.UpdateProductRequest;
+import com.example.product_service.product.adapter.in.web.dto.response.AddProductDescriptionImageResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.AddProductImageResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.AddProductVariantResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.CloseProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.CreateProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.ProductDetailResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.ProductSummaryResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.PublishProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.RegisterProductOptionResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.UpdateProductResponse;
 import com.example.product_service.product.domain.model.ProductStatus;
 import com.example.product_service.product.application.service.ProductService;
 import com.example.product_service.product.application.service.dto.command.ProductCommand;
@@ -51,7 +66,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 생성한다")
     void createProduct() throws Exception {
         //given
-        ProductRequest.Create request = ProductRequest.Create.builder()
+        CreateProductRequest request = CreateProductRequest.builder()
                 .name("상품")
                 .categoryId(1L)
                 .description("상품 설명")
@@ -62,7 +77,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.createProduct(any(ProductCommand.Create.class)))
                 .willReturn(result);
-        ProductResponse.Create response = ProductResponse.Create.from(result);
+        CreateProductResponse response = CreateProductResponse.from(result);
         //when
         //then
         mockMvc.perform(post("/products")
@@ -84,7 +99,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 옵션 정의")
     void registerProductOption() throws Exception {
         //given
-        ProductRequest.OptionRegister request = ProductRequest.OptionRegister.builder()
+        RegisterProductOptionRequest request = RegisterProductOptionRequest.builder()
                 .optionTypeIds(
                         List.of(1L)
                 ).build();
@@ -101,7 +116,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.defineOptions(any(ProductCommand.OptionRegister.class)))
                 .willReturn(result);
-        ProductResponse.OptionRegister response = ProductResponse.OptionRegister.from(result);
+        RegisterProductOptionResponse response = RegisterProductOptionResponse.from(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}/options", 1L)
@@ -124,10 +139,10 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 변형 추가")
     void addVariants() throws Exception {
         //given
-        ProductRequest.AddVariant request = ProductRequest.AddVariant.builder()
+        AddProductVariantRequest request = AddProductVariantRequest.builder()
                 .variants(
                         List.of(
-                                ProductRequest.VariantDetail.builder()
+                                ProductVariantDetailRequest.builder()
                                         .originalPrice(10000L)
                                         .discountRate(10)
                                         .stockQuantity(100)
@@ -150,7 +165,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                         .build()
                         )
                 ).build();
-        ProductResponse.AddVariant response = ProductResponse.AddVariant.from(result);
+        AddProductVariantResponse response = AddProductVariantResponse.from(result);
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.createVariants(any(ProductCommand.AddVariant.class)))
                 .willReturn(result);
@@ -177,7 +192,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 이미지 추가")
     void updateImages() throws Exception {
         //given
-        ProductRequest.AddImage request = ProductRequest.AddImage.builder()
+        AddProductImageRequest request = AddProductImageRequest.builder()
                 .images(List.of("/test/image.jpg"))
                 .build();
         ProductResult.AddImage result = ProductResult.AddImage.builder()
@@ -192,7 +207,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                         .build()
                         )
                 ).build();
-        ProductResponse.AddImage response = ProductResponse.AddImage.from(result);
+        AddProductImageResponse response = AddProductImageResponse.from(result);
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateImages(any(ProductCommand.AddImage.class)))
                 .willReturn(result);
@@ -217,7 +232,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("상품 설명 이미지 추가")
     void updateDescriptionImage() throws Exception {
-        ProductRequest.AddDescriptionImage request = ProductRequest.AddDescriptionImage.builder()
+        AddProductDescriptionImageRequest request = AddProductDescriptionImageRequest.builder()
                 .images(
                         List.of("/test/image.jpg")
                 ).build();
@@ -233,7 +248,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateDescriptionImages(any(ProductCommand.AddDescriptionImage.class)))
                 .willReturn(result);
-        ProductResponse.AddDescriptionImage response = ProductResponse.AddDescriptionImage.from(result);
+        AddProductDescriptionImageResponse response = AddProductDescriptionImageResponse.from(result);
         mockMvc.perform(put("/products/{productId}/description-images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -263,7 +278,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.publish(anyLong()))
                 .willReturn(result);
-        ProductResponse.Publish response = ProductResponse.Publish.from(result);
+        PublishProductResponse response = PublishProductResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/publish", 1L)
@@ -292,7 +307,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.closedProduct(anyLong()))
                 .willReturn(result);
-        ProductResponse.Close response = ProductResponse.Close.from(result);
+        CloseProductResponse response = CloseProductResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/close", 1L)
@@ -318,7 +333,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         Page<ProductResult.Summary> results = new PageImpl<>(List.of(summary), pageable, 100L);
         given(productService.getProducts(any(ProductCommand.Search.class)))
                 .willReturn(results);
-        PageDto<ProductResponse.Summary> response = PageDto.of(results, ProductResponse.Summary::from);
+        PageDto<ProductSummaryResponse> response = PageDto.of(results, ProductSummaryResponse::from);
         //when
         //then
         mockMvc.perform(get("/products")
@@ -347,7 +362,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         ProductResult.Detail result = mockDetailResult();
         given(productService.getProduct(anyLong()))
                 .willReturn(result);
-        ProductResponse.Detail response = ProductResponse.Detail.from(result);
+        ProductDetailResponse response = ProductDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/products/{productId}", 1L)
@@ -367,7 +382,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 정보를 수정한다")
     void updateProduct() throws Exception {
         //given
-        ProductRequest.Update request = ProductRequest.Update.builder()
+        UpdateProductRequest request = UpdateProductRequest.builder()
                 .name("새 이름")
                 .categoryId(1L)
                 .description("상품 설명")
@@ -381,7 +396,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateProduct(any(ProductCommand.Update.class)))
                 .willReturn(result);
-        ProductResponse.Update response = ProductResponse.Update.from(result);
+        UpdateProductResponse response = UpdateProductResponse.from(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}", 1L)

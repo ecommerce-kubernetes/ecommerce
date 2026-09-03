@@ -1,8 +1,12 @@
 package com.example.product_service.docs.category;
 
 import com.example.product_service.category.adapter.in.web.CategoryController;
-import com.example.product_service.category.adapter.in.web.dto.request.CategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryResponse;
+import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
+import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
+import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryNavigationResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeResponse;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
@@ -43,7 +47,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 저장한다")
     void saveCategory() throws Exception {
         //given
-        CategoryRequest.Create request = CategoryRequest.Create.builder()
+        CreateCategoryRequest request = CreateCategoryRequest.builder()
                 .name("카테고리")
                 .parentId(null)
                 .imagePath("/test/image.jpg")
@@ -59,7 +63,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
                 .willReturn(result);
-        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
+        CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -84,7 +88,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         //given
         List<CategoryResult.Tree> results = mappingTreeResponse();
         given(categoryService.getTree()).willReturn(results);
-        List<CategoryResponse.Tree> response = results.stream().map(CategoryResponse.Tree::from).toList();
+        List<CategoryTreeResponse> response = results.stream().map(CategoryTreeResponse::from).toList();
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
@@ -105,7 +109,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         CategoryResult.Navigation result = createNavigation();
         given(categoryService.getNavigation(anyLong()))
                 .willReturn(result);
-        CategoryResponse.Navigation response = CategoryResponse.Navigation.from(result);
+        CategoryNavigationResponse response = CategoryNavigationResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/navigation/{categoryId}", 2L))
@@ -133,7 +137,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .build();
         given(categoryService.getCategory(anyLong()))
                 .willReturn(result);
-        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
+        CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))
@@ -152,7 +156,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 수정한다")
     void updateCategory() throws Exception {
         //given
-        CategoryRequest.Update request = CategoryRequest.Update.builder()
+        UpdateCategoryRequest request = UpdateCategoryRequest.builder()
                 .name("새 카테고리")
                 .imagePath("/test/image.jpg")
                 .build();
@@ -167,7 +171,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(result);
         assert result != null;
-        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
+        CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/categories/{categoryId}", 1L)
@@ -190,7 +194,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리의 부모를 변경한다")
     void moveParent() throws Exception {
         //given
-        CategoryRequest.Move request = CategoryRequest.Move.builder()
+        MoveCategoryRequest request = MoveCategoryRequest.builder()
                 .parentId(1L)
                 .build();
         CategoryResult.Detail result = CategoryResult.Detail.builder()
@@ -203,7 +207,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
-        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
+        CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(post("/categories/{categoryId}/move", 2L)

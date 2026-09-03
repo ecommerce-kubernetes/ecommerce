@@ -2,8 +2,23 @@ package com.example.product_service.product.adapter.in.web;
 
 import com.example.product_service.common.dto.PageDto;
 import com.example.product_service.common.security.model.UserRole;
-import com.example.product_service.product.adapter.in.web.dto.request.ProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.response.ProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.request.AddProductDescriptionImageRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.AddProductImageRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.AddProductVariantRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.CreateProductRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.ProductVariantDetailRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.RegisterProductOptionRequest;
+import com.example.product_service.product.adapter.in.web.dto.request.UpdateProductRequest;
+import com.example.product_service.product.adapter.in.web.dto.response.AddProductDescriptionImageResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.AddProductImageResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.AddProductVariantResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.CloseProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.CreateProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.ProductDetailResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.ProductSummaryResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.PublishProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.RegisterProductOptionResponse;
+import com.example.product_service.product.adapter.in.web.dto.response.UpdateProductResponse;
 import com.example.product_service.product.domain.model.ProductStatus;
 import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.product.application.service.dto.result.ProductResult;
@@ -46,12 +61,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void createProduct() throws Exception {
             //given
-            ProductRequest.Create request = fixtureMonkey.giveMeOne(ProductRequest.Create.class);
+            CreateProductRequest request = fixtureMonkey.giveMeOne(CreateProductRequest.class);
             ProductResult.Create result = fixtureMonkey.giveMeOne(ProductResult.Create.class);
             assert result != null;
             given(productService.createProduct(any(ProductCommand.Create.class)))
                     .willReturn(result);
-            ProductResponse.Create response = ProductResponse.Create.from(result);
+            CreateProductResponse response = CreateProductResponse.from(result);
             //when
             //then
             mockMvc.perform(post("/products")
@@ -67,7 +82,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void createProduct_user_role() throws Exception {
             //given
-            ProductRequest.Create request = fixtureMonkey.giveMeOne(ProductRequest.Create.class);
+            CreateProductRequest request = fixtureMonkey.giveMeOne(CreateProductRequest.class);
             //when
             //then
             mockMvc.perform(post("/products")
@@ -85,7 +100,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품을 생성할 수 없다")
         void createProduct_unAuthorized() throws Exception {
             //given
-            ProductRequest.Create request = fixtureMonkey.giveMeOne(ProductRequest.Create.class);
+            CreateProductRequest request = fixtureMonkey.giveMeOne(CreateProductRequest.class);
             //when
             //then
             mockMvc.perform(post("/products")
@@ -103,7 +118,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidProductCreateRequest")
         @WithCustomMockUser
         @DisplayName("상품 저장 요청 검증")
-        void createProduct_Validation(String description, ProductRequest.Create request, String message) throws Exception {
+        void createProduct_Validation(String description, CreateProductRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -120,10 +135,10 @@ class ProductControllerTest extends ControllerTestSupport {
 
         private static Stream<Arguments> provideInvalidProductCreateRequest() {
             return Stream.of(
-                    Arguments.of("상품 이름이 공백", ProductRequest.Create.builder()
+                    Arguments.of("상품 이름이 공백", CreateProductRequest.builder()
                                     .name(null).categoryId(1L).description("상품 설명").build(),
                             "상품 이름은 필수 입니다"),
-                    Arguments.of("카테고리 Id가 null", ProductRequest.Create.builder()
+                    Arguments.of("카테고리 Id가 null", CreateProductRequest.builder()
                                     .name("상품").categoryId(null).description("상품 설명")
                                     .build(),
                             "카테고리 id는 필수 입니다")
@@ -139,10 +154,10 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void registerProductOption() throws Exception {
             //given
-            ProductRequest.OptionRegister request = fixtureMonkey.giveMeOne(ProductRequest.OptionRegister.class);
+            RegisterProductOptionRequest request = fixtureMonkey.giveMeOne(RegisterProductOptionRequest.class);
             ProductResult.OptionRegister result = fixtureMonkey.giveMeOne(ProductResult.OptionRegister.class);
             assert result != null;
-            ProductResponse.OptionRegister response = ProductResponse.OptionRegister.from(result);
+            RegisterProductOptionResponse response = RegisterProductOptionResponse.from(result);
             given(productService.defineOptions(any(ProductCommand.OptionRegister.class)))
                     .willReturn(result);
             //when
@@ -160,7 +175,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void registerProductOption_user_role() throws Exception {
             //given
-            ProductRequest.OptionRegister request = fixtureMonkey.giveMeOne(ProductRequest.OptionRegister.class);
+            RegisterProductOptionRequest request = fixtureMonkey.giveMeOne(RegisterProductOptionRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/options", 1L)
@@ -177,7 +192,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 옵션을 정의할 수 없다")
         void registerProductOption_unAuthorized() throws Exception {
             //given
-            ProductRequest.OptionRegister request = fixtureMonkey.giveMeOne(ProductRequest.OptionRegister.class);
+            RegisterProductOptionRequest request = fixtureMonkey.giveMeOne(RegisterProductOptionRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/options", 1L)
@@ -195,7 +210,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidOptionSpecRequest")
         @DisplayName("상품 옵션 설정 요청 검증")
         @WithCustomMockUser
-        void registerProductOption_invalidRequest(String description, ProductRequest.OptionRegister request, String message) throws Exception {
+        void registerProductOption_invalidRequest(String description, RegisterProductOptionRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -237,8 +252,8 @@ class ProductControllerTest extends ControllerTestSupport {
             );
         }
 
-        private static ProductRequest.OptionRegister wrap(List<Long> optionTypeIds) {
-            return ProductRequest.OptionRegister.builder()
+        private static RegisterProductOptionRequest wrap(List<Long> optionTypeIds) {
+            return RegisterProductOptionRequest.builder()
                     .optionTypeIds(optionTypeIds)
                     .build();
         }
@@ -252,10 +267,10 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void createVariants() throws Exception {
             //given
-            ProductRequest.AddVariant request = fixtureMonkey.giveMeOne(ProductRequest.AddVariant.class);
+            AddProductVariantRequest request = fixtureMonkey.giveMeOne(AddProductVariantRequest.class);
             ProductResult.AddVariant result = fixtureMonkey.giveMeOne(ProductResult.AddVariant.class);
             assert result != null;
-            ProductResponse.AddVariant response = ProductResponse.AddVariant.from(result);
+            AddProductVariantResponse response = AddProductVariantResponse.from(result);
             given(productService.createVariants(any(ProductCommand.AddVariant.class)))
                     .willReturn(result);
             //when
@@ -273,7 +288,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void createVariants_user_role() throws Exception {
             //given
-            ProductRequest.AddVariant request = fixtureMonkey.giveMeOne(ProductRequest.AddVariant.class);
+            AddProductVariantRequest request = fixtureMonkey.giveMeOne(AddProductVariantRequest.class);
             //when
             //then
             mockMvc.perform(post("/products/{productId}/variants", 1L)
@@ -291,7 +306,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 변형을 추가할 수 없다")
         void createVariants_unAuthorized() throws Exception {
             //given
-            ProductRequest.AddVariant request = fixtureMonkey.giveMeOne(ProductRequest.AddVariant.class);
+            AddProductVariantRequest request = fixtureMonkey.giveMeOne(AddProductVariantRequest.class);
             //when
             //then
             mockMvc.perform(post("/products/{productId}/variants", 1L)
@@ -309,7 +324,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidCreateVariantsRequest")
         @DisplayName("상품 변형 추가 요청 검증")
         @WithCustomMockUser
-        void createVariants_validation(String description, ProductRequest.AddVariant request, String message) throws Exception {
+        void createVariants_validation(String description, AddProductVariantRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -325,8 +340,8 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidCreateVariantsRequest() {
-            ProductRequest.VariantDetail VALID_BASE_VARIANT =
-                    ProductRequest.VariantDetail.builder()
+            ProductVariantDetailRequest VALID_BASE_VARIANT =
+                    ProductVariantDetailRequest.builder()
                             .originalPrice(10000L)
                             .discountRate(10)
                             .stockQuantity(100)
@@ -376,8 +391,8 @@ class ProductControllerTest extends ControllerTestSupport {
             );
         }
 
-        private static ProductRequest.AddVariant wrap(ProductRequest.VariantDetail variantDetail) {
-            return ProductRequest.AddVariant.builder()
+        private static AddProductVariantRequest wrap(ProductVariantDetailRequest variantDetail) {
+            return AddProductVariantRequest.builder()
                     .variants(variantDetail == null ? null : List.of(variantDetail))
                     .build();
         }
@@ -391,10 +406,10 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void addImage() throws Exception {
             //given
-            ProductRequest.AddImage request = fixtureMonkey.giveMeOne(ProductRequest.AddImage.class);
+            AddProductImageRequest request = fixtureMonkey.giveMeOne(AddProductImageRequest.class);
             ProductResult.AddImage result = fixtureMonkey.giveMeOne(ProductResult.AddImage.class);
             assert result != null;
-            ProductResponse.AddImage response = ProductResponse.AddImage.from(result);
+            AddProductImageResponse response = AddProductImageResponse.from(result);
             given(productService.updateImages(any(ProductCommand.AddImage.class)))
                     .willReturn(result);
             //when
@@ -412,7 +427,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void addImage_user_role() throws Exception {
             //given
-            ProductRequest.AddImage request = fixtureMonkey.giveMeOne(ProductRequest.AddImage.class);
+            AddProductImageRequest request = fixtureMonkey.giveMeOne(AddProductImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -430,7 +445,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 이미지를 추가할 수 없다")
         void addImage_unAuthorized() throws Exception {
             //given
-            ProductRequest.AddImage request = fixtureMonkey.giveMeOne(ProductRequest.AddImage.class);
+            AddProductImageRequest request = fixtureMonkey.giveMeOne(AddProductImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -448,7 +463,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("상품 이미지 추가 요청 검증")
         @MethodSource("provideInvalidAddImageRequest")
         @WithCustomMockUser
-        void addImage_invalidRequest(String description, ProductRequest.AddImage request, String message) throws Exception {
+        void addImage_invalidRequest(String description, AddProductImageRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -478,8 +493,8 @@ class ProductControllerTest extends ControllerTestSupport {
             );
         }
 
-        private static ProductRequest.AddImage wrap(List<String> imagePaths) {
-            return ProductRequest.AddImage.builder()
+        private static AddProductImageRequest wrap(List<String> imagePaths) {
+            return AddProductImageRequest.builder()
                     .images(imagePaths)
                     .build();
         }
@@ -493,12 +508,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateDescriptionImage() throws Exception {
             //given
-            ProductRequest.AddDescriptionImage request = fixtureMonkey.giveMeOne(ProductRequest.AddDescriptionImage.class);
+            AddProductDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddProductDescriptionImageRequest.class);
             ProductResult.AddDescriptionImage result = fixtureMonkey.giveMeOne(ProductResult.AddDescriptionImage.class);
             assert result != null;
             given(productService.updateDescriptionImages(any(ProductCommand.AddDescriptionImage.class)))
                     .willReturn(result);
-            ProductResponse.AddDescriptionImage response = ProductResponse.AddDescriptionImage.from(result);
+            AddProductDescriptionImageResponse response = AddProductDescriptionImageResponse.from(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -514,7 +529,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateDescriptionImage_user_role() throws Exception {
             //given
-            ProductRequest.AddDescriptionImage request = fixtureMonkey.giveMeOne(ProductRequest.AddDescriptionImage.class);
+            AddProductDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddProductDescriptionImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -532,7 +547,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 설명 이미지를 추가할 수 없다")
         void updateDescriptionImage_unAuthorized() throws Exception {
             //given
-            ProductRequest.AddDescriptionImage request = fixtureMonkey.giveMeOne(ProductRequest.AddDescriptionImage.class);
+            AddProductDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddProductDescriptionImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -550,7 +565,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("상품 설명 이미지 요청 검증")
         @MethodSource("provideInvalidDescriptionImageRequest")
         @WithCustomMockUser
-        void updateDescriptionImage_Validation(String description, ProductRequest.AddDescriptionImage request, String message) throws Exception {
+        void updateDescriptionImage_Validation(String description, AddProductDescriptionImageRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -580,8 +595,8 @@ class ProductControllerTest extends ControllerTestSupport {
             );
         }
 
-        private static ProductRequest.AddDescriptionImage wrap(List<String> images) {
-            return ProductRequest.AddDescriptionImage.builder()
+        private static AddProductDescriptionImageRequest wrap(List<String> images) {
+            return AddProductDescriptionImageRequest.builder()
                     .images(images)
                     .build();
         }
@@ -599,7 +614,7 @@ class ProductControllerTest extends ControllerTestSupport {
             assert result != null;
             given(productService.publish(anyLong()))
                     .willReturn(result);
-            ProductResponse.Publish response = ProductResponse.Publish.from(result);
+            PublishProductResponse response = PublishProductResponse.from(result);
             //when
             //then
             mockMvc.perform(patch("/products/{productId}/publish", 1L)
@@ -652,7 +667,7 @@ class ProductControllerTest extends ControllerTestSupport {
             assert result != null;
             given(productService.closedProduct(anyLong()))
                     .willReturn(result);
-            ProductResponse.Close response = ProductResponse.Close.from(result);
+            CloseProductResponse response = CloseProductResponse.from(result);
             //when
             //then
             mockMvc.perform(patch("/products/{productId}/close", 1L)
@@ -705,7 +720,7 @@ class ProductControllerTest extends ControllerTestSupport {
             ProductResult.Summary summary = mockSummaryResult();
             PageRequest pageable = PageRequest.of(0, 10);
             Page<ProductResult.Summary> results = new PageImpl<>(List.of(summary), pageable, 100L);
-            PageDto<ProductResponse.Summary> response = PageDto.of(results, ProductResponse.Summary::from);
+            PageDto<ProductSummaryResponse> response = PageDto.of(results, ProductSummaryResponse::from);
             MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
             paramMap.add("page", "1");
             paramMap.add("size", "10");
@@ -783,7 +798,7 @@ class ProductControllerTest extends ControllerTestSupport {
             //given
             ProductResult.Detail result = mockDetailResult();
             given(productService.getProduct(anyLong())).willReturn(result);
-            ProductResponse.Detail response = ProductResponse.Detail.from(result);
+            ProductDetailResponse response = ProductDetailResponse.from(result);
             //when
             //then
             mockMvc.perform(get("/products/{productId}", 1L)
@@ -854,12 +869,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateProduct() throws Exception {
             //given
-            ProductRequest.Update request = fixtureMonkey.giveMeOne(ProductRequest.Update.class);
+            UpdateProductRequest request = fixtureMonkey.giveMeOne(UpdateProductRequest.class);
             ProductResult.Update result = fixtureMonkey.giveMeOne(ProductResult.Update.class);
             assert result != null;
             given(productService.updateProduct(any(ProductCommand.Update.class)))
                     .willReturn(result);
-            ProductResponse.Update response = ProductResponse.Update.from(result);
+            UpdateProductResponse response = UpdateProductResponse.from(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -875,7 +890,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateProduct_user_role() throws Exception {
             //given
-            ProductRequest.Update request = fixtureMonkey.giveMeOne(ProductRequest.Update.class);
+            UpdateProductRequest request = fixtureMonkey.giveMeOne(UpdateProductRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -893,7 +908,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품을 수정할 수 없다")
         void updateProduct_unAuthorized() throws Exception {
             //given
-            ProductRequest.Update request = fixtureMonkey.giveMeOne(ProductRequest.Update.class);
+            UpdateProductRequest request = fixtureMonkey.giveMeOne(UpdateProductRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -911,7 +926,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidUpdateRequest")
         @WithCustomMockUser
         @DisplayName("상품 수정 요청 검증")
-        void updateProduct_validation(String description, ProductRequest.Update request, String message) throws Exception {
+        void updateProduct_validation(String description, UpdateProductRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -927,7 +942,7 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidUpdateRequest(){
-            ProductRequest.Update VALID_BASE_UPDATE = ProductRequest.Update.builder()
+            UpdateProductRequest VALID_BASE_UPDATE = UpdateProductRequest.builder()
                     .name("새 이름")
                     .categoryId(1L)
                     .description("상품 설명")

@@ -1,8 +1,11 @@
 package com.example.product_service.option.adapter.in.web;
 
 import com.example.product_service.common.security.model.UserRole;
-import com.example.product_service.option.adapter.in.web.dto.request.OptionRequest;
-import com.example.product_service.option.adapter.in.web.dto.response.OptionResponse;
+import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.OptionValueRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
+import com.example.product_service.option.adapter.in.web.dto.response.OptionDetailResponse;
 import com.example.product_service.option.application.service.dto.command.OptionCommand;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
 import com.example.product_service.option.application.service.dto.result.OptionValueResult;
@@ -40,10 +43,10 @@ class OptionControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void saveOption() throws Exception {
             //given
-            OptionRequest.Create request = fixtureMonkey.giveMeOne(OptionRequest.Create.class);
+            CreateOptionRequest request = fixtureMonkey.giveMeOne(CreateOptionRequest.class);
             OptionResult result = fixtureMonkey.giveMeOne(OptionResult.class);
             assert result != null;
-            OptionResponse.Detail response = OptionResponse.Detail.from(result);
+            OptionDetailResponse response = OptionDetailResponse.from(result);
             given(optionService.saveOption(any(OptionCommand.Create.class)))
                     .willReturn(result);
             //when
@@ -60,7 +63,7 @@ class OptionControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void saveOptionWithUserRole() throws Exception {
             //given
-            OptionRequest.Create request = fixtureMonkey.giveMeOne(OptionRequest.Create.class);
+            CreateOptionRequest request = fixtureMonkey.giveMeOne(CreateOptionRequest.class);
             //when
             //then
             mockMvc.perform(post("/options")
@@ -77,7 +80,7 @@ class OptionControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 유저는 옵션을 저장할 수 없다")
         void saveOption_unAuthentication() throws Exception {
             //given
-            OptionRequest.Create request = fixtureMonkey.giveMeOne(OptionRequest.Create.class);
+            CreateOptionRequest request = fixtureMonkey.giveMeOne(CreateOptionRequest.class);
             //when
             //then
             mockMvc.perform(post("/options")
@@ -94,7 +97,7 @@ class OptionControllerTest extends ControllerTestSupport {
         @DisplayName("옵션 저장 요청 검증")
         @MethodSource("provideInvalidRequest")
         @WithCustomMockUser
-        void saveOption_validation(String description, OptionRequest.Create request, String message) throws Exception {
+        void saveOption_validation(String description, CreateOptionRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -111,16 +114,16 @@ class OptionControllerTest extends ControllerTestSupport {
 
         private static Stream<Arguments> provideInvalidRequest() {
             return Stream.of(
-                    Arguments.of("name 이 null", OptionRequest.Create.builder()
+                    Arguments.of("name 이 null", CreateOptionRequest.builder()
                             .name(null)
-                            .values(List.of(OptionRequest.Value.builder().name("XL").build())).build(), "옵션 이름은 필수 입니다"),
-                    Arguments.of("value 가 비어있음", OptionRequest.Create.builder()
+                            .values(List.of(OptionValueRequest.builder().name("XL").build())).build(), "옵션 이름은 필수 입니다"),
+                    Arguments.of("value 가 비어있음", CreateOptionRequest.builder()
                             .name("옵션").values(List.of()).build(), "최소 1개의 옵션 값을 입력해야합니다"),
-                    Arguments.of("중복된 value", OptionRequest.Create.builder()
+                    Arguments.of("중복된 value", CreateOptionRequest.builder()
                                     .name("옵션")
                                     .values(
-                                            List.of(OptionRequest.Value.builder().name("XL").build(),
-                                                    OptionRequest.Value.builder().name("XL").build())
+                                            List.of(OptionValueRequest.builder().name("XL").build(),
+                                                    OptionValueRequest.builder().name("XL").build())
                                     ).build(),
                             "옵션값은 중복될 수 없습니다")
             );
@@ -158,7 +161,7 @@ class OptionControllerTest extends ControllerTestSupport {
                     fixtureMonkey.giveMe(OptionResult.class, 3);
             given(optionService.getOptions())
                     .willReturn(results);
-            List<OptionResponse.Detail> responses = OptionResponse.Detail.from(results);
+            List<OptionDetailResponse> responses = OptionDetailResponse.from(results);
             //when
             //then
             mockMvc.perform(get("/options")
@@ -177,10 +180,10 @@ class OptionControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateOptionType() throws Exception {
             //given
-            OptionRequest.UpdateOptionType request = fixtureMonkey.giveMeOne(OptionRequest.UpdateOptionType.class);
+            UpdateOptionTypeRequest request = fixtureMonkey.giveMeOne(UpdateOptionTypeRequest.class);
             OptionResult result = fixtureMonkey.giveMeOne(OptionResult.class);
             assert result != null;
-            OptionResponse.Detail response = OptionResponse.Detail.from(result);
+            OptionDetailResponse response = OptionDetailResponse.from(result);
             given(optionService.updateOptionTypeName(any(OptionCommand.UpdateOptionType.class)))
                     .willReturn(result);
             //when
@@ -198,7 +201,7 @@ class OptionControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateOptionTypeWithUserRole() throws Exception {
             //given
-            OptionRequest.UpdateOptionType request = fixtureMonkey.giveMeOne(OptionRequest.UpdateOptionType.class);
+            UpdateOptionTypeRequest request = fixtureMonkey.giveMeOne(UpdateOptionTypeRequest.class);
             //when
             //then
             mockMvc.perform(patch("/options/{optionTypeId}", 1L)
@@ -215,7 +218,7 @@ class OptionControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 회원은 옵션을 수정할 수 없다")
         void updateOption_Type_unAuthentication() throws Exception {
             //given
-            OptionRequest.UpdateOptionType request = fixtureMonkey.giveMeOne(OptionRequest.UpdateOptionType.class);
+            UpdateOptionTypeRequest request = fixtureMonkey.giveMeOne(UpdateOptionTypeRequest.class);
             //when
             //then
             mockMvc.perform(patch("/options/{optionTypeId}", 1L)
@@ -233,7 +236,7 @@ class OptionControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateOption_Type_validation() throws Exception {
             //given
-            OptionRequest.UpdateOptionType request = OptionRequest.UpdateOptionType.builder()
+            UpdateOptionTypeRequest request = UpdateOptionTypeRequest.builder()
                     .name(null)
                     .build();
             //when
@@ -306,7 +309,7 @@ class OptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void updateOptionValue() throws Exception {
         //given
-        OptionRequest.UpdateOptionValue request = fixtureMonkey.giveMeOne(OptionRequest.UpdateOptionValue.class);
+        UpdateOptionValueRequest request = fixtureMonkey.giveMeOne(UpdateOptionValueRequest.class);
         OptionValueResult response = fixtureMonkey.giveMeOne(OptionValueResult.class);
         given(optionService.updateOptionValueName(any(OptionCommand.UpdateOptionValue.class)))
                 .willReturn(response);
@@ -324,7 +327,7 @@ class OptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void updateOptionValue_user_role() throws Exception {
         //given
-        OptionRequest.UpdateOptionValue request = fixtureMonkey.giveMeOne(OptionRequest.UpdateOptionValue.class);
+        UpdateOptionValueRequest request = fixtureMonkey.giveMeOne(UpdateOptionValueRequest.class);
         //when
         //then
         mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
@@ -341,7 +344,7 @@ class OptionControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 사용자는 옵션 값을 변경할 수 없다")
     void updateOptionValue_unAuthorized() throws Exception {
         //given
-        OptionRequest.UpdateOptionValue request = fixtureMonkey.giveMeOne(OptionRequest.UpdateOptionValue.class);
+        UpdateOptionValueRequest request = fixtureMonkey.giveMeOne(UpdateOptionValueRequest.class);
         //when
         //then
         mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
@@ -359,7 +362,7 @@ class OptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void updateOptionValue_validation() throws Exception {
         //given
-        OptionRequest.UpdateOptionValue request = OptionRequest.UpdateOptionValue.builder()
+        UpdateOptionValueRequest request = UpdateOptionValueRequest.builder()
                 .name(null)
                 .build();
         //when
