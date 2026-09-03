@@ -11,9 +11,9 @@ import static com.example.userservice.user.fixture.UserCommandFixture.anAddShipp
 import static com.example.userservice.user.fixture.UserCommandFixture.anUserCreateCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class UserContextFactoryTest {
+class UserContextMapperTest {
 
-    private final UserContextFactory contextFactory = new UserContextFactory();
+    private final UserContextMapper contextFactory = new UserContextMapper();
 
     @Test
     @DisplayName("회원 생성 커맨드로 회원 생성 컨텍스트를 생성한다.")

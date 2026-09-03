@@ -7,7 +7,7 @@ import com.example.userservice.user.domain.context.CreateUserContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserContextFactory {
+public class UserContextMapper {
 
     public CreateUserContext createUserContext(Long id, CreateUserCommand command, String encryptedPassword) {
         return CreateUserContext.builder()

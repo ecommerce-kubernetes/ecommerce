@@ -49,7 +49,7 @@ class UserCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        userCommandService = new UserCommandService(userRepository, passwordManager, idGenerator, new UserContextFactory());
+        userCommandService = new UserCommandService(userRepository, passwordManager, idGenerator, new UserContextMapper());
     }
 
     @Test

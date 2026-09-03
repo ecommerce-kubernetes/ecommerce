@@ -22,7 +22,7 @@ public class UserCommandService {
     private final UserRepository userRepository;
     private final PasswordManager passwordManager;
     private final IdGenerator idGenerator;
-    private final UserContextFactory contextFactory;
+    private final UserContextMapper contextFactory;
 
     public Long createUser(CreateUserCommand command) {
         if (userRepository.existsByEmail(command.email())) {
