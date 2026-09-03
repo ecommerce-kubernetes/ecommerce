@@ -2,12 +2,11 @@ package com.example.userservice.user.application.service.dto.command;
 
 import com.example.userservice.user.domain.vo.Gender;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.time.LocalDate;
 
 @Builder
-public record UserCreateCommand(
+public record CreateUserCommand(
         String email,
         String password,
         String name,

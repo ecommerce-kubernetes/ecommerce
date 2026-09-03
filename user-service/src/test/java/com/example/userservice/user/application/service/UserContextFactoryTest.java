@@ -1,7 +1,7 @@
 package com.example.userservice.user.application.service;
 
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +19,7 @@ class UserContextFactoryTest {
     @DisplayName("회원 생성 커맨드로 회원 생성 컨텍스트를 생성한다.")
     void createUserContext() {
         //given
-        UserCreateCommand command = anUserCreateCommand().build();
+        CreateUserCommand command = anUserCreateCommand().build();
         Long id = 1L;
         String encryptedPassword = "encryptedPassword";
         //when

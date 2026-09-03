@@ -1,6 +1,6 @@
 package com.example.userservice.user.adapter.in.web.dto;
 
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.domain.vo.Gender;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
-public class UserCreateRequest {
+public class CreateUserRequest {
     @NotBlank(message = "{user.email.notBlank}")
     @Email(message = "{user.email.pattern}")
     private String email;
@@ -39,8 +39,8 @@ public class UserCreateRequest {
     @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "{user.phoneNumber.pattern}")
     private String phoneNumber;
 
-    public UserCreateCommand toCommand() {
-        return UserCreateCommand.builder()
+    public CreateUserCommand toCommand() {
+        return CreateUserCommand.builder()
                 .email(email)
                 .password(password)
                 .name(name)

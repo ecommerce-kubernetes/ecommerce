@@ -4,11 +4,11 @@ import com.example.userservice.common.security.model.UserPrincipal;
 import com.example.userservice.docs.RestDocsSupport;
 import com.example.userservice.user.adapter.in.web.UserController;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
-import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
+import com.example.userservice.user.adapter.in.web.dto.CreateUserRequest;
 import com.example.userservice.user.application.service.UserCommandService;
 import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.example.userservice.common.domain.vo.Role;
 import org.junit.jupiter.api.DisplayName;
@@ -77,8 +77,8 @@ class UserControllerDocsTest extends RestDocsSupport {
     @DisplayName("유저 생성")
     void create() throws Exception {
         //given
-        UserCreateRequest request = anUserCreateRequest().build();
-        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(1L);
+        CreateUserRequest request = anUserCreateRequest().build();
+        given(userCommandService.createUser(any(CreateUserCommand.class))).willReturn(1L);
         //when
         //then
         mockMvc.perform(post("/users")

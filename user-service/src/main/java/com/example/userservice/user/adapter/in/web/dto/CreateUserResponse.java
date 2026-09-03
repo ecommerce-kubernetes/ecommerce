@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 @Builder
-public record UserCreateResponse(
+public record CreateUserResponse(
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long userId
 ) {
-    public static UserCreateResponse from(Long userId) {
-        return UserCreateResponse.builder()
+    public static CreateUserResponse from(Long userId) {
+        return CreateUserResponse.builder()
                 .userId(userId)
                 .build();
     }

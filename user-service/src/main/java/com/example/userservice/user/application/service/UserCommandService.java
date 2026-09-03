@@ -4,7 +4,7 @@ import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.domain.User;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
@@ -24,7 +24,7 @@ public class UserCommandService {
     private final IdGenerator idGenerator;
     private final UserContextFactory contextFactory;
 
-    public Long createUser(UserCreateCommand command) {
+    public Long createUser(CreateUserCommand command) {
         if (userRepository.existsByEmail(command.email())) {
             throw new BusinessException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }

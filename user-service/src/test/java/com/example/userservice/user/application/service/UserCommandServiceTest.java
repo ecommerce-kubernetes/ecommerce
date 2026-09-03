@@ -5,7 +5,7 @@ import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.common.util.TsidGenerator;
 import com.example.userservice.user.application.port.UserRepository;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.domain.User;
 import com.example.userservice.user.domain.UserFixtureBuilder;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
@@ -56,7 +56,7 @@ class UserCommandServiceTest {
     @DisplayName("회원을 생성한다.")
     void create() {
         //given
-        UserCreateCommand command = anUserCreateCommand().build();
+        CreateUserCommand command = anUserCreateCommand().build();
         given(userRepository.existsByEmail(command.email())).willReturn(false);
         given(passwordManager.encrypt(command.password())).willReturn("encryptedPwd");
         //when
@@ -76,7 +76,7 @@ class UserCommandServiceTest {
     @DisplayName("이미 가입된 이메일이면 예외가 발생하고 회원을 생성하지 않는다.")
     void create_whenEmailAlreadyExists_thenThrownException() {
         //given
-        UserCreateCommand command = anUserCreateCommand().build();
+        CreateUserCommand command = anUserCreateCommand().build();
         given(userRepository.existsByEmail(command.email())).willReturn(true);
         //when
         //then

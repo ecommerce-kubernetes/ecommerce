@@ -1,7 +1,7 @@
 package com.example.userservice.user.application.service;
 
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserContextFactory {
 
-    public CreateUserContext createUserContext(Long id, UserCreateCommand command, String encryptedPassword) {
+    public CreateUserContext createUserContext(Long id, CreateUserCommand command, String encryptedPassword) {
         return CreateUserContext.builder()
                 .id(id)
                 .email(command.email())

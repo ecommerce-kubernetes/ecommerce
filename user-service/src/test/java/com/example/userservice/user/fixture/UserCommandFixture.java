@@ -1,15 +1,15 @@
 package com.example.userservice.user.fixture;
 
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.domain.vo.Gender;
 
 import java.time.LocalDate;
 
 public class UserCommandFixture {
 
-    public static UserCreateCommand.UserCreateCommandBuilder anUserCreateCommand() {
-        return UserCreateCommand.builder()
+    public static CreateUserCommand.CreateUserCommandBuilder anUserCreateCommand() {
+        return CreateUserCommand.builder()
                 .email("la9814@naver.com")
                 .password("password1234*")
                 .name("김이박")

@@ -3,12 +3,12 @@ package com.example.userservice.user.adapter.in.web;
 import com.example.userservice.common.security.model.UserPrincipal;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
 import com.example.userservice.user.adapter.in.web.dto.EmailAvailableResponse;
-import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
-import com.example.userservice.user.adapter.in.web.dto.UserCreateResponse;
+import com.example.userservice.user.adapter.in.web.dto.CreateUserRequest;
+import com.example.userservice.user.adapter.in.web.dto.CreateUserResponse;
 import com.example.userservice.user.application.service.UserCommandService;
 import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -27,10 +27,10 @@ public class UserController {
     private final UserQueryService userQueryService;
 
     @PostMapping
-    public ResponseEntity<UserCreateResponse> createUser(@Validated @RequestBody UserCreateRequest request) {
-        UserCreateCommand command = request.toCommand();
+    public ResponseEntity<CreateUserResponse> createUser(@Validated @RequestBody CreateUserRequest request) {
+        CreateUserCommand command = request.toCommand();
         Long userId = userCommandService.createUser(command);
-        UserCreateResponse response = UserCreateResponse.from(userId);
+        CreateUserResponse response = CreateUserResponse.from(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

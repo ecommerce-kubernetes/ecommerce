@@ -3,11 +3,11 @@ package com.example.userservice.user.adapter.in.web;
 import com.example.userservice.support.annotation.WithCustomMockUser;
 import com.example.userservice.support.security.config.TestSecurityConfig;
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
-import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
+import com.example.userservice.user.adapter.in.web.dto.CreateUserRequest;
 import com.example.userservice.user.application.service.UserCommandService;
 import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
-import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
+import com.example.userservice.user.application.service.dto.command.CreateUserCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -56,9 +56,9 @@ class UserControllerTest {
     @DisplayName("회원을 생성한다")
     void create() throws Exception {
         //given
-        UserCreateRequest request = anUserCreateRequest().build();
+        CreateUserRequest request = anUserCreateRequest().build();
         Long userId = 1L;
-        given(userCommandService.createUser(any(UserCreateCommand.class))).willReturn(userId);
+        given(userCommandService.createUser(any(CreateUserCommand.class))).willReturn(userId);
         //when
         //then
         mockMvc.perform(post("/users")
@@ -72,7 +72,7 @@ class UserControllerTest {
     @ParameterizedTest(name = "{0}")
     @DisplayName("회원 생성 요청 검증")
     @MethodSource("provideInvalidCreateRequest")
-    void create_validation(String description, UserCreateRequest request, String expectedField, String expectedMessage) throws Exception {
+    void create_validation(String description, CreateUserRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         //when
         //then

@@ -1,14 +1,14 @@
 package com.example.userservice.user.fixture;
 
 import com.example.userservice.user.adapter.in.web.dto.AddShippingAddressRequest;
-import com.example.userservice.user.adapter.in.web.dto.UserCreateRequest;
+import com.example.userservice.user.adapter.in.web.dto.CreateUserRequest;
 
 import java.time.LocalDate;
 
 public class UserRequestFixture {
 
-    public static UserCreateRequest.UserCreateRequestBuilder anUserCreateRequest() {
-        return UserCreateRequest.builder()
+    public static CreateUserRequest.CreateUserRequestBuilder anUserCreateRequest() {
+        return CreateUserRequest.builder()
                 .email("la9814@naver.com")
                 .password("password1234*")
                 .name("김이박")
