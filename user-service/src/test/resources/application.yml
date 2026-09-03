@@ -8,26 +8,21 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password:
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: 127.0.0.1:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
       group-id: users
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   flyway:
     enabled: false
   cloud:
     config:
+      enabled: false
+    bus:
       enabled: false
 
 logging:
@@ -35,11 +30,20 @@ logging:
     url: http://localhost:3100/loki/api/v1/push
 
 token:
-  expiration_time: 3000000
-  refresh_expiration_time: 604800000
   secret: sRwFJewa3JqnGtFZJsMREtKh9ApEy3RS
+  access-token-ttl: 30m
+  refresh-token-ttl: 7d
 
 user:
   topics:
-    user-saga-command: "user.saga.command"
-    user-saga-reply: "user.saga.reply"
+    saga:
+      order:
+        command: "user.saga.command"
+        reply: "order.saga.reply"
+
+
+outbox:
+  sweep:
+    threshold-second: 30s
+  scheduler:
+    delay: PT10M
