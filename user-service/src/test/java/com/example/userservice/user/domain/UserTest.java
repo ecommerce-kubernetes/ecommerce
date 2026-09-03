@@ -8,6 +8,7 @@ import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.vo.Gender;
 import com.example.userservice.common.domain.vo.Role;
+import com.example.userservice.user.exception.ShippingAddressErrorCode;
 import com.example.userservice.user.exception.UserErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -159,7 +160,7 @@ class UserTest {
         assertThatThrownBy(() -> user.removeShippingAddress(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(UserErrorCode.SHIPPING_ADDRESS_NOT_FOUND);
+                .isEqualTo(ShippingAddressErrorCode.SHIPPING_ADDRESS_NOT_FOUND);
     }
 
     @Test

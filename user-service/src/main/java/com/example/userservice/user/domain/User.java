@@ -7,6 +7,8 @@ import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.vo.Gender;
 import com.example.userservice.common.domain.vo.Role;
+import com.example.userservice.user.exception.PointErrorCode;
+import com.example.userservice.user.exception.ShippingAddressErrorCode;
 import com.example.userservice.user.exception.UserErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -111,7 +113,7 @@ public class User extends BaseEntity {
         ShippingAddress addressToRemove = this.shippingAddresses.stream()
                 .filter(address -> address.getId().equals(shippingAddressId))
                 .findFirst()
-                .orElseThrow(() -> new BusinessException(UserErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ShippingAddressErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
 
         boolean wasDefault = addressToRemove.isDefault();
 
@@ -136,7 +138,7 @@ public class User extends BaseEntity {
 
     public void deductPoints(Money deductPoint) {
         if (this.point.isLessThan(deductPoint)) {
-            throw new BusinessException(UserErrorCode.INSUFFICIENT_POINTS);
+            throw new BusinessException(PointErrorCode.INSUFFICIENT_POINTS);
         }
         this.point = this.point.subtract(deductPoint);
     }

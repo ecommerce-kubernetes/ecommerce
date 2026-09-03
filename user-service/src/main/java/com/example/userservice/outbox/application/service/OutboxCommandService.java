@@ -35,7 +35,7 @@ public class OutboxCommandService {
 
     public void changeSent(Long id) {
         OutboxMessage outboxMessage = outboxRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(OutboxErrorCode.OUT_BOX_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(OutboxErrorCode.OUTBOX_NOT_FOUND));
 
         outboxMessage.sent();
     }

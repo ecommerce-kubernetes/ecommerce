@@ -1,6 +1,7 @@
 package com.example.userservice.common.config;
 
 import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.common.exception.CommonErrorCode;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommand;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommandPayload;
 import com.example.userservice.user.application.service.PointSagaProcessor;
@@ -63,7 +64,7 @@ public class KafkaConsumerConfig {
                 PointSagaCommandPayload payload = objectMapper.readValue(payloadJson, PointSagaCommandPayload.class);
                 Long executionId = payload.executionId();
 
-                String failureReason = "SYSTEM_RETRY_EXHAUSTED";
+                String failureReason = CommonErrorCode.SAGA_RETRY_EXHAUSTED.getCode();
 
                 switch (command) {
                     case RESTORE_POINT -> processor.failRefund(sagaId, executionId, failureReason);

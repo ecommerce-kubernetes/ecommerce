@@ -73,7 +73,7 @@ class AuthUserAdapterTest {
         assertThatThrownBy(() -> authUserAdapter.authenticate("email", "encryptedPassword"))
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
-                .isEqualTo(AuthUserPortErrorCode.USER_SERVER_ERROR);
+                .isEqualTo(AuthUserPortErrorCode.USER_SYSTEM_ERROR);
     }
 
     @Test
@@ -116,6 +116,6 @@ class AuthUserAdapterTest {
         assertThatThrownBy(() -> authUserAdapter.getUserById(1L))
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
-                .isEqualTo(AuthUserPortErrorCode.USER_SERVER_ERROR);
+                .isEqualTo(AuthUserPortErrorCode.USER_SYSTEM_ERROR);
     }
 }

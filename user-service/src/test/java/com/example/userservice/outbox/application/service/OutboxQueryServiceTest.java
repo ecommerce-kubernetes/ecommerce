@@ -58,7 +58,7 @@ class OutboxQueryServiceTest {
         assertThatThrownBy(() -> outboxQueryService.getOutbox(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OutboxErrorCode.OUT_BOX_NOT_FOUND);
+                .isEqualTo(OutboxErrorCode.OUTBOX_NOT_FOUND);
     }
 
     @Test

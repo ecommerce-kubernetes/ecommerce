@@ -21,7 +21,7 @@ public class OutboxQueryService {
     private final OutboxRepository repository;
 
     public OutboxMessageResult getOutbox(Long outboxId) {
-        OutboxMessage outboxMessage = repository.findById(outboxId).orElseThrow(() -> new BusinessException(OutboxErrorCode.OUT_BOX_NOT_FOUND));
+        OutboxMessage outboxMessage = repository.findById(outboxId).orElseThrow(() -> new BusinessException(OutboxErrorCode.OUTBOX_NOT_FOUND));
 
         return OutboxMessageResult.from(outboxMessage);
     }

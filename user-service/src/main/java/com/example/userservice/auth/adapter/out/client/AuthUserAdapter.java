@@ -29,7 +29,7 @@ public class AuthUserAdapter implements AuthUserPort {
             AuthUserPortErrorCode code = translateErrorCode(e.getErrorCode().name());
             throw new PortException(code);
         } catch (Exception e) {
-            throw new PortException(AuthUserPortErrorCode.USER_SERVER_ERROR);
+            throw new PortException(AuthUserPortErrorCode.USER_SYSTEM_ERROR);
         }
     }
 
@@ -55,14 +55,14 @@ public class AuthUserAdapter implements AuthUserPort {
             AuthUserPortErrorCode code = translateErrorCode(e.getErrorCode().name());
             throw new PortException(code);
         } catch (Exception e) {
-            throw new PortException(AuthUserPortErrorCode.USER_SERVER_ERROR);
+            throw new PortException(AuthUserPortErrorCode.USER_SYSTEM_ERROR);
         }
     }
 
     private AuthUserPortErrorCode translateErrorCode(String code) {
         return switch (code) {
             case "USER_NOT_FOUND", "PASSWORD_NOT_MATCH" -> AuthUserPortErrorCode.INVALID_CREDENTIALS;
-            default -> AuthUserPortErrorCode.USER_SERVER_ERROR;
+            default -> AuthUserPortErrorCode.USER_SYSTEM_ERROR;
         };
     }
 }

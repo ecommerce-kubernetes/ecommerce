@@ -1,5 +1,6 @@
 package com.example.userservice.common.error;
 
+import com.example.userservice.common.exception.CommonErrorCode;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -34,7 +35,7 @@ public record ErrorResponse(
 
     public static ErrorResponse ofValidation(List<InputError> errors, String path) {
         return ErrorResponse.builder()
-                .code("INVALID_INPUT_VALUE")
+                .code(CommonErrorCode.INVALID_INPUT_VALUE.getCode())
                 .message("입력값이 올바르지 않습니다.")
                 .errors(errors)
                 .timestamp(LocalDateTime.now())

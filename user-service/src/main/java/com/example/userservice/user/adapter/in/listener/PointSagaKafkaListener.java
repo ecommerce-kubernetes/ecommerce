@@ -31,7 +31,7 @@ public class PointSagaKafkaListener {
         try {
             router.execute(sagaId, payload);
         } catch (BusinessException e) {
-            router.fail(sagaId, payload, e.getErrorCode().name());
+            router.fail(sagaId, payload, e.getErrorCode().getCode());
         } catch (IllegalArgumentException e) {
             router.fail(sagaId, payload, "INVALID_INPUT_VALUE");
         }
