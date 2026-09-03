@@ -1,7 +1,7 @@
 package com.example.product_service.support;
 
-import com.example.product_service.api.common.security.model.UserPrincipal;
-import com.example.product_service.api.common.security.model.UserRole;
+import com.example.product_service.common.security.model.UserPrincipal;
+import com.example.product_service.common.security.model.UserRole;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

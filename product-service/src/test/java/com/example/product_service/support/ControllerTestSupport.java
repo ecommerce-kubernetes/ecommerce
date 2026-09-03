@@ -1,13 +1,13 @@
 package com.example.product_service.support;
 
-import com.example.product_service.api.category.controller.CategoryController;
-import com.example.product_service.api.category.service.CategoryService;
-import com.example.product_service.api.option.controller.OptionController;
-import com.example.product_service.api.option.service.OptionService;
-import com.example.product_service.api.product.controller.InternalProductController;
-import com.example.product_service.api.product.controller.ProductController;
-import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.VariantService;
+import com.example.product_service.category.adapter.in.web.CategoryController;
+import com.example.product_service.category.application.service.CategoryService;
+import com.example.product_service.option.adapter.in.web.OptionController;
+import com.example.product_service.option.application.service.OptionService;
+import com.example.product_service.product.adapter.in.web.InternalProductController;
+import com.example.product_service.product.adapter.in.web.ProductController;
+import com.example.product_service.product.application.service.ProductService;
+import com.example.product_service.product.application.service.VariantService;
 import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navercorp.fixturemonkey.FixtureMonkey;

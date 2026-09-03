@@ -1,8 +1,8 @@
 package com.example.product_service.docs;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.example.product_service.api.common.security.model.UserPrincipal;
-import com.example.product_service.api.common.security.model.UserRole;
+import com.example.product_service.common.security.model.UserPrincipal;
+import com.example.product_service.common.security.model.UserRole;
 import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

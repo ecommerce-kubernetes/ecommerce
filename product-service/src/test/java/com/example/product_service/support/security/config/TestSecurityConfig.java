@@ -1,7 +1,7 @@
 package com.example.product_service.support.security.config;
 
-import com.example.product_service.api.common.security.filter.CustomAccessDeniedHandler;
-import com.example.product_service.api.common.security.filter.CustomAuthenticationEntryPoint;
+import com.example.product_service.common.security.filter.CustomAccessDeniedHandler;
+import com.example.product_service.common.security.filter.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

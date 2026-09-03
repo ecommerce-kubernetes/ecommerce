@@ -1,6 +1,6 @@
 package com.example.product_service.support.fixture.builder;
 
-import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.category.domain.model.Category;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class CategoryTestBuilder {

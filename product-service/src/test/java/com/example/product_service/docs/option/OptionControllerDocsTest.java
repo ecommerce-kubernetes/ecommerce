@@ -1,12 +1,12 @@
 package com.example.product_service.docs.option;
 
-import com.example.product_service.api.option.controller.OptionController;
-import com.example.product_service.api.option.controller.dto.request.OptionRequest;
-import com.example.product_service.api.option.controller.dto.response.OptionResponse;
-import com.example.product_service.api.option.service.OptionService;
-import com.example.product_service.api.option.service.dto.command.OptionCommand;
-import com.example.product_service.api.option.service.dto.result.OptionResult;
-import com.example.product_service.api.option.service.dto.result.OptionValueResult;
+import com.example.product_service.option.adapter.in.web.OptionController;
+import com.example.product_service.option.adapter.in.web.dto.request.OptionRequest;
+import com.example.product_service.option.adapter.in.web.dto.response.OptionResponse;
+import com.example.product_service.option.application.service.OptionService;
+import com.example.product_service.option.application.service.dto.command.OptionCommand;
+import com.example.product_service.option.application.service.dto.result.OptionResult;
+import com.example.product_service.option.application.service.dto.result.OptionValueResult;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.OptionDescriptor;
 import org.junit.jupiter.api.DisplayName;

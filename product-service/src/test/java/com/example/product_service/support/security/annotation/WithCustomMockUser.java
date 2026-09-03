@@ -1,6 +1,6 @@
 package com.example.product_service.support.security.annotation;
 
-import com.example.product_service.api.common.security.model.UserRole;
+import com.example.product_service.common.security.model.UserRole;
 import com.example.product_service.support.security.WithCustomMockUserSecurityContextFactory;
 import org.springframework.security.test.context.support.WithSecurityContext;
 

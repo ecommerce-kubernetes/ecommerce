@@ -1,13 +1,13 @@
 package com.example.product_service.docs.product;
 
-import com.example.product_service.api.common.dto.PageDto;
-import com.example.product_service.api.product.controller.ProductController;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse;
-import com.example.product_service.api.product.domain.model.ProductStatus;
-import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.result.ProductResult;
+import com.example.product_service.common.dto.PageDto;
+import com.example.product_service.product.adapter.in.web.ProductController;
+import com.example.product_service.product.adapter.in.web.dto.request.ProductRequest;
+import com.example.product_service.product.adapter.in.web.dto.response.ProductResponse;
+import com.example.product_service.product.domain.model.ProductStatus;
+import com.example.product_service.product.application.service.ProductService;
+import com.example.product_service.product.application.service.dto.command.ProductCommand;
+import com.example.product_service.product.application.service.dto.result.ProductResult;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.ProductDescriptor;
 import org.junit.jupiter.api.DisplayName;

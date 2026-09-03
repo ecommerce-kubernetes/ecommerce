@@ -1,11 +1,11 @@
 package com.example.product_service.docs.category;
 
-import com.example.product_service.api.category.controller.CategoryController;
-import com.example.product_service.api.category.controller.dto.request.CategoryRequest;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
-import com.example.product_service.api.category.service.CategoryService;
-import com.example.product_service.api.category.service.dto.command.CategoryCommand;
-import com.example.product_service.api.category.service.dto.result.CategoryResult;
+import com.example.product_service.category.adapter.in.web.CategoryController;
+import com.example.product_service.category.adapter.in.web.dto.request.CategoryRequest;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryResponse;
+import com.example.product_service.category.application.service.CategoryService;
+import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import org.junit.jupiter.api.DisplayName;

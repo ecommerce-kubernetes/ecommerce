@@ -1,9 +1,9 @@
 package com.example.product_service.docs.product;
 
-import com.example.product_service.api.product.controller.InternalProductController;
-import com.example.product_service.api.product.controller.dto.InternalVariantRequest;
-import com.example.product_service.api.product.service.VariantService;
-import com.example.product_service.api.product.service.dto.result.InternalVariantResponse;
+import com.example.product_service.product.adapter.in.web.InternalProductController;
+import com.example.product_service.product.adapter.in.web.dto.InternalVariantRequest;
+import com.example.product_service.product.application.service.VariantService;
+import com.example.product_service.product.application.service.dto.result.InternalVariantResponse;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
