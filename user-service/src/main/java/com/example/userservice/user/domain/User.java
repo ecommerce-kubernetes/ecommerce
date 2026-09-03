@@ -92,19 +92,19 @@ public class User extends BaseEntity {
     }
 
     public void addShippingAddress(CreateShippingAddressContext context) {
-        boolean shouldBeDefault = context.isDefault() ||
+        boolean resolvedIsDefault = context.isDefault() ||
                 this.shippingAddresses.isEmpty() ||
                 this.shippingAddresses.stream().noneMatch(ShippingAddress::isDefault);
 
-        if (shouldBeDefault) {
+        if (resolvedIsDefault) {
             ShippingAddress currentDefault = getDefaultShippingAddress();
             if (currentDefault != null) {
                 currentDefault.demoteFromDefault();
             }
         }
 
-        ShippingAddress shippingAddress = ShippingAddress.create(context, shouldBeDefault);
-        addShippingAddress(shippingAddress);
+        ShippingAddress shippingAddress = ShippingAddress.create(this, context, resolvedIsDefault);
+        this.shippingAddresses.add(shippingAddress);
     }
 
     public void removeShippingAddress(Long shippingAddressId) {
@@ -139,10 +139,5 @@ public class User extends BaseEntity {
             throw new BusinessException(UserErrorCode.INSUFFICIENT_POINTS);
         }
         this.point = this.point.subtract(deductPoint);
-    }
-
-    private void addShippingAddress(ShippingAddress shippingAddress) {
-        shippingAddress.setUser(this);
-        this.shippingAddresses.add(shippingAddress);
     }
 }

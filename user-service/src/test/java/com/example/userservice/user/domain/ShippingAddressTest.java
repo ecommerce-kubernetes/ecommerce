@@ -17,9 +17,10 @@ class ShippingAddressTest {
     @DisplayName("배송지를 생성한다.")
     void create() {
         //given
+        User user = UserFixtureBuilder.given().build();
         CreateShippingAddressContext context = aContext(true);
         //when
-        ShippingAddress shippingAddress = ShippingAddress.create(context, true);
+        ShippingAddress shippingAddress = ShippingAddress.create(user, context, true);
         //then
         assertThat(shippingAddress.getId()).isEqualTo(context.id());
         assertThat(shippingAddress.getReceiverName()).isEqualTo("수령인");
@@ -34,6 +35,7 @@ class ShippingAddressTest {
     @DisplayName("수령인 이름이 없으면 예외가 발생한다.")
     void create_whenReceiverNameBlank_thenThrownException() {
         //given
+        User user = UserFixtureBuilder.given().build();
         CreateShippingAddressContext context = CreateShippingAddressContext.builder()
                 .id(idGenerator.generate())
                 .receiverName("")
@@ -45,7 +47,7 @@ class ShippingAddressTest {
                 .build();
         //when
         //then
-        assertThatThrownBy(() -> ShippingAddress.create(context, false))
+        assertThatThrownBy(() -> ShippingAddress.create(user, context, false))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -53,7 +55,8 @@ class ShippingAddressTest {
     @DisplayName("대표 배송지로 승격한다.")
     void promoteToDefault() {
         //given
-        ShippingAddress shippingAddress = ShippingAddress.create(aContext(false), false);
+        User user = UserFixtureBuilder.given().build();
+        ShippingAddress shippingAddress = ShippingAddress.create(user, aContext(false), false);
         //when
         shippingAddress.promoteToDefault();
         //then
@@ -64,7 +67,8 @@ class ShippingAddressTest {
     @DisplayName("대표 배송지에서 해제한다.")
     void demoteFromDefault() {
         //given
-        ShippingAddress shippingAddress = ShippingAddress.create(aContext(true), true);
+        User user = UserFixtureBuilder.given().build();
+        ShippingAddress shippingAddress = ShippingAddress.create(user, aContext(true), true);
         //when
         shippingAddress.demoteFromDefault();
         //then
