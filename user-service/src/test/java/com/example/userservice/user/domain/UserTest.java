@@ -58,32 +58,6 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("비밀번호가 일치하면 인증에 성공한다.")
-    void authenticate() {
-        //given
-        User user = UserFixtureBuilder.given().build();
-        given(passwordManager.matches(anyString(), anyString())).willReturn(true);
-        //when
-        //then
-        assertThatCode(() -> user.authenticate("password1234*", passwordManager))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
-    @DisplayName("비밀번호가 일치하지 않으면 예외가 발생한다.")
-    void authenticate_whenPasswordNotMatch_thenThrownException() {
-        //given
-        User user = UserFixtureBuilder.given().build();
-        given(passwordManager.matches(anyString(), anyString())).willReturn(false);
-        //when
-        //then
-        assertThatThrownBy(() -> user.authenticate("wrongPassword", passwordManager))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(UserErrorCode.PASSWORD_NOT_MATCH);
-    }
-
-    @Test
     @DisplayName("배송지를 추가한다.")
     void addShippingAddress() {
         //given

@@ -96,12 +96,6 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    public void authenticate(String password, PasswordManager passwordManager) {
-        if (!passwordManager.matches(password, this.encryptedPwd)) {
-            throw new BusinessException(UserErrorCode.PASSWORD_NOT_MATCH);
-        }
-    }
-
     public void addShippingAddress(CreateShippingAddressContext context, IdGenerator idGenerator) {
         boolean shouldBeDefault = context.isDefault() ||
                 this.shippingAddresses.isEmpty() ||

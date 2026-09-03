@@ -25,7 +25,9 @@ public class UserQueryService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        user.authenticate(password, passwordManager);
+        if (!passwordManager.matches(password, user.getEncryptedPwd())) {
+            throw new BusinessException(UserErrorCode.PASSWORD_NOT_MATCH);
+        }
 
         return UserIdentityResult.from(user);
     }
