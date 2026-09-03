@@ -1,6 +1,7 @@
 package com.example.userservice.user.adapter.in.listener;
 
 import com.example.userservice.common.exception.BusinessException;
+import com.example.userservice.common.exception.CommonErrorCode;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommand;
 import com.example.userservice.user.adapter.in.listener.dto.PointSagaCommandPayload;
 import com.example.userservice.user.adapter.in.listener.router.PointSagaCommandRouter;
@@ -31,9 +32,9 @@ public class PointSagaKafkaListener {
         try {
             router.execute(sagaId, payload);
         } catch (BusinessException e) {
-            router.fail(sagaId, payload, e.getErrorCode().getCode());
+            router.fail(sagaId, payload, e.getErrorCode().getCode() );
         } catch (IllegalArgumentException e) {
-            router.fail(sagaId, payload, "INVALID_INPUT_VALUE");
+            router.fail(sagaId, payload, CommonErrorCode.INVALID_INPUT_VALUE.getCode());
         }
     }
 
