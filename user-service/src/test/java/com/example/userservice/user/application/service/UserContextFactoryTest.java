@@ -17,17 +17,19 @@ class UserContextFactoryTest {
 
     @Test
     @DisplayName("회원 생성 커맨드로 회원 생성 컨텍스트를 생성한다.")
-    void createContext() {
+    void createUserContext() {
         //given
         UserCreateCommand command = anUserCreateCommand().build();
+        Long id = 1L;
+        String encryptedPassword = "encryptedPassword";
         //when
-        CreateUserContext context = contextFactory.createUserContext(command);
+        CreateUserContext context = contextFactory.createUserContext(id, command, encryptedPassword);
         //then
         assertThat(context)
-                .extracting("email", "password", "name", "birthDate", "gender", "phoneNumber")
+                .extracting("id", "email", "encryptedPassword", "name", "birthDate", "gender", "phoneNumber")
                 .containsExactly(
-                        command.getEmail(), command.getPassword(), command.getName(),
-                        command.getBirthDate(), command.getGender(), command.getPhoneNumber()
+                        id, command.email(), encryptedPassword, command.name(),
+                        command.birthDate(), command.gender(), command.phoneNumber()
                 );
     }
 
@@ -36,13 +38,14 @@ class UserContextFactoryTest {
     void createShippingAddressContext() {
         //given
         AddShippingAddressCommand command = anAddShippingAddressCommand().isDefault(true).build();
+        Long id = 1L;
         //when
-        CreateShippingAddressContext context = contextFactory.createShippingAddressContext(command);
+        CreateShippingAddressContext context = contextFactory.createShippingAddressContext(id, command);
         //then
         assertThat(context)
-                .extracting("receiverName", "receiverPhone", "zipCode", "address", "addressDetail", "isDefault")
+                .extracting("id", "receiverName", "receiverPhone", "zipCode", "address", "addressDetail", "isDefault")
                 .containsExactly(
-                        command.receiverName(), command.receiverPhone(), command.zipCode(),
+                        id, command.receiverName(), command.receiverPhone(), command.zipCode(),
                         command.address(), command.addressDetail(), command.isDefault()
                 );
     }

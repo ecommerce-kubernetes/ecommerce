@@ -31,7 +31,8 @@ public class PointCommandService {
         User user = findByIdOrThrow(userId);
         user.addPoints(addPoint);
 
-        PointHistory history = PointHistory.createAddHistory(idGenerator, referenceId, user, addPoint);
+        Long id = idGenerator.generate();
+        PointHistory history = PointHistory.createAddHistory(id, referenceId, user, addPoint);
         pointHistoryRepository.save(history);
     }
 
@@ -43,7 +44,8 @@ public class PointCommandService {
         User user = findByIdOrThrow(userId);
         user.deductPoints(deductPoint);
 
-        PointHistory history = PointHistory.createDeductHistory(idGenerator, referenceId, user, deductPoint);
+        Long id = idGenerator.generate();
+        PointHistory history = PointHistory.createDeductHistory(id, referenceId, user, deductPoint);
         pointHistoryRepository.save(history);
     }
 

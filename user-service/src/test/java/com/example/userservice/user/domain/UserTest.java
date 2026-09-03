@@ -2,51 +2,41 @@ package com.example.userservice.user.domain;
 
 import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.user.exception.UserErrorCode;
 import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.common.util.TsidGenerator;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
-import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.domain.vo.Gender;
 import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.user.exception.UserErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
 
-@ExtendWith(MockitoExtension.class)
 class UserTest {
 
     private final IdGenerator idGenerator = new TsidGenerator();
-
-    @Mock
-    private PasswordManager passwordManager;
 
     @Test
     @DisplayName("유저를 생성한다.")
     void create() {
         //given
-        given(passwordManager.encrypt("password1234*")).willReturn("encryptedPassword");
         CreateUserContext context = CreateUserContext.builder()
+                .id(idGenerator.generate())
                 .email("la9814@naver.com")
-                .password("password1234*")
+                .encryptedPassword("encryptedPassword")
                 .name("김이박")
                 .birthDate(LocalDate.of(1999, 12, 25))
                 .gender(Gender.MALE)
                 .phoneNumber("010-1234-5678")
                 .build();
         //when
-        User user = User.create(context, passwordManager, idGenerator);
+        User user = User.create(context);
         //then
-        assertThat(user.getId()).isNotNull();
+        assertThat(user.getId()).isEqualTo(context.id());
         assertThat(user.getEmail()).isEqualTo("la9814@naver.com");
         assertThat(user.getName()).isEqualTo("김이박");
         assertThat(user.getEncryptedPwd()).isEqualTo("encryptedPassword");
@@ -63,7 +53,7 @@ class UserTest {
         //given
         User user = UserFixtureBuilder.given().build();
         //when
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         //then
         assertThat(user.getShippingAddresses()).hasSize(1);
 
@@ -79,7 +69,7 @@ class UserTest {
         //given
         User user = UserFixtureBuilder.given().build();
         //when
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         //then
         assertThat(user.getShippingAddresses().getFirst().isDefault()).isTrue();
     }
@@ -89,10 +79,10 @@ class UserTest {
     void addShippingAddress_whenDefaultExistsAndNotRequested_thenKeepsExistingDefault() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         //when
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         //then
         assertThat(user.getShippingAddresses()).hasSize(2);
         assertThat(firstAddress.isDefault()).isTrue();
@@ -104,10 +94,10 @@ class UserTest {
     void addShippingAddress_whenRequestedAsDefault_thenDemotesPreviousDefault() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
         //when
-        user.addShippingAddress(aShippingAddressContext(true), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(true));
         //then
         ShippingAddress newAddress = user.getShippingAddresses().getLast();
         assertThat(firstAddress.isDefault()).isFalse();
@@ -119,7 +109,7 @@ class UserTest {
     void removeShippingAddress() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress shippingAddress = user.getShippingAddresses().getFirst();
         //when
         user.removeShippingAddress(shippingAddress.getId());
@@ -132,9 +122,9 @@ class UserTest {
     void removeShippingAddress_whenDefaultRemoved_thenPromotesAnotherAddress() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress secondAddress = user.getShippingAddresses().getLast();
         //when
         user.removeShippingAddress(firstAddress.getId());
@@ -148,9 +138,9 @@ class UserTest {
     void removeShippingAddress_whenNonDefaultRemoved_thenDefaultUnchanged() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress secondAddress = user.getShippingAddresses().getLast();
         //when
         user.removeShippingAddress(secondAddress.getId());
@@ -188,9 +178,9 @@ class UserTest {
     void getDefaultShippingAddress_whenExists_thenReturnDefault() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         ShippingAddress firstAddress = user.getShippingAddresses().getFirst();
-        user.addShippingAddress(aShippingAddressContext(false), idGenerator);
+        user.addShippingAddress(aShippingAddressContext(false));
         //when
         ShippingAddress defaultShippingAddress = user.getDefaultShippingAddress();
         //then
@@ -235,6 +225,7 @@ class UserTest {
 
     private CreateShippingAddressContext aShippingAddressContext(boolean isDefault) {
         return CreateShippingAddressContext.builder()
+                .id(idGenerator.generate())
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
                 .zipCode("12345")

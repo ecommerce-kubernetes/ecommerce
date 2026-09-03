@@ -21,9 +21,9 @@ class OutboxMessageTest {
         //given
         CreateOutboxMessageContext context = aContext();
         //when
-        OutboxMessage outboxMessage = OutboxMessage.create(context, idGenerator);
+        OutboxMessage outboxMessage = OutboxMessage.create(context);
         //then
-        assertThat(outboxMessage.getId()).isNotNull();
+        assertThat(outboxMessage.getId()).isEqualTo(context.id());
         assertThat(outboxMessage.getTopic()).isEqualTo("user-saga-command");
         assertThat(outboxMessage.getRoutingKey()).isEqualTo("1");
         assertThat(outboxMessage.getHeaders()).isEqualTo("{\"X-Command-Type\":\"DEDUCT_POINT\"}");
@@ -56,8 +56,9 @@ class OutboxMessageTest {
                 .isEqualTo(OutboxErrorCode.INVALID_OUTBOX_MESSAGE_STATUS);
     }
 
-    private static CreateOutboxMessageContext aContext() {
+    private CreateOutboxMessageContext aContext() {
         return CreateOutboxMessageContext.builder()
+                .id(idGenerator.generate())
                 .topic("user-saga-command")
                 .routingKey("1")
                 .headers("{\"X-Command-Type\":\"DEDUCT_POINT\"}")

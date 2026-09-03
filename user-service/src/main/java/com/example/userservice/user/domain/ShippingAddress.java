@@ -1,6 +1,5 @@
 package com.example.userservice.user.domain;
 
-import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -52,11 +51,9 @@ public class ShippingAddress {
         this.isDefault = isDefault;
     }
 
-    static ShippingAddress create(CreateShippingAddressContext context, IdGenerator idGenerator, boolean isDefault) {
-        Long id = idGenerator.generate();
-
+    static ShippingAddress create(CreateShippingAddressContext context, boolean isDefault) {
         return ShippingAddress.builder()
-                .id(id)
+                .id(context.id())
                 .receiverName(context.receiverName())
                 .receiverPhone(context.receiverPhone())
                 .zipCode(context.zipCode())

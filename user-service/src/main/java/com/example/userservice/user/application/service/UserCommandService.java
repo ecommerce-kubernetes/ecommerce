@@ -25,13 +25,16 @@ public class UserCommandService {
     private final UserContextFactory contextFactory;
 
     public Long createUser(UserCreateCommand command) {
-        if (userRepository.existsByEmail(command.getEmail())) {
+        if (userRepository.existsByEmail(command.email())) {
             throw new BusinessException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        CreateUserContext context = contextFactory.createUserContext(command);
+        String encryptedPassword = passwordManager.encrypt(command.password());
+        Long id = idGenerator.generate();
 
-        User user = User.create(context, passwordManager, idGenerator);
+        CreateUserContext context = contextFactory.createUserContext(id, command, encryptedPassword);
+
+        User user = User.create(context);
         userRepository.save(user);
         return user.getId();
     }
@@ -39,9 +42,10 @@ public class UserCommandService {
     public void addShippingAddress(AddShippingAddressCommand command) {
         User user = findByIdOrThrow(command.userId());
 
-        CreateShippingAddressContext context = contextFactory.createShippingAddressContext(command);
+        Long id = idGenerator.generate();
+        CreateShippingAddressContext context = contextFactory.createShippingAddressContext(id, command);
 
-        user.addShippingAddress(context, idGenerator);
+        user.addShippingAddress(context);
         userRepository.save(user);
     }
 

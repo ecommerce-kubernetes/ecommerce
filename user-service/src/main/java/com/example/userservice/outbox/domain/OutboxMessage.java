@@ -2,7 +2,6 @@ package com.example.userservice.outbox.domain;
 
 import com.example.userservice.common.entity.BaseEntity;
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.outbox.domain.context.CreateOutboxMessageContext;
 import com.example.userservice.outbox.exception.OutboxErrorCode;
 import jakarta.persistence.Entity;
@@ -51,11 +50,9 @@ public class OutboxMessage extends BaseEntity {
         this.status = status;
     }
 
-    public static OutboxMessage create(CreateOutboxMessageContext context, IdGenerator idGenerator) {
-        Long id = idGenerator.generate();
-
+    public static OutboxMessage create(CreateOutboxMessageContext context) {
         return OutboxMessage.builder()
-                .id(id)
+                .id(context.id())
                 .topic(context.topic())
                 .routingKey(context.routingKey())
                 .headers(context.headers())

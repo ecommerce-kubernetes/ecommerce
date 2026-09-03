@@ -21,12 +21,13 @@ public class OutboxFixtureBuilder {
 
     public OutboxMessage build() {
         CreateOutboxMessageContext context = CreateOutboxMessageContext.builder()
+                .id(ID_GENERATOR.generate())
                 .topic(topic)
                 .routingKey(routingKey)
                 .headers(headers)
                 .payload(payload)
                 .build();
 
-        return OutboxMessage.create(context, ID_GENERATOR);
+        return OutboxMessage.create(context);
     }
 }

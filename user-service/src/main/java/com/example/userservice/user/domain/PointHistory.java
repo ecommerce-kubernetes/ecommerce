@@ -2,7 +2,6 @@ package com.example.userservice.user.domain;
 
 import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.entity.BaseEntity;
-import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.domain.vo.PointCommandType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -52,9 +51,7 @@ public class PointHistory extends BaseEntity {
         this.type = type;
     }
 
-    public static PointHistory createAddHistory(IdGenerator idGenerator, Long referenceId, User user, Money amount) {
-        Long id = idGenerator.generate();
-
+    public static PointHistory createAddHistory(Long id, Long referenceId, User user, Money amount) {
         return PointHistory.builder()
                 .id(id)
                 .referenceId(referenceId)
@@ -64,9 +61,7 @@ public class PointHistory extends BaseEntity {
                 .build();
     }
 
-    public static PointHistory createDeductHistory(IdGenerator idGenerator, Long referenceId, User user, Money amount) {
-        Long id = idGenerator.generate();
-
+    public static PointHistory createDeductHistory(Long id, Long referenceId, User user, Money amount) {
         return PointHistory.builder()
                 .id(id)
                 .referenceId(referenceId)

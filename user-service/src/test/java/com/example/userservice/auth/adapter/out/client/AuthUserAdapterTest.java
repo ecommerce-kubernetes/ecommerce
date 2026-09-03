@@ -56,7 +56,7 @@ class AuthUserAdapterTest {
                 .willThrow(new BusinessException(errorCode));
         //when
         //then
-        assertThatThrownBy(() -> authUserAdapter.authenticate("email", "password"))
+        assertThatThrownBy(() -> authUserAdapter.authenticate("email", "encryptedPassword"))
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthUserPortErrorCode.INVALID_CREDENTIALS);
@@ -70,7 +70,7 @@ class AuthUserAdapterTest {
                 .willThrow(RuntimeException.class);
         //when
         //then
-        assertThatThrownBy(() -> authUserAdapter.authenticate("email", "password"))
+        assertThatThrownBy(() -> authUserAdapter.authenticate("email", "encryptedPassword"))
                 .isInstanceOf(PortException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthUserPortErrorCode.USER_SERVER_ERROR);

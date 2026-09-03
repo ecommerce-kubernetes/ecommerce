@@ -1,9 +1,7 @@
 package com.example.userservice.user.domain;
 
 import com.example.userservice.common.util.IdGenerator;
-import com.example.userservice.common.util.TsidGenerator;
 import com.example.userservice.user.domain.context.CreateUserContext;
-import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.domain.vo.Gender;
 
 import java.time.LocalDate;
@@ -11,12 +9,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class UserFixtureBuilder {
 
-    private static AtomicLong idSeq = new AtomicLong(100L);
+    private static final AtomicLong idSeq = new AtomicLong(100L);
     private static final IdGenerator ID_GENERATOR = idSeq::getAndIncrement;
-    private PasswordManager passwordManager = new FixturePasswordManager();
 
     private String email = "la9814@naver.com";
-    private String password = "password1234*";
+    private String encryptedPassword = "encrypted:password1234*";
     private String name = "김이박";
     private LocalDate birthDate = LocalDate.of(1999, 12, 25);
     private Gender gender = Gender.MALE;
@@ -41,38 +38,22 @@ public class UserFixtureBuilder {
         return this;
     }
 
-    public UserFixtureBuilder withPassword(String password) {
-        this.password = password;
-        return this;
-    }
-
-    public UserFixtureBuilder withPasswordManager(PasswordManager passwordManager) {
-        this.passwordManager = passwordManager;
+    public UserFixtureBuilder withEncryptedPassword(String encryptedPassword) {
+        this.encryptedPassword = encryptedPassword;
         return this;
     }
 
     public User build() {
         CreateUserContext context = CreateUserContext.builder()
+                .id(ID_GENERATOR.generate())
                 .email(email)
-                .password(password)
+                .encryptedPassword(encryptedPassword)
                 .name(name)
                 .birthDate(birthDate)
                 .gender(gender)
                 .phoneNumber(phoneNumber)
                 .build();
 
-        return User.create(context, passwordManager, ID_GENERATOR);
-    }
-
-    private static class FixturePasswordManager implements PasswordManager {
-        @Override
-        public String encrypt(String password) {
-            return "encrypted:" + password;
-        }
-
-        @Override
-        public boolean matches(String password, String encryptPassword) {
-            return encrypt(password).equals(encryptPassword);
-        }
+        return User.create(context);
     }
 }

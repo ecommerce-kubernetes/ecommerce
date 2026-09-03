@@ -19,9 +19,9 @@ class ShippingAddressTest {
         //given
         CreateShippingAddressContext context = aContext(true);
         //when
-        ShippingAddress shippingAddress = ShippingAddress.create(context, idGenerator, true);
+        ShippingAddress shippingAddress = ShippingAddress.create(context, true);
         //then
-        assertThat(shippingAddress.getId()).isNotNull();
+        assertThat(shippingAddress.getId()).isEqualTo(context.id());
         assertThat(shippingAddress.getReceiverName()).isEqualTo("수령인");
         assertThat(shippingAddress.getReceiverPhone()).isEqualTo("010-1234-5678");
         assertThat(shippingAddress.getZipCode()).isEqualTo("12345");
@@ -35,6 +35,7 @@ class ShippingAddressTest {
     void create_whenReceiverNameBlank_thenThrownException() {
         //given
         CreateShippingAddressContext context = CreateShippingAddressContext.builder()
+                .id(idGenerator.generate())
                 .receiverName("")
                 .receiverPhone("010-1234-5678")
                 .zipCode("12345")
@@ -44,7 +45,7 @@ class ShippingAddressTest {
                 .build();
         //when
         //then
-        assertThatThrownBy(() -> ShippingAddress.create(context, idGenerator, false))
+        assertThatThrownBy(() -> ShippingAddress.create(context, false))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -52,7 +53,7 @@ class ShippingAddressTest {
     @DisplayName("대표 배송지로 승격한다.")
     void promoteToDefault() {
         //given
-        ShippingAddress shippingAddress = ShippingAddress.create(aContext(false), idGenerator, false);
+        ShippingAddress shippingAddress = ShippingAddress.create(aContext(false), false);
         //when
         shippingAddress.promoteToDefault();
         //then
@@ -63,7 +64,7 @@ class ShippingAddressTest {
     @DisplayName("대표 배송지에서 해제한다.")
     void demoteFromDefault() {
         //given
-        ShippingAddress shippingAddress = ShippingAddress.create(aContext(true), idGenerator, true);
+        ShippingAddress shippingAddress = ShippingAddress.create(aContext(true), true);
         //when
         shippingAddress.demoteFromDefault();
         //then
@@ -72,6 +73,7 @@ class ShippingAddressTest {
 
     private CreateShippingAddressContext aContext(boolean isDefault) {
         return CreateShippingAddressContext.builder()
+                .id(idGenerator.generate())
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
                 .zipCode("12345")

@@ -118,7 +118,7 @@ class UserQueryServiceTest {
     void getUserProfile() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(), idGenerator);
+        user.addShippingAddress(aShippingAddressContext());
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         //when
         UserProfileResult result = userQueryService.getUserProfile(user.getId());
@@ -205,6 +205,7 @@ class UserQueryServiceTest {
 
     private CreateShippingAddressContext aShippingAddressContext() {
         return CreateShippingAddressContext.builder()
+                .id(idGenerator.generate())
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
                 .zipCode("12345")

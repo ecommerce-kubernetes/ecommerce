@@ -57,8 +57,8 @@ class UserCommandServiceTest {
     void create() {
         //given
         UserCreateCommand command = anUserCreateCommand().build();
-        given(userRepository.existsByEmail(command.getEmail())).willReturn(false);
-        given(passwordManager.encrypt(command.getPassword())).willReturn("encryptedPwd");
+        given(userRepository.existsByEmail(command.email())).willReturn(false);
+        given(passwordManager.encrypt(command.password())).willReturn("encryptedPwd");
         //when
         Long userId = userCommandService.createUser(command);
         //then
@@ -67,8 +67,8 @@ class UserCommandServiceTest {
         then(userRepository).should().save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getId()).isEqualTo(userId);
-        assertThat(savedUser.getEmail()).isEqualTo(command.getEmail());
-        assertThat(savedUser.getName()).isEqualTo(command.getName());
+        assertThat(savedUser.getEmail()).isEqualTo(command.email());
+        assertThat(savedUser.getName()).isEqualTo(command.name());
         assertThat(savedUser.getEncryptedPwd()).isEqualTo("encryptedPwd");
     }
 
@@ -77,7 +77,7 @@ class UserCommandServiceTest {
     void create_whenEmailAlreadyExists_thenThrownException() {
         //given
         UserCreateCommand command = anUserCreateCommand().build();
-        given(userRepository.existsByEmail(command.getEmail())).willReturn(true);
+        given(userRepository.existsByEmail(command.email())).willReturn(true);
         //when
         //then
         assertThatThrownBy(() -> userCommandService.createUser(command))
@@ -140,7 +140,7 @@ class UserCommandServiceTest {
     void deleteShippingAddress() {
         //given
         User user = UserFixtureBuilder.given().build();
-        user.addShippingAddress(aShippingAddressContext(), idGenerator);
+        user.addShippingAddress(aShippingAddressContext());
         Long shippingAddressId = user.getShippingAddresses().getFirst().getId();
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         //when
@@ -165,6 +165,7 @@ class UserCommandServiceTest {
 
     private CreateShippingAddressContext aShippingAddressContext() {
         return CreateShippingAddressContext.builder()
+                .id(idGenerator.generate())
                 .receiverName("수령인")
                 .receiverPhone("010-1234-5678")
                 .zipCode("12345")

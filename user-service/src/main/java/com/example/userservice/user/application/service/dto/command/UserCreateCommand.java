@@ -6,13 +6,13 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 
-@Getter
 @Builder
-public class UserCreateCommand {
-    private String email;
-    private String password;
-    private String name;
-    private LocalDate birthDate;
-    private Gender gender;
-    private String phoneNumber;
+public record UserCreateCommand(
+        String email,
+        String password,
+        String name,
+        LocalDate birthDate,
+        Gender gender,
+        String phoneNumber
+) {
 }

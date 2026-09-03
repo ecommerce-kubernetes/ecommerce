@@ -9,19 +9,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserContextFactory {
 
-    public CreateUserContext createUserContext(UserCreateCommand command) {
+    public CreateUserContext createUserContext(Long id, UserCreateCommand command, String encryptedPassword) {
         return CreateUserContext.builder()
-                .email(command.getEmail())
-                .password(command.getPassword())
-                .name(command.getName())
-                .birthDate(command.getBirthDate())
-                .gender(command.getGender())
-                .phoneNumber(command.getPhoneNumber())
+                .id(id)
+                .email(command.email())
+                .encryptedPassword(encryptedPassword)
+                .name(command.name())
+                .birthDate(command.birthDate())
+                .gender(command.gender())
+                .phoneNumber(command.phoneNumber())
                 .build();
     }
 
-    public CreateShippingAddressContext createShippingAddressContext(AddShippingAddressCommand command) {
+    public CreateShippingAddressContext createShippingAddressContext(Long id, AddShippingAddressCommand command) {
         return CreateShippingAddressContext.builder()
+                .id(id)
                 .receiverName(command.receiverName())
                 .receiverPhone(command.receiverPhone())
                 .zipCode(command.zipCode())

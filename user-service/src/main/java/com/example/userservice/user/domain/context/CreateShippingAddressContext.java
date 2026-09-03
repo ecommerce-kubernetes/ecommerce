@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record CreateShippingAddressContext(
+        Long id,
         String receiverName,
         String receiverPhone,
         String zipCode,

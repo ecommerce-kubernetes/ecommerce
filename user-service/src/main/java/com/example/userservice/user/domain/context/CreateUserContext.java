@@ -7,8 +7,9 @@ import java.time.LocalDate;
 
 @Builder
 public record CreateUserContext(
+        Long id,
         String email,
-        String password,
+        String encryptedPassword,
         String name,
         LocalDate birthDate,
         Gender gender,

@@ -32,10 +32,10 @@ public class PointHistoryFixtureBuilder {
     }
 
     public PointHistory buildAddHistory() {
-        return PointHistory.createAddHistory(ID_GENERATOR, referenceId, user, amount);
+        return PointHistory.createAddHistory(ID_GENERATOR.generate(), referenceId, user, amount);
     }
 
     public PointHistory buildDeductHistory() {
-        return PointHistory.createDeductHistory(ID_GENERATOR, referenceId, user, amount);
+        return PointHistory.createDeductHistory(ID_GENERATOR.generate(), referenceId, user, amount);
     }
 }

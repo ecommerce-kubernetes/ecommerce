@@ -3,10 +3,8 @@ package com.example.userservice.user.domain;
 import com.example.userservice.common.domain.vo.Money;
 import com.example.userservice.common.entity.BaseEntity;
 import com.example.userservice.common.exception.BusinessException;
-import com.example.userservice.common.util.IdGenerator;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
-import com.example.userservice.user.domain.util.PasswordManager;
 import com.example.userservice.user.domain.vo.Gender;
 import com.example.userservice.user.domain.vo.Role;
 import com.example.userservice.user.exception.UserErrorCode;
@@ -79,15 +77,12 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public static User create(CreateUserContext context, PasswordManager passwordManager, IdGenerator idGenerator) {
-        Long id = idGenerator.generate();
-        String encryptPassword = passwordManager.encrypt(context.password());
-
+    public static User create(CreateUserContext context) {
         return User.builder()
-                .id(id)
+                .id(context.id())
                 .email(context.email())
                 .name(context.name())
-                .encryptedPwd(encryptPassword)
+                .encryptedPwd(context.encryptedPassword())
                 .gender(context.gender())
                 .birthDate(context.birthDate())
                 .point(Money.ZERO)
@@ -96,7 +91,7 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    public void addShippingAddress(CreateShippingAddressContext context, IdGenerator idGenerator) {
+    public void addShippingAddress(CreateShippingAddressContext context) {
         boolean shouldBeDefault = context.isDefault() ||
                 this.shippingAddresses.isEmpty() ||
                 this.shippingAddresses.stream().noneMatch(ShippingAddress::isDefault);
@@ -108,7 +103,7 @@ public class User extends BaseEntity {
             }
         }
 
-        ShippingAddress shippingAddress = ShippingAddress.create(context, idGenerator, shouldBeDefault);
+        ShippingAddress shippingAddress = ShippingAddress.create(context, shouldBeDefault);
         addShippingAddress(shippingAddress);
     }
 

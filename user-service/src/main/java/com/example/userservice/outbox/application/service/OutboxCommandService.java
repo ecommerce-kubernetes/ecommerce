@@ -23,7 +23,10 @@ public class OutboxCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     public void createOutbox(CreateOutboxMessageContext context) {
-        OutboxMessage outboxMessage = OutboxMessage.create(context, idGenerator);
+        Long id = idGenerator.generate();
+        CreateOutboxMessageContext contextWithId = context.toBuilder().id(id).build();
+
+        OutboxMessage outboxMessage = OutboxMessage.create(contextWithId);
 
         OutboxMessage savedOutbox = outboxRepository.save(outboxMessage);
 
