@@ -6,7 +6,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-import static com.example.product_service.api.product.domain.model.QProduct.product;
+import static com.example.product_service.product.domain.model.QProduct.product;
 
 public class ProductQueryMapper {
 
