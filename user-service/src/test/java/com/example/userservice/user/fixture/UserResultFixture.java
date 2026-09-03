@@ -5,7 +5,7 @@ import com.example.userservice.user.application.service.dto.result.EmailAvailabl
 import com.example.userservice.user.application.service.dto.result.UserBalanceResult;
 import com.example.userservice.user.application.service.dto.result.UserIdentityResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 
 public class UserResultFixture {
 

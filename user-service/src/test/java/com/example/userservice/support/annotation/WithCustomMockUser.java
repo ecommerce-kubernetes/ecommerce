@@ -1,7 +1,7 @@
 package com.example.userservice.support.annotation;
 
 import com.example.userservice.support.security.WithCustomMockUserSecurityContextFactory;
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 import java.lang.annotation.Retention;

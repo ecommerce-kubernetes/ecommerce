@@ -1,6 +1,6 @@
 package com.example.userservice.auth.application.port.dto;
 
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 import lombok.Builder;
 
 @Builder

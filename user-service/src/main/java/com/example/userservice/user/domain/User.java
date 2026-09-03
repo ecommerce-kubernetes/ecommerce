@@ -6,7 +6,7 @@ import com.example.userservice.common.exception.BusinessException;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
 import com.example.userservice.user.domain.context.CreateUserContext;
 import com.example.userservice.user.domain.vo.Gender;
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 import com.example.userservice.user.exception.UserErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

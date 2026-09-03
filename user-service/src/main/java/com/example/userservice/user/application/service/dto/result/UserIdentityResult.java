@@ -1,7 +1,7 @@
 package com.example.userservice.user.application.service.dto.result;
 
 import com.example.userservice.user.domain.User;
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 import lombok.Builder;
 
 @Builder

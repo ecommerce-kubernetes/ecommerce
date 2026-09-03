@@ -1,7 +1,7 @@
 package com.example.userservice.common.security.filter;
 
 import com.example.userservice.common.security.model.UserPrincipal;
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.example.userservice.user.domain.vo;
+package com.example.userservice.common.domain.vo;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

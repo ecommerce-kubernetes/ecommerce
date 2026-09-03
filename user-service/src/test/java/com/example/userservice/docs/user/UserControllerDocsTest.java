@@ -10,7 +10,7 @@ import com.example.userservice.user.application.service.UserQueryService;
 import com.example.userservice.user.application.service.dto.command.AddShippingAddressCommand;
 import com.example.userservice.user.application.service.dto.command.UserCreateCommand;
 import com.example.userservice.user.application.service.dto.result.EmailAvailableResult;
-import com.example.userservice.user.domain.vo.Role;
+import com.example.userservice.common.domain.vo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
