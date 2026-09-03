@@ -12,7 +12,7 @@ import com.example.userservice.user.application.service.dto.result.UserProfileRe
 import com.example.userservice.user.domain.User;
 import com.example.userservice.user.domain.UserFixtureBuilder;
 import com.example.userservice.user.domain.context.CreateShippingAddressContext;
-import com.example.userservice.user.domain.util.PasswordManager;
+import com.example.userservice.user.application.port.PasswordManager;
 import com.example.userservice.user.exception.UserErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

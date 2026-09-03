@@ -1,4 +1,4 @@
-package com.example.userservice.user.domain.util;
+package com.example.userservice.user.application.port;
 
 public interface PasswordManager {
     String encrypt(String password);

@@ -1,6 +1,6 @@
 package com.example.userservice.user.adapter.out.security;
 
-import com.example.userservice.user.domain.util.PasswordManager;
+import com.example.userservice.user.application.port.PasswordManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

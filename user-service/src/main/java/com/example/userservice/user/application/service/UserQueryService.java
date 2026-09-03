@@ -7,7 +7,7 @@ import com.example.userservice.user.application.service.dto.result.UserBalanceRe
 import com.example.userservice.user.application.service.dto.result.UserIdentityResult;
 import com.example.userservice.user.application.service.dto.result.UserProfileResult;
 import com.example.userservice.user.domain.User;
-import com.example.userservice.user.domain.util.PasswordManager;
+import com.example.userservice.user.application.port.PasswordManager;
 import com.example.userservice.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
