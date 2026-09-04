@@ -1,7 +1,7 @@
 package com.example.product_service.product.adapter.in.web.dto.response;
 
-import com.example.product_service.product.domain.model.ProductStatus;
 import com.example.product_service.product.application.service.dto.result.ProductResult;
+import com.example.product_service.product.domain.model.ProductStatus;
 import lombok.Builder;
 
 import java.util.List;

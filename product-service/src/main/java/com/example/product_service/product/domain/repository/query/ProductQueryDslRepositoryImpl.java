@@ -1,8 +1,8 @@
 package com.example.product_service.product.domain.repository.query;
 
+import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.product.domain.model.Product;
 import com.example.product_service.product.domain.model.ProductStatus;
-import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

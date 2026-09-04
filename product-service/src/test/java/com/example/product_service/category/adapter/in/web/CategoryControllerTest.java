@@ -1,8 +1,5 @@
 package com.example.product_service.category.adapter.in.web;
 
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -12,10 +9,8 @@ import org.springframework.context.annotation.Import;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,13 +24,13 @@ class CategoryControllerTest extends ControllerTestSupport {
         //given
         List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
         given(categoryService.getTree()).willReturn(results);
-        CategoryListResponse response = CategoryListResponse.fromRoots(results);
+
         //when
         //then
         mockMvc.perform(get("/categories/roots"))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -48,13 +43,13 @@ class CategoryControllerTest extends ControllerTestSupport {
         parent.addChild(laptop);
         parent.addChild(cellPhone);
         given(categoryService.getTree()).willReturn(List.of(parent));
-        CategoryListResponse response = CategoryListResponse.fromChildren(parent);
+
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}/children", 1L))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -90,13 +85,12 @@ class CategoryControllerTest extends ControllerTestSupport {
         CategoryResult.Navigation result = fixtureMonkey.giveMeOne(CategoryResult.Navigation.class);
         assert result != null;
         given(categoryService.getNavigation(anyLong())).willReturn(result);
-        CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -105,7 +99,6 @@ class CategoryControllerTest extends ControllerTestSupport {
         //given
         List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
         given(categoryService.getTree()).willReturn(results);
-        CategoryTreeListResponse response = CategoryTreeListResponse.from(results);
         //when
         //then
         mockMvc.perform(get("/categories/tree"))

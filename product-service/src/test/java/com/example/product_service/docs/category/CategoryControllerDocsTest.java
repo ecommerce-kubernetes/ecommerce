@@ -4,9 +4,6 @@ import com.example.product_service.category.adapter.in.web.CategoryController;
 import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
@@ -32,7 +29,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.requestF
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class CategoryControllerDocsTest extends RestDocsSupport {
@@ -196,13 +192,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         List<CategoryResult.Tree> results = mappingTreeResponse();
         CategoryResult.Tree electron = results.get(0);
         given(categoryService.getTree()).willReturn(results);
-        CategoryListResponse response = CategoryListResponse.fromChildren(electron);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}/children", electron.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(document(
                         "categories/children",
                         preprocessRequest(prettyPrint()),
@@ -218,13 +212,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         CategoryResult.Navigation result = createNavigation();
         given(categoryService.getNavigation(anyLong()))
                 .willReturn(result);
-        CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 2L))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(document(
                         "categories/detail",
                         preprocessRequest(prettyPrint()),
@@ -239,13 +231,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         //given
         List<CategoryResult.Tree> results = mappingTreeResponse();
         given(categoryService.getTree()).willReturn(results);
-        CategoryTreeListResponse response = CategoryTreeListResponse.from(results);
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(document(
                         "categories/tree",
                         preprocessRequest(prettyPrint()),

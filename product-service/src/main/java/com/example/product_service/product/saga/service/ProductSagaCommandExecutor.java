@@ -2,10 +2,10 @@ package com.example.product_service.product.saga.service;
 
 import com.example.common.product.ProductCommandType;
 import com.example.common.product.ProductSagaCommand;
-import com.example.product_service.product.saga.domain.model.ProcessedSagaEvent;
-import com.example.product_service.product.saga.domain.repository.ProcessedSagaEventRepository;
 import com.example.product_service.product.application.service.VariantService;
 import com.example.product_service.product.application.service.dto.command.VariantStockCommand;
+import com.example.product_service.product.saga.domain.model.ProcessedSagaEvent;
+import com.example.product_service.product.saga.domain.repository.ProcessedSagaEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,23 +1,8 @@
 package com.example.product_service.product.adapter.in.web;
 
 import com.example.product_service.common.dto.PageDto;
-import com.example.product_service.product.adapter.in.web.dto.request.AddProductDescriptionImageRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.AddProductImageRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.AddProductVariantRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.CreateProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.RegisterProductOptionRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.SearchProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.UpdateProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.response.AddProductDescriptionImageResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.AddProductImageResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.AddProductVariantResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.CloseProductResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.CreateProductResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.ProductDetailResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.ProductSummaryResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.PublishProductResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.RegisterProductOptionResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.UpdateProductResponse;
+import com.example.product_service.product.adapter.in.web.dto.request.*;
+import com.example.product_service.product.adapter.in.web.dto.response.*;
 import com.example.product_service.product.application.service.ProductService;
 import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.product.application.service.dto.result.ProductResult;

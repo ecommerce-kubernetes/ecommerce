@@ -2,10 +2,10 @@ package com.example.product_service.product.application.service;
 
 import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.common.exception.ProductErrorCode;
-import com.example.product_service.product.domain.model.ProductVariant;
-import com.example.product_service.product.domain.repository.ProductVariantRepository;
 import com.example.product_service.product.application.service.dto.command.VariantStockCommand;
 import com.example.product_service.product.application.service.dto.result.InternalVariantResponse;
+import com.example.product_service.product.domain.model.ProductVariant;
+import com.example.product_service.product.domain.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

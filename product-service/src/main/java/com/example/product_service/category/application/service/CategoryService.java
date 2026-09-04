@@ -1,9 +1,9 @@
 package com.example.product_service.category.application.service;
 
-import com.example.product_service.category.domain.model.Category;
-import com.example.product_service.category.domain.repository.CategoryRepository;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.domain.model.Category;
+import com.example.product_service.category.domain.repository.CategoryRepository;
 import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.common.exception.CategoryErrorCode;
 import com.example.product_service.product.domain.repository.ProductRepository;
