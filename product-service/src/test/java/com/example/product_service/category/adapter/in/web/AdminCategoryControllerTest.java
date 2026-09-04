@@ -154,9 +154,10 @@ class AdminCategoryControllerTest {
     @WithCustomMockUser
     void deleteCategory() throws Exception {
         //given
+        Long categoryId = 1L;
         //when
         //then
-        mockMvc.perform(delete("/admin/categories/{categoryId}", 1L)
+        mockMvc.perform(delete("/admin/categories/{categoryId}", categoryId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
