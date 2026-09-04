@@ -65,7 +65,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResult.Detail updateCategory(CategoryCommand.Update command) {
+    public Long updateCategory(CategoryCommand.Update command) {
         Category category = findCategoryOrThrow(command.id());
         if (StringUtils.hasText(command.name())) {
             validateDuplicateName(category.getParent(), command.name());
@@ -75,7 +75,7 @@ public class CategoryService {
         if (command.imagePath() != null) {
             category.changeImage(command.imagePath());
         }
-        return CategoryResult.Detail.from(category);
+        return category.getId();
     }
 
     @Transactional

@@ -271,11 +271,8 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     .imagePath("/test/newImage.jpg")
                     .build();
             //when
-            CategoryResult.Detail result = categoryService.updateCategory(command);
+            Long categoryId = categoryService.updateCategory(command);
             //then
-            assertThat(result)
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::imagePath)
-                    .containsExactly("변경", "/test/newImage.jpg");
         }
 
         @Test

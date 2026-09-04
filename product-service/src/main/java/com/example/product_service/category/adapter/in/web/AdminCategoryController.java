@@ -29,8 +29,8 @@ public class AdminCategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreateCategoryResponse> saveCategory(@RequestBody @Validated CreateCategoryRequest request) {
         CategoryCommand.Create command = request.toCommand();
-        Long categoryId = categoryService.saveCategory(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CreateCategoryResponse.of(categoryId));
+        Long id = categoryService.saveCategory(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(CreateCategoryResponse.of(id));
     }
 
     @PatchMapping("/categories/{categoryId}")
@@ -38,8 +38,8 @@ public class AdminCategoryController {
     public ResponseEntity<UpdateCategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                  @RequestBody @Validated UpdateCategoryRequest request) {
         CategoryCommand.Update command = request.toCommand(categoryId);
-        CategoryResult.Detail result = categoryService.updateCategory(command);
-        return ResponseEntity.ok(UpdateCategoryResponse.from(result));
+        Long id = categoryService.updateCategory(command);
+        return ResponseEntity.ok(UpdateCategoryResponse.of(id));
     }
 
     @PatchMapping("/categories/{categoryId}/move")

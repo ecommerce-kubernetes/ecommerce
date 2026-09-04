@@ -170,15 +170,9 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .imagePath("/test/image.jpg")
                 .build();
 
-        CategoryResult.Detail result = CategoryResult.Detail.builder()
-                .id(1L)
-                .name("새 카테고리")
-                .parentId(null)
-                .depth(1)
-                .imagePath("/test/image.jpg")
-                .build();
+        Long categoryId = 1L;
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(result);
+        given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(categoryId);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)

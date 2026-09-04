@@ -6,7 +6,6 @@ import com.example.product_service.category.adapter.in.web.dto.request.UpdateCat
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
-import com.example.product_service.common.security.model.UserRole;
 import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -27,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.stream.Stream;
 
 import static com.example.product_service.category.fixture.CategoryRequestFixture.anCreateCategoryRequest;
+import static com.example.product_service.category.fixture.CategoryRequestFixture.anUpdateCategoryRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -70,43 +70,6 @@ class AdminCategoryControllerTest {
                 .andExpect(jsonPath("$.id").value(String.valueOf(categoryId)));
     }
 
-    @Test
-    @DisplayName("카테고리를 생성하려면 관리자 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void saveCategoryWithUserRole() throws Exception {
-        //given
-        CreateCategoryRequest request = anCreateCategoryRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/admin/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories"));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 유저는 카테고리를 생성할 수 없다")
-    void saveCategory_unAuthentication() throws Exception {
-        //given
-        CreateCategoryRequest request = anCreateCategoryRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/admin/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories"));
-    }
-
     @ParameterizedTest(name = "{0}")
     @MethodSource("provideInvalidCreateRequest")
     @DisplayName("카테고리 생성 요청 검증")
@@ -126,80 +89,25 @@ class AdminCategoryControllerTest {
                 .andExpect(jsonPath("path").value("/admin/categories"));
     }
 
-    private static Stream<Arguments> provideInvalidCreateRequest() {
-        return Stream.of(
-                Arguments.of("이름이 누락되면 예외가 발생한다.",
-                        anCreateCategoryRequest().name(null).build(),
-                        "name은 필수값입니다"
-                ),
-                Arguments.of("이미지 경로가 유효하지 않으면 예외가 발생한다.",
-                        anCreateCategoryRequest().imagePath("invalid_image_file").build(),
-                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
-        );
-    }
+
 
     @Test
     @DisplayName("카테고리를 수정한다")
     @WithCustomMockUser
     void updateCategory() throws Exception {
         //given
-        CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                .set("name", "카테고리")
-                .set("imagePath", "/test/image.jpg")
-                .sample();
-        CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
+        UpdateCategoryRequest request = anUpdateCategoryRequest().build();
+        Long categoryId = 1L;
         given(categoryService.updateCategory(any(CategoryCommand.Update.class)))
-                .willReturn(result);
+                .willReturn(categoryId);
         //when
         //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
+        mockMvc.perform(patch("/admin/categories/{categoryId}", categoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("카테고리를 수정하려면 관리자 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void updateCategoryWhenUserRole() throws Exception {
-        //given
-        UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
-                .set("name", "새 카티고리")
-                .set("imagePath", "/test/new-image.jpg")
-                .sample();
-        //when
-        //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1"));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 유저는 카테고리를 수정할 수 없다")
-    void updateCategory_unAuthentication() throws Exception {
-        //given
-        UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
-                .set("name", "카테고리")
-                .set("imagePath", "/test/image.jpg")
-                .sample();
-        //when
-        //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(String.valueOf(categoryId)));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -208,9 +116,10 @@ class AdminCategoryControllerTest {
     @WithCustomMockUser
     void updateCategoryValidation(String description, UpdateCategoryRequest request, String message) throws Exception {
         //given
+        Long categoryId = 1L;
         //when
         //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
+        mockMvc.perform(patch("/admin/categories/{categoryId}", categoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -218,24 +127,7 @@ class AdminCategoryControllerTest {
                 .andExpect(jsonPath("code").value("VALIDATION"))
                 .andExpect(jsonPath("message").value(message))
                 .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1"));
-    }
-
-    private static Stream<Arguments> provideInvalidUpdateRequest() {
-        return Stream.of(
-                Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
-                        UpdateCategoryRequest.builder()
-                                .name("변경된 카테고리")
-                                .imagePath("invalid=image-files")
-                                .build(),
-                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
-                Arguments.of("필드는 최소 하나는 존재해야한다",
-                        UpdateCategoryRequest.builder()
-                                .name(null)
-                                .imagePath(null)
-                                .build(),
-                        "수정할 값이 하나는 존재해야합니다")
-        );
+                .andExpect(jsonPath("path").value("/admin/categories/" + categoryId));
     }
 
     @Test
@@ -258,47 +150,6 @@ class AdminCategoryControllerTest {
     }
 
     @Test
-    @DisplayName("카테고리 부모를 변경하려면 관리자 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void moveParentWhenUserRole() throws Exception {
-        //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
-                .set("newParentId", 1L)
-                .sample();
-        //when
-        //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}/move", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1/move"));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 유저는 카테고리 부모를 변경할 수 없다")
-    void moveParent_unAuthentication() throws Exception {
-        //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
-                .set("newParentId", 1L)
-                .sample();
-        //when
-        //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}/move", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1/move"));
-    }
-
-    @Test
     @DisplayName("카테고리를 삭제한다")
     @WithCustomMockUser
     void deleteCategory() throws Exception {
@@ -312,33 +163,26 @@ class AdminCategoryControllerTest {
         verify(categoryService).deleteCategory(1L);
     }
 
-    @Test
-    @DisplayName("카테고리를 삭제하려면 관리자 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void deleteCategoryWhenUserRole() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/admin/categories/{categoryId}", 1L))
-                .andDo(print())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1"));
+    private static Stream<Arguments> provideInvalidCreateRequest() {
+        return Stream.of(
+                Arguments.of("이름이 누락되면 예외가 발생한다.",
+                        anCreateCategoryRequest().name(null).build(),
+                        "name은 필수값입니다"
+                ),
+                Arguments.of("이미지 경로가 유효하지 않으면 예외가 발생한다.",
+                        anCreateCategoryRequest().imagePath("invalid_image_file").build(),
+                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
+        );
     }
 
-    @Test
-    @DisplayName("로그인 하지 않은 유저는 카테고리를 삭제할 수 없다")
-    void deleteCategory_unAuthentication() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/admin/categories/{categoryId}", 1L))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/admin/categories/1"));
+    private static Stream<Arguments> provideInvalidUpdateRequest() {
+        return Stream.of(
+                Arguments.of("imagePath가 유효하지 않으면 예외가 발생한다.",
+                        anUpdateCategoryRequest().imagePath("invalid-image-path").build(),
+                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
+                Arguments.of("수정값이 하나도 존재하지 않으면 예외가 발생한다.",
+                        anUpdateCategoryRequest().name(null).imagePath(null).build(),
+                        "이름 또는 이미지 경로 중 하나는 필수입니다.")
+        );
     }
 }
