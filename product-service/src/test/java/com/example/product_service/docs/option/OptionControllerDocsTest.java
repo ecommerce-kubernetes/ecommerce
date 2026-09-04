@@ -33,10 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class OptionControllerDocsTest extends RestDocsSupport {
     OptionService optionService = Mockito.mock(OptionService.class);
-    @Override
-    protected String getTag() {
-        return "Option";
-    }
 
     @Override
     protected Object initController() {

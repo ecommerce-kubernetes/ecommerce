@@ -45,10 +45,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {
     protected MockMvc mockMvc;
-    protected ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    protected FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
+    protected ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @BeforeEach
     void setUp(RestDocumentationContextProvider provider) {
@@ -59,104 +56,23 @@ public abstract class RestDocsSupport {
                 .build();
     }
 
-    protected abstract String getTag();
-
-    protected static final HeaderDescriptor[] AUTH_HEADER = new HeaderDescriptor[]{
-            headerWithName("Authorization").description("JWT Access Token")
-    };
-
-    private RestDocumentationResultHandler createDocument(
-            String identifier, String summary, String description,
-            HeaderDescriptor[] requestHeaders,
-            FieldDescriptor[] requestFields,
-            FieldDescriptor[] responseFields,
-            ParameterDescriptor... pathParameters) {
-        List<Snippet> snippets = new ArrayList<>();
-        snippets.add(resource(ResourceSnippetParameters.builder()
-                .tag(getTag())
-                .summary(summary)
-                .description(description)
-                .requestHeaders(requestHeaders)
-                .pathParameters(pathParameters)
-                .requestFields(requestFields)
-                .responseFields(responseFields)
-                .build()));
-        if (requestHeaders.length > 0) snippets.add(requestHeaders(requestHeaders));
-        if (pathParameters.length > 0) snippets.add(pathParameters(pathParameters));
-        if (requestFields.length > 0) snippets.add(requestFields(requestFields));
-        if (responseFields.length > 0) snippets.add(responseFields(responseFields));
-        return document(
-                identifier,
-                preprocessRequest(prettyPrint(), modifyHeaders().remove("X-User-Id").remove("X-User-Role")),
-                preprocessResponse(prettyPrint()),
-                snippets.toArray(new Snippet[0])
-        );
-    }
-
-    protected RestDocumentationResultHandler createSecuredDocument(
-            String identifier, String summary, String description,
-            FieldDescriptor[] requestFields,
-            FieldDescriptor[] responseFields,
-            ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER, requestFields, responseFields, pathParameters);
-    }
-
-    protected RestDocumentationResultHandler createSecuredDocument(
-            String identifier, String summary, String description,
-            ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER,new FieldDescriptor[0], new FieldDescriptor[0], pathParameters);
-    }
-
-    protected RestDocumentationResultHandler createSecuredDocument(
-            String identifier, String summary, String description,
-            FieldDescriptor[] responseFields,
-            ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], responseFields, pathParameters);
-    }
-
-
-    protected RestDocumentationResultHandler createPublicDocument(
-            String identifier, String summary, String description,
-            FieldDescriptor[] responseFields,
-            ParameterDescriptor... pathParameters) {
-
-        return createDocument(identifier, summary, description, new HeaderDescriptor[0], new FieldDescriptor[0], responseFields, pathParameters);
-    }
-
     protected abstract Object initController();
 
     protected HandlerMethodArgumentResolver[] getArgumentResolvers() {
         return new HandlerMethodArgumentResolver[]{
                 new PageableHandlerMethodArgumentResolver(),
-                new MockUserPrincipalArgumentResolver()
         };
     }
 
-    static class MockUserPrincipalArgumentResolver implements HandlerMethodArgumentResolver {
-        @Override
-        public boolean supportsParameter(MethodParameter parameter) {
-            return UserPrincipal.class.isAssignableFrom(parameter.getParameterType());
-        }
+    protected static final HeaderDescriptor[] AUTH_HEADER = new HeaderDescriptor[]{
+            headerWithName("Authorization").description("인증 토큰")
+    };
 
-        @Override
-        public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-            HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
-            String userId = request.getHeader("X-User-Id");
-            String userRole = request.getHeader("X-User-Role");
-
-            if (userId == null) {
-                return null;
-            }
-
-            return UserPrincipal.of(Long.parseLong(userId), UserRole.valueOf(userRole));
-        }
-    }
-
-    protected HttpHeaders createAdminHeader(){
+    protected HttpHeaders createAuthHeader(String role){
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer test-access-token");
         headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", "ROLE_ADMIN");
+        headers.add("X-User-Role", role);
         return headers;
     }
 }

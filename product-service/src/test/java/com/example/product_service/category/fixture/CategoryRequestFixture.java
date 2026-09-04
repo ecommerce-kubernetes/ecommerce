@@ -8,6 +8,7 @@ public class CategoryRequestFixture {
     public static CreateCategoryRequest.CreateCategoryRequestBuilder anCreateCategoryRequest() {
         return CreateCategoryRequest.builder()
                 .name("전자기기")
+                .parentId(2L)
                 .imagePath("/product/electronics.jpg");
     }
 
