@@ -7,7 +7,7 @@ import lombok.Builder;
 public record MoveCategoryResponse(
         Long id
 ) {
-    public static MoveCategoryResponse from(CategoryResult.Detail result) {
-        return new MoveCategoryResponse(result.id());
+    public static MoveCategoryResponse of(Long categoryId) {
+        return new MoveCategoryResponse(categoryId);
     }
 }

@@ -348,13 +348,9 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
             Category root2 = setupCategory("식품", null);
             //when
-            CategoryResult.Detail result = categoryService.moveParent(target.getId(), root2.getId());
+            Long categoryId = categoryService.moveParent(target.getId(), root2.getId());
             //then
-            assertThat(result)
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth)
-                    .containsExactly("컴퓨터", root2.getId(), 2);
-
-            Category updatedChild = categoryRepository.findById(child.getId()).orElseThrow();
+            Category updatedChild = categoryRepository.findById(categoryId).orElseThrow();
             assertThat(updatedChild.getPath())
                     .isEqualTo(root2.getId() + "/" + target.getId() + "/" + child.getId());
         }
@@ -366,13 +362,9 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category root = setupCategory("전자", null);
             Category target = setupCategory("노트북", root);
             //when
-            CategoryResult.Detail result = categoryService.moveParent(target.getId(), null);
+            Long categoryId = categoryService.moveParent(target.getId(), null);
             //then
-            assertThat(result)
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth)
-                    .containsExactly("노트북", null, 1);
-
-            Category find = categoryRepository.findById(target.getId()).orElseThrow();
+            Category find = categoryRepository.findById(categoryId).orElseThrow();
             assertThat(find.getPath()).isEqualTo(String.valueOf(find.getId()));
         }
 

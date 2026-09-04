@@ -5,12 +5,9 @@ import com.example.product_service.category.adapter.in.web.dto.request.MoveCateg
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
-import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,8 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.stream.Stream;
 
-import static com.example.product_service.category.fixture.CategoryRequestFixture.anCreateCategoryRequest;
-import static com.example.product_service.category.fixture.CategoryRequestFixture.anUpdateCategoryRequest;
+import static com.example.product_service.category.fixture.CategoryRequestFixture.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -40,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestSecurityConfig.class)
 @WebMvcTest(controllers = AdminCategoryController.class)
 class AdminCategoryControllerTest {
-    protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -89,8 +84,6 @@ class AdminCategoryControllerTest {
                 .andExpect(jsonPath("path").value("/admin/categories"));
     }
 
-
-
     @Test
     @DisplayName("카테고리를 수정한다")
     @WithCustomMockUser
@@ -135,18 +128,16 @@ class AdminCategoryControllerTest {
     @WithCustomMockUser
     void moveParent() throws Exception {
         //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
-                .set("newParentId", 1L)
-                .sample();
-        CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
-        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
+        Long categoryId = 1L;
+        MoveCategoryRequest request = anMoveCategoryRequest().build();
+        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(categoryId);
         //when
         //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}/move", 1L)
+        mockMvc.perform(patch("/admin/categories/{categoryId}/move", categoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(jsonPath("$.id").value(categoryId));
     }
 
     @Test

@@ -79,13 +79,13 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResult.Detail moveParent(Long categoryId, Long parentId) {
+    public Long moveParent(Long categoryId, Long parentId) {
         // 카테고리 조회
         Category category = findCategoryOrThrow(categoryId);
         Category parent = getValidatedParent(parentId);
         validateDuplicateName(parent, category.getName());
         category.moveParent(parent);
-        return CategoryResult.Detail.from(category);
+        return category.getId();
     }
 
     @Transactional

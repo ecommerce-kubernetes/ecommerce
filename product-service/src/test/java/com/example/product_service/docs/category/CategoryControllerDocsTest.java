@@ -197,16 +197,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         MoveCategoryRequest request = MoveCategoryRequest.builder()
                 .newParentId(1L)
                 .build();
-        CategoryResult.Detail result = CategoryResult.Detail.builder()
-                .id(2L)
-                .name("자식 카테고리")
-                .parentId(1L)
-                .depth(2)
-                .imagePath("/test/image.jpg")
-                .build();
+
+        Long categoryId = 1L;
 
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
+        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(categoryId);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}/move", 2L)
@@ -275,7 +270,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
     private CategoryResult.Tree createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
                                                           String imagePath) {
-
         return CategoryResult.Tree.builder()
                 .id(id)
                 .name(name)
@@ -284,7 +278,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .imagePath(imagePath)
                 .build();
     }
-
 
     private CategoryResult.Detail.DetailBuilder createCategoryResponse() {
         return CategoryResult.Detail.builder()

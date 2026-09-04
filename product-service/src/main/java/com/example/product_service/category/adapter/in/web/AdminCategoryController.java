@@ -8,7 +8,6 @@ import com.example.product_service.category.adapter.in.web.dto.response.MoveCate
 import com.example.product_service.category.adapter.in.web.dto.response.UpdateCategoryResponse;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -46,8 +45,8 @@ public class AdminCategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MoveCategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
                                                            @RequestBody @Validated MoveCategoryRequest request) {
-        CategoryResult.Detail result = categoryService.moveParent(categoryId, request.newParentId());
-        return ResponseEntity.ok(MoveCategoryResponse.from(result));
+        Long id = categoryService.moveParent(categoryId, request.newParentId());
+        return ResponseEntity.ok(MoveCategoryResponse.of(id));
     }
 
     @DeleteMapping("/categories/{categoryId}")
