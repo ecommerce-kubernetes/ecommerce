@@ -1,29 +1,16 @@
 package com.example.product_service.category.adapter.in.web;
 
-import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryIdResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
-import com.example.product_service.common.security.model.UserRole;
 import com.example.product_service.support.ControllerTestSupport;
-import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;

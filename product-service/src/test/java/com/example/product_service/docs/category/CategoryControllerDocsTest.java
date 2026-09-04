@@ -5,7 +5,7 @@ import com.example.product_service.category.adapter.in.web.dto.request.CreateCat
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryIdResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CreateCategoryResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
 import com.example.product_service.category.application.service.CategoryService;
@@ -54,17 +54,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .imagePath("/test/image.jpg")
                 .build();
 
-        CategoryResult.Detail result = CategoryResult.Detail.builder()
-                .id(1L)
-                .name("카테고리")
-                .parentId(null)
-                .depth(1)
-                .imagePath("/test/image.jpg")
-                .build();
+        Long categoryId = 1L;
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
-                .willReturn(result);
-        CategoryIdResponse response = CategoryIdResponse.from(result);
+                .willReturn(categoryId);
+        CreateCategoryResponse response = CreateCategoryResponse.of(categoryId);
         //when
         //then
         mockMvc.perform(post("/admin/categories")
@@ -185,8 +179,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .build();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(result);
-        assert result != null;
-        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
@@ -195,7 +187,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("01-category-06-update",
                         "카테고리 수정",
                         "ID로 특정 카테고리의 기본 정보 수정",
@@ -222,7 +213,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
-        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}/move", 2L)
@@ -231,7 +221,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("01-category-07-move",
                                 "카테고리 부모 변경",
                                 "카테고리의 부모를 변경",

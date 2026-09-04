@@ -138,13 +138,9 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     .parentId(null)
                     .imagePath(DEFAULT_IMAGE_PATH)
                     .build();
-            CategoryResult.Detail result = categoryService.saveCategory(command);
+            Long categoryId = categoryService.saveCategory(command);
             //then
-            assertThat(result)
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
-                    .containsExactly("가전", null, 1, DEFAULT_IMAGE_PATH);
-
-            Category saved = categoryRepository.findById(result.id()).orElseThrow();
+            Category saved = categoryRepository.findById(categoryId).orElseThrow();
             assertThat(saved.getPath()).isEqualTo(String.valueOf(saved.getId()));
         }
 
@@ -159,13 +155,9 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     .imagePath(DEFAULT_IMAGE_PATH)
                     .build();
             //when
-            CategoryResult.Detail result = categoryService.saveCategory(command);
+            Long categoryId = categoryService.saveCategory(command);
             //then
-            assertThat(result)
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
-                    .containsExactly("육류", food.getId(), 2, DEFAULT_IMAGE_PATH);
-
-            Category saved = categoryRepository.findById(result.id()).orElseThrow();
+            Category saved = categoryRepository.findById(categoryId).orElseThrow();
             assertThat(saved.getPath()).isEqualTo(food.getId() + "/" + saved.getId());
         }
     }

@@ -4,10 +4,11 @@ import com.example.product_service.category.application.service.dto.result.Categ
 import lombok.Builder;
 
 @Builder
-public record CategoryIdResponse(
+public record UpdateCategoryResponse(
         Long id
 ) {
-    public static CategoryIdResponse from(CategoryResult.Detail result) {
-        return new CategoryIdResponse(result.id());
+
+    public static UpdateCategoryResponse from(CategoryResult.Detail result) {
+        return new UpdateCategoryResponse(result.id());
     }
 }

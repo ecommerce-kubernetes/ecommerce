@@ -11,6 +11,17 @@ import java.util.List;
 public class CategoryResult {
 
     @Builder
+    public record Create(
+            Long id
+    ) {
+        public static Create from(Category category) {
+            return Create.builder()
+                    .id(category.getId())
+                    .build();
+        }
+    }
+
+    @Builder
     public record Detail(
             Long id,
             String name,

@@ -30,13 +30,13 @@ public class CategoryService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public CategoryResult.Detail saveCategory(CategoryCommand.Create command) {
+    public Long saveCategory(CategoryCommand.Create command) {
         Category parent = getValidatedParent(command.parentId());
         validateDuplicateName(parent, command.name().trim());
         Category category = Category.create(command.name(), parent, command.imagePath());
         categoryRepository.save(category);
         category.generatePath();
-        return CategoryResult.Detail.from(category);
+        return category.getId();
     }
 
     public CategoryResult.Detail getCategory(Long categoryId) {

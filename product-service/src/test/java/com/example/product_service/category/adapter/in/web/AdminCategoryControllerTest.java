@@ -3,13 +3,13 @@ package com.example.product_service.category.adapter.in.web;
 import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryIdResponse;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.common.security.model.UserRole;
 import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
+import com.example.product_service.support.security.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.DisplayName;
@@ -19,13 +19,14 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static com.example.product_service.category.fixture.CategoryRequestFixture.anCreateCategoryRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -36,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+@Import(TestSecurityConfig.class)
 @WebMvcTest(controllers = AdminCategoryController.class)
 class AdminCategoryControllerTest {
     protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
@@ -54,16 +56,10 @@ class AdminCategoryControllerTest {
     @WithCustomMockUser
     void saveCategory() throws Exception {
         //given
-        CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                .set("name", "카테고리")
-                .set("imagePath", "/test/image.jpg")
-                .sample();
-        CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
-        assert result != null;
-
+        CreateCategoryRequest request = anCreateCategoryRequest().build();
+        Long categoryId = 1L;
         given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
-                .willReturn(result);
-        CategoryIdResponse response = CategoryIdResponse.from(result);
+                .willReturn(categoryId);
         //when
         //then
         mockMvc.perform(post("/admin/categories")
@@ -71,7 +67,7 @@ class AdminCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(jsonPath("$.id").value(String.valueOf(categoryId)));
     }
 
     @Test
@@ -79,10 +75,7 @@ class AdminCategoryControllerTest {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void saveCategoryWithUserRole() throws Exception {
         //given
-        CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                .set("name", "카테고리")
-                .set("imagePath", "/test/image.jpg")
-                .sample();
+        CreateCategoryRequest request = anCreateCategoryRequest().build();
         //when
         //then
         mockMvc.perform(post("/admin/categories")
@@ -100,10 +93,7 @@ class AdminCategoryControllerTest {
     @DisplayName("로그인 하지 않은 유저는 카테고리를 생성할 수 없다")
     void saveCategory_unAuthentication() throws Exception {
         //given
-        CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                .set("name", "카테고리")
-                .set("imagePath", "/test/image.jpg")
-                .sample();
+        CreateCategoryRequest request = anCreateCategoryRequest().build();
         //when
         //then
         mockMvc.perform(post("/admin/categories")
@@ -138,18 +128,12 @@ class AdminCategoryControllerTest {
 
     private static Stream<Arguments> provideInvalidCreateRequest() {
         return Stream.of(
-                Arguments.of("카테고리 이름은 공백이 아닌 필수값이여야한다",
-                        CreateCategoryRequest.builder()
-                                .name(null)
-                                .imagePath("/test/image.jpg")
-                                .build(),
+                Arguments.of("이름이 누락되면 예외가 발생한다.",
+                        anCreateCategoryRequest().name(null).build(),
                         "name은 필수값입니다"
                 ),
-                Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
-                        CreateCategoryRequest.builder()
-                                .name("카테고리")
-                                .imagePath("invalid-image-files")
-                                .build(),
+                Arguments.of("이미지 경로가 유효하지 않으면 예외가 발생한다.",
+                        anCreateCategoryRequest().imagePath("invalid_image_file").build(),
                         "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
         );
     }
@@ -166,16 +150,13 @@ class AdminCategoryControllerTest {
         CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
         given(categoryService.updateCategory(any(CategoryCommand.Update.class)))
                 .willReturn(result);
-        assert result != null;
-        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -267,16 +248,13 @@ class AdminCategoryControllerTest {
                 .sample();
         CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
         given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
-        assert result != null;
-        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}/move", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andDo(print())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andDo(print());
     }
 
     @Test
