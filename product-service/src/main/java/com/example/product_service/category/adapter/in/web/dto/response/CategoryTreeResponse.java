@@ -9,18 +9,16 @@ import java.util.List;
 public record CategoryTreeResponse(
         Long id,
         String name,
-        Long parentId,
         Integer depth,
-        String imagePath,
+        boolean isLeaf,
         List<CategoryTreeResponse> children
 ) {
     public static CategoryTreeResponse from(CategoryResult.Tree result) {
         return CategoryTreeResponse.builder()
                 .id(result.getId())
                 .name(result.getName())
-                .parentId(result.getParentId())
                 .depth(result.getDepth())
-                .imagePath(result.getImagePath())
+                .isLeaf(result.getChildren().isEmpty())
                 .children(result.getChildren().stream().map(CategoryTreeResponse::from).toList())
                 .build();
     }

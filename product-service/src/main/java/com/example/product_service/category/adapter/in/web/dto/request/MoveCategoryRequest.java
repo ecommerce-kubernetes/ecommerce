@@ -4,5 +4,5 @@ import lombok.Builder;
 
 @Builder
 public record MoveCategoryRequest(
-        Long parentId
+        Long newParentId
 ) { }

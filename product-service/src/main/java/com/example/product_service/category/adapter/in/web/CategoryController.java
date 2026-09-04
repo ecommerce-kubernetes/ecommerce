@@ -1,23 +1,19 @@
 package com.example.product_service.category.adapter.in.web;
 
-import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryNavigationResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
 import com.example.product_service.category.application.service.CategoryService;
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.common.exception.BusinessException;
+import com.example.product_service.common.exception.CategoryErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -26,54 +22,43 @@ import java.util.List;
 public class CategoryController {
     private final CategoryService categoryService;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryDetailResponse> saveCategory(@RequestBody @Validated CreateCategoryRequest request) {
-        CategoryCommand.Create command = request.toCommand();
-        CategoryResult.Detail result = categoryService.saveCategory(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CategoryDetailResponse.from(result));
+    @GetMapping("/roots")
+    public ResponseEntity<CategoryListResponse> getRootCategories() {
+        List<CategoryResult.Tree> roots = categoryService.getTree();
+        return ResponseEntity.ok(CategoryListResponse.fromRoots(roots));
     }
 
-    @GetMapping("/tree")
-    public ResponseEntity<List<CategoryTreeResponse>> getCategoryTree(){
-        List<CategoryResult.Tree> results = categoryService.getTree();
-        List<CategoryTreeResponse> responses = CategoryTreeResponse.from(results);
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/navigation/{categoryId}")
-    public ResponseEntity<CategoryNavigationResponse> getCategoryNavigation(@PathVariable("categoryId") Long categoryId) {
-        CategoryResult.Navigation result = categoryService.getNavigation(categoryId);
-        return ResponseEntity.ok(CategoryNavigationResponse.from(result));
+    @GetMapping("/{categoryId}/children")
+    public ResponseEntity<CategoryListResponse> getCategoryChildren(@PathVariable("categoryId") Long categoryId) {
+        List<CategoryResult.Tree> tree = categoryService.getTree();
+        CategoryResult.Tree target = findInTree(tree, categoryId)
+                .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+        return ResponseEntity.ok(CategoryListResponse.fromChildren(target));
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryDetailResponse> getCategory(@PathVariable("categoryId") Long categoryId){
-        CategoryResult.Detail result = categoryService.getCategory(categoryId);
+    public ResponseEntity<CategoryDetailResponse> getCategory(@PathVariable("categoryId") Long categoryId) {
+        CategoryResult.Navigation result = categoryService.getNavigation(categoryId);
         return ResponseEntity.ok(CategoryDetailResponse.from(result));
     }
 
-    @PatchMapping("/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryDetailResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                         @RequestBody @Validated UpdateCategoryRequest request) {
-        CategoryCommand.Update command = request.toCommand(categoryId);
-        CategoryResult.Detail result = categoryService.updateCategory(command);
-        return ResponseEntity.ok(CategoryDetailResponse.from(result));
+    @GetMapping("/tree")
+    public ResponseEntity<CategoryTreeListResponse> getCategoryTree() {
+        List<CategoryResult.Tree> results = categoryService.getTree();
+        return ResponseEntity.ok(CategoryTreeListResponse.from(results));
     }
 
-    @PostMapping("/{categoryId}/move")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryDetailResponse> moveParent(@PathVariable("categoryId") Long categoryId,
-                                                     @RequestBody @Validated MoveCategoryRequest request) {
-        CategoryResult.Detail result = categoryService.moveParent(categoryId, request.parentId());
-        return ResponseEntity.ok(CategoryDetailResponse.from(result));
-    }
 
-    @DeleteMapping("/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId) {
-        categoryService.deleteCategory(categoryId);
-        return ResponseEntity.noContent().build();
+    private Optional<CategoryResult.Tree> findInTree(List<CategoryResult.Tree> nodes, Long categoryId) {
+        for (CategoryResult.Tree node : nodes) {
+            if (node.getId().equals(categoryId)) {
+                return Optional.of(node);
+            }
+            Optional<CategoryResult.Tree> found = findInTree(node.getChildren(), categoryId);
+            if (found.isPresent()) {
+                return found;
+            }
+        }
+        return Optional.empty();
     }
 }

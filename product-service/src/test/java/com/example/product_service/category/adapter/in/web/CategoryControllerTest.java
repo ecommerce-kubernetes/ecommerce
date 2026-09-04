@@ -4,8 +4,9 @@ import com.example.product_service.category.adapter.in.web.dto.request.CreateCat
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryNavigationResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryIdResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.common.security.model.UserRole;
@@ -35,398 +36,95 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestSecurityConfig.class)
 class CategoryControllerTest extends ControllerTestSupport {
 
-    @Nested
-    @DisplayName("카테고리 생성")
-    class CategoryCreate{
-
-        @Test
-        @DisplayName("카테고리를 생성한다")
-        @WithCustomMockUser
-        void saveCategory() throws Exception {
-            //given
-            CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                    .set("name", "카테고리")
-                    .set("imagePath", "/test/image.jpg")
-                    .sample();
-            CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
-            assert result != null;
-
-            given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
-                    .willReturn(result);
-            CategoryDetailResponse response = CategoryDetailResponse.from(result);
-            //when
-            //then
-            mockMvc.perform(post("/categories")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isCreated())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
-        }
-
-        @Test
-        @DisplayName("카테고리를 생성하려면 관리자 권한이여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-        void saveCategoryWithUserRole() throws Exception {
-            //given
-            CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                    .set("name", "카테고리")
-                    .set("imagePath", "/test/image.jpg")
-                    .sample();
-            //when
-            //then
-            mockMvc.perform(post("/categories")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 유저는 카테고리를 생성할 수 없다")
-        void saveCategory_unAuthentication() throws Exception {
-            //given
-            CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                    .set("name", "카테고리")
-                    .set("imagePath", "/test/image.jpg")
-                    .sample();
-            //when
-            //then
-            mockMvc.perform(post("/categories")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories"));
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideInvalidCreateRequest")
-        @DisplayName("카테고리 생성 요청 검증")
-        @WithCustomMockUser
-        void saveCategoryValidation(String description, CreateCategoryRequest request, String message) throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(post("/categories")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("code").value("VALIDATION"))
-                    .andExpect(jsonPath("message").value(message))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories"));
-        }
-
-        private static Stream<Arguments> provideInvalidCreateRequest() {
-            return Stream.of(
-                    Arguments.of("카테고리 이름은 공백이 아닌 필수값이여야한다",
-                            CreateCategoryRequest.builder()
-                                    .name(null)
-                                    .imagePath("/test/image.jpg")
-                                    .build(),
-                            "name은 필수값입니다"
-                    ),
-                    Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
-                            CreateCategoryRequest.builder()
-                                    .name("카테고리")
-                                    .imagePath("invalid-image-files")
-                                    .build(),
-                            "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
-            );
-        }
+    @Test
+    @DisplayName("최상위 카테고리 목록을 조회한다")
+    void getRootCategories() throws Exception {
+        //given
+        List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
+        given(categoryService.getTree()).willReturn(results);
+        CategoryListResponse response = CategoryListResponse.fromRoots(results);
+        //when
+        //then
+        mockMvc.perform(get("/categories/roots"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    @Nested
-    @DisplayName("카테고리 단건 조회")
-    class GetCategory {
-        @Test
-        @DisplayName("카테고리를 조회한다")
-        void getCategory() throws Exception {
-            //given
-            CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
-            given(categoryService.getCategory(anyLong())).willReturn(result);
-            assert result != null;
-            CategoryDetailResponse response = CategoryDetailResponse.from(result);
-            //when
-            //then
-            mockMvc.perform(get("/categories/{categoryId}", 1L))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
-        }
+    @Test
+    @DisplayName("카테고리의 자식 목록을 조회한다")
+    void getCategoryChildren() throws Exception {
+        //given
+        CategoryResult.Tree parent = createTree(1L, "전자기기", null, 1, "/test/electron.jpg");
+        CategoryResult.Tree laptop = createTree(2L, "노트북", 1L, 2, "/test/laptop.jpg");
+        CategoryResult.Tree cellPhone = createTree(3L, "핸드폰", 1L, 2, "/test/cellPhone.jpg");
+        parent.addChild(laptop);
+        parent.addChild(cellPhone);
+        given(categoryService.getTree()).willReturn(List.of(parent));
+        CategoryListResponse response = CategoryListResponse.fromChildren(parent);
+        //when
+        //then
+        mockMvc.perform(get("/categories/{categoryId}/children", 1L))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    @Nested
-    @DisplayName("카테고리 트리 조회")
-    class GetCategoryTree {
-
-        @Test
-        @DisplayName("카테고리 트리를 조회한다")
-        void getCategoryTree() throws Exception {
-            //given
-            List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
-            given(categoryService.getTree()).willReturn(results);
-            List<CategoryTreeResponse> responses = results.stream().map(CategoryTreeResponse::from).toList();
-            //when
-            //then
-            mockMvc.perform(get("/categories/tree"))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(responses)));
-        }
+    @Test
+    @DisplayName("존재하지 않는 카테고리의 자식을 조회하면 예외가 발생한다")
+    void getCategoryChildren_whenNotFound_thenThrowException() throws Exception {
+        //given
+        given(categoryService.getTree()).willReturn(List.of());
+        //when
+        //then
+        mockMvc.perform(get("/categories/{categoryId}/children", 999L))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("code").value("CATEGORY_001"))
+                .andExpect(jsonPath("message").value("카테고리를 찾을 수 없습니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/categories/999/children"));
     }
 
-    @Nested
-    @DisplayName("카테고리 네비게이션 조회")
-    class GetCategoryNavigation {
-        @Test
-        @DisplayName("카테고리 네비게이션을 조회한다")
-        void getCategoryNavigation() throws Exception {
-            //given
-            CategoryResult.Navigation result = fixtureMonkey.giveMeOne(CategoryResult.Navigation.class);
-            assert result != null;
-            CategoryNavigationResponse response = CategoryNavigationResponse.from(result);
-            given(categoryService.getNavigation(anyLong()))
-                    .willReturn(result);
-            //when
-            //then
-            mockMvc.perform(get("/categories/navigation/{categoryId}", 1L))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
-        }
+    private CategoryResult.Tree createTree(Long id, String name, Long parentId, int depth, String imagePath) {
+        return CategoryResult.Tree.builder()
+                .id(id)
+                .name(name)
+                .parentId(parentId)
+                .depth(depth)
+                .imagePath(imagePath)
+                .build();
     }
 
-    @Nested
-    @DisplayName("카테고리 수정")
-    class UpdateCategory {
-        @Test
-        @DisplayName("카테고리를 수정한다")
-        @WithCustomMockUser
-        void updateCategory() throws Exception {
-            //given
-            CreateCategoryRequest request = fixtureMonkey.giveMeBuilder(CreateCategoryRequest.class)
-                    .set("name", "카테고리")
-                    .set("imagePath", "/test/image.jpg")
-                    .sample();
-            CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
-            given(categoryService.updateCategory(any(CategoryCommand.Update.class)))
-                    .willReturn(result);
-            assert result != null;
-            CategoryDetailResponse response = CategoryDetailResponse.from(result);
-            //when
-            //then
-            mockMvc.perform(patch("/categories/{categoryId}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
-        }
-
-        @Test
-        @DisplayName("카테고리를 수정하려면 관리자 권한이여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-        void updateCategoryWhenUserRole() throws Exception {
-            //given
-            UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
-                    .set("name", "새 카티고리")
-                    .set("imagePath", "/test/new-image.jpg")
-                    .sample();
-            //when
-            //then
-            mockMvc.perform(patch("/categories/{categoryId}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 유저는 카테고리를 수정할 수 없다")
-        void updateCategory_unAuthentication() throws Exception {
-            //given
-            UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
-                    .set("name", "카테고리")
-                    .set("imagePath", "/test/image.jpg")
-                    .sample();
-            //when
-            //then
-            mockMvc.perform(patch("/categories/{categoryId}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1"));
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideInvalidUpdateRequest")
-        @DisplayName("카테고리 수정 요청 검증")
-        @WithCustomMockUser
-        void updateCategoryValidation(String description, UpdateCategoryRequest request, String message) throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(patch("/categories/{categoryId}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("code").value("VALIDATION"))
-                    .andExpect(jsonPath("message").value(message))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1"));
-        }
-
-        private static Stream<Arguments> provideInvalidUpdateRequest() {
-            return Stream.of(
-                    Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
-                            UpdateCategoryRequest.builder()
-                                    .name("변경된 카테고리")
-                                    .imagePath("invalid=image-files")
-                                    .build(),
-                            "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
-                    Arguments.of("필드는 최소 하나는 존재해야한다",
-                            UpdateCategoryRequest.builder()
-                                    .name(null)
-                                    .imagePath(null)
-                                    .build(),
-                            "수정할 값이 하나는 존재해야합니다")
-            );
-        }
+    @Test
+    @DisplayName("카테고리를 조회한다")
+    void getCategory() throws Exception {
+        //given
+        CategoryResult.Navigation result = fixtureMonkey.giveMeOne(CategoryResult.Navigation.class);
+        assert result != null;
+        given(categoryService.getNavigation(anyLong())).willReturn(result);
+        CategoryDetailResponse response = CategoryDetailResponse.from(result);
+        //when
+        //then
+        mockMvc.perform(get("/categories/{categoryId}", 1L))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    @Nested
-    @DisplayName("카테고리 부모 변경")
-    class MoveParentCategory {
-
-        @Test
-        @DisplayName("카테고리의 부모를 변경한다")
-        @WithCustomMockUser
-        void moveParent() throws Exception {
-            //given
-            MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
-                    .set("parentId", 1L)
-                    .sample();
-            CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
-            given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
-            assert result != null;
-            CategoryDetailResponse response = CategoryDetailResponse.from(result);
-            //when
-            //then
-            mockMvc.perform(post("/categories/{categoryId}/move", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
-        }
-
-        @Test
-        @DisplayName("카테고리 부모를 변경하려면 관리자 권한이여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-        void moveParentWhenUserRole() throws Exception {
-            //given
-            MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
-                    .set("parentId", 1L)
-                    .sample();
-            //when
-            //then
-            mockMvc.perform(post("/categories/{categoryId}/move", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1/move"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 유저는 카테고리 부모를 변경할 수 없다")
-        void moveParent_unAuthentication() throws Exception {
-            //given
-            MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
-                    .set("parentId", 1L)
-                    .sample();
-            //when
-            //then
-            mockMvc.perform(post("/categories/{categoryId}/move", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1/move"));
-        }
+    @Test
+    @DisplayName("카테고리 트리를 조회한다")
+    void getCategoryTree() throws Exception {
+        //given
+        List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
+        given(categoryService.getTree()).willReturn(results);
+        CategoryTreeListResponse response = CategoryTreeListResponse.from(results);
+        //when
+        //then
+        mockMvc.perform(get("/categories/tree"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    @Nested
-    @DisplayName("카테고리 삭제")
-    class DeleteCategory {
-
-        @Test
-        @DisplayName("카테고리를 삭제한다")
-        @WithCustomMockUser
-        void deleteCategory() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(delete("/categories/{categoryId}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isNoContent());
-            verify(categoryService).deleteCategory(1L);
-        }
-
-        @Test
-        @DisplayName("카테고리를 삭제하려면 관리자 권한이여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-        void deleteCategoryWhenUserRole() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(delete("/categories/{categoryId}", 1L))
-                    .andDo(print())
-                    .andExpect(jsonPath("code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 유저는 카테고리를 삭제할 수 없다")
-        void deleteCategory_unAuthentication() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(delete("/categories/{categoryId}", 1L))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("path").value("/categories/1"));
-        }
-    }
 }

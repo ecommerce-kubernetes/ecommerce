@@ -21,41 +21,53 @@ public class CategoryDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getCategoryResponse() {
+    public static FieldDescriptor[] getIdResponse() {
         return new FieldDescriptor[] {
-                ID, NAME, PARENT_ID, DEPTH, IMAGE_PATH
+                ID
         };
+    }
+
+    public static FieldDescriptor[] getRootListResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("categories[].id").description("카테고리 ID"),
+                fieldWithPath("categories[].name").description("카테고리 이름"),
+                fieldWithPath("categories[].imagePath").description("카테고리 이미지 경로").optional().type(JsonFieldType.STRING),
+                fieldWithPath("categories[].isLeaf").description("리프(최하위) 카테고리 여부")
+        };
+    }
+
+    public static FieldDescriptor[] getChildrenListResponse() {
+        return getRootListResponse();
     }
 
     public static FieldDescriptor[] getTreeResponse() {
         return new FieldDescriptor[] {
-                fieldWithPath("[].id").description("카테고리 ID"),
-                fieldWithPath("[].name").description("카테고리 이름"),
-                fieldWithPath("[].parentId").description("부모 카테고리 ID").optional(),
-                fieldWithPath("[].depth").description("카테고리 깊이"),
-                fieldWithPath("[].imagePath").description("카테고리 이미지 URL"),
-                subsectionWithPath("[].children").description("하위 카테고리 목록 (상위 구조와 동일)")
+                fieldWithPath("categories[].id").description("카테고리 ID"),
+                fieldWithPath("categories[].name").description("카테고리 이름"),
+                fieldWithPath("categories[].depth").description("카테고리 깊이"),
+                fieldWithPath("categories[].isLeaf").description("리프(최하위) 카테고리 여부"),
+                subsectionWithPath("categories[].children").description("하위 카테고리 목록 (상위 구조와 동일)")
         };
     }
 
-    public static FieldDescriptor[] getNavigationResponse() {
+    public static FieldDescriptor[] getCategoryDetailResponse() {
         return new FieldDescriptor[] {
-                subsectionWithPath("current").description("요청 카테고리"),
-                subsectionWithPath("path").description("직계 카테고리"),
-                subsectionWithPath("siblings").description("형제 카테고리"),
-                subsectionWithPath("children").description("자식 카테고리")
+                ID, NAME, DEPTH,
+                fieldWithPath("isLeaf").description("리프(최하위) 카테고리 여부"),
+                subsectionWithPath("breadcrumb").description("루트부터 현재 카테고리까지의 경로")
         };
     }
 
     public static FieldDescriptor[] getUpdateRequest() {
         return new FieldDescriptor[] {
-                NAME, IMAGE_PATH
+                fieldWithPath("name").description("카테고리 이름").optional().type(JsonFieldType.STRING),
+                IMAGE_PATH
         };
     }
 
     public static FieldDescriptor[] getMoveCategoryRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("parentId").description("이동할 부모 카테고리 ID").optional()
+                fieldWithPath("newParentId").description("이동할 부모 카테고리 ID").optional()
         };
     }
 }

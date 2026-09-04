@@ -5,8 +5,9 @@ import com.example.product_service.category.adapter.in.web.dto.request.CreateCat
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.response.CategoryDetailResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryNavigationResponse;
-import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryIdResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryListResponse;
+import com.example.product_service.category.adapter.in.web.dto.response.CategoryTreeListResponse;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
@@ -63,10 +64,10 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
                 .willReturn(result);
-        CategoryDetailResponse response = CategoryDetailResponse.from(result);
+        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
-        mockMvc.perform(post("/categories")
+        mockMvc.perform(post("/admin/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
@@ -78,48 +79,48 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         "카테고리 생성",
                         "새로운 카테고리를 생성합니다",
                         CategoryDescriptor.getCreateRequest(),
-                        CategoryDescriptor.getCategoryResponse()
+                        CategoryDescriptor.getIdResponse()
                 ));
     }
 
     @Test
-    @DisplayName("카테고리 트리 구조 조회")
-    void getCategoryTree() throws Exception {
+    @DisplayName("최상위 카테고리 목록을 조회한다")
+    void getRootCategories() throws Exception {
         //given
         List<CategoryResult.Tree> results = mappingTreeResponse();
         given(categoryService.getTree()).willReturn(results);
-        List<CategoryTreeResponse> response = results.stream().map(CategoryTreeResponse::from).toList();
+        CategoryListResponse response = CategoryListResponse.fromRoots(results);
         //when
         //then
-        mockMvc.perform(get("/categories/tree"))
+        mockMvc.perform(get("/categories/roots"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createPublicDocument("01-category-02-get-tree",
-                                "카테고리 트리 조회",
-                                "전체 카테고리를 트리 구조로 조회합니다",
-                                CategoryDescriptor.getTreeResponse())
+                .andDo(createPublicDocument("01-category-02-get-roots",
+                                "최상위 카테고리 목록 조회",
+                                "네비게이션 진입점이 되는 최상위 카테고리 목록을 조회합니다",
+                                CategoryDescriptor.getRootListResponse())
                 );
     }
 
     @Test
-    @DisplayName("카테고리 네비게이션을 조회한다")
-    void getCategoryNavigation() throws Exception {
+    @DisplayName("카테고리의 자식 목록을 조회한다")
+    void getCategoryChildren() throws Exception {
         //given
-        CategoryResult.Navigation result = createNavigation();
-        given(categoryService.getNavigation(anyLong()))
-                .willReturn(result);
-        CategoryNavigationResponse response = CategoryNavigationResponse.from(result);
+        List<CategoryResult.Tree> results = mappingTreeResponse();
+        CategoryResult.Tree electron = results.get(0);
+        given(categoryService.getTree()).willReturn(results);
+        CategoryListResponse response = CategoryListResponse.fromChildren(electron);
         //when
         //then
-        mockMvc.perform(get("/categories/navigation/{categoryId}", 2L))
+        mockMvc.perform(get("/categories/{categoryId}/children", electron.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createPublicDocument("01-category-03-get-navigation",
-                        "카테고리 네비게이션 조회",
-                        "특정 카테고리의 네비게이션 구조를 조회합니다",
-                        CategoryDescriptor.getNavigationResponse(),
+                .andDo(createPublicDocument("01-category-03-get-children",
+                        "카테고리 자식 목록 조회",
+                        "특정 카테고리의 자식 목록을 조회합니다 (드릴다운)",
+                        CategoryDescriptor.getChildrenListResponse(),
                         parameterWithName("categoryId").description("조회할 카테고리 ID"))
                 );
     }
@@ -128,27 +129,41 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResult.Detail result = CategoryResult.Detail.builder()
-                .id(2L)
-                .name("카테고리")
-                .parentId(1L)
-                .depth(2)
-                .imagePath("/test/image.jpg")
-                .build();
-        given(categoryService.getCategory(anyLong()))
+        CategoryResult.Navigation result = createNavigation();
+        given(categoryService.getNavigation(anyLong()))
                 .willReturn(result);
         CategoryDetailResponse response = CategoryDetailResponse.from(result);
         //when
         //then
-        mockMvc.perform(get("/categories/{categoryId}", 1L))
+        mockMvc.perform(get("/categories/{categoryId}", 2L))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createPublicDocument("01-category-04-get",
                         "카테고리 단건 조회",
-                        "ID로 특정 카테고리의 상세 정보 조회",
-                        CategoryDescriptor.getCategoryResponse(),
+                        "ID로 특정 카테고리의 상세 정보와 브레드크럼을 조회합니다",
+                        CategoryDescriptor.getCategoryDetailResponse(),
                         parameterWithName("categoryId").description("조회할 카테고리 ID"))
+                );
+    }
+
+    @Test
+    @DisplayName("카테고리 트리 구조 조회")
+    void getCategoryTree() throws Exception {
+        //given
+        List<CategoryResult.Tree> results = mappingTreeResponse();
+        given(categoryService.getTree()).willReturn(results);
+        CategoryTreeListResponse response = CategoryTreeListResponse.from(results);
+        //when
+        //then
+        mockMvc.perform(get("/categories/tree"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createPublicDocument("01-category-05-get-tree",
+                                "카테고리 트리 조회",
+                                "전체 카테고리를 트리 구조로 조회합니다",
+                                CategoryDescriptor.getTreeResponse())
                 );
     }
 
@@ -171,22 +186,22 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(result);
         assert result != null;
-        CategoryDetailResponse response = CategoryDetailResponse.from(result);
+        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
-        mockMvc.perform(patch("/categories/{categoryId}", 1L)
+        mockMvc.perform(patch("/admin/categories/{categoryId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("01-category-05-update",
+                .andDo(createSecuredDocument("01-category-06-update",
                         "카테고리 수정",
                         "ID로 특정 카테고리의 기본 정보 수정",
                         CategoryDescriptor.getUpdateRequest(),
-                        CategoryDescriptor.getCategoryResponse(),
-                        parameterWithName("categoryId").description("조회할 카테고리 ID"))
+                        CategoryDescriptor.getIdResponse(),
+                        parameterWithName("categoryId").description("수정할 카테고리 ID"))
                 );
     }
 
@@ -195,7 +210,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     void moveParent() throws Exception {
         //given
         MoveCategoryRequest request = MoveCategoryRequest.builder()
-                .parentId(1L)
+                .newParentId(1L)
                 .build();
         CategoryResult.Detail result = CategoryResult.Detail.builder()
                 .id(2L)
@@ -207,21 +222,21 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
-        CategoryDetailResponse response = CategoryDetailResponse.from(result);
+        CategoryIdResponse response = CategoryIdResponse.from(result);
         //when
         //then
-        mockMvc.perform(post("/categories/{categoryId}/move", 2L)
+        mockMvc.perform(patch("/admin/categories/{categoryId}/move", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("01-category-06-move",
+                .andDo(createSecuredDocument("01-category-07-move",
                                 "카테고리 부모 변경",
                                 "카테고리의 부모를 변경",
                                 CategoryDescriptor.getMoveCategoryRequest(),
-                                CategoryDescriptor.getCategoryResponse(),
+                                CategoryDescriptor.getIdResponse(),
                                 parameterWithName("categoryId").description("수정할 카테고리 ID"))
                 );
     }
@@ -234,12 +249,12 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         willDoNothing().given(categoryService).deleteCategory(anyLong());
         //when
         //then
-        mockMvc.perform(delete("/categories/{categoryId}", 1L)
+        mockMvc.perform(delete("/admin/categories/{categoryId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(createSecuredDocument("01-category-07-delete",
+                .andDo(createSecuredDocument("01-category-08-delete",
                         "카테고리 삭제",
                         "카테고리를 삭제한다")
                 );
