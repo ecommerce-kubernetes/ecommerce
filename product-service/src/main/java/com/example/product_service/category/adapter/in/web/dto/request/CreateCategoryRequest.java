@@ -1,6 +1,6 @@
 package com.example.product_service.category.adapter.in.web.dto.request;
 
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.command.CreateCategoryCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
@@ -16,8 +16,8 @@ public record CreateCategoryRequest(
         )
         String imagePath
 ) {
-    public CategoryCommand.Create toCommand() {
-        return CategoryCommand.Create.builder()
+    public CreateCategoryCommand toCommand() {
+        return CreateCategoryCommand.builder()
                 .name(name)
                 .parentId(parentId)
                 .imagePath(imagePath)

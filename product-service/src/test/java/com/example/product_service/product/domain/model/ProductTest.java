@@ -5,7 +5,6 @@ import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.common.exception.ProductErrorCode;
 import com.example.product_service.option.domain.model.OptionType;
 import com.example.product_service.option.domain.model.OptionValue;
-import com.example.product_service.product.domain.model.*;
 import com.example.product_service.support.fixture.builder.ProductTestBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

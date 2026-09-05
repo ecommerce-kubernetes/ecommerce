@@ -4,7 +4,8 @@ import com.example.product_service.category.adapter.in.web.dto.request.CreateCat
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.application.service.CategoryCommandService;
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.command.CreateCategoryCommand;
+import com.example.product_service.category.application.service.dto.command.UpdateCategoryCommand;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,10 +29,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(TestSecurityConfig.class)
 @WebMvcTest(controllers = AdminCategoryController.class)
@@ -53,7 +53,7 @@ class AdminCategoryControllerTest {
         //given
         CreateCategoryRequest request = anCreateCategoryRequest().build();
         Long categoryId = 1L;
-        given(categoryCommandService.saveCategory(any(CategoryCommand.Create.class)))
+        given(categoryCommandService.saveCategory(any(CreateCategoryCommand.class)))
                 .willReturn(categoryId);
         //when
         //then
@@ -91,7 +91,7 @@ class AdminCategoryControllerTest {
         //given
         UpdateCategoryRequest request = anUpdateCategoryRequest().build();
         Long categoryId = 1L;
-        given(categoryCommandService.updateCategory(any(CategoryCommand.Update.class)))
+        given(categoryCommandService.updateCategory(any(UpdateCategoryCommand.class)))
                 .willReturn(categoryId);
         //when
         //then

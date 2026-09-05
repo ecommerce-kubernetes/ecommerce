@@ -1,18 +1,12 @@
 package com.example.product_service.docs.product;
 
+import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.product.adapter.in.web.ProductController;
-import com.example.product_service.product.adapter.in.web.dto.request.AddProductDescriptionImageRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.AddProductImageRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.AddProductVariantRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.CreateProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.ProductVariantDetailRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.RegisterProductOptionRequest;
-import com.example.product_service.product.adapter.in.web.dto.request.UpdateProductRequest;
-import com.example.product_service.product.domain.model.ProductStatus;
+import com.example.product_service.product.adapter.in.web.dto.request.*;
 import com.example.product_service.product.application.service.ProductService;
 import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.product.application.service.dto.result.ProductResult;
-import com.example.product_service.docs.RestDocsSupport;
+import com.example.product_service.product.domain.model.ProductStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

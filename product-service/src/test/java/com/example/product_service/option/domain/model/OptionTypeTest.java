@@ -1,7 +1,5 @@
 package com.example.product_service.option.domain.model;
 
-import com.example.product_service.option.domain.model.OptionType;
-import com.example.product_service.option.domain.model.OptionValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -1,7 +1,6 @@
 package com.example.product_service.category.domain.repository;
 
 import com.example.product_service.category.domain.model.Category;
-import com.example.product_service.category.domain.repository.CategoryRepository;
 import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -7,7 +7,8 @@ import com.example.product_service.category.adapter.in.web.dto.response.CreateCa
 import com.example.product_service.category.adapter.in.web.dto.response.MoveCategoryResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.UpdateCategoryResponse;
 import com.example.product_service.category.application.service.CategoryCommandService;
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.command.CreateCategoryCommand;
+import com.example.product_service.category.application.service.dto.command.UpdateCategoryCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class AdminCategoryController {
 
     @PostMapping("/categories")
     public ResponseEntity<CreateCategoryResponse> saveCategory(@RequestBody @Validated CreateCategoryRequest request) {
-        CategoryCommand.Create command = request.toCommand();
+        CreateCategoryCommand command = request.toCommand();
         Long id = categoryCommandService.saveCategory(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateCategoryResponse.of(id));
     }
@@ -35,7 +36,7 @@ public class AdminCategoryController {
     @PatchMapping("/categories/{categoryId}")
     public ResponseEntity<UpdateCategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                  @RequestBody @Validated UpdateCategoryRequest request) {
-        CategoryCommand.Update command = request.toCommand(categoryId);
+        UpdateCategoryCommand command = request.toCommand(categoryId);
         Long id = categoryCommandService.updateCategory(command);
         return ResponseEntity.ok(UpdateCategoryResponse.of(id));
     }

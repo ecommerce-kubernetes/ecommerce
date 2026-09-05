@@ -1,6 +1,5 @@
 package com.example.product_service.category.domain.model;
 
-import com.example.product_service.category.domain.model.Category;
 import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.common.exception.CategoryErrorCode;
 import com.example.product_service.support.fixture.builder.CategoryTestBuilder;

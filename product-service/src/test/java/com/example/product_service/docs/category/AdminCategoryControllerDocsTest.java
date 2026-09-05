@@ -5,7 +5,8 @@ import com.example.product_service.category.adapter.in.web.dto.request.CreateCat
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.application.service.CategoryCommandService;
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.command.CreateCategoryCommand;
+import com.example.product_service.category.application.service.dto.command.UpdateCategoryCommand;
 import com.example.product_service.docs.RestDocsSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -16,9 +17,6 @@ import org.springframework.http.MediaType;
 
 import static com.example.product_service.category.fixture.CategoryRequestFixture.*;
 import static com.example.product_service.docs.descriptor.CategoryDescriptor.*;
-import static com.example.product_service.docs.descriptor.CategoryDescriptor.moveRequest;
-import static com.example.product_service.docs.descriptor.CategoryDescriptor.moveResponse;
-import static com.example.product_service.docs.descriptor.CategoryDescriptor.updateResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -53,7 +51,7 @@ public class AdminCategoryControllerDocsTest extends RestDocsSupport {
 
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
 
-        given(categoryCommandService.saveCategory(any(CategoryCommand.Create.class)))
+        given(categoryCommandService.saveCategory(any(CreateCategoryCommand.class)))
                 .willReturn(categoryId);
         //when
         //then
@@ -86,7 +84,7 @@ public class AdminCategoryControllerDocsTest extends RestDocsSupport {
 
         Long categoryId = 1L;
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
-        given(categoryCommandService.updateCategory(any(CategoryCommand.Update.class)))
+        given(categoryCommandService.updateCategory(any(UpdateCategoryCommand.class)))
                 .willReturn(categoryId);
         //when
         //then

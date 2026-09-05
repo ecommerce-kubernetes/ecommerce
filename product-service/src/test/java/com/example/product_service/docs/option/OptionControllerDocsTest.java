@@ -1,5 +1,6 @@
 package com.example.product_service.docs.option;
 
+import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.option.adapter.in.web.OptionController;
 import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.OptionValueRequest;
@@ -9,7 +10,6 @@ import com.example.product_service.option.application.service.OptionService;
 import com.example.product_service.option.application.service.dto.command.OptionCommand;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
 import com.example.product_service.option.application.service.dto.result.OptionValueResult;
-import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

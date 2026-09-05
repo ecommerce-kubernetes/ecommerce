@@ -1,6 +1,7 @@
 package com.example.product_service.category.application.service;
 
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.command.CreateCategoryCommand;
+import com.example.product_service.category.application.service.dto.command.UpdateCategoryCommand;
 import com.example.product_service.category.domain.repository.CategoryRepository;
 import com.example.product_service.product.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,11 @@ public class CategoryCommandService {
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
 
-    public Long saveCategory(CategoryCommand.Create command) {
+    public Long saveCategory(CreateCategoryCommand command) {
         return null;
     }
 
-    public Long updateCategory(CategoryCommand.Update command) {
+    public Long updateCategory(UpdateCategoryCommand command) {
         return null;
     }
 

@@ -1,6 +1,6 @@
 package com.example.product_service.category.adapter.in.web.dto.request;
 
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
+import com.example.product_service.category.application.service.dto.command.UpdateCategoryCommand;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Pattern;
@@ -22,8 +22,8 @@ public record UpdateCategoryRequest(
         return this.name != null || this.imagePath != null;
     }
 
-    public CategoryCommand.Update toCommand(Long categoryId) {
-        return CategoryCommand.Update.builder()
+    public UpdateCategoryCommand toCommand(Long categoryId) {
+        return UpdateCategoryCommand.builder()
                 .id(categoryId)
                 .name(name)
                 .imagePath(imagePath)

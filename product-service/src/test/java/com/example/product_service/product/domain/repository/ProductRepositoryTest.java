@@ -2,9 +2,9 @@ package com.example.product_service.product.domain.repository;
 
 import com.example.product_service.category.domain.model.Category;
 import com.example.product_service.category.domain.repository.CategoryRepository;
+import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.product.domain.model.Product;
 import com.example.product_service.product.domain.model.ProductStatus;
-import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.support.ExcludeInfraTest;
 import com.example.product_service.support.fixture.builder.ProductTestBuilder;
 import org.junit.jupiter.api.DisplayName;
