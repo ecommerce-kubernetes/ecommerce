@@ -7,7 +7,7 @@ import java.util.List;
 
 public class CategoryResultFixture {
 
-    public static RootCategoriesResult anRootCategoriesResult() {
+    public static RootCategoriesResult.RootCategoriesResultBuilder anRootCategoriesResult() {
         CategoryResult food = anCategoryResult().build();
         CategoryResult furniture = anCategoryResult()
                 .id(2L)
@@ -17,8 +17,7 @@ public class CategoryResultFixture {
                 .build();
 
         return RootCategoriesResult.builder()
-                .categories(List.of(food, furniture))
-                .build();
+                .categories(List.of(food, furniture));
     }
 
     public static CategoryResult.CategoryResultBuilder anCategoryResult() {

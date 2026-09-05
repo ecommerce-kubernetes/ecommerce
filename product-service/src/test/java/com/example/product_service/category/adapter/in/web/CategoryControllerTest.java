@@ -39,7 +39,7 @@ class CategoryControllerTest {
     @DisplayName("최상위 카테고리 목록을 조회한다")
     void getRootCategories() throws Exception {
         //given
-        RootCategoriesResult roots = anRootCategoriesResult();
+        RootCategoriesResult roots = anRootCategoriesResult().build();
         given(categoryQueryService.getRoots()).willReturn(roots);
         CategoryResult root = roots.categories().getFirst();
         //when

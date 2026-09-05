@@ -1,32 +1,23 @@
 package com.example.product_service.docs.category;
 
 import com.example.product_service.category.adapter.in.web.CategoryController;
-import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
-import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
 import com.example.product_service.category.application.service.CategoryQueryService;
 import com.example.product_service.category.application.service.CategoryService;
-import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
-import com.example.product_service.category.fixture.CategoryRequestFixture;
+import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 import java.util.List;
 
+import static com.example.product_service.category.fixture.CategoryResultFixture.anRootCategoriesResult;
 import static com.example.product_service.docs.descriptor.CategoryDescriptor.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -46,8 +37,8 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("최상위 카테고리 목록을 조회한다")
     void getRootCategories() throws Exception {
         //given
-        List<CategoryResultDeprecated.Tree> results = mappingTreeResponse();
-        given(categoryService.getTree()).willReturn(results);
+        RootCategoriesResult roots = anRootCategoriesResult().build();
+        given(categoryQueryService.getRoots()).willReturn(roots);
         //when
         //then
         mockMvc.perform(get("/categories/roots"))

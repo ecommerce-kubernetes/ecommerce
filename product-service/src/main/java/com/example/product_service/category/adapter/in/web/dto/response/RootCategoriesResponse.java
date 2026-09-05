@@ -2,6 +2,7 @@ package com.example.product_service.category.adapter.in.web.dto.response;
 
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.util.List;
@@ -12,6 +13,7 @@ public record RootCategoriesResponse(
 ) {
     @Builder
     public record RootCategoryResponse(
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Long id,
             String name,
             String imagePath,
