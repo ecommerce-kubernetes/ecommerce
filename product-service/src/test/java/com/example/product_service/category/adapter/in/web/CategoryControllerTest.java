@@ -1,11 +1,7 @@
 package com.example.product_service.category.adapter.in.web;
 
 import com.example.product_service.category.application.service.CategoryQueryService;
-import com.example.product_service.category.application.service.CategoryService;
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
-import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
-import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
-import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
+import com.example.product_service.category.application.service.dto.result.*;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +15,6 @@ import static com.example.product_service.category.fixture.CategoryResultFixture
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
@@ -31,9 +26,6 @@ class CategoryControllerTest {
 
     @MockitoBean
     private CategoryQueryService categoryQueryService;
-
-    @MockitoBean
-    private CategoryService categoryService;
 
     @Test
     @DisplayName("최상위 카테고리 목록을 조회한다")
@@ -97,10 +89,18 @@ class CategoryControllerTest {
     @DisplayName("카테고리 트리를 조회한다")
     void getCategoryTree() throws Exception {
         //given
+        TreeCategoriesResult tree = anTreeCategoriesResult().build();
+        given(categoryQueryService.getTree()).willReturn(tree);
+        TreeCategoriesResult.TreeCategoryResult root = tree.categories().getFirst();
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories").isArray())
+                .andExpect(jsonPath("$.categories[0].id").value(root.id()))
+                .andExpect(jsonPath("$.categories[0].name").value(root.name()))
+                .andExpect(jsonPath("$.categories[0].depth").value(root.depth()))
+                .andExpect(jsonPath("$.categories[0].isLeaf").value(root.isLeaf()))
+                .andExpect(jsonPath("$.categories[0].children").isArray());
     }
 }

@@ -1,7 +1,6 @@
 package com.example.product_service.category.adapter.in.web.dto.response;
 
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
-import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;

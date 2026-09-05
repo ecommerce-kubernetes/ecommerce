@@ -66,7 +66,7 @@ public class CategoryDescriptor {
     }
 
     public static FieldDescriptor[] moveResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("id")
                         .type(JsonFieldType.STRING)
                         .description("변경된 카테고리 ID")
@@ -74,7 +74,7 @@ public class CategoryDescriptor {
     }
 
     public static FieldDescriptor[] rootsResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("categories")
                         .type(JsonFieldType.ARRAY)
                         .description("최상위 카테고리 목록"),
@@ -95,7 +95,7 @@ public class CategoryDescriptor {
     }
 
     public static FieldDescriptor[] childResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("categories")
                         .type(JsonFieldType.ARRAY)
                         .description("하위 카테고리 목록"),
@@ -150,11 +150,14 @@ public class CategoryDescriptor {
                         .type(JsonFieldType.ARRAY)
                         .description("전체 카테고리 트리 목록"),
                 fieldWithPath("categories[].id")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("카테고리 ID"),
                 fieldWithPath("categories[].name")
                         .type(JsonFieldType.STRING)
                         .description("카테고리 이름"),
+                fieldWithPath("categories[].depth")
+                        .type(JsonFieldType.NUMBER)
+                        .description("카테고리 깊이"),
                 fieldWithPath("categories[].isLeaf")
                         .type(JsonFieldType.BOOLEAN)
                         .description("최하위 노드 여부 (true인 경우 하위 카테고리가 없음)"),

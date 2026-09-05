@@ -5,11 +5,10 @@ import com.example.product_service.category.adapter.in.web.dto.response.DetailCa
 import com.example.product_service.category.adapter.in.web.dto.response.RootCategoriesResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.TreeCategoriesResponse;
 import com.example.product_service.category.application.service.CategoryQueryService;
-import com.example.product_service.category.application.service.CategoryService;
-import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
 import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
+import com.example.product_service.category.application.service.dto.result.TreeCategoriesResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +24,6 @@ import java.util.List;
 public class CategoryController {
 
     private final CategoryQueryService categoryQueryService;
-    private final CategoryService categoryService;
 
     @GetMapping("/roots")
     public ResponseEntity<RootCategoriesResponse> getRootCategories() {
@@ -49,7 +45,7 @@ public class CategoryController {
 
     @GetMapping("/tree")
     public ResponseEntity<TreeCategoriesResponse> getCategoryTree() {
-        List<CategoryResultDeprecated.Tree> results = categoryService.getTree();
-        return ResponseEntity.ok(TreeCategoriesResponse.from(results));
+        TreeCategoriesResult tree = categoryQueryService.getTree();
+        return ResponseEntity.ok(TreeCategoriesResponse.from(tree));
     }
 }

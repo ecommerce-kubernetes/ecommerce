@@ -1,7 +1,6 @@
 package com.example.product_service.category.application.service;
 
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
-import com.example.product_service.category.domain.model.Category;
 import com.example.product_service.category.domain.repository.CategoryRepository;
 import com.example.product_service.product.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;

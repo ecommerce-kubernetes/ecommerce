@@ -41,3 +41,15 @@ include::{snippets}/categories/detail/http-response.adoc[]
 
 ==== Response Fields
 include::{snippets}/categories/detail/response-fields.adoc[]
+
+[[category-tree]]
+=== 카테고리 트리 조회
+
+==== HTTP Request
+include::{snippets}/categories/tree/http-request.adoc[]
+
+==== HTTP Response
+include::{snippets}/categories/tree/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/categories/tree/response-fields.adoc[]
