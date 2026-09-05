@@ -5,14 +5,11 @@ import com.example.product_service.option.adapter.in.web.dto.request.CreateOptio
 import com.example.product_service.option.adapter.in.web.dto.request.OptionValueRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
-import com.example.product_service.option.adapter.in.web.dto.response.OptionDetailResponse;
-import com.example.product_service.option.adapter.in.web.dto.response.OptionValueResponse;
 import com.example.product_service.option.application.service.OptionService;
 import com.example.product_service.option.application.service.dto.command.OptionCommand;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
 import com.example.product_service.option.application.service.dto.result.OptionValueResult;
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.docs.descriptor.OptionDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,14 +18,18 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 
+import static com.example.product_service.docs.descriptor.OptionDescriptor.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class OptionControllerDocsTest extends RestDocsSupport {
@@ -50,8 +51,7 @@ class OptionControllerDocsTest extends RestDocsSupport {
                                 .name("XL").build())
                 ).build();
         OptionResult result = createOptionResponse().build();
-        OptionDetailResponse response = OptionDetailResponse.from(result);
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(optionService.saveOption(any(OptionCommand.Create.class)))
                 .willReturn(result);
         //when
@@ -59,17 +59,22 @@ class OptionControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(post("/options")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument(
-                        "02-option-01-create",
-                        "옵션 생성",
-                        "새로운 옵션과 값을 생성한다",
-                        OptionDescriptor.getCreateRequest(),
-                        OptionDescriptor.getOptionResponse())
-                );
+                .andDo(document(
+                        "options",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getCreateRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getOptionResponse())
+                ));
     }
 
     @Test
@@ -77,7 +82,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
     void getOption() throws Exception {
         //given
         OptionResult result = createOptionResponse().build();
-        OptionDetailResponse response = OptionDetailResponse.from(result);
         given(optionService.getOption(anyLong()))
                 .willReturn(result);
         //when
@@ -85,14 +89,12 @@ class OptionControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(get("/options/{optionTypeId}", 1L))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createPublicDocument(
-                        "02-option-02-get",
-                        "옵션 조회",
-                        "옵션을 조회한다",
-                        OptionDescriptor.getOptionResponse(),
-                        parameterWithName("optionTypeId").description("조회할 옵션 타입 ID"))
-                );
+                .andDo(document(
+                        "options/get",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        responseFields(getOptionResponse())
+                ));
     }
 
     @Test
@@ -102,19 +104,17 @@ class OptionControllerDocsTest extends RestDocsSupport {
         OptionResult result = createOptionResponse().build();
         given(optionService.getOptions())
                 .willReturn(List.of(result));
-        OptionDetailResponse response = OptionDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/options"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(List.of(response))))
-                .andDo(createPublicDocument(
-                        "02-option-03-get-list",
-                        "옵션 목록 조회",
-                        "옵션 목록을 조회한다",
-                        OptionDescriptor.getOptionListResponse())
-                );
+                .andDo(document(
+                        "options/list",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        responseFields(getOptionListResponse())
+                ));
     }
 
     @Test
@@ -125,26 +125,30 @@ class OptionControllerDocsTest extends RestDocsSupport {
                 .name("새 이름")
                 .build();
         OptionResult result = createOptionResponse().name("새 이름").build();
-        OptionDetailResponse response = OptionDetailResponse.from(result);
         given(optionService.updateOptionTypeName(any(OptionCommand.UpdateOptionType.class)))
                 .willReturn(result);
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
         mockMvc.perform(patch("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .headers(adminHeader)
+                        .headers(authHeader)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("02-option-04-update",
-                        "옵션 타입 수정",
-                        "옵션 타입 이름을 수정한다",
-                        OptionDescriptor.getOptionUpdateRequest(),
-                        OptionDescriptor.getOptionResponse(),
-                        parameterWithName("optionTypeId").description("수정할 옵션 ID"))
-                );
+                .andDo(document(
+                        "options/update",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getOptionUpdateRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getOptionResponse())
+                ));
     }
 
     @Test
@@ -152,18 +156,24 @@ class OptionControllerDocsTest extends RestDocsSupport {
     void deleteOption() throws Exception {
         //given
         willDoNothing().given(optionService).deleteOption(anyLong());
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
         mockMvc.perform(delete("/options/{optionTypeId}", 1L)
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(createSecuredDocument("02-option-05-delete",
-                                "옵션 삭제",
-                                "해당 옵션을 삭제한다",
-                                parameterWithName("optionTypeId").description("삭제할 옵션 ID"))
-                );
+                .andDo(document(
+                        "options/delete",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER)
+                ));
     }
 
     @Test
@@ -176,24 +186,28 @@ class OptionControllerDocsTest extends RestDocsSupport {
         OptionValueResult result = createOptionValueResponse().name("새 이름").build();
         given(optionService.updateOptionValueName(any(OptionCommand.UpdateOptionValue.class)))
                 .willReturn(result);
-        OptionValueResponse response = OptionValueResponse.from(result);
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
         mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                        .headers(adminHeader)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("02-option-06-update-value",
-                                "옵션 값 수정",
-                                "옵션 값 이름을 수정한다",
-                                OptionDescriptor.getOptionUpdateRequest(),
-                                OptionDescriptor.getOptionValueUpdateResponse(),
-                                parameterWithName("optionValueId").description("수정할 옵션 값 ID"))
-                );
+                .andDo(document(
+                        "option-values/update",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getOptionUpdateRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getOptionValueUpdateResponse())
+                ));
     }
 
     @Test
@@ -201,18 +215,25 @@ class OptionControllerDocsTest extends RestDocsSupport {
     void deleteOptionValue() throws Exception {
         //given
         willDoNothing().given(optionService).deleteOptionValue(anyLong());
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
         mockMvc.perform(delete("/option-values/{optionValueId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON).headers(adminHeader))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(createSecuredDocument("02-option-07-delete-value",
-                        "옵션 값 삭제",
-                        "해당 옵션 값을 삭제한다",
-                        parameterWithName("optionValueId").description("삭제할 옵션 값 ID"))
-                );
+                .andDo(document(
+                        "option-values/delete",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER)
+                ));
     }
 
     private OptionResult.OptionResultBuilder createOptionResponse() {

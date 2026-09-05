@@ -3,7 +3,7 @@ package com.example.product_service.category.adapter.in.web;
 import com.example.product_service.category.adapter.in.web.dto.request.CreateCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.MoveCategoryRequest;
 import com.example.product_service.category.adapter.in.web.dto.request.UpdateCategoryRequest;
-import com.example.product_service.category.application.service.CategoryService;
+import com.example.product_service.category.application.service.CategoryCommandService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -44,7 +44,7 @@ class AdminCategoryControllerTest {
     protected ObjectMapper objectMapper;
 
     @MockitoBean
-    protected CategoryService categoryService;
+    private CategoryCommandService categoryCommandService;
 
     @Test
     @DisplayName("카테고리를 생성한다")
@@ -53,7 +53,7 @@ class AdminCategoryControllerTest {
         //given
         CreateCategoryRequest request = anCreateCategoryRequest().build();
         Long categoryId = 1L;
-        given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
+        given(categoryCommandService.saveCategory(any(CategoryCommand.Create.class)))
                 .willReturn(categoryId);
         //when
         //then
@@ -91,7 +91,7 @@ class AdminCategoryControllerTest {
         //given
         UpdateCategoryRequest request = anUpdateCategoryRequest().build();
         Long categoryId = 1L;
-        given(categoryService.updateCategory(any(CategoryCommand.Update.class)))
+        given(categoryCommandService.updateCategory(any(CategoryCommand.Update.class)))
                 .willReturn(categoryId);
         //when
         //then
@@ -130,7 +130,7 @@ class AdminCategoryControllerTest {
         //given
         Long categoryId = 1L;
         MoveCategoryRequest request = anMoveCategoryRequest().build();
-        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(categoryId);
+        given(categoryCommandService.moveParent(anyLong(), anyLong())).willReturn(categoryId);
         //when
         //then
         mockMvc.perform(patch("/admin/categories/{categoryId}/move", categoryId)
@@ -152,7 +152,7 @@ class AdminCategoryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
-        verify(categoryService).deleteCategory(1L);
+        verify(categoryCommandService).deleteCategory(1L);
     }
 
     private static Stream<Arguments> provideInvalidCreateRequest() {

@@ -8,12 +8,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class CategoryDescriptor {
-    public static final FieldDescriptor ID = fieldWithPath("id").description("카테고리 ID");
-    public static final FieldDescriptor NAME = fieldWithPath("name").description("카테고리 이름");
-    public static final FieldDescriptor PARENT_ID = fieldWithPath("parentId").description("부모 카테고리 ID").type(JsonFieldType.NUMBER).optional();
-    public static final FieldDescriptor DEPTH = fieldWithPath("depth").description("카테고리 깊이");
-    public static final FieldDescriptor IMAGE_PATH = fieldWithPath("imagePath").description("카테고리 이미지 경로").optional().type(JsonFieldType.STRING);
-
     public static FieldDescriptor[] createRequest() {
         return new FieldDescriptor[]{
                 fieldWithPath("name")
@@ -164,27 +158,6 @@ public class CategoryDescriptor {
                 subsectionWithPath("categories[].children")
                         .type(JsonFieldType.ARRAY)
                         .description("하위 카테고리 목록 (상위 카테고리 객체와 동일한 구조가 재귀적으로 반복됨)")
-        };
-    }
-
-    public static FieldDescriptor[] getCategoryDetailResponse() {
-        return new FieldDescriptor[]{
-                ID, NAME, DEPTH,
-                fieldWithPath("isLeaf").description("리프(최하위) 카테고리 여부"),
-                subsectionWithPath("breadcrumb").description("루트부터 현재 카테고리까지의 경로")
-        };
-    }
-
-    public static FieldDescriptor[] getUpdateRequest() {
-        return new FieldDescriptor[]{
-                fieldWithPath("name").description("카테고리 이름").optional().type(JsonFieldType.STRING),
-                IMAGE_PATH
-        };
-    }
-
-    public static FieldDescriptor[] getMoveCategoryRequest() {
-        return new FieldDescriptor[]{
-                fieldWithPath("newParentId").description("이동할 부모 카테고리 ID").optional()
         };
     }
 }

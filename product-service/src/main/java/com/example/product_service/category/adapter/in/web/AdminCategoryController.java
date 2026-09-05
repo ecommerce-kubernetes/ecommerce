@@ -6,7 +6,7 @@ import com.example.product_service.category.adapter.in.web.dto.request.UpdateCat
 import com.example.product_service.category.adapter.in.web.dto.response.CreateCategoryResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.MoveCategoryResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.UpdateCategoryResponse;
-import com.example.product_service.category.application.service.CategoryService;
+import com.example.product_service.category.application.service.CategoryCommandService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,39 +20,36 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminCategoryController {
 
-    private final CategoryService categoryService;
+    private final CategoryCommandService categoryCommandService;
 
     @PostMapping("/categories")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreateCategoryResponse> saveCategory(@RequestBody @Validated CreateCategoryRequest request) {
         CategoryCommand.Create command = request.toCommand();
-        Long id = categoryService.saveCategory(command);
+        Long id = categoryCommandService.saveCategory(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateCategoryResponse.of(id));
     }
 
     @PatchMapping("/categories/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UpdateCategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                  @RequestBody @Validated UpdateCategoryRequest request) {
         CategoryCommand.Update command = request.toCommand(categoryId);
-        Long id = categoryService.updateCategory(command);
+        Long id = categoryCommandService.updateCategory(command);
         return ResponseEntity.ok(UpdateCategoryResponse.of(id));
     }
 
     @PatchMapping("/categories/{categoryId}/move")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MoveCategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
                                                            @RequestBody @Validated MoveCategoryRequest request) {
-        Long id = categoryService.moveParent(categoryId, request.newParentId());
+        Long id = categoryCommandService.moveParent(categoryId, request.newParentId());
         return ResponseEntity.ok(MoveCategoryResponse.of(id));
     }
 
     @DeleteMapping("/categories/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId) {
-        categoryService.deleteCategory(categoryId);
+        categoryCommandService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -18,8 +18,6 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -27,11 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class InternalProductControllerDocsTest extends RestDocsSupport {
     private VariantService variantService = Mockito.mock(VariantService.class);
-
-    @Override
-    protected String getTag() {
-        return ""; //내부 호출 API
-    }
 
     @Override
     protected Object initController() {
@@ -53,9 +46,6 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
                 .andDo(
                         document("internal-get-variant",
                                 preprocessResponse(prettyPrint()),
-                                pathParameters(
-                                        parameterWithName("variantId").description("조회할 상품 변형 ID")
-                                ),
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
                                         fieldWithPath("productVariantId").description("상품 변형 Id"),

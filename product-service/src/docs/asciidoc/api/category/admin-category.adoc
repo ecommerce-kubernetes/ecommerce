@@ -1,0 +1,76 @@
+== 관리자 전용
+
+[[category-create]]
+=== 카테고리 생성
+
+==== HTTP Request
+include::{snippets}/admin/categories/create/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/categories/create/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/categories/create/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/categories/create/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/categories/create/response-fields.adoc[]
+
+[[category-update]]
+=== 카테고리 수정
+
+==== HTTP Request
+include::{snippets}/admin/categories/update/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/categories/update/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/categories/update/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/categories/update/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/categories/update/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/categories/update/response-fields.adoc[]
+
+[[category-move]]
+=== 카테고리 부모 변경
+
+==== HTTP Request
+include::{snippets}/admin/categories/move/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/categories/move/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/categories/move/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/categories/move/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/categories/move/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/categories/move/response-fields.adoc[]
+
+[[category-delete]]
+=== 카테고리 삭제
+
+==== HTTP Request
+include::{snippets}/admin/categories/delete/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/categories/delete/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/categories/delete/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/categories/delete/http-response.adoc[]

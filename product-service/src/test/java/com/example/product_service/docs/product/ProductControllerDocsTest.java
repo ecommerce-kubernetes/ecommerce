@@ -1,6 +1,5 @@
 package com.example.product_service.docs.product;
 
-import com.example.product_service.common.dto.PageDto;
 import com.example.product_service.product.adapter.in.web.ProductController;
 import com.example.product_service.product.adapter.in.web.dto.request.AddProductDescriptionImageRequest;
 import com.example.product_service.product.adapter.in.web.dto.request.AddProductImageRequest;
@@ -9,22 +8,11 @@ import com.example.product_service.product.adapter.in.web.dto.request.CreateProd
 import com.example.product_service.product.adapter.in.web.dto.request.ProductVariantDetailRequest;
 import com.example.product_service.product.adapter.in.web.dto.request.RegisterProductOptionRequest;
 import com.example.product_service.product.adapter.in.web.dto.request.UpdateProductRequest;
-import com.example.product_service.product.adapter.in.web.dto.response.AddProductDescriptionImageResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.AddProductImageResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.AddProductVariantResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.CloseProductResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.CreateProductResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.ProductDetailResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.ProductSummaryResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.PublishProductResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.RegisterProductOptionResponse;
-import com.example.product_service.product.adapter.in.web.dto.response.UpdateProductResponse;
 import com.example.product_service.product.domain.model.ProductStatus;
 import com.example.product_service.product.application.service.ProductService;
 import com.example.product_service.product.application.service.dto.command.ProductCommand;
 import com.example.product_service.product.application.service.dto.result.ProductResult;
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.docs.descriptor.ProductDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -37,30 +25,28 @@ import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.product_service.docs.descriptor.ProductDescriptor.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ProductControllerDocsTest extends RestDocsSupport {
     ProductService productService = Mockito.mock(ProductService.class);
 
     @Override
-    protected String getTag() {
-        return "Product";
-    }
-
-    @Override
     protected Object initController() {
         return new ProductController(productService);
     }
-
-    private static final String TAG = "Product";
 
     @Test
     @DisplayName("상품을 생성한다")
@@ -74,25 +60,30 @@ class ProductControllerDocsTest extends RestDocsSupport {
         ProductResult.Create result = ProductResult.Create.builder()
                 .productId(1L)
                 .build();
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.createProduct(any(ProductCommand.Create.class)))
                 .willReturn(result);
-        CreateProductResponse response = CreateProductResponse.from(result);
         //when
         //then
         mockMvc.perform(post("/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
-                .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .headers(authHeader))
                 .andDo(print())
-                .andDo(createSecuredDocument("03-product-01-create",
-                                "상품 생성",
-                                "새로운 상품을 생성합니다",
-                                ProductDescriptor.getCreateRequest(),
-                                ProductDescriptor.getCreateResponse())
-                );
+                .andExpect(status().isCreated())
+                .andDo(document(
+                        "products",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getCreateRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getCreateResponse())
+                ));
     }
 
     @Test
@@ -113,26 +104,30 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                     .priority(1)
                                     .build()))
                 .build();
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.defineOptions(any(ProductCommand.OptionRegister.class)))
                 .willReturn(result);
-        RegisterProductOptionResponse response = RegisterProductOptionResponse.from(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}/options", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("03-product-02-add-option",
-                                "상품 옵션 추가",
-                                "상품에 상품 옵션을 추가",
-                                ProductDescriptor.getRegisterOptionRequest(),
-                                ProductDescriptor.getRegisterOptionResponse(),
-                                parameterWithName("productId").description("옵션을 추가할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/options",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getRegisterOptionRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getRegisterOptionResponse())
+                ));
     }
 
     @Test
@@ -165,8 +160,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                         .build()
                         )
                 ).build();
-        AddProductVariantResponse response = AddProductVariantResponse.from(result);
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.createVariants(any(ProductCommand.AddVariant.class)))
                 .willReturn(result);
         //when
@@ -174,18 +168,22 @@ class ProductControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(post("/products/{productId}/variants", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument(
-                        "03-product-03-add-variants",
-                        "상품 변형 추가",
-                        "상품에 상품 변형을 추가",
-                        ProductDescriptor.getAddVariantRequest(),
-                        ProductDescriptor.getAddVariantResponse(),
-                        parameterWithName("productId").description("상품 변형을 추가할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/variants",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getAddVariantRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getAddVariantResponse())
+                ));
     }
 
     @Test
@@ -207,8 +205,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                         .build()
                         )
                 ).build();
-        AddProductImageResponse response = AddProductImageResponse.from(result);
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.updateImages(any(ProductCommand.AddImage.class)))
                 .willReturn(result);
         //when
@@ -216,17 +213,22 @@ class ProductControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(put("/products/{productId}/images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("03-product-04-add-images",
-                        "상품 이미지 추가",
-                        "상품 이미지를 추가",
-                        ProductDescriptor.getAddImageRequest(),
-                        ProductDescriptor.getAddImageResponse(),
-                        parameterWithName("productId").description("이미지를 추가할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/images",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getAddImageRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getAddImageResponse())
+                ));
     }
 
     @Test
@@ -245,25 +247,28 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                 .sortOrder(1)
                                 .build())
                 ).build();
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.updateDescriptionImages(any(ProductCommand.AddDescriptionImage.class)))
                 .willReturn(result);
-        AddProductDescriptionImageResponse response = AddProductDescriptionImageResponse.from(result);
         mockMvc.perform(put("/products/{productId}/description-images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("03-product-05-add-description-images",
-                                "상품 설명 이미지 추가",
-                                "상품 설명 이미지를 추가",
-                                ProductDescriptor.getAddDescriptionImageRequest(),
-                                ProductDescriptor.getAddDescriptionImageResponse(),
-                                parameterWithName("productId").description("설명 이미지를 추가할 상품 ID"))
-                );
-
+                .andDo(document(
+                        "products/description-images",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getAddDescriptionImageRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getAddDescriptionImageResponse())
+                ));
     }
 
     @Test
@@ -275,24 +280,28 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .status(ProductStatus.ON_SALE)
                 .publishedAt(LocalDateTime.now())
                 .build();
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.publish(anyLong()))
                 .willReturn(result);
-        PublishProductResponse response = PublishProductResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/publish", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("03-product-06-publish",
-                        "상품 판매 개시",
-                        "상품을 판매 개시한다",
-                        ProductDescriptor.getPublishResponse(),
-                        parameterWithName("productId").description("게시할 상품 상품 ID"))
-                );
+                .andDo(document(
+                        "products/publish",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getPublishResponse())
+                ));
     }
 
     @Test
@@ -304,24 +313,28 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .status(ProductStatus.STOP_SALE)
                 .saleStoppedAt(LocalDateTime.now())
                 .build();
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.closedProduct(anyLong()))
                 .willReturn(result);
-        CloseProductResponse response = CloseProductResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/close", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("03-product-11-close",
-                                "상품 판매 중지",
-                                "상품을 판매 중지한다",
-                                ProductDescriptor.getCloseResponse(),
-                                parameterWithName("productId").description("판매 중지할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/close",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getCloseResponse())
+                ));
     }
 
     @Test
@@ -333,26 +346,25 @@ class ProductControllerDocsTest extends RestDocsSupport {
         Page<ProductResult.Summary> results = new PageImpl<>(List.of(summary), pageable, 100L);
         given(productService.getProducts(any(ProductCommand.Search.class)))
                 .willReturn(results);
-        PageDto<ProductSummaryResponse> response = PageDto.of(results, ProductSummaryResponse::from);
         //when
         //then
         mockMvc.perform(get("/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .param("page", "1")
-                .param("size", "10")
-                .param("sort", "latest")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("sort", "latest")
                         .param("categoryId", "1")
-                .param("name", "나이키")
-                .param("rating", "3"))
+                        .param("name", "나이키")
+                        .param("rating", "3"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createPublicDocument("03-product-07-get-products",
-                                "상품 목록 조회",
-                                "상품 목록을 조회한다",
-                                ProductDescriptor.getSummaryResponse(),
-                                ProductDescriptor.getSearchParams())
-                );
+                .andDo(document(
+                        "products/list",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        queryParameters(getSearchParams()),
+                        responseFields(getSummaryResponse())
+                ));
     }
 
     @Test
@@ -362,20 +374,18 @@ class ProductControllerDocsTest extends RestDocsSupport {
         ProductResult.Detail result = mockDetailResult();
         given(productService.getProduct(anyLong()))
                 .willReturn(result);
-        ProductDetailResponse response = ProductDetailResponse.from(result);
         //when
         //then
         mockMvc.perform(get("/products/{productId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createPublicDocument("03-product-08-get-product",
-                                "상품 상세 조회",
-                                "상품 상세 정보를 조회한다",
-                                ProductDescriptor.getDetailResponse(),
-                                parameterWithName("productId").description("조회할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/get",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        responseFields(getDetailResponse())
+                ));
     }
 
     @Test
@@ -393,26 +403,30 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .description("상품 설명")
                 .categoryId(1L)
                 .build();
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         given(productService.updateProduct(any(ProductCommand.Update.class)))
                 .willReturn(result);
-        UpdateProductResponse response = UpdateProductResponse.from(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .headers(adminHeader))
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("03-product-09-update",
-                        "상품 정보 수정",
-                        "상품 기본 정보를 수정한다",
-                        ProductDescriptor.getUpdateRequest(),
-                        ProductDescriptor.getUpdateResponse(),
-                        parameterWithName("productId").description("수정할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/update",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(getUpdateRequest()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(getUpdateResponse())
+                ));
     }
 
     @Test
@@ -420,19 +434,25 @@ class ProductControllerDocsTest extends RestDocsSupport {
     void deleteProduct() throws Exception {
         //given
         willDoNothing().given(productService).deleteProduct(anyLong());
-        HttpHeaders adminHeader = createAdminHeader();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
         mockMvc.perform(delete("/products/{productId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                        .headers(adminHeader))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(createSecuredDocument("03-product-10-delete",
-                                "상품 삭제",
-                                "상품을 삭제한다",
-                                parameterWithName("productId").description("삭제할 상품 ID"))
-                );
+                .andDo(document(
+                        "products/delete",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER)
+                ));
     }
 
     private ProductResult.Summary mockSummaryResult() {
