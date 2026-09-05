@@ -11,13 +11,19 @@ endif::[]
 
 [[PRODUCT-SERVICE-API]]
 == ProductService API
-= Category
-include::api/category/category.adoc[]
-= Option
-include::api/option/option.adoc[]
-= Product
-include::api/product/product.adoc[]
 
+=== Category
+include::api/category/admin-category.adoc[leveloffset=+2]
+include::api/category/category.adoc[leveloffset=+2]
+
+=== Option
+include::api/option/option.adoc[leveloffset=+2]
+
+=== Product
+include::api/product/product.adoc[leveloffset=+2]
+
+[[INTERNAL-API]]
 == Internal API
-= Product
-include::api/product/internalProduct.adoc[]
+
+=== Product
+include::api/product/internalProduct.adoc[leveloffset=+2]

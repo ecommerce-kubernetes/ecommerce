@@ -4,6 +4,7 @@ import com.example.product_service.category.adapter.in.web.dto.response.ChildCat
 import com.example.product_service.category.adapter.in.web.dto.response.DetailCategoryResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.RootCategoriesResponse;
 import com.example.product_service.category.adapter.in.web.dto.response.TreeCategoriesResponse;
+import com.example.product_service.category.application.service.CategoryQueryService;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/categories")
 public class CategoryController {
+
+    private final CategoryQueryService categoryQueryService;
     private final CategoryService categoryService;
 
     @GetMapping("/roots")
