@@ -4,6 +4,7 @@ import com.example.product_service.category.adapter.in.web.CategoryController;
 import com.example.product_service.category.application.service.CategoryQueryService;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
+import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -12,13 +13,17 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
+import static com.example.product_service.category.fixture.CategoryResultFixture.anChildCategoriesResult;
 import static com.example.product_service.category.fixture.CategoryResultFixture.anRootCategoriesResult;
 import static com.example.product_service.docs.descriptor.CategoryDescriptor.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,18 +61,19 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리의 자식 목록을 조회한다")
     void getCategoryChildren() throws Exception {
         //given
-        List<CategoryResultDeprecated.Tree> results = mappingTreeResponse();
-        CategoryResultDeprecated.Tree electron = results.get(0);
-        given(categoryService.getTree()).willReturn(results);
+        Long parentId = 1L;
+        ChildCategoriesResult children = anChildCategoriesResult().build();
+        given(categoryQueryService.getChildren(anyLong())).willReturn(children);
         //when
         //then
-        mockMvc.perform(get("/categories/{categoryId}/children", electron.getId()))
+        mockMvc.perform(get("/categories/{categoryId}/children", parentId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document(
                         "categories/children",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("categoryId").description("하위 카테고리를 조회할 상위 카테고리 ID")),
                         responseFields(childResponse())
                 ));
     }

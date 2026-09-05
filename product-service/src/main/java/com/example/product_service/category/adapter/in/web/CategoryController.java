@@ -7,6 +7,7 @@ import com.example.product_service.category.adapter.in.web.dto.response.TreeCate
 import com.example.product_service.category.application.service.CategoryQueryService;
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
+import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +36,8 @@ public class CategoryController {
 
     @GetMapping("/{categoryId}/children")
     public ResponseEntity<ChildCategoriesResponse> getCategoryChildren(@PathVariable("categoryId") Long categoryId) {
-        List<CategoryResultDeprecated.Tree> tree = categoryService.getTree();
-        return ResponseEntity.ok(ChildCategoriesResponse.from(tree));
+        ChildCategoriesResult children = categoryQueryService.getChildren(categoryId);
+        return ResponseEntity.ok(ChildCategoriesResponse.from(children));
     }
 
     @GetMapping("/{categoryId}")

@@ -1,31 +1,31 @@
 == 일반
 
-[[category-tree]]
-=== 카테고리 트리 구조 조회
+[[category-root]]
+=== 최상위 카테고리 조회
 
 ==== HTTP Request
-include::{snippets}/01-category-02-get-tree/http-request.adoc[]
+include::{snippets}/categories/roots/http-request.adoc[]
 
 ==== HTTP Response
-include::{snippets}/01-category-02-get-tree/http-response.adoc[]
+include::{snippets}/categories/roots/http-response.adoc[]
 
 ==== Response Fields
-include::{snippets}/01-category-02-get-tree/response-fields.adoc[]
+include::{snippets}/categories/roots/response-fields.adoc[]
 
-[[category-navigation]]
-=== 카테고리 네비게이션 조회
+[[category-children]]
+=== 하위 카테고리 조회
 
 ==== HTTP Request
-include::{snippets}/01-category-03-get-navigation/http-request.adoc[]
+include::{snippets}/categories/children/http-request.adoc[]
 
 ==== Path Parameters
-include::{snippets}/01-category-03-get-navigation/path-parameters.adoc[]
+include::{snippets}/categories/children/path-parameters.adoc[]
 
 ==== HTTP Response
-include::{snippets}/01-category-03-get-navigation/http-response.adoc[]
+include::{snippets}/categories/children/http-response.adoc[]
 
 ==== Response Fields
-include::{snippets}/01-category-03-get-navigation/response-fields.adoc[]
+include::{snippets}/categories/children/response-fields.adoc[]
 
 [[category-get]]
 === 카테고리 단일 조회
