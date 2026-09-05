@@ -17,7 +17,7 @@ include::api/category/admin-category.adoc[leveloffset=+2]
 include::api/category/category.adoc[leveloffset=+2]
 
 === Option
-include::api/option/option.adoc[leveloffset=+2]
+include::api/option/admin-option.adoc[leveloffset=+2]
 
 === Product
 include::api/product/product.adoc[leveloffset=+2]

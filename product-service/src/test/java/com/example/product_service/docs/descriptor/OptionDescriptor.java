@@ -1,24 +1,34 @@
 package com.example.product_service.docs.descriptor;
 
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class OptionDescriptor {
-    public static final FieldDescriptor TYPE_ID = fieldWithPath("id").description("옵션 타입 아이디");
-    public static final FieldDescriptor TYPE_NAME = fieldWithPath("name").description("옵션 이름");
-    public static final FieldDescriptor VALUES_ID = fieldWithPath("values[].id").description("옵션 값 ID");
-    public static final FieldDescriptor VALUES_NAME = fieldWithPath("values[].name").description("옵션 값");
-    public static FieldDescriptor[] getCreateRequest() {
+    public static FieldDescriptor[] createOptionTypeRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("name").description("옵션 이름"),
-                fieldWithPath("values[].name").description("옵션 값 이름")
+                fieldWithPath("name")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 이름")
+                        .attributes(key("constraint").value("필수")),
+                fieldWithPath("values")
+                        .type(JsonFieldType.ARRAY)
+                        .description("옵션 값 리스트")
+                        .attributes(key("constraint").value("필수, 최소 한개의 옵션 값 필요")),
+                fieldWithPath("values[].name")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 이름")
+                        .attributes(key("constraint").value("필수"))
         };
     }
 
-    public static FieldDescriptor[] getOptionResponse() {
+    public static FieldDescriptor[] createOptionTypeResponse() {
         return new FieldDescriptor[] {
-                TYPE_ID, TYPE_NAME, VALUES_ID, VALUES_NAME
+                fieldWithPath("id")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 타입 ID")
         };
     }
 

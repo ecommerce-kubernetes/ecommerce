@@ -1,14 +1,13 @@
 package com.example.product_service.option.adapter.in.web;
 
 import com.example.product_service.option.adapter.in.web.dto.request.AddOptionValueRequest;
-import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
 import com.example.product_service.option.adapter.in.web.dto.response.*;
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
-import com.example.product_service.option.application.service.dto.result.CreateOptionTypeResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +26,10 @@ public class AdminOptionController {
     private final OptionQueryService optionQueryService;
 
     @PostMapping("/option-types")
-    public ResponseEntity<CreateOptionTypeResponse> createOptionType(@RequestBody @Validated CreateOptionRequest request) {
+    public ResponseEntity<CreateOptionTypeResponse> createOptionType(@RequestBody @Validated CreateOptionTypeRequest request) {
         CreateOptionTypeCommand command = request.toCommand();
-        CreateOptionTypeResult result = optionCommandService.createOptionType(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CreateOptionTypeResponse.from(result));
+        Long id = optionCommandService.createOptionType(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(CreateOptionTypeResponse.of(id));
     }
 
     @GetMapping("/option-types")

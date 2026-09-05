@@ -1,15 +1,22 @@
-## 관리자 전용
-=== 옵션 생성
+== 관리자 전용
+
+[[option-type-create]]
+=== 카테고리 생성
+
 ==== HTTP Request
-include::{snippets}/02-option-01-create/http-request.adoc[]
-===== Request Header
-include::{snippets}/02-option-01-create/request-headers.adoc[]
-===== Request Fields
-include::{snippets}/02-option-01-create/request-fields.adoc[]
+include::{snippets}/admin/option-types/create/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/create/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/option-types/create/request-fields.adoc[]
+
 ==== HTTP Response
-include::{snippets}/02-option-01-create/http-response.adoc[]
-===== Response Fields
-include::{snippets}/02-option-01-create/response-fields.adoc[]
+include::{snippets}/admin/option-types/create/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/create/response-fields.adoc[]
 
 === 옵션 수정
 ==== HTTP Request

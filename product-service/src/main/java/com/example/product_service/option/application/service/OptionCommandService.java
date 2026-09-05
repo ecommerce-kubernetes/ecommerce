@@ -1,13 +1,14 @@
 package com.example.product_service.option.application.service;
 
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
-import com.example.product_service.option.application.service.dto.result.CreateOptionTypeResult;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class OptionCommandService {
 
-    public CreateOptionTypeResult createOptionType(CreateOptionTypeCommand command) {
+    public Long createOptionType(CreateOptionTypeCommand command) {
         return null;
     }
 }

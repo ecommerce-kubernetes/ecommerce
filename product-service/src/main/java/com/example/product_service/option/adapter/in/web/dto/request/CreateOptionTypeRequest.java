@@ -9,17 +9,17 @@ import org.hibernate.validator.constraints.UniqueElements;
 import java.util.List;
 
 @Builder
-public record CreateOptionRequest(
+public record CreateOptionTypeRequest(
         @NotBlank(message = "옵션 이름은 필수 입니다")
         String name,
 
         @NotEmpty(message = "최소 1개의 옵션 값을 입력해야합니다")
         @UniqueElements(message = "옵션값은 중복될 수 없습니다")
-        List<OptionValueRequest> values
+        List<CreateOptionValueRequest> values
 ) {
 
     @Builder
-    public record OptionValueRequest(
+    public record CreateOptionValueRequest(
             @NotBlank(message = "옵션 값 이름은 필수 입니다")
             String name
     ) {
@@ -31,7 +31,7 @@ public record CreateOptionRequest(
     }
 
     public CreateOptionTypeCommand toCommand() {
-        List<CreateOptionTypeCommand.CreateOptionValueCommand> valueCommands = values.stream().map(OptionValueRequest::toCommand).toList();
+        List<CreateOptionTypeCommand.CreateOptionValueCommand> valueCommands = values.stream().map(CreateOptionValueRequest::toCommand).toList();
 
         return CreateOptionTypeCommand.builder()
                 .name(name)

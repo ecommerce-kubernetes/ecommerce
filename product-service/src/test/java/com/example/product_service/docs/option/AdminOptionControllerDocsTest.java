@@ -2,11 +2,12 @@ package com.example.product_service.docs.option;
 
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.option.adapter.in.web.AdminOptionController;
-import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
+import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
 import com.example.product_service.option.application.service.dto.result.OptionValueResult;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,9 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 import static com.example.product_service.docs.descriptor.OptionDescriptor.*;
+import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -28,8 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AdminOptionControllerDocsTest extends RestDocsSupport {
-    OptionCommandService optionCommandService = Mockito.mock(OptionCommandService.class);
-    OptionQueryService optionQueryService = Mockito.mock(OptionQueryService.class);
+
+    private OptionCommandService optionCommandService = Mockito.mock(OptionCommandService.class);
+
+    private OptionQueryService optionQueryService = Mockito.mock(OptionQueryService.class);
 
     @Override
     protected Object initController() {
@@ -40,23 +46,20 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 저장한다")
     void createOptionType() throws Exception {
         //given
-        CreateOptionRequest request = CreateOptionRequest.builder()
-                .name("사이즈")
-                .values(
-                        List.of()
-                ).build();
-        OptionResult result = createOptionResponse().build();
+        CreateOptionTypeRequest request = anCreateOptionTypeRequest().build();
+        Long optionTypeId = 1L;
+        given(optionCommandService.createOptionType(any(CreateOptionTypeCommand.class))).willReturn(optionTypeId);
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
-        mockMvc.perform(post("/options")
+        mockMvc.perform(post("/admin/option-types")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andDo(document(
-                        "options",
+                        "admin/option-types/create",
                         preprocessRequest(
                                 prettyPrint(),
                                 modifyHeaders()
@@ -64,9 +67,9 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                                         .remove("X-User-Role")
                         ),
                         preprocessResponse(prettyPrint()),
-                        requestFields(getCreateRequest()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(getOptionResponse())
+                        requestFields(createOptionTypeRequest()),
+                        responseFields(createOptionTypeResponse())
                 ));
     }
 
@@ -84,7 +87,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         "options/get",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
-                        responseFields(getOptionResponse())
+                        responseFields(createOptionTypeResponse())
                 ));
     }
 
@@ -134,7 +137,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         preprocessResponse(prettyPrint()),
                         requestFields(getOptionUpdateRequest()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(getOptionResponse())
+                        responseFields(createOptionTypeResponse())
                 ));
     }
 

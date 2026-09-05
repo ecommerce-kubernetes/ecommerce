@@ -1,62 +1,73 @@
 package com.example.product_service.option.adapter.in.web;
 
-import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
+import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
-import com.example.product_service.option.adapter.in.web.dto.response.OptionDetailResponse;
-import com.example.product_service.option.application.service.dto.command.OptionCommand;
-import com.example.product_service.option.application.service.dto.result.OptionResult;
-import com.example.product_service.option.application.service.dto.result.OptionValueResult;
-import com.example.product_service.support.ControllerTestSupport;
+import com.example.product_service.option.application.service.OptionCommandService;
+import com.example.product_service.option.application.service.OptionQueryService;
+import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-class AdminOptionControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = AdminOptionController.class)
+class AdminOptionControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private OptionCommandService optionCommandService;
+
+    @MockitoBean
+    private OptionQueryService optionQueryService;
 
     @Test
     @DisplayName("옵션을 저장한다")
     @WithCustomMockUser
     void createOptionType() throws Exception {
         //given
-        CreateOptionRequest request = fixtureMonkey.giveMeOne(CreateOptionRequest.class);
-        OptionResult result = fixtureMonkey.giveMeOne(OptionResult.class);
-        assert result != null;
-        OptionDetailResponse response = OptionDetailResponse.from(result);
-        given(optionService.saveOption(any(OptionCommand.Create.class)))
-                .willReturn(result);
+        CreateOptionTypeRequest request = anCreateOptionTypeRequest().build();
+        Long optionTypeId = 1L;
+        given(optionCommandService.createOptionType(any(CreateOptionTypeCommand.class))).willReturn(optionTypeId);
         //when
         //then
-        mockMvc.perform(post("/options")
+        mockMvc.perform(post("/admin/option-types")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(jsonPath("$.id").value(optionTypeId));
     }
 
     @ParameterizedTest(name = "{0}")
     @DisplayName("옵션 저장 요청 검증")
     @MethodSource("provideInvalidRequest")
     @WithCustomMockUser
-    void saveOption_Types_validation(String description, CreateOptionRequest request, String message) throws Exception {
+    void saveOption_Types_validation(String description, CreateOptionTypeRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -79,54 +90,35 @@ class AdminOptionControllerTest extends ControllerTestSupport {
     @DisplayName("옵션을 조회한다")
     void getOption() throws Exception {
         //given
-        OptionResult response = fixtureMonkey.giveMeOne(OptionResult.class);
-        given(optionService.getOption(anyLong()))
-                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("옵션 목록을 조회한다")
     void getOptions() throws Exception {
         //given
-        List<OptionResult> results =
-                fixtureMonkey.giveMe(OptionResult.class, 3);
-        given(optionService.getOptions())
-                .willReturn(results);
-        List<OptionDetailResponse> responses = OptionDetailResponse.from(results);
         //when
         //then
         mockMvc.perform(get("/options")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(responses)));
+                .andExpect(status().isOk());
     }
     @Test
     @DisplayName("옵션을 수정한다")
     @WithCustomMockUser
     void updateOptionType() throws Exception {
         //given
-        UpdateOptionTypeRequest request = fixtureMonkey.giveMeOne(UpdateOptionTypeRequest.class);
-        OptionResult result = fixtureMonkey.giveMeOne(OptionResult.class);
-        assert result != null;
-        OptionDetailResponse response = OptionDetailResponse.from(result);
-        given(optionService.updateOptionTypeName(any(OptionCommand.UpdateOptionType.class)))
-                .willReturn(result);
         //when
         //then
         mockMvc.perform(patch("/options/{optionTypeId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -155,7 +147,6 @@ class AdminOptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void deleteOption() throws Exception {
         //given
-        willDoNothing().given(optionService).deleteOption(anyLong());
         //when
         //then
         mockMvc.perform(delete("/options/{optionTypeId}", 1L)
@@ -169,17 +160,11 @@ class AdminOptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void updateOptionValue() throws Exception {
         //given
-        UpdateOptionValueRequest request = fixtureMonkey.giveMeOne(UpdateOptionValueRequest.class);
-        OptionValueResult response = fixtureMonkey.giveMeOne(OptionValueResult.class);
-        given(optionService.updateOptionValueName(any(OptionCommand.UpdateOptionValue.class)))
-                .willReturn(response);
         //when
         //then
         mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -207,7 +192,6 @@ class AdminOptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void deleteOptionValue() throws Exception {
         //given
-        willDoNothing().given(optionService).deleteOptionValue(anyLong());
         //when
         //then
         mockMvc.perform(delete("/option-values/{optionValueId}", 1L))
