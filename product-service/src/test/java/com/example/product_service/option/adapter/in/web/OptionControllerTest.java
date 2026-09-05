@@ -106,8 +106,8 @@ class OptionControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
-                    .andExpect(jsonPath("code").value("VALIDATION"))
-                    .andExpect(jsonPath("message").value(message))
+                    .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("errors[0].reason").value(message))
                     .andExpect(jsonPath("timestamp").exists())
                     .andExpect(jsonPath("path").value("/options"));
         }
@@ -246,8 +246,8 @@ class OptionControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
-                    .andExpect(jsonPath("code").value("VALIDATION"))
-                    .andExpect(jsonPath("message").value("이름은 필수입니다"))
+                    .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("errors[0].reason").value("이름은 필수입니다"))
                     .andExpect(jsonPath("timestamp").exists())
                     .andExpect(jsonPath("path").value("/options/1"));
         }
@@ -371,8 +371,8 @@ class OptionControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("code").value("VALIDATION"))
-                .andExpect(jsonPath("message").value("이름은 필수입니다"))
+                .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("errors[0].reason").value("이름은 필수입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/option-values/1"));
     }

@@ -69,7 +69,7 @@ class AdminCategoryControllerTest {
     @MethodSource("provideInvalidCreateRequest")
     @DisplayName("카테고리 생성 요청 검증")
     @WithCustomMockUser
-    void saveCategoryValidation(String description, CreateCategoryRequest request, String message) throws Exception {
+    void saveCategoryValidation(String description, CreateCategoryRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         //when
         //then
@@ -78,8 +78,9 @@ class AdminCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("code").value("VALIDATION"))
-                .andExpect(jsonPath("message").value(message))
+                .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("errors[0].field").value(expectedField))
+                .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/admin/categories"));
     }
@@ -107,7 +108,7 @@ class AdminCategoryControllerTest {
     @MethodSource("provideInvalidUpdateRequest")
     @DisplayName("카테고리 수정 요청 검증")
     @WithCustomMockUser
-    void updateCategoryValidation(String description, UpdateCategoryRequest request, String message) throws Exception {
+    void updateCategoryValidation(String description, UpdateCategoryRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         Long categoryId = 1L;
         //when
@@ -117,8 +118,9 @@ class AdminCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("code").value("VALIDATION"))
-                .andExpect(jsonPath("message").value(message))
+                .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("errors[0].field").value(expectedField))
+                .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/admin/categories/" + categoryId));
     }
@@ -159,10 +161,12 @@ class AdminCategoryControllerTest {
         return Stream.of(
                 Arguments.of("이름이 누락되면 예외가 발생한다.",
                         anCreateCategoryRequest().name(null).build(),
+                        "name",
                         "name은 필수값입니다"
                 ),
                 Arguments.of("이미지 경로가 유효하지 않으면 예외가 발생한다.",
                         anCreateCategoryRequest().imagePath("invalid_image_file").build(),
+                        "imagePath",
                         "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
         );
     }
@@ -171,9 +175,11 @@ class AdminCategoryControllerTest {
         return Stream.of(
                 Arguments.of("imagePath가 유효하지 않으면 예외가 발생한다.",
                         anUpdateCategoryRequest().imagePath("invalid-image-path").build(),
+                        "imagePath",
                         "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
                 Arguments.of("수정값이 하나도 존재하지 않으면 예외가 발생한다.",
                         anUpdateCategoryRequest().name(null).imagePath(null).build(),
+                        "validRequest",
                         "이름 또는 이미지 경로 중 하나는 필수입니다.")
         );
     }

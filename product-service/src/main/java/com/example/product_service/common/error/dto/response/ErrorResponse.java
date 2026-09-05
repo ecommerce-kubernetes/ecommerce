@@ -1,33 +1,51 @@
 package com.example.product_service.common.error.dto.response;
 
+import com.example.product_service.common.exception.CommonErrorCode;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class ErrorResponse {
-    private String code;
-    private String message;
-    private String timestamp;
-    private String path;
+import java.time.LocalDateTime;
+import java.util.List;
 
-    @Builder
-    public ErrorResponse(String code, String message, String timestamp, String path) {
-        this.code = code;
-        this.message = message;
-        this.timestamp = timestamp;
-        this.path = path;
-    }
+@Builder
+public record ErrorResponse(
 
-    public static ErrorResponse of(String code, String message, String timestamp, String path) {
+        String code,
+
+        String message,
+
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        List<InputError> errors,
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+        LocalDateTime timestamp,
+
+        String path
+) {
+
+    public static ErrorResponse of(String code, String message, String path) {
         return ErrorResponse.builder()
                 .code(code)
                 .message(message)
-                .timestamp(timestamp)
+                .timestamp(LocalDateTime.now())
                 .path(path)
                 .build();
+    }
+
+    public static ErrorResponse ofValidation(List<InputError> errors, String path) {
+        return ErrorResponse.builder()
+                .code(CommonErrorCode.INVALID_INPUT_VALUE.getCode())
+                .message("입력값이 올바르지 않습니다.")
+                .errors(errors)
+                .timestamp(LocalDateTime.now())
+                .path(path)
+                .build();
+    }
+
+    public record InputError(String field, String reason) {
+        public static InputError of(String field, String reason) {
+            return new InputError(field, reason);
+        }
     }
 }

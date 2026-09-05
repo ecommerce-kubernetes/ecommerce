@@ -2,7 +2,7 @@ package com.example.product_service.common.exception;
 
 public interface ErrorCode {
     String name();
-    int getStatus();
+    ErrorCategory getCategory();
     String getMessage();
     String getCode();
 }

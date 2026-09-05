@@ -18,7 +18,7 @@ public record UpdateCategoryRequest(
 
     @JsonIgnore
     @AssertTrue(message = "이름 또는 이미지 경로 중 하나는 필수입니다.")
-    public boolean isValidateEmpty() {
+    public boolean isValidRequest() {
         return this.name != null || this.imagePath != null;
     }
 

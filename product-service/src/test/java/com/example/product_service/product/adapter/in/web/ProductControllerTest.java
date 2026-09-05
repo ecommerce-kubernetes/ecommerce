@@ -112,8 +112,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products"));
         }
@@ -204,8 +204,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/options"));
         }
@@ -318,8 +318,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/variants"));
         }
@@ -457,8 +457,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/images"));
         }
@@ -559,8 +559,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/description-images"));
         }
@@ -737,8 +737,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .params(parameters))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products"));
         }
@@ -920,8 +920,8 @@ class ProductControllerTest extends ControllerTestSupport {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                    .andExpect(jsonPath("$.errors[0].reason").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1"));
         }
