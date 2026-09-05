@@ -27,17 +27,17 @@ include::{snippets}/categories/children/http-response.adoc[]
 ==== Response Fields
 include::{snippets}/categories/children/response-fields.adoc[]
 
-[[category-get]]
+[[category-detail]]
 === 카테고리 단일 조회
 
 ==== HTTP Request
-include::{snippets}/01-category-04-get/http-request.adoc[]
+include::{snippets}/categories/detail/http-request.adoc[]
 
 ==== Path Parameters
-include::{snippets}/01-category-04-get/path-parameters.adoc[]
+include::{snippets}/categories/detail/path-parameters.adoc[]
 
 ==== HTTP Response
-include::{snippets}/01-category-04-get/http-response.adoc[]
+include::{snippets}/categories/detail/http-response.adoc[]
 
 ==== Response Fields
-include::{snippets}/01-category-04-get/response-fields.adoc[]
+include::{snippets}/categories/detail/response-fields.adoc[]

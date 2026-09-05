@@ -17,8 +17,11 @@ public record ChildCategoriesResponse(
     public record ChildCategoryResponse(
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             Long id,
+
             String name,
+
             String imagePath,
+
             boolean isLeaf
     ) {
         public static ChildCategoryResponse from(CategoryResult category) {

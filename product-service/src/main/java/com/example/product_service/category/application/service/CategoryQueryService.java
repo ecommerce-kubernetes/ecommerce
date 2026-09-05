@@ -1,6 +1,7 @@
 package com.example.product_service.category.application.service;
 
 import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
+import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,10 @@ public class CategoryQueryService {
     }
 
     public ChildCategoriesResult getChildren(Long categoryId) {
+        return null;
+    }
+
+    public DetailCategoryResult getDetail(Long categoryId) {
         return null;
     }
 }

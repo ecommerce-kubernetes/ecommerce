@@ -118,7 +118,7 @@ public class CategoryDescriptor {
     public static FieldDescriptor[] detailResponse() {
         return new FieldDescriptor[]{
                 fieldWithPath("id")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("카테고리 ID"),
                 fieldWithPath("name")
                         .type(JsonFieldType.STRING)
@@ -133,11 +133,14 @@ public class CategoryDescriptor {
                         .type(JsonFieldType.ARRAY)
                         .description("해당 카테고리의 전체 상위 경로 목록 (루트부터 자기 자신까지 순차 정렬)"),
                 fieldWithPath("breadcrumb[].id")
-                        .type(JsonFieldType.NUMBER)
+                        .type(JsonFieldType.STRING)
                         .description("경로 내 카테고리 ID"),
                 fieldWithPath("breadcrumb[].name")
                         .type(JsonFieldType.STRING)
-                        .description("경로 내 카테고리 이름")
+                        .description("경로 내 카테고리 이름"),
+                fieldWithPath("breadcrumb[].depth")
+                        .type(JsonFieldType.NUMBER)
+                        .description("경로 내 카테고리 깊이")
         };
     }
 

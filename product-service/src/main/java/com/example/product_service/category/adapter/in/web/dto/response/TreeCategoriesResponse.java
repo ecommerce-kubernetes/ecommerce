@@ -13,9 +13,13 @@ public record TreeCategoriesResponse(
     public record TreeCategoryResponse(
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             Long id,
+
             String name,
+
             Integer depth,
+
             boolean isLeaf,
+
             List<TreeCategoryResponse> children
     ) {}
 

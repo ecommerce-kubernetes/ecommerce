@@ -5,6 +5,7 @@ import com.example.product_service.category.application.service.CategoryQuerySer
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
+import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -13,14 +14,12 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
-import static com.example.product_service.category.fixture.CategoryResultFixture.anChildCategoriesResult;
-import static com.example.product_service.category.fixture.CategoryResultFixture.anRootCategoriesResult;
+import static com.example.product_service.category.fixture.CategoryResultFixture.*;
 import static com.example.product_service.docs.descriptor.CategoryDescriptor.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -82,18 +81,18 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResultDeprecated.Navigation result = createNavigation();
-        given(categoryService.getNavigation(anyLong()))
-                .willReturn(result);
+        DetailCategoryResult detail = anDetailCategoryResult().build();
+        given(categoryQueryService.getDetail(anyLong())).willReturn(detail);
         //when
         //then
-        mockMvc.perform(get("/categories/{categoryId}", 2L))
+        mockMvc.perform(get("/categories/{categoryId}", 3L))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document(
                         "categories/detail",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("categoryId").description("조회할 카테고리 ID")),
                         responseFields(detailResponse())
                 ));
     }

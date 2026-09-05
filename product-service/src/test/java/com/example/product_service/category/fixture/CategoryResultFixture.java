@@ -2,6 +2,7 @@ package com.example.product_service.category.fixture;
 
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
+import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 
 import java.util.List;
@@ -42,6 +43,26 @@ public class CategoryResultFixture {
 
         return ChildCategoriesResult.builder()
                 .categories(List.of(meat, vegetable));
+    }
+
+    public static DetailCategoryResult.DetailCategoryResultBuilder anDetailCategoryResult() {
+        CategoryResult food = anCategoryResult().build();
+        CategoryResult meat = anCategoryResult()
+                .id(3L)
+                .name("육류")
+                .depth(2)
+                .path("1/3")
+                .imagePath("/categories/meat.jpg")
+                .isLeaf(true)
+                .build();
+        return DetailCategoryResult.builder()
+                .id(3L)
+                .name("육류")
+                .depth(2)
+                .path("1/3")
+                .imagePath("/categories/meat.jpg")
+                .isLeaf(true)
+                .breadcrumb(List.of(food, meat));
     }
 
     public static CategoryResult.CategoryResultBuilder anCategoryResult() {

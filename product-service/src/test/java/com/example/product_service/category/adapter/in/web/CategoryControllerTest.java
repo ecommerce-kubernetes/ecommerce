@@ -4,6 +4,7 @@ import com.example.product_service.category.application.service.CategoryQuerySer
 import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
 import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
+import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -14,10 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-
-import static com.example.product_service.category.fixture.CategoryResultFixture.anChildCategoriesResult;
-import static com.example.product_service.category.fixture.CategoryResultFixture.anRootCategoriesResult;
+import static com.example.product_service.category.fixture.CategoryResultFixture.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -78,12 +76,21 @@ class CategoryControllerTest {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
+        DetailCategoryResult detail = anDetailCategoryResult().build();
+        given(categoryQueryService.getDetail(anyLong())).willReturn(detail);
+        CategoryResult pathCategory = detail.breadcrumb().getFirst();
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))
-                .andDo(print())
-                .andExpect(status().isOk());
-
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(detail.id()))
+                .andExpect(jsonPath("$.name").value(detail.name()))
+                .andExpect(jsonPath("$.depth").value(detail.depth()))
+                .andExpect(jsonPath("$.isLeaf").value(detail.isLeaf()))
+                .andExpect(jsonPath("$.breadcrumb").isArray())
+                .andExpect(jsonPath("$.breadcrumb[0].id").value(pathCategory.id()))
+                .andExpect(jsonPath("$.breadcrumb[0].name").value(pathCategory.name()))
+                .andExpect(jsonPath("$.breadcrumb[0].depth").value(pathCategory.depth()));
     }
 
     @Test
