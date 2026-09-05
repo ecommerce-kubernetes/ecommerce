@@ -18,6 +18,21 @@ include::{snippets}/admin/option-types/create/http-response.adoc[]
 ==== Response Fields
 include::{snippets}/admin/option-types/create/response-fields.adoc[]
 
+[[option-type-list]]
+=== 카테고리 생성
+
+==== HTTP Request
+include::{snippets}/admin/option-types/list/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/list/request-headers.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/list/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/list/response-fields.adoc[]
+
 === 옵션 수정
 ==== HTTP Request
 include::{snippets}/02-option-04-update/http-request.adoc[]

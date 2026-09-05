@@ -10,10 +10,10 @@ import java.util.List;
 public class OptionResult {
     private Long id;
     private String name;
-    private List<OptionValueResult> values;
+    private List<?> values;
 
     @Builder
-    private OptionResult(Long id, String name, List<OptionValueResult> values) {
+    private OptionResult(Long id, String name, List<?> values) {
         this.id = id;
         this.name = name;
         this.values = values;
@@ -23,7 +23,6 @@ public class OptionResult {
         return OptionResult.builder()
                 .id(optionType.getId())
                 .name(optionType.getName())
-                .values(optionType.getOptionValues().stream().map(OptionValueResult::from).toList())
                 .build();
     }
 }

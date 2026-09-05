@@ -4,7 +4,6 @@ import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.common.exception.OptionErrorCode;
 import com.example.product_service.option.application.service.dto.command.OptionCommand;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
-import com.example.product_service.option.application.service.dto.result.OptionValueResult;
 import com.example.product_service.option.domain.model.OptionType;
 import com.example.product_service.option.domain.model.OptionValue;
 import com.example.product_service.option.domain.repository.OptionTypeRepository;
@@ -49,13 +48,6 @@ public class OptionService {
         validateDuplicateTypeName(command.name().trim());
         optionType.rename(command.name());
         return OptionResult.from(optionType);
-    }
-
-    public OptionValueResult updateOptionValueName(OptionCommand.UpdateOptionValue command) {
-        OptionValue optionValue = findOptionValueOrThrow(command.id());
-        validateDuplicateValueName(optionValue.getOptionType(), command.name());
-        optionValue.rename(command.name());
-        return OptionValueResult.from(optionValue);
     }
 
     public void deleteOption(Long optionTypeId) {

@@ -1,6 +1,7 @@
 package com.example.product_service.option.adapter.in.web.dto.request;
 
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
@@ -10,17 +11,18 @@ import java.util.List;
 
 @Builder
 public record CreateOptionTypeRequest(
-        @NotBlank(message = "옵션 이름은 필수 입니다")
+        @NotBlank(message = "{option-type.name.notBlank}")
         String name,
 
-        @NotEmpty(message = "최소 1개의 옵션 값을 입력해야합니다")
-        @UniqueElements(message = "옵션값은 중복될 수 없습니다")
+        @Valid
+        @NotEmpty(message = "{option-type.values.notEmpty}")
+        @UniqueElements(message = "{option-type.values.unique}")
         List<CreateOptionValueRequest> values
 ) {
 
     @Builder
     public record CreateOptionValueRequest(
-            @NotBlank(message = "옵션 값 이름은 필수 입니다")
+            @NotBlank(message = "{option-value.name.notBlank}")
             String name
     ) {
         public CreateOptionTypeCommand.CreateOptionValueCommand toCommand() {

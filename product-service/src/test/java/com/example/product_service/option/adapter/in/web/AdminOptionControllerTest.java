@@ -21,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
@@ -67,23 +69,20 @@ class AdminOptionControllerTest {
     @DisplayName("옵션 저장 요청 검증")
     @MethodSource("provideInvalidRequest")
     @WithCustomMockUser
-    void saveOption_Types_validation(String description, CreateOptionTypeRequest request, String message) throws Exception {
+    void saveOption_Types_validation(String description, CreateOptionTypeRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
         //when
         //then
-        mockMvc.perform(post("/options")
+        mockMvc.perform(post("/admin/option-types")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
                 .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
-                .andExpect(jsonPath("errors[0].reason").value(message))
+                .andExpect(jsonPath("errors[0].field").value(expectedField))
+                .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/options"));
-    }
-
-    private static Stream<Arguments> provideInvalidRequest() {
-        return null;
+                .andExpect(jsonPath("path").value("/admin/option-types"));
     }
 
     @Test
@@ -196,5 +195,49 @@ class AdminOptionControllerTest {
         //then
         mockMvc.perform(delete("/option-values/{optionValueId}", 1L))
                 .andExpect(status().isNoContent());
+    }
+
+    private static Stream<Arguments> provideInvalidRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "옵션 타입 이름이 누락되면 예외가 발생한다",
+                        anCreateOptionTypeRequest().name(null).build(),
+                        "name",
+                        "옵션 타입 이름은 필수 입니다"
+                ),
+                Arguments.of(
+                        "옵션 값이 누락되면 예외가 발생한다",
+                        anCreateOptionTypeRequest().values(null).build(),
+                        "values",
+                        "최소 1개의 옵션 값을 입력해야합니다"
+                ),
+                Arguments.of(
+                        "옵션 값이 빈 리스트면 예외가 발생한다",
+                        anCreateOptionTypeRequest().values(Collections.emptyList()).build(),
+                        "values",
+                        "최소 1개의 옵션 값을 입력해야합니다"
+                ),
+                Arguments.of(
+                        "옵션 값 이름이 누락되면 예외가 발생한다",
+                        anCreateOptionTypeRequest()
+                                .values(
+                                        List.of(CreateOptionTypeRequest.CreateOptionValueRequest.builder().name(null).build())
+                                ).build(),
+                        "values[0].name",
+                        "옵션 값 이름은 필수 입니다"
+                ),
+                Arguments.of(
+                        "옵션 값 이름이 중복되면 예외가 발생한다",
+                        anCreateOptionTypeRequest()
+                                .values(
+                                        List.of(
+                                                CreateOptionTypeRequest.CreateOptionValueRequest.builder().name("중복").build(),
+                                                CreateOptionTypeRequest.CreateOptionValueRequest.builder().name("중복").build()
+                                        )
+                                ).build(),
+                        "values",
+                        "옵션 값은 중복될 수 없습니다"
+                )
+        );
     }
 }

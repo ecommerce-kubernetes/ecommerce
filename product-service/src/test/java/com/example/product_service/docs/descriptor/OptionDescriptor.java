@@ -32,6 +32,29 @@ public class OptionDescriptor {
         };
     }
 
+    public static FieldDescriptor[] optionTypesResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("optionTypes")
+                        .type(JsonFieldType.ARRAY)
+                        .description("옵션 타입 리스트"),
+                fieldWithPath("optionTypes[].id")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 타입 ID"),
+                fieldWithPath("optionTypes[].name")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 타입 이름"),
+                fieldWithPath("optionTypes[].values")
+                        .type(JsonFieldType.ARRAY)
+                        .description("옵션 값 리스트"),
+                fieldWithPath("optionTypes[].values[].id")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 ID"),
+                fieldWithPath("optionTypes[].values[].name")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 이름"),
+        };
+    }
+
     public static FieldDescriptor[] getOptionListResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("[].id").description("옵션 타입 아이디"),

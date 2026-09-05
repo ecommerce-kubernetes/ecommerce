@@ -8,15 +8,13 @@ import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptio
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
-import com.example.product_service.option.application.service.dto.result.OptionResult;
-import com.example.product_service.option.application.service.dto.result.OptionValueResult;
+import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
+import com.example.product_service.option.fixture.OptionResultFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
-import java.util.List;
 
 import static com.example.product_service.docs.descriptor.OptionDescriptor.*;
 import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
@@ -74,38 +72,30 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("옵션을 조회한다")
-    void getOption() throws Exception {
+    @DisplayName("옵션 타입 목록을 조회한다")
+    void getOptionTypes() throws Exception {
         //given
-        OptionResult result = createOptionResponse().build();
+        OptionTypesResult optionTypes = OptionResultFixture.anOptionTypesResult().build();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
+        given(optionQueryService.getTypes()).willReturn(optionTypes);
         //when
         //then
-        mockMvc.perform(get("/options/{optionTypeId}", 1L))
+        mockMvc.perform(get("/admin/option-types")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document(
-                        "options/get",
-                        preprocessRequest(prettyPrint()),
+                        "admin/option-types/list",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
                         preprocessResponse(prettyPrint()),
-                        responseFields(createOptionTypeResponse())
-                ));
-    }
-
-    @Test
-    @DisplayName("옵션 목록을 조회한다")
-    void getOptions() throws Exception {
-        //given
-        OptionResult result = createOptionResponse().build();
-        //when
-        //then
-        mockMvc.perform(get("/options"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document(
-                        "options/list",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        responseFields(getOptionListResponse())
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(optionTypesResponse())
                 ));
     }
 
@@ -116,7 +106,6 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
         UpdateOptionTypeRequest request = UpdateOptionTypeRequest.builder()
                 .name("새 이름")
                 .build();
-        OptionResult result = createOptionResponse().name("새 이름").build();
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
@@ -137,7 +126,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         preprocessResponse(prettyPrint()),
                         requestFields(getOptionUpdateRequest()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(createOptionTypeResponse())
+                        responseFields(optionTypesResponse())
                 ));
     }
 
@@ -172,7 +161,6 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
         UpdateOptionValueRequest request = UpdateOptionValueRequest.builder()
                 .name("새 이름")
                 .build();
-        OptionValueResult result = createOptionValueResponse().name("새 이름").build();
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
@@ -220,24 +208,5 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER)
                 ));
-    }
-
-    private OptionResult.OptionResultBuilder createOptionResponse() {
-        return OptionResult.builder()
-                .id(1L)
-                .name("사이즈")
-                .values(
-                        List.of(
-                                OptionValueResult.builder().id(1L).name("XL").build(),
-                                OptionValueResult.builder().id(2L).name("L").build(),
-                                OptionValueResult.builder().id(3L).name("M").build(),
-                                OptionValueResult.builder().id(4L).name("S").build()
-                        ));
-    }
-
-    private OptionValueResult.OptionValueResultBuilder createOptionValueResponse() {
-        return OptionValueResult.builder()
-                .id(1L)
-                .name("XL");
     }
 }
