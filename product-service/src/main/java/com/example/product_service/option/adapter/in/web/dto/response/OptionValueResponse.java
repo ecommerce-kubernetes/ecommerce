@@ -4,10 +4,7 @@ import com.example.product_service.option.application.service.dto.result.OptionV
 import lombok.Builder;
 
 @Builder
-public record OptionValueResponse(
-        Long id,
-        String name
-) {
+public record OptionValueResponse(Long id, String name) {
     public static OptionValueResponse from(OptionValueResult result) {
         return OptionValueResponse.builder()
                 .id(result.getId())

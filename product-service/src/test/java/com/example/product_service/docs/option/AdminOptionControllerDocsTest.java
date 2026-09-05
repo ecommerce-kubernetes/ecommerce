@@ -1,13 +1,12 @@
 package com.example.product_service.docs.option;
 
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.option.adapter.in.web.OptionController;
+import com.example.product_service.option.adapter.in.web.AdminOptionController;
 import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionRequest;
-import com.example.product_service.option.adapter.in.web.dto.request.OptionValueRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
-import com.example.product_service.option.application.service.OptionService;
-import com.example.product_service.option.application.service.dto.command.OptionCommand;
+import com.example.product_service.option.application.service.OptionCommandService;
+import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.result.OptionResult;
 import com.example.product_service.option.application.service.dto.result.OptionValueResult;
 import org.junit.jupiter.api.DisplayName;
@@ -19,10 +18,6 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 import static com.example.product_service.docs.descriptor.OptionDescriptor.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -32,28 +27,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class OptionControllerDocsTest extends RestDocsSupport {
-    OptionService optionService = Mockito.mock(OptionService.class);
+class AdminOptionControllerDocsTest extends RestDocsSupport {
+    OptionCommandService optionCommandService = Mockito.mock(OptionCommandService.class);
+    OptionQueryService optionQueryService = Mockito.mock(OptionQueryService.class);
 
     @Override
     protected Object initController() {
-        return new OptionController(optionService);
+        return new AdminOptionController(optionCommandService, optionQueryService);
     }
 
     @Test
     @DisplayName("옵션을 저장한다")
-    void saveOption() throws Exception {
+    void createOptionType() throws Exception {
         //given
         CreateOptionRequest request = CreateOptionRequest.builder()
                 .name("사이즈")
                 .values(
-                        List.of(OptionValueRequest.builder()
-                                .name("XL").build())
+                        List.of()
                 ).build();
         OptionResult result = createOptionResponse().build();
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
-        given(optionService.saveOption(any(OptionCommand.Create.class)))
-                .willReturn(result);
         //when
         //then
         mockMvc.perform(post("/options")
@@ -82,8 +75,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
     void getOption() throws Exception {
         //given
         OptionResult result = createOptionResponse().build();
-        given(optionService.getOption(anyLong()))
-                .willReturn(result);
         //when
         //then
         mockMvc.perform(get("/options/{optionTypeId}", 1L))
@@ -102,8 +93,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
     void getOptions() throws Exception {
         //given
         OptionResult result = createOptionResponse().build();
-        given(optionService.getOptions())
-                .willReturn(List.of(result));
         //when
         //then
         mockMvc.perform(get("/options"))
@@ -125,8 +114,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
                 .name("새 이름")
                 .build();
         OptionResult result = createOptionResponse().name("새 이름").build();
-        given(optionService.updateOptionTypeName(any(OptionCommand.UpdateOptionType.class)))
-                .willReturn(result);
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
@@ -155,7 +142,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 삭제한다")
     void deleteOption() throws Exception {
         //given
-        willDoNothing().given(optionService).deleteOption(anyLong());
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
@@ -184,8 +170,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
                 .name("새 이름")
                 .build();
         OptionValueResult result = createOptionValueResponse().name("새 이름").build();
-        given(optionService.updateOptionValueName(any(OptionCommand.UpdateOptionValue.class)))
-                .willReturn(result);
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
@@ -214,7 +198,6 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션 값 삭제")
     void deleteOptionValue() throws Exception {
         //given
-        willDoNothing().given(optionService).deleteOptionValue(anyLong());
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then

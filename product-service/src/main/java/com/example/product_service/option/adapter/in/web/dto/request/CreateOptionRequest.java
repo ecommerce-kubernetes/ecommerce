@@ -1,6 +1,6 @@
 package com.example.product_service.option.adapter.in.web.dto.request;
 
-import com.example.product_service.option.application.service.dto.command.OptionCommand;
+import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
@@ -17,15 +17,25 @@ public record CreateOptionRequest(
         @UniqueElements(message = "옵션값은 중복될 수 없습니다")
         List<OptionValueRequest> values
 ) {
-    public OptionCommand.Create toCommand() {
-        List<String> valueNames = mappingValueNames(values);
-        return OptionCommand.Create.builder()
-                .name(name)
-                .valueNames(valueNames)
-                .build();
+
+    @Builder
+    public record OptionValueRequest(
+            @NotBlank(message = "옵션 값 이름은 필수 입니다")
+            String name
+    ) {
+        public CreateOptionTypeCommand.CreateOptionValueCommand toCommand() {
+            return CreateOptionTypeCommand.CreateOptionValueCommand.builder()
+                    .name(name)
+                    .build();
+        }
     }
 
-    private List<String> mappingValueNames(List<OptionValueRequest> values) {
-        return values.stream().map(OptionValueRequest::name).toList();
+    public CreateOptionTypeCommand toCommand() {
+        List<CreateOptionTypeCommand.CreateOptionValueCommand> valueCommands = values.stream().map(OptionValueRequest::toCommand).toList();
+
+        return CreateOptionTypeCommand.builder()
+                .name(name)
+                .values(valueCommands)
+                .build();
     }
 }
