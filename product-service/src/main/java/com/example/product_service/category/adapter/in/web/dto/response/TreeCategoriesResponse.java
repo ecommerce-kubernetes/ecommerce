@@ -1,6 +1,6 @@
 package com.example.product_service.category.adapter.in.web.dto.response;
 
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import lombok.Builder;
 
 import java.util.List;
@@ -17,7 +17,7 @@ public record TreeCategoriesResponse(
             List<TreeCategoryResponse> children
     ) {}
 
-    public static TreeCategoriesResponse from(List<CategoryResult.Tree> List) {
+    public static TreeCategoriesResponse from(List<CategoryResultDeprecated.Tree> List) {
         return null;
     }
 }

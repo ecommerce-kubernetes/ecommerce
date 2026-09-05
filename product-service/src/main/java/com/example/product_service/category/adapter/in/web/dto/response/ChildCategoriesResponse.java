@@ -1,6 +1,6 @@
 package com.example.product_service.category.adapter.in.web.dto.response;
 
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import lombok.Builder;
 
 import java.util.List;
@@ -17,7 +17,7 @@ public record ChildCategoriesResponse(
             boolean isLeaf
     ) {}
 
-    public static ChildCategoriesResponse from(List<CategoryResult.Tree> children) {
+    public static ChildCategoriesResponse from(List<CategoryResultDeprecated.Tree> children) {
         return null;
     }
 }

@@ -1,6 +1,6 @@
 package com.example.product_service.category.adapter.in.web.dto.response;
 
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import lombok.Builder;
 
 import java.util.List;
@@ -13,7 +13,7 @@ public record DetailCategoryResponse(
         boolean isLeaf,
         List<PathCategoryResponse> breadcrumb
 ) {
-    public static DetailCategoryResponse from(CategoryResult.Navigation result) {
+    public static DetailCategoryResponse from(CategoryResultDeprecated.Navigation result) {
         return null;
     }
 

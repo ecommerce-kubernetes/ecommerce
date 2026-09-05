@@ -2,9 +2,8 @@ package com.example.product_service.category.application.service;
 
 import com.example.product_service.category.domain.model.Category;
 import com.example.product_service.category.domain.repository.CategoryRepository;
-import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.common.exception.CategoryErrorCode;
 import com.example.product_service.product.domain.model.Product;
@@ -172,10 +171,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category category = setupCategory("카테고리", null);
             //when
-            CategoryResult.Detail result = categoryService.getCategory(category.getId());
+            CategoryResultDeprecated.Detail result = categoryService.getCategory(category.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResult.Detail::id, CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
+                    .extracting(CategoryResultDeprecated.Detail::id, CategoryResultDeprecated.Detail::name, CategoryResultDeprecated.Detail::parentId, CategoryResultDeprecated.Detail::depth, CategoryResultDeprecated.Detail::imagePath)
                     .containsExactly(category.getId(), "카테고리", null, 1, DEFAULT_IMAGE_PATH);
         }
 
@@ -201,16 +200,16 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("노트북", root1);
             setupCategory("냉장고", root1);
             //when
-            List<CategoryResult.Tree> result = categoryService.getTree();
+            List<CategoryResultDeprecated.Tree> result = categoryService.getTree();
             //then
-            assertThat(result).extracting(CategoryResult.Tree::getName, CategoryResult.Tree::getDepth, CategoryResult.Tree::getImagePath)
+            assertThat(result).extracting(CategoryResultDeprecated.Tree::getName, CategoryResultDeprecated.Tree::getDepth, CategoryResultDeprecated.Tree::getImagePath)
                     .containsExactly(
                             tuple("전자", 1, DEFAULT_IMAGE_PATH),
                             tuple("식품", 1, DEFAULT_IMAGE_PATH)
                     );
 
-            CategoryResult.Tree electronics = result.getFirst();
-            assertThat(electronics.getChildren()).extracting(CategoryResult.Tree::getName, CategoryResult.Tree::getDepth)
+            CategoryResultDeprecated.Tree electronics = result.getFirst();
+            assertThat(electronics.getChildren()).extracting(CategoryResultDeprecated.Tree::getName, CategoryResultDeprecated.Tree::getDepth)
                     .containsExactly(
                             tuple("노트북", 2),
                             tuple("냉장고", 2)
@@ -227,14 +226,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("데스크탑", depth2);
             setupCategory("삼성", target);
             //when
-            CategoryResult.Navigation result = categoryService.getNavigation(target.getId());
+            CategoryResultDeprecated.Navigation result = categoryService.getNavigation(target.getId());
             //then
             assertThat(result.current())
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
+                    .extracting(CategoryResultDeprecated.Detail::name, CategoryResultDeprecated.Detail::depth)
                     .containsExactly("노트북", 3);
 
             assertThat(result.path())
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
+                    .extracting(CategoryResultDeprecated.Detail::name, CategoryResultDeprecated.Detail::depth)
                     .containsExactly(
                             tuple("전자", 1),
                             tuple("컴퓨터", 2),
@@ -242,14 +241,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     );
 
             assertThat(result.siblings())
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
+                    .extracting(CategoryResultDeprecated.Detail::name, CategoryResultDeprecated.Detail::depth)
                     .containsExactly(
                             tuple("노트북", 3),
                             tuple("데스크탑", 3)
                     );
 
             assertThat(result.children())
-                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
+                    .extracting(CategoryResultDeprecated.Detail::name, CategoryResultDeprecated.Detail::depth)
                     .containsExactly(
                             tuple("삼성", 4)
                     );

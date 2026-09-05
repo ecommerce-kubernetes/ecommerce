@@ -6,7 +6,8 @@ import com.example.product_service.category.adapter.in.web.dto.response.RootCate
 import com.example.product_service.category.adapter.in.web.dto.response.TreeCategoriesResponse;
 import com.example.product_service.category.application.service.CategoryQueryService;
 import com.example.product_service.category.application.service.CategoryService;
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
+import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,25 +29,25 @@ public class CategoryController {
 
     @GetMapping("/roots")
     public ResponseEntity<RootCategoriesResponse> getRootCategories() {
-        List<CategoryResult.Tree> roots = categoryService.getTree();
+        RootCategoriesResult roots = categoryQueryService.getRoots();
         return ResponseEntity.ok(RootCategoriesResponse.from(roots));
     }
 
     @GetMapping("/{categoryId}/children")
     public ResponseEntity<ChildCategoriesResponse> getCategoryChildren(@PathVariable("categoryId") Long categoryId) {
-        List<CategoryResult.Tree> tree = categoryService.getTree();
+        List<CategoryResultDeprecated.Tree> tree = categoryService.getTree();
         return ResponseEntity.ok(ChildCategoriesResponse.from(tree));
     }
 
     @GetMapping("/{categoryId}")
     public ResponseEntity<DetailCategoryResponse> getCategory(@PathVariable("categoryId") Long categoryId) {
-        CategoryResult.Navigation result = categoryService.getNavigation(categoryId);
+        CategoryResultDeprecated.Navigation result = categoryService.getNavigation(categoryId);
         return ResponseEntity.ok(DetailCategoryResponse.from(result));
     }
 
     @GetMapping("/tree")
     public ResponseEntity<TreeCategoriesResponse> getCategoryTree() {
-        List<CategoryResult.Tree> results = categoryService.getTree();
+        List<CategoryResultDeprecated.Tree> results = categoryService.getTree();
         return ResponseEntity.ok(TreeCategoriesResponse.from(results));
     }
 }

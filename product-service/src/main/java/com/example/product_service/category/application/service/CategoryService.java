@@ -1,7 +1,7 @@
 package com.example.product_service.category.application.service;
 
 import com.example.product_service.category.application.service.dto.command.CategoryCommand;
-import com.example.product_service.category.application.service.dto.result.CategoryResult;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
 import com.example.product_service.category.domain.model.Category;
 import com.example.product_service.category.domain.repository.CategoryRepository;
 import com.example.product_service.common.exception.BusinessException;
@@ -39,24 +39,24 @@ public class CategoryService {
         return category.getId();
     }
 
-    public CategoryResult.Detail getCategory(Long categoryId) {
+    public CategoryResultDeprecated.Detail getCategory(Long categoryId) {
         Category category = findCategoryOrThrow(categoryId);
-        return CategoryResult.Detail.from(category);
+        return CategoryResultDeprecated.Detail.from(category);
     }
 
-    public List<CategoryResult.Tree> getTree() {
+    public List<CategoryResultDeprecated.Tree> getTree() {
         Sort sort = Sort.by(Sort.Direction.ASC, "depth", "id");
         List<Category> allCategories = categoryRepository.findAll(sort);
         return convertTree(allCategories);
     }
 
-    public CategoryResult.Navigation getNavigation(Long categoryId) {
+    public CategoryResultDeprecated.Navigation getNavigation(Long categoryId) {
         Category target = findCategoryOrThrow(categoryId);
-        CategoryResult.Detail current = CategoryResult.Detail.from(target);
-        List<CategoryResult.Detail> path = findCategoryPath(target);
-        List<CategoryResult.Detail> siblings = findSiblings(target);
-        List<CategoryResult.Detail> children = findChildren(target);
-        return CategoryResult.Navigation.builder()
+        CategoryResultDeprecated.Detail current = CategoryResultDeprecated.Detail.from(target);
+        List<CategoryResultDeprecated.Detail> path = findCategoryPath(target);
+        List<CategoryResultDeprecated.Detail> siblings = findSiblings(target);
+        List<CategoryResultDeprecated.Detail> children = findChildren(target);
+        return CategoryResultDeprecated.Navigation.builder()
                 .current(current)
                 .path(path)
                 .siblings(siblings)
@@ -112,16 +112,16 @@ public class CategoryService {
                 .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    private List<CategoryResult.Detail> findCategoryPath(Category current) {
+    private List<CategoryResultDeprecated.Detail> findCategoryPath(Category current) {
         if (current.isRoot()) {
-            return List.of(CategoryResult.Detail.from(current));
+            return List.of(CategoryResultDeprecated.Detail.from(current));
         }
         List<Long> ancestorIds = current.getPathIds();
         List<Category> ancestors = categoryRepository.findByInOrderDepth(ancestorIds);
         return createCategoryResponses(ancestors);
     }
 
-    private List<CategoryResult.Detail> findSiblings(Category current) {
+    private List<CategoryResultDeprecated.Detail> findSiblings(Category current) {
         if (current.isRoot()) {
             List<Category> siblings = categoryRepository.findByParentIsNull();
             return createCategoryResponses(siblings);
@@ -130,28 +130,28 @@ public class CategoryService {
         return createCategoryResponses(siblings);
     }
 
-    private List<CategoryResult.Detail> findChildren(Category current) {
+    private List<CategoryResultDeprecated.Detail> findChildren(Category current) {
         return createCategoryResponses(current.getChildren());
     }
 
-    private List<CategoryResult.Tree> convertTree(List<Category> categories) {
-        List<CategoryResult.Tree> allDtoList = categories.stream().map(CategoryResult.Tree::from)
+    private List<CategoryResultDeprecated.Tree> convertTree(List<Category> categories) {
+        List<CategoryResultDeprecated.Tree> allDtoList = categories.stream().map(CategoryResultDeprecated.Tree::from)
                 .toList();
-        Map<Long, CategoryResult.Tree> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryResult.Tree::getId, Function.identity()));
-        List<CategoryResult.Tree> rootCategories = new ArrayList<>();
-        for (CategoryResult.Tree categoryResult : allDtoList) {
+        Map<Long, CategoryResultDeprecated.Tree> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryResultDeprecated.Tree::getId, Function.identity()));
+        List<CategoryResultDeprecated.Tree> rootCategories = new ArrayList<>();
+        for (CategoryResultDeprecated.Tree categoryResult : allDtoList) {
             if (categoryResult.getDepth() == 1) {
                 rootCategories.add(categoryResult);
             } else {
-                CategoryResult.Tree parent = dtoMap.get(categoryResult.getParentId());
+                CategoryResultDeprecated.Tree parent = dtoMap.get(categoryResult.getParentId());
                 parent.addChild(categoryResult);
             }
         }
         return rootCategories;
     }
 
-    private List<CategoryResult.Detail> createCategoryResponses(List<Category> categories) {
-        return categories.stream().map(CategoryResult.Detail::from).toList();
+    private List<CategoryResultDeprecated.Detail> createCategoryResponses(List<Category> categories) {
+        return categories.stream().map(CategoryResultDeprecated.Detail::from).toList();
     }
 
     // 부모 카테고리를 찾고 부모 카테고리에 속한 상품이 존재하는지 검증

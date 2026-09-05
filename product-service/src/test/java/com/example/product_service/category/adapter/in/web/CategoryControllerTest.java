@@ -1,35 +1,56 @@
 package com.example.product_service.category.adapter.in.web;
 
+import com.example.product_service.category.application.service.CategoryQueryService;
+import com.example.product_service.category.application.service.CategoryService;
 import com.example.product_service.category.application.service.dto.result.CategoryResult;
-import com.example.product_service.support.ControllerTestSupport;
+import com.example.product_service.category.application.service.dto.result.CategoryResultDeprecated;
+import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static com.example.product_service.category.fixture.CategoryResultFixture.anRootCategoriesResult;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-class CategoryControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = CategoryController.class)
+class CategoryControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private CategoryQueryService categoryQueryService;
+
+    @MockitoBean
+    private CategoryService categoryService;
 
     @Test
     @DisplayName("최상위 카테고리 목록을 조회한다")
     void getRootCategories() throws Exception {
         //given
-        List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
-        given(categoryService.getTree()).willReturn(results);
-
+        RootCategoriesResult roots = anRootCategoriesResult();
+        given(categoryQueryService.getRoots()).willReturn(roots);
+        CategoryResult root = roots.categories().getFirst();
         //when
         //then
         mockMvc.perform(get("/categories/roots"))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories").isArray())
+                .andExpect(jsonPath("$.categories[0].id").value(root.id()))
+                .andExpect(jsonPath("$.categories[0].name").value(root.name()))
+                .andExpect(jsonPath("$.categories[0].imagePath").value(root.imagePath()))
+                .andExpect(jsonPath("$.categories[0].isLeaf").value(root.isLeaf()));
 
     }
 
@@ -37,9 +58,9 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리의 자식 목록을 조회한다")
     void getCategoryChildren() throws Exception {
         //given
-        CategoryResult.Tree parent = createTree(1L, "전자기기", null, 1, "/test/electron.jpg");
-        CategoryResult.Tree laptop = createTree(2L, "노트북", 1L, 2, "/test/laptop.jpg");
-        CategoryResult.Tree cellPhone = createTree(3L, "핸드폰", 1L, 2, "/test/cellPhone.jpg");
+        CategoryResultDeprecated.Tree parent = createTree(1L, "전자기기", null, 1, "/test/electron.jpg");
+        CategoryResultDeprecated.Tree laptop = createTree(2L, "노트북", 1L, 2, "/test/laptop.jpg");
+        CategoryResultDeprecated.Tree cellPhone = createTree(3L, "핸드폰", 1L, 2, "/test/cellPhone.jpg");
         parent.addChild(laptop);
         parent.addChild(cellPhone);
         given(categoryService.getTree()).willReturn(List.of(parent));
@@ -68,8 +89,8 @@ class CategoryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/categories/999/children"));
     }
 
-    private CategoryResult.Tree createTree(Long id, String name, Long parentId, int depth, String imagePath) {
-        return CategoryResult.Tree.builder()
+    private CategoryResultDeprecated.Tree createTree(Long id, String name, Long parentId, int depth, String imagePath) {
+        return CategoryResultDeprecated.Tree.builder()
                 .id(id)
                 .name(name)
                 .parentId(parentId)
@@ -82,9 +103,6 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResult.Navigation result = fixtureMonkey.giveMeOne(CategoryResult.Navigation.class);
-        assert result != null;
-        given(categoryService.getNavigation(anyLong())).willReturn(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))
@@ -97,8 +115,6 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리 트리를 조회한다")
     void getCategoryTree() throws Exception {
         //given
-        List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
-        given(categoryService.getTree()).willReturn(results);
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
