@@ -71,7 +71,7 @@ public class AdminOptionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(AddOptionValueResponse.of(id));
     }
 
-    @PatchMapping("option-types/{optionTypeId}/values/{optionValueId}")
+    @PatchMapping("/option-types/{optionTypeId}/values/{optionValueId}")
     public ResponseEntity<UpdateOptionValueResponse> updateOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
                                                                        @PathVariable("optionValueId") Long optionValueId,
                                                                        @RequestBody @Validated UpdateOptionValueRequest request) {

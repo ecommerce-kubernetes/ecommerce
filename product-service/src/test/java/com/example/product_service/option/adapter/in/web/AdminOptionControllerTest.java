@@ -14,7 +14,6 @@ import com.example.product_service.option.application.service.dto.result.OptionT
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
