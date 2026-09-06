@@ -6,6 +6,8 @@ import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptio
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
+import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +28,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
+import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypeResult;
+import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypesResult;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -86,19 +90,29 @@ class AdminOptionControllerTest {
     }
 
     @Test
-    @DisplayName("옵션을 조회한다")
-    void getOption() throws Exception {
+    @DisplayName("옵션 타입 목록을 조회한다")
+    void getOptionTypes() throws Exception {
         //given
+        OptionTypesResult types = anOptionTypesResult().build();
+        given(optionQueryService.getTypes()).willReturn(types);
+
+        OptionTypeResult type = types.types().getFirst();
+        OptionTypeResult.OptionValueResult value = type.values().getFirst();
         //when
         //then
-        mockMvc.perform(get("/options/{optionTypeId}", 1L)
+        mockMvc.perform(get("/admin/option-types")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.optionTypes").isArray())
+                .andExpect(jsonPath("$.optionTypes[0].id").value(type.id()))
+                .andExpect(jsonPath("$.optionTypes[0].name").value(type.name()))
+                .andExpect(jsonPath("$.optionTypes[0].values").isArray())
+                .andExpect(jsonPath("$.optionTypes[0].values[0].id").value(value.id()))
+                .andExpect(jsonPath("$.optionTypes[0].values[0].name").value(value.name()));
     }
 
     @Test
-    @DisplayName("옵션 목록을 조회한다")
+    @DisplayName("옵션 타입을 조회한다")
     void getOptions() throws Exception {
         //given
         //when
