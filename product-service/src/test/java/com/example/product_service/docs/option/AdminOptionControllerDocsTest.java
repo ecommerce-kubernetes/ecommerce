@@ -264,4 +264,34 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         responseFields(updateOptionValueResponse())
                 ));
     }
+
+    @Test
+    @DisplayName("옵션 값을 삭제한다")
+    void deleteOptionValue() throws Exception {
+        //given
+        Long optionTypeId = 1L;
+        Long optionValueId = 10L;
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
+        willDoNothing().given(optionCommandService).deleteOptionValue(anyLong(), anyLong());
+        //when
+        //then
+        mockMvc.perform(delete("/admin/option-types/{optionTypeId}/values/{optionValueId}", optionTypeId, optionValueId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andDo(document(
+                        "admin/option-types/delete-value",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        pathParameters(parameterWithName("optionTypeId").description("옵션 값을 수정할 옵션 타입 ID"),
+                                parameterWithName("optionValueId").description("수정할 옵션 값 ID"))
+                ));
+    }
 }

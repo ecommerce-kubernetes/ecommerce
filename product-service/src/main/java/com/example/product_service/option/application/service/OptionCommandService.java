@@ -30,4 +30,8 @@ public class OptionCommandService {
     public Long updateOptionValue(UpdateOptionValueCommand command) {
         return null;
     }
+
+    public void deleteOptionValue(Long optionTypeId, Long optionValueId) {
+
+    }
 }

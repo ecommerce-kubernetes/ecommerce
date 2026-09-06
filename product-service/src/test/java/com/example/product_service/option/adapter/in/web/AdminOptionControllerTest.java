@@ -276,9 +276,12 @@ class AdminOptionControllerTest {
     @WithCustomMockUser
     void deleteOptionValue() throws Exception {
         //given
+        Long optionTypeId = 1L;
+        Long optionValueId = 10L;
+        willDoNothing().given(optionCommandService).deleteOptionValue(anyLong(), anyLong());
         //when
         //then
-        mockMvc.perform(delete("/option-values/{optionValueId}", 1L))
+        mockMvc.perform(delete("/admin/option-types/{optionTypeId}/values/{optionValueId}", optionTypeId, optionValueId))
                 .andExpect(status().isNoContent());
     }
 

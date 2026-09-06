@@ -83,6 +83,7 @@ public class AdminOptionController {
     @DeleteMapping("/option-types/{optionTypeId}/values/{optionValueId}")
     public ResponseEntity<Void> deleteOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
                                                   @PathVariable("optionValueId") Long optionValueId) {
-        return null;
+        optionCommandService.deleteOptionValue(optionTypeId, optionValueId);
+        return ResponseEntity.noContent().build();
     }
 }
