@@ -16,4 +16,8 @@ public class OptionCommandService {
     public Long updateOptionType(UpdateOptionTypeCommand command) {
         return null;
     }
+
+    public void deleteOptionType(Long optionTypeId) {
+
+    }
 }

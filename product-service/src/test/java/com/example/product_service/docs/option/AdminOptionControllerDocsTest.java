@@ -8,6 +8,7 @@ import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptio
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.command.UpdateOptionTypeCommand;
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.option.fixture.OptionResultFixture;
@@ -24,11 +25,14 @@ import static com.example.product_service.option.fixture.OptionResultFixture.anO
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -128,6 +132,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
+                        pathParameters(parameterWithName("optionTypeId").description("조회할 옵션 타입 ID")),
                         responseFields(optionTypeResponse())
                 ));
     }
@@ -136,18 +141,20 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 수정한다")
     void updateOptionType() throws Exception {
         //given
+        Long optionTypeId = 1L;
         UpdateOptionTypeRequest request = anUpdateOptionTypeRequest().build();
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
+        given(optionCommandService.updateOptionType(any(UpdateOptionTypeCommand.class))).willReturn(optionTypeId);
         //when
         //then
-        mockMvc.perform(patch("/admin/option-types/{optionTypeId}", 1L)
+        mockMvc.perform(patch("/admin/option-types/{optionTypeId}", optionTypeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(authHeader)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document(
-                        "options/update",
+                        "admin/option-types/update",
                         preprocessRequest(
                                 prettyPrint(),
                                 modifyHeaders()
@@ -157,23 +164,26 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         requestFields(updateOptionTypeRequest()),
+                        pathParameters(parameterWithName("optionTypeId").description("수정할 옵션 타입 ID")),
                         responseFields(updateOptionTypeResponse())
                 ));
     }
 
     @Test
-    @DisplayName("옵션을 삭제한다")
-    void deleteOption() throws Exception {
+    @DisplayName("옵션 타입을 삭제한다")
+    void deleteOptionType() throws Exception {
         //given
+        Long optionTypeId = 1L;
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
+        willDoNothing().given(optionCommandService).deleteOptionType(anyLong());
         //when
         //then
-        mockMvc.perform(delete("/options/{optionTypeId}", 1L)
+        mockMvc.perform(delete("/admin/option-types/{optionTypeId}", optionTypeId)
                         .headers(authHeader))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                        "options/delete",
+                        "admin/option-types/delete",
                         preprocessRequest(
                                 prettyPrint(),
                                 modifyHeaders()
@@ -181,6 +191,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                                         .remove("X-User-Role")
                         ),
                         preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("optionTypeId").description("삭제할 옵션 타입 ID")),
                         requestHeaders(AUTH_HEADER)
                 ));
     }

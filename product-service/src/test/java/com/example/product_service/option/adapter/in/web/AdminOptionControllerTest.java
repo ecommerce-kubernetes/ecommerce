@@ -33,7 +33,9 @@ import static com.example.product_service.option.fixture.OptionRequestFixture.an
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypeResult;
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypesResult;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -73,7 +75,7 @@ class AdminOptionControllerTest {
 
     @ParameterizedTest(name = "{0}")
     @DisplayName("옵션 저장 요청 검증")
-    @MethodSource("provideInvalidRequest")
+    @MethodSource("provideInvalidCreateOptionTypeRequest")
     @WithCustomMockUser
     void saveOption_Types_validation(String description, CreateOptionTypeRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
@@ -85,6 +87,7 @@ class AdminOptionControllerTest {
                 .andExpect(status().isBadRequest())
                 .andDo(print())
                 .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("message").value("입력값이 올바르지 않습니다."))
                 .andExpect(jsonPath("errors[0].field").value(expectedField))
                 .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("timestamp").exists())
@@ -150,37 +153,39 @@ class AdminOptionControllerTest {
                 .andExpect(jsonPath("$.id").value(optionTypeId));
     }
 
-    @Test
-    @DisplayName("옵션 수정 요청 검증")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("옵션 타입 수정 요청 검증")
+    @MethodSource("provideInvalidUpdateTypeRequest")
     @WithCustomMockUser
-    void updateOption_Type_validation() throws Exception {
+    void updateOption_Type_validation(String description, UpdateOptionTypeRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
-        UpdateOptionTypeRequest request = UpdateOptionTypeRequest.builder()
-                .name(null)
-                .build();
+        Long optionTypeId = 1L;
         //when
         //then
-        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
+        mockMvc.perform(patch("/admin/option-types/{optionTypeId}", optionTypeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
                 .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
-                .andExpect(jsonPath("errors[0].reason").value("이름은 필수입니다"))
+                .andExpect(jsonPath("message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("errors[0].field").value(expectedField))
+                .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/options/1"));
+                .andExpect(jsonPath("path").value("/admin/option-types/" + optionTypeId));
     }
 
     @Test
-    @DisplayName("옵션을 삭제한다")
+    @DisplayName("옵션 타입을 삭제한다")
     @WithCustomMockUser
-    void deleteOption() throws Exception {
+    void deleteOptionType() throws Exception {
         //given
+        Long optionTypeId = 1L;
+        willDoNothing().given(optionCommandService).deleteOptionType(anyLong());
         //when
         //then
-        mockMvc.perform(delete("/options/{optionTypeId}", 1L)
+        mockMvc.perform(delete("/admin/option-types/{optionTypeId}", optionTypeId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
                 .andExpect(status().isNoContent());
     }
 
@@ -227,7 +232,7 @@ class AdminOptionControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    private static Stream<Arguments> provideInvalidRequest() {
+    private static Stream<Arguments> provideInvalidCreateOptionTypeRequest() {
         return Stream.of(
                 Arguments.of(
                         "옵션 타입 이름이 누락되면 예외가 발생한다",
@@ -267,6 +272,17 @@ class AdminOptionControllerTest {
                                 ).build(),
                         "values",
                         "옵션 값은 중복될 수 없습니다"
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideInvalidUpdateTypeRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "옵션 타입 이름이 누락되면 예외가 발생한다",
+                        anUpdateOptionTypeRequest().name(null).build(),
+                        "name",
+                        "옵션 타입 이름은 필수 입니다"
                 )
         );
     }
