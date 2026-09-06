@@ -106,31 +106,38 @@ include::{snippets}/admin/option-types/add-value/http-response.adoc[]
 ==== Response Fields
 include::{snippets}/admin/option-types/add-value/response-fields.adoc[]
 
+[[option-type-updateValue]]
+=== 옵션 값 수정
+
+==== HTTP Request
+include::{snippets}/admin/option-types/update-value/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/update-value/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/option-types/update-value/request-fields.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/update-value/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/update-value/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/update-value/response-fields.adoc[]
+
+[[option-type-deleteValue]]
+
 === 옵션 값 삭제
 ==== HTTP Request
-include::{snippets}/02-option-07-delete-value/http-request.adoc[]
-===== Request Header
-include::{snippets}/02-option-07-delete-value/request-headers.adoc[]
-===== Request PathParam
-include::{snippets}/02-option-07-delete-value/path-parameters.adoc[]
-==== HTTP Response
-include::{snippets}/02-option-07-delete-value/http-response.adoc[]
+include::{snippets}/admin/option-types/delete-value/http-request.adoc[]
 
-## 일반
-=== 옵션 조회
-==== HTTP Request
-include::{snippets}/02-option-02-get/http-request.adoc[]
-===== Request PathParam
-include::{snippets}/02-option-02-get/path-parameters.adoc[]
-==== HTTP Response
-include::{snippets}/02-option-02-get/http-response.adoc[]
-===== Response Fields
-include::{snippets}/02-option-02-get/response-fields.adoc[]
+==== Request Headers
+include::{snippets}/admin/option-types/delete-value/request-headers.adoc[]
 
-=== 옵션 목록 조회
-==== HTTP Request
-include::{snippets}/02-option-03-get-list/http-request.adoc[]
+==== Path Parameters
+include::{snippets}/admin/option-types/delete-value/path-parameters.adoc[]
+
 ==== HTTP Response
-include::{snippets}/02-option-03-get-list/http-response.adoc[]
-===== Response Fields
-include::{snippets}/02-option-03-get-list/response-fields.adoc[]
+include::{snippets}/admin/option-types/delete-value/http-response.adoc[]

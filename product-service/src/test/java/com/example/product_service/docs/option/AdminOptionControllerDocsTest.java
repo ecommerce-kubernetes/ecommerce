@@ -11,6 +11,7 @@ import com.example.product_service.option.application.service.OptionQueryService
 import com.example.product_service.option.application.service.dto.command.AddOptionValueCommand;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
 import com.example.product_service.option.application.service.dto.command.UpdateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.command.UpdateOptionValueCommand;
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.option.fixture.OptionResultFixture;
@@ -140,7 +141,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("옵션을 수정한다")
+    @DisplayName("옵션 타입을 수정한다")
     void updateOptionType() throws Exception {
         //given
         Long optionTypeId = 1L;
@@ -239,7 +240,7 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
         Long optionValueId = 10L;
         UpdateOptionValueRequest request = anUpdateOptionValueRequest().build();
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
-        given(optionCommandService.addOptionValue(any(AddOptionValueCommand.class))).willReturn(optionValueId);
+        given(optionCommandService.updateOptionValue(any(UpdateOptionValueCommand.class))).willReturn(optionValueId);
         //when
         //then
         mockMvc.perform(patch("/admin/option-types/{optionTypeId}/values/{optionValueId}", optionTypeId, optionValueId)
@@ -290,8 +291,8 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         ),
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
-                        pathParameters(parameterWithName("optionTypeId").description("옵션 값을 수정할 옵션 타입 ID"),
-                                parameterWithName("optionValueId").description("수정할 옵션 값 ID"))
+                        pathParameters(parameterWithName("optionTypeId").description("옵션 값을 삭제할 옵션 타입 ID"),
+                                parameterWithName("optionValueId").description("삭제할 옵션 값 ID"))
                 ));
     }
 }
