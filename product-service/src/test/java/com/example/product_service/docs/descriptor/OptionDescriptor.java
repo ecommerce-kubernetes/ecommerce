@@ -8,7 +8,7 @@ import static org.springframework.restdocs.snippet.Attributes.key;
 
 public class OptionDescriptor {
     public static FieldDescriptor[] createOptionTypeRequest() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("name")
                         .type(JsonFieldType.STRING)
                         .description("옵션 이름")
@@ -25,7 +25,7 @@ public class OptionDescriptor {
     }
 
     public static FieldDescriptor[] createOptionTypeResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("id")
                         .type(JsonFieldType.STRING)
                         .description("옵션 타입 ID")
@@ -33,7 +33,7 @@ public class OptionDescriptor {
     }
 
     public static FieldDescriptor[] optionTypesResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("optionTypes")
                         .type(JsonFieldType.ARRAY)
                         .description("옵션 타입 리스트"),
@@ -56,7 +56,7 @@ public class OptionDescriptor {
     }
 
     public static FieldDescriptor[] optionTypeResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("id")
                         .type(JsonFieldType.STRING)
                         .description("옵션 타입 ID"),
@@ -75,14 +75,25 @@ public class OptionDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getOptionUpdateRequest(){
+    public static FieldDescriptor[] updateOptionTypeRequest() {
         return new FieldDescriptor[]{
-            fieldWithPath("name").description("변경할 이름")
+                fieldWithPath("name")
+                        .type(JsonFieldType.STRING)
+                        .description("변경할 옵션 타입 이름")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
+
+    public static FieldDescriptor[] updateOptionTypeResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("id")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 타입 아이디")
         };
     }
 
     public static FieldDescriptor[] getOptionValueUpdateResponse() {
-        return new FieldDescriptor[] {
+        return new FieldDescriptor[]{
                 fieldWithPath("id").description("옵션 값 ID"),
                 fieldWithPath("name").description("옵션 값 이름")
         };

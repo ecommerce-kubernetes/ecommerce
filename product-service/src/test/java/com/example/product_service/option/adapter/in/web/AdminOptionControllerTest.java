@@ -6,6 +6,7 @@ import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptio
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.command.UpdateOptionTypeCommand;
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
+import static com.example.product_service.option.fixture.OptionRequestFixture.anUpdateOptionTypeRequest;
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypeResult;
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypesResult;
 import static org.mockito.ArgumentMatchers.any;
@@ -132,15 +134,20 @@ class AdminOptionControllerTest {
     }
 
     @Test
-    @DisplayName("옵션을 수정한다")
+    @DisplayName("옵션 타입을 수정한다")
     @WithCustomMockUser
     void updateOptionType() throws Exception {
         //given
+        Long optionTypeId = 1L;
+        UpdateOptionTypeRequest request = anUpdateOptionTypeRequest().build();
+        given(optionCommandService.updateOptionType(any(UpdateOptionTypeCommand.class))).willReturn(optionTypeId);
         //when
         //then
-        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(patch("/admin/option-types/{optionTypeId}", optionTypeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(optionTypeId));
     }
 
     @Test

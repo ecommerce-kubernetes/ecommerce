@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 
 import static com.example.product_service.docs.descriptor.OptionDescriptor.*;
 import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
+import static com.example.product_service.option.fixture.OptionRequestFixture.anUpdateOptionTypeRequest;
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypeResult;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -135,13 +136,11 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 수정한다")
     void updateOptionType() throws Exception {
         //given
-        UpdateOptionTypeRequest request = UpdateOptionTypeRequest.builder()
-                .name("새 이름")
-                .build();
+        UpdateOptionTypeRequest request = anUpdateOptionTypeRequest().build();
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
         //when
         //then
-        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
+        mockMvc.perform(patch("/admin/option-types/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(authHeader)
                         .content(objectMapper.writeValueAsString(request)))
@@ -156,9 +155,9 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                                         .remove("X-User-Role")
                         ),
                         preprocessResponse(prettyPrint()),
-                        requestFields(getOptionUpdateRequest()),
                         requestHeaders(AUTH_HEADER),
-                        responseFields(optionTypesResponse())
+                        requestFields(updateOptionTypeRequest()),
+                        responseFields(updateOptionTypeResponse())
                 ));
     }
 
@@ -211,7 +210,6 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                                         .remove("X-User-Role")
                         ),
                         preprocessResponse(prettyPrint()),
-                        requestFields(getOptionUpdateRequest()),
                         requestHeaders(AUTH_HEADER),
                         responseFields(getOptionValueUpdateResponse())
                 ));
