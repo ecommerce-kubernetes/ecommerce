@@ -113,15 +113,24 @@ class AdminOptionControllerTest {
 
     @Test
     @DisplayName("옵션 타입을 조회한다")
-    void getOptions() throws Exception {
+    void getOptionType() throws Exception {
         //given
+        Long optionTypeId = 1L;
+        OptionTypeResult type = anOptionTypeResult().build();
+        given(optionQueryService.getType(optionTypeId)).willReturn(type);
+        OptionTypeResult.OptionValueResult value = type.values().getFirst();
         //when
         //then
-        mockMvc.perform(get("/options")
+        mockMvc.perform(get("/admin/option-types/{optionTypeId}", optionTypeId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(type.id()))
+                .andExpect(jsonPath("$.name").value(type.name()))
+                .andExpect(jsonPath("$.values").isArray())
+                .andExpect(jsonPath("$.values[0].id").value(value.id()))
+                .andExpect(jsonPath("$.values[0].name").value(value.name()));
     }
+
     @Test
     @DisplayName("옵션을 수정한다")
     @WithCustomMockUser

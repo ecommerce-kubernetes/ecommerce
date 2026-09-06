@@ -55,12 +55,23 @@ public class OptionDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getOptionListResponse() {
+    public static FieldDescriptor[] optionTypeResponse() {
         return new FieldDescriptor[] {
-                fieldWithPath("[].id").description("옵션 타입 아이디"),
-                fieldWithPath("[].name").description("옵션 이름"),
-                fieldWithPath("[].values[].id").description("옵션 값 ID"),
-                fieldWithPath("[].values[].name").description("옵션 값")
+                fieldWithPath("id")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 타입 ID"),
+                fieldWithPath("name")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 타입 이름"),
+                fieldWithPath("values")
+                        .type(JsonFieldType.ARRAY)
+                        .description("옵션 값 목록"),
+                fieldWithPath("values[].id")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 아이디"),
+                fieldWithPath("values[].name")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 이름")
         };
     }
 

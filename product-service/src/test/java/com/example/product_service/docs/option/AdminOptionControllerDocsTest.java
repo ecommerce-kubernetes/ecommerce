@@ -8,6 +8,7 @@ import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptio
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.option.fixture.OptionResultFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +19,9 @@ import org.springframework.http.MediaType;
 
 import static com.example.product_service.docs.descriptor.OptionDescriptor.*;
 import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
+import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypeResult;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -96,6 +99,35 @@ class AdminOptionControllerDocsTest extends RestDocsSupport {
                         preprocessResponse(prettyPrint()),
                         requestHeaders(AUTH_HEADER),
                         responseFields(optionTypesResponse())
+                ));
+    }
+
+    @Test
+    @DisplayName("옵션 타입을 조회한다")
+    void getOptionType() throws Exception {
+        //given
+        Long optionTypeId = 1L;
+        OptionTypeResult type = anOptionTypeResult().build();
+        HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
+        given(optionQueryService.getType(anyLong())).willReturn(type);
+        //when
+        //then
+        mockMvc.perform(get("/admin/option-types/{optionTypeId}", optionTypeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(authHeader))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document(
+                        "admin/option-types/detail",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(optionTypeResponse())
                 ));
     }
 

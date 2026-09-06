@@ -1,5 +1,6 @@
 package com.example.product_service.option.application.service;
 
+import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,10 @@ import org.springframework.stereotype.Service;
 public class OptionQueryService {
 
     public OptionTypesResult getTypes() {
+        return null;
+    }
+
+    public OptionTypeResult getType(Long optionTypeId) {
         return null;
     }
 }

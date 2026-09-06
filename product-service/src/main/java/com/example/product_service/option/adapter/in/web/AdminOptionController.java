@@ -8,6 +8,7 @@ import com.example.product_service.option.adapter.in.web.dto.response.*;
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,8 +41,9 @@ public class AdminOptionController {
     }
 
     @GetMapping("/option-types/{optionTypeId}")
-    public ResponseEntity<OptionTypeResponse> getOption(@PathVariable("optionTypeId") Long optionTypeId) {
-        return null;
+    public ResponseEntity<OptionTypeResponse> getOptionType(@PathVariable("optionTypeId") Long optionTypeId) {
+        OptionTypeResult type = optionQueryService.getType(optionTypeId);
+        return ResponseEntity.ok(OptionTypeResponse.from(type));
     }
 
     @PatchMapping("/option-types/{optionTypeId}")
