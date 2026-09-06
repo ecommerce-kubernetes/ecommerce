@@ -1,16 +1,20 @@
 package com.example.product_service.option.adapter.in.web;
 
+import com.example.product_service.option.adapter.in.web.dto.request.AddOptionValueRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.CreateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionTypeRequest;
 import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptionValueRequest;
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
+import com.example.product_service.option.application.service.dto.command.AddOptionValueCommand;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
 import com.example.product_service.option.application.service.dto.command.UpdateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.command.UpdateOptionValueCommand;
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,8 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.product_service.option.fixture.OptionRequestFixture.anCreateOptionTypeRequest;
-import static com.example.product_service.option.fixture.OptionRequestFixture.anUpdateOptionTypeRequest;
+import static com.example.product_service.option.fixture.OptionRequestFixture.*;
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypeResult;
 import static com.example.product_service.option.fixture.OptionResultFixture.anOptionTypesResult;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,7 +73,7 @@ class AdminOptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(optionTypeId));
+                .andExpect(jsonPath("$.optionTypeId").value(optionTypeId));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -150,7 +153,7 @@ class AdminOptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(optionTypeId));
+                .andExpect(jsonPath("$.optionTypeId").value(optionTypeId));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -190,35 +193,82 @@ class AdminOptionControllerTest {
     }
 
     @Test
+    @DisplayName("옵션 값을 추가한다")
+    void addOptionValue() throws Exception {
+        //given
+        Long optionTypeId = 1L;
+        Long optionValueId = 10L;
+        AddOptionValueRequest request = anAddOptionValueRequest().build();
+        given(optionCommandService.addOptionValue(any(AddOptionValueCommand.class))).willReturn(optionValueId);
+        //when
+        //then
+        mockMvc.perform(post("/admin/option-types/{optionTypeId}/values", optionTypeId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.optionValueId").value(optionValueId));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidAddValueRequest")
+    @WithCustomMockUser
+    @DisplayName("옵션 값 추가 검증")
+    void addOptionValue_validation(String description, AddOptionValueRequest request, String expectedField, String expectedMessage) throws Exception {
+        //given
+        Long optionTypeId = 1L;
+        //when
+        //then
+        mockMvc.perform(post("/admin/option-types/{optionTypeId}/values", optionTypeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("errors[0].field").value(expectedField))
+                .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/admin/option-types/" + optionTypeId + "/values"));
+    }
+
+    @Test
     @DisplayName("옵션 값을 수정한다")
     @WithCustomMockUser
     void updateOptionValue() throws Exception {
         //given
+        Long optionTypeId = 1L;
+        Long optionValueId = 10L;
+        UpdateOptionValueRequest request = anUpdateOptionValueRequest().build();
+        given(optionCommandService.updateOptionValue(any(UpdateOptionValueCommand.class))).willReturn(optionValueId);
         //when
         //then
-        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(patch("/admin/option-types/{optionValueId}/values/{optionValueId}", optionTypeId, optionValueId)
+                .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.optionValueId").value(optionValueId));
     }
 
-    @Test
+    @ParameterizedTest(name = "{0}")
     @DisplayName("옵션 값 변경 요청 검증")
+    @MethodSource("provideInvalidUpdateOptionValueRequest")
     @WithCustomMockUser
-    void updateOptionValue_validation() throws Exception {
+    void updateOptionValue_validation(String description, UpdateOptionValueRequest request, String expectedField, String expectedMessage) throws Exception {
         //given
-        UpdateOptionValueRequest request = UpdateOptionValueRequest.builder()
-                .name(null)
-                .build();
+        Long optionTypeId = 1L;
+        Long optionValueId = 10L;
         //when
         //then
-        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
+        mockMvc.perform(patch("/admin/option-types/{optionTypeId}/values/{optionValueId}", optionTypeId, optionValueId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("code").value("INVALID_INPUT_VALUE"))
-                .andExpect(jsonPath("errors[0].reason").value("이름은 필수입니다"))
+                .andExpect(jsonPath("message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("errors[0].field").value(expectedField))
+                .andExpect(jsonPath("errors[0].reason").value(expectedMessage))
                 .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("path").value("/option-values/1"));
+                .andExpect(jsonPath("path").value("/admin/option-types/" + optionTypeId + "/values/" + optionValueId));
     }
 
     @Test
@@ -283,6 +333,28 @@ class AdminOptionControllerTest {
                         anUpdateOptionTypeRequest().name(null).build(),
                         "name",
                         "옵션 타입 이름은 필수 입니다"
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidAddValueRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "옵션 값 이름이 누락되면 예외가 발생한다",
+                        anAddOptionValueRequest().name(null).build(),
+                        "name",
+                        "옵션 값 이름은 필수 입니다"
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidUpdateOptionValueRequest() {
+        return Stream.of(
+                Arguments.of(
+                        "옵션 값 이름이 누락되면 예외가 발생한다",
+                        anUpdateOptionValueRequest().name(null).build(),
+                        "name",
+                        "옵션 값 이름은 필수 입니다"
                 )
         );
     }

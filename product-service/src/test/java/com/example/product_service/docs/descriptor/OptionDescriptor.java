@@ -26,7 +26,7 @@ public class OptionDescriptor {
 
     public static FieldDescriptor[] createOptionTypeResponse() {
         return new FieldDescriptor[]{
-                fieldWithPath("id")
+                fieldWithPath("optionTypeId")
                         .type(JsonFieldType.STRING)
                         .description("옵션 타입 ID")
         };
@@ -86,16 +86,43 @@ public class OptionDescriptor {
 
     public static FieldDescriptor[] updateOptionTypeResponse() {
         return new FieldDescriptor[] {
-                fieldWithPath("id")
+                fieldWithPath("optionTypeId")
                         .type(JsonFieldType.STRING)
-                        .description("옵션 타입 아이디")
+                        .description("옵션 타입 Id")
         };
     }
 
-    public static FieldDescriptor[] getOptionValueUpdateResponse() {
-        return new FieldDescriptor[]{
-                fieldWithPath("id").description("옵션 값 ID"),
-                fieldWithPath("name").description("옵션 값 이름")
+    public static FieldDescriptor[] addOptionValueRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("name")
+                        .type(JsonFieldType.STRING)
+                        .description("추가할 옵션 값 이름")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
+
+    public static FieldDescriptor[] addOptionValueResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("optionValueId")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 ID")
+        };
+    }
+
+    public static FieldDescriptor[] updateOptionValueRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("name")
+                        .type(JsonFieldType.STRING)
+                        .description("수정할 옵션 값 이름")
+                        .attributes(key("constraint").value("필수"))
+        };
+    }
+
+    public static FieldDescriptor[] updateOptionValueResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("optionValueId")
+                        .type(JsonFieldType.STRING)
+                        .description("옵션 값 ID")
         };
     }
 }

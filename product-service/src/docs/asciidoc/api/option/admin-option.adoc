@@ -84,23 +84,27 @@ include::{snippets}/admin/option-types/delete/path-parameters.adoc[]
 ==== HTTP Response
 include::{snippets}/admin/option-types/delete/http-response.adoc[]
 
-==== Response Fields
-include::{snippets}/admin/option-types/delete/response-fields.adoc[]
 
+[[option-type-addValue]]
+=== 옵션 값 추가
 
-=== 옵션 값 수정
 ==== HTTP Request
-include::{snippets}/02-option-06-update-value/http-request.adoc[]
-===== Request Header
-include::{snippets}/02-option-06-update-value/request-headers.adoc[]
-===== Request PathParam
-include::{snippets}/02-option-06-update-value/path-parameters.adoc[]
-===== Request Fields
-include::{snippets}/02-option-06-update-value/request-fields.adoc[]
+include::{snippets}/admin/option-types/add-value/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/add-value/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/option-types/add-value/request-fields.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/add-value/path-parameters.adoc[]
+
 ==== HTTP Response
-include::{snippets}/02-option-06-update-value/http-response.adoc[]
-===== Response Fields
-include::{snippets}/02-option-06-update-value/response-fields.adoc[]
+include::{snippets}/admin/option-types/add-value/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/add-value/response-fields.adoc[]
 
 === 옵션 값 삭제
 ==== HTTP Request

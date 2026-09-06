@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 @Builder
-public record UpdateOptionTypeResponse(@JsonFormat(shape = JsonFormat.Shape.STRING) Long id) {
-    public static UpdateOptionTypeResponse of(Long id) {
+public record UpdateOptionTypeResponse(@JsonFormat(shape = JsonFormat.Shape.STRING) Long optionTypeId) {
+    public static UpdateOptionTypeResponse of(Long optionTypeId) {
         return UpdateOptionTypeResponse.builder()
-                .id(id)
+                .optionTypeId(optionTypeId)
                 .build();
     }
 }

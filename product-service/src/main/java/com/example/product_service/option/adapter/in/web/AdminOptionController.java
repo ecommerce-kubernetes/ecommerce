@@ -7,8 +7,10 @@ import com.example.product_service.option.adapter.in.web.dto.request.UpdateOptio
 import com.example.product_service.option.adapter.in.web.dto.response.*;
 import com.example.product_service.option.application.service.OptionCommandService;
 import com.example.product_service.option.application.service.OptionQueryService;
+import com.example.product_service.option.application.service.dto.command.AddOptionValueCommand;
 import com.example.product_service.option.application.service.dto.command.CreateOptionTypeCommand;
 import com.example.product_service.option.application.service.dto.command.UpdateOptionTypeCommand;
+import com.example.product_service.option.application.service.dto.command.UpdateOptionValueCommand;
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import lombok.RequiredArgsConstructor;
@@ -62,16 +64,20 @@ public class AdminOptionController {
     }
 
     @PostMapping("/option-types/{optionTypeId}/values")
-    public ResponseEntity<AddOptionValueResponse> addOptionValues(@PathVariable("optionTypeId") Long optionTypeId,
+    public ResponseEntity<AddOptionValueResponse> addOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
                                                                   @RequestBody @Validated AddOptionValueRequest request) {
-        return null;
+        AddOptionValueCommand command = request.toCommand(optionTypeId);
+        Long id = optionCommandService.addOptionValue(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(AddOptionValueResponse.of(id));
     }
 
     @PatchMapping("option-types/{optionTypeId}/values/{optionValueId}")
     public ResponseEntity<UpdateOptionValueResponse> updateOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
                                                                        @PathVariable("optionValueId") Long optionValueId,
                                                                        @RequestBody @Validated UpdateOptionValueRequest request) {
-        return null;
+        UpdateOptionValueCommand command = request.toCommand(optionTypeId, optionValueId);
+        Long id = optionCommandService.updateOptionValue(command);
+        return ResponseEntity.ok(UpdateOptionValueResponse.of(id));
     }
 
     @DeleteMapping("/option-types/{optionTypeId}/values/{optionValueId}")
