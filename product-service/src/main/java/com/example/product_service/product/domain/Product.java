@@ -77,12 +77,7 @@ public class Product extends BaseEntity {
     }
 
     public static Product create(String name, String description, Category category) {
-        if (category == null) {
-            throw new BusinessException(ProductErrorCode.PRODUCT_CATEGORY_REQUIRED);
-        }
-        if (!category.isLeaf()) {
-            throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
-        }
+
 
         return Product.builder()
                 .name(name)
@@ -160,9 +155,7 @@ public class Product extends BaseEntity {
         if (category == null) {
             throw new BusinessException(ProductErrorCode.PRODUCT_CATEGORY_REQUIRED);
         }
-        if (!category.isLeaf()) {
-            throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
-        }
+
         this.name = name;
         this.description = description;
         this.category = category;
