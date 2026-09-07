@@ -2,7 +2,7 @@ package com.example.product_service.product.fixture;
 
 import com.example.product_service.product.application.service.dto.result.ProductDetailResult;
 import com.example.product_service.product.application.service.dto.result.ProductSummaryResult;
-import com.example.product_service.product.domain.model.ProductStatus;
+import com.example.product_service.product.domain.ProductStatus;
 
 import java.util.List;
 

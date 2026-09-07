@@ -1,8 +1,8 @@
 package com.example.product_service.support.fixture.builder;
 
-import com.example.product_service.category.domain.model.Category;
-import com.example.product_service.option.domain.model.OptionType;
-import com.example.product_service.product.domain.model.*;
+import com.example.product_service.category.domain.Category;
+import com.example.product_service.option.domain.OptionType;
+import com.example.product_service.product.domain.*;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 

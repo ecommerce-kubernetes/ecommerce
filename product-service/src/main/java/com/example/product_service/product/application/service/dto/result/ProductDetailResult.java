@@ -1,6 +1,6 @@
 package com.example.product_service.product.application.service.dto.result;
 
-import com.example.product_service.product.domain.model.ProductStatus;
+import com.example.product_service.product.domain.ProductStatus;
 import lombok.Builder;
 
 import java.util.List;
