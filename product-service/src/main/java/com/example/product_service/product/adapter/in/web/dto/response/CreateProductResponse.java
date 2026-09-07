@@ -1,15 +1,15 @@
 package com.example.product_service.product.adapter.in.web.dto.response;
 
-import com.example.product_service.product.application.service.dto.result.ProductResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 @Builder
 public record CreateProductResponse(
-        Long productId
+        @JsonFormat(shape = JsonFormat.Shape.STRING) Long productId
 ) {
-    public static CreateProductResponse from(ProductResult.Create result) {
+    public static CreateProductResponse of(Long productId) {
         return CreateProductResponse.builder()
-                .productId(result.productId())
+                .productId(productId)
                 .build();
     }
 }

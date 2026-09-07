@@ -1,20 +1,20 @@
 package com.example.product_service.product.adapter.in.web.dto.request;
 
-import com.example.product_service.product.application.service.dto.command.ProductCommand;
+import com.example.product_service.product.application.service.dto.command.CreateProductCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
 public record CreateProductRequest(
-        @NotBlank(message = "상품 이름은 필수 입니다")
+        @NotBlank(message = "{product.name.notBlank}")
         String name,
-        @NotNull(message = "카테고리 id는 필수 입니다")
+        @NotNull(message = "{product.categoryId.notNull}")
         Long categoryId,
         String description
 ) {
-    public ProductCommand.Create toCommand() {
-        return ProductCommand.Create.builder()
+    public CreateProductCommand toCommand() {
+        return CreateProductCommand.builder()
                 .name(name)
                 .categoryId(categoryId)
                 .description(description)

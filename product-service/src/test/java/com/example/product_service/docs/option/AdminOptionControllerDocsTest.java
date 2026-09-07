@@ -15,7 +15,6 @@ import com.example.product_service.option.application.service.dto.command.Update
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;
 import com.example.product_service.option.fixture.OptionResultFixture;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

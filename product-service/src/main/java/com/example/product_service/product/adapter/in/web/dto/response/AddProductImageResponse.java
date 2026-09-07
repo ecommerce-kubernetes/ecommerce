@@ -1,24 +1,15 @@
 package com.example.product_service.product.adapter.in.web.dto.response;
 
-import com.example.product_service.product.application.service.dto.result.ProductResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
-
-import java.util.List;
 
 @Builder
 public record AddProductImageResponse(
-        Long productId,
-        List<ProductImageDetailResponse> images
+        @JsonFormat(shape = JsonFormat.Shape.STRING) Long productId
 ) {
-    public static AddProductImageResponse from(ProductResult.AddImage result) {
-        List<ProductImageDetailResponse> images = mappingImageResponse(result.images());
+    public static AddProductImageResponse of(Long productId) {
         return AddProductImageResponse.builder()
-                .productId(result.productId())
-                .images(images)
+                .productId(productId)
                 .build();
-    }
-
-    public static List<ProductImageDetailResponse> mappingImageResponse(List<ProductResult.ImageDetail> images) {
-        return images.stream().map(ProductImageDetailResponse::from).toList();
     }
 }

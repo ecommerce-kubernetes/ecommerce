@@ -1,24 +1,15 @@
 package com.example.product_service.product.adapter.in.web.dto.response;
 
-import com.example.product_service.product.application.service.dto.result.ProductResult;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
-
-import java.util.List;
 
 @Builder
 public record RegisterProductOptionResponse(
-        Long productId,
-        List<ProductOptionInfoResponse> options
+        @JsonFormat(shape = JsonFormat.Shape.STRING) Long productId
 ) {
-    public static RegisterProductOptionResponse from(ProductResult.OptionRegister result) {
-        List<ProductOptionInfoResponse> optionInfos = mappingOptionInfo(result.options());
+    public static RegisterProductOptionResponse of(Long productId) {
         return RegisterProductOptionResponse.builder()
-                .productId(result.productId())
-                .options(optionInfos)
+                .productId(productId)
                 .build();
-    }
-
-    private static List<ProductOptionInfoResponse> mappingOptionInfo(List<ProductResult.Option> options) {
-        return options.stream().map(ProductOptionInfoResponse::from).toList();
     }
 }
