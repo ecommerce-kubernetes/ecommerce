@@ -1,7 +1,7 @@
 package com.example.product_service.support;
 
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.CategoryErrorCode;
+import com.example.product_service.category.exception.CategoryErrorCode;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import org.springframework.boot.test.context.TestComponent;

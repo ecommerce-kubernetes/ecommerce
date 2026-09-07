@@ -1,7 +1,7 @@
 package com.example.product_service.category.domain;
 
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.CategoryErrorCode;
+import com.example.product_service.category.exception.CategoryErrorCode;
 import com.example.product_service.support.fixture.builder.CategoryTestBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -260,7 +260,7 @@ public class CategoryTest {
             assertThatThrownBy(() -> category.moveParent(category))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.CANNOT_MOVE_TO_SELF);
+                    .isEqualTo(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
         }
 
         @Test
@@ -275,7 +275,7 @@ public class CategoryTest {
             assertThatThrownBy(() -> target.moveParent(grandSon))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.CANNOT_MOVE_TO_DESCENDANT);
+                    .isEqualTo(CategoryErrorCode.CANNOT_SET_DESCENDANT);
         }
 
         @Test
