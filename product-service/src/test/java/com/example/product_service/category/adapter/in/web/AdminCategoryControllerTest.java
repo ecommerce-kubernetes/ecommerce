@@ -53,7 +53,7 @@ class AdminCategoryControllerTest {
         //given
         CreateCategoryRequest request = anCreateCategoryRequest().build();
         Long categoryId = 1L;
-        given(categoryCommandService.saveCategory(any(CreateCategoryCommand.class)))
+        given(categoryCommandService.createCategory(any(CreateCategoryCommand.class)))
                 .willReturn(categoryId);
         //when
         //then

@@ -51,7 +51,7 @@ public class AdminCategoryControllerDocsTest extends RestDocsSupport {
 
         HttpHeaders authHeader = createAuthHeader("ROLE_ADMIN");
 
-        given(categoryCommandService.saveCategory(any(CreateCategoryCommand.class)))
+        given(categoryCommandService.createCategory(any(CreateCategoryCommand.class)))
                 .willReturn(categoryId);
         //when
         //then

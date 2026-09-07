@@ -29,7 +29,7 @@ public class AdminCategoryController {
     @PostMapping("/categories")
     public ResponseEntity<CreateCategoryResponse> saveCategory(@RequestBody @Validated CreateCategoryRequest request) {
         CreateCategoryCommand command = request.toCommand();
-        Long id = categoryCommandService.saveCategory(command);
+        Long id = categoryCommandService.createCategory(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateCategoryResponse.of(id));
     }
 
