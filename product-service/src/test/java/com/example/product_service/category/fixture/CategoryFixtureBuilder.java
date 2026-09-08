@@ -18,8 +18,13 @@ public class CategoryFixtureBuilder {
         return new CategoryFixtureBuilder();
     }
 
-    public CategoryFixtureBuilder name(String name) {
+    public CategoryFixtureBuilder withName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public CategoryFixtureBuilder withImagePath(String imagePath) {
+        this.imagePath = imagePath;
         return this;
     }
 

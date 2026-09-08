@@ -76,6 +76,11 @@ public class Category extends BaseEntity {
         return child;
     }
 
+    public void update(String name, String imagePath) {
+        this.name = name;
+        this.imagePath = imagePath;
+    }
+
     private void assignParent(Category parent) {
         this.parent = parent;
         parent.getChildren().add(this);

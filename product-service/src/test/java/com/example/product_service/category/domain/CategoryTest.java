@@ -67,4 +67,19 @@ public class CategoryTest {
                 .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.EXCEED_MAX_DEPTH);
     }
+
+    @Test
+    @DisplayName("카테고리의 이름과 이미지 경로를 수정한다")
+    void update(){
+        //given
+        Category category = CategoryFixtureBuilder.given()
+                .withName("카테고리")
+                .withImagePath("/category/image.jpg")
+                .build();
+        //when
+        category.update("수정", "/category/update.jpg");
+        //then
+        assertThat(category.getName()).isEqualTo("수정");
+        assertThat(category.getImagePath()).isEqualTo("/category/update.jpg");
+    }
 }
