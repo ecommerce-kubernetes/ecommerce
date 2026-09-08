@@ -1,5 +1,6 @@
 package com.example.product_service.category.application.service;
 
+import com.example.product_service.category.application.port.CategoryRepository;
 import com.example.product_service.category.application.service.dto.result.ChildCategoriesResult;
 import com.example.product_service.category.application.service.dto.result.DetailCategoryResult;
 import com.example.product_service.category.application.service.dto.result.RootCategoriesResult;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class CategoryQueryService {
+
+    private final CategoryRepository categoryRepository;
 
     public RootCategoriesResult getRoots() {
         return null;
