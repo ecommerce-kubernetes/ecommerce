@@ -5,6 +5,7 @@ import com.example.product_service.category.domain.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -36,5 +37,10 @@ public class CategoryPersistenceAdapter implements CategoryRepository {
     @Override
     public void delete(Category category) {
         categoryJpaRepository.delete(category);
+    }
+
+    @Override
+    public List<Category> findAllByPathStartingWith(String pathPrefix) {
+        return categoryJpaRepository.findAllByPathStartingWith(pathPrefix);
     }
 }

@@ -60,9 +60,7 @@ public class Category extends BaseEntity {
     public static Category createChild(Long id, String name, String imagePath, Category parent) {
         Assert.notNull(parent, "하위 카테고리 생성시 부모는 필수이다");
 
-        if (parent.getDepth() == MAX_DEPTH) {
-            throw new BusinessException(CategoryErrorCode.EXCEED_MAX_DEPTH);
-        }
+        validateDepth(parent);
 
         Category child = Category.builder()
                 .id(id)
@@ -89,19 +87,54 @@ public class Category extends BaseEntity {
         return this.children.isEmpty();
     }
 
-    public void moveParent(Category parent) {
-        if (parent == null) {
-            this.parent.getChildren().remove(this);
-            this.parent = null;
+    public void moveParent(Category newParent) {
+        validateNotSelfOrDescendant(newParent);
+        if (newParent != null) {
+            validateDepth(newParent);
+        }
+
+        detachFromCurrentParent();
+
+        if (newParent == null) {
+            this.depth = ROOT_DEPTH;
+            this.path = String.valueOf(this.id);
             return;
         }
 
+        assignParent(newParent);
+        this.depth = newParent.getDepth() + 1;
+        this.path = newParent.getPath() + "/" + this.id;
+    }
+
+    public void relocatePrefix(String oldPathPrefix, String newPathPrefix, int depthDelta) {
+        Assert.isTrue(this.path.startsWith(oldPathPrefix),
+                "path가 예상한 조상 경로로 시작하지 않는다: " + this.path);
+        this.path = newPathPrefix + this.path.substring(oldPathPrefix.length());
+        this.depth += depthDelta;
+    }
+
+    private void validateNotSelfOrDescendant(Category newParent) {
+        if (newParent == null) {
+            return;
+        }
+        if (newParent.getId().equals(this.id)) {
+            throw new BusinessException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+        }
+        if (newParent.getPath().startsWith(this.path + "/")) {
+            throw new BusinessException(CategoryErrorCode.CANNOT_SET_DESCENDANT);
+        }
+    }
+
+    private static void validateDepth(Category parent) {
         if (parent.getDepth() == MAX_DEPTH) {
             throw new BusinessException(CategoryErrorCode.EXCEED_MAX_DEPTH);
         }
+    }
 
-        if (parent.getPath().startsWith(this.getPath()+"/")){
-            throw new BusinessException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+    private void detachFromCurrentParent() {
+        if (this.parent != null) {
+            this.parent.getChildren().remove(this);
+            this.parent = null;
         }
     }
 
@@ -109,4 +142,5 @@ public class Category extends BaseEntity {
         this.parent = parent;
         parent.getChildren().add(this);
     }
+
 }
