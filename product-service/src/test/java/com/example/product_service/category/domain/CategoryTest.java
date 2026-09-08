@@ -6,6 +6,8 @@ import com.example.product_service.common.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -221,5 +223,29 @@ public class CategoryTest {
         //then
         assertThatThrownBy(() -> category.relocatePrefix("존재하지-않는-접두사", "새-접두사", 1))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("경로(path)를 기준으로 루트부터 자신까지의 식별자 목록을 반환한다")
+    void getAncestorIds_returnsIdsFromRootToSelf() {
+        //given
+        Category grandparent = Category.createRoot(1L, "조부모", "/category/grandparent.jpg");
+        Category parent = Category.createChild(2L, "부모", "/category/parent.jpg", grandparent);
+        Category category = Category.createChild(3L, "카테고리", "/category/category.jpg", parent);
+        //when
+        List<Long> ancestorIds = category.getAncestorIds();
+        //then
+        assertThat(ancestorIds).containsExactly(1L, 2L, 3L);
+    }
+
+    @Test
+    @DisplayName("최상위 카테고리는 자기 자신의 식별자만 반환한다")
+    void getAncestorIds_whenRoot_thenReturnsOnlySelfId() {
+        //given
+        Category root = Category.createRoot(1L, "루트", "/category/root.jpg");
+        //when
+        List<Long> ancestorIds = root.getAncestorIds();
+        //then
+        assertThat(ancestorIds).containsExactly(1L);
     }
 }

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -141,6 +142,12 @@ public class Category extends BaseEntity {
     private void assignParent(Category parent) {
         this.parent = parent;
         parent.getChildren().add(this);
+    }
+
+    public List<Long> getAncestorIds() {
+        return Arrays.stream(this.path.split("/"))
+                .map(Long::valueOf)
+                .toList();
     }
 
 }

@@ -10,6 +10,11 @@ public interface CategoryRepository {
     Optional<Category> findById(Long id);
     boolean existsByParentIdAndName(Long parentId, String name);
     boolean existsByParentIdAndNameAndIdNot(Long parentId, String name, Long id);
+    boolean existsById(Long id);
     List<Category> findAllByPathStartingWith(String pathPrefix);
     void delete(Category category);
+    List<Category> findAllByParentIsNull();
+    List<Category> findAllByParentId(Long parentId);
+    List<Category> findAllById(List<Long> ids);
+    List<Category> findAll();
 }

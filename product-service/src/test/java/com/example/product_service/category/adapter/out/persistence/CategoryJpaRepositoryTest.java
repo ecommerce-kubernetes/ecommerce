@@ -125,4 +125,65 @@ class CategoryJpaRepositoryTest {
         //then
         assertThat(result).isEmpty();
     }
+
+    @Test
+    @DisplayName("부모가 없는 최상위 카테고리 목록을 조회한다")
+    void findAllByParentIsNull_returnsRootCategories() {
+        //given
+        Category root1 = Category.createRoot(1L, "전자기기", "/category/electronics.jpg");
+        Category root2 = Category.createRoot(2L, "식품", "/category/food.jpg");
+        Category child = Category.createChild(3L, "노트북", "/category/laptop.jpg", root1);
+        entityManager.persist(root1);
+        entityManager.persist(root2);
+        entityManager.persist(child);
+        entityManager.flush();
+        //when
+        List<Category> result = categoryJpaRepository.findAllByParentIsNull();
+        //then
+        assertThat(result).extracting(Category::getId)
+                .containsExactlyInAnyOrder(root1.getId(), root2.getId());
+    }
+
+    @Test
+    @DisplayName("최상위 카테고리가 없으면 빈 목록을 반환한다")
+    void findAllByParentIsNull_whenNoRoots_thenReturnsEmptyList() {
+        //given
+        //when
+        List<Category> result = categoryJpaRepository.findAllByParentIsNull();
+        //then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("특정 부모의 자식 카테고리 목록을 조회한다")
+    void findAllByParentId_returnsChildren() {
+        //given
+        Category parent = Category.createRoot(1L, "전자기기", "/category/electronics.jpg");
+        Category child1 = Category.createChild(2L, "노트북", "/category/laptop.jpg", parent);
+        Category child2 = Category.createChild(3L, "핸드폰", "/category/phone.jpg", parent);
+        Category unrelated = Category.createRoot(4L, "식품", "/category/food.jpg");
+        entityManager.persist(parent);
+        entityManager.persist(child1);
+        entityManager.persist(child2);
+        entityManager.persist(unrelated);
+        entityManager.flush();
+        //when
+        List<Category> result = categoryJpaRepository.findAllByParentId(parent.getId());
+        //then
+        assertThat(result).extracting(Category::getId)
+                .containsExactlyInAnyOrder(child1.getId(), child2.getId());
+    }
+
+    @Test
+    @DisplayName("자식 카테고리가 없으면 빈 목록을 반환한다")
+    void findAllByParentId_whenNoChildren_thenReturnsEmptyList() {
+        //given
+        Category parent = Category.createRoot(1L, "전자기기", "/category/electronics.jpg");
+        entityManager.persist(parent);
+        entityManager.flush();
+        //when
+        List<Category> result = categoryJpaRepository.findAllByParentId(parent.getId());
+        //then
+        assertThat(result).isEmpty();
+    }
 }

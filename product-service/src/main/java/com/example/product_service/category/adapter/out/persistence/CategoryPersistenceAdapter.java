@@ -43,4 +43,29 @@ public class CategoryPersistenceAdapter implements CategoryRepository {
     public List<Category> findAllByPathStartingWith(String pathPrefix) {
         return categoryJpaRepository.findAllByPathStartingWith(pathPrefix);
     }
+
+    @Override
+    public List<Category> findAllByParentIsNull() {
+        return categoryJpaRepository.findAllByParentIsNull();
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return categoryJpaRepository.existsById(id);
+    }
+
+    @Override
+    public List<Category> findAllByParentId(Long parentId) {
+        return categoryJpaRepository.findAllByParentId(parentId);
+    }
+
+    @Override
+    public List<Category> findAllById(List<Long> ids) {
+        return categoryJpaRepository.findAllById(ids);
+    }
+
+    @Override
+    public List<Category> findAll() {
+        return categoryJpaRepository.findAll();
+    }
 }

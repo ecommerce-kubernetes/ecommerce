@@ -12,7 +12,6 @@ public class CategoryResultFixture {
         CategoryResult furniture = anCategoryResult()
                 .id(2L)
                 .name("가구")
-                .path("2")
                 .imagePath("/categories/furniture.jpg")
                 .build();
 
@@ -25,7 +24,6 @@ public class CategoryResultFixture {
                 .id(3L)
                 .name("육류")
                 .depth(2)
-                .path("1/3")
                 .imagePath("/categories/meat.jpg")
                 .isLeaf(true)
                 .build();
@@ -34,7 +32,6 @@ public class CategoryResultFixture {
                 .id(4L)
                 .name("채소")
                 .depth(2)
-                .path("1/4")
                 .imagePath("/categories/vegetable.jpg")
                 .isLeaf(true)
                 .build();
@@ -49,7 +46,6 @@ public class CategoryResultFixture {
                 .id(3L)
                 .name("육류")
                 .depth(2)
-                .path("1/3")
                 .imagePath("/categories/meat.jpg")
                 .isLeaf(true)
                 .build();
@@ -57,7 +53,6 @@ public class CategoryResultFixture {
                 .id(3L)
                 .name("육류")
                 .depth(2)
-                .path("1/3")
                 .imagePath("/categories/meat.jpg")
                 .isLeaf(true)
                 .breadcrumb(List.of(food, meat));
@@ -68,7 +63,6 @@ public class CategoryResultFixture {
                 .id(3L)
                 .name("육류")
                 .depth(2)
-                .path("1/3")
                 .imagePath("/categories/meat.jpg")
                 .isLeaf(true)
                 .children(Collections.emptyList())
@@ -78,7 +72,6 @@ public class CategoryResultFixture {
                 .id(4L)
                 .name("채소")
                 .depth(2)
-                .path("1/4")
                 .imagePath("/categories/vegetable.jpg")
                 .isLeaf(true)
                 .children(Collections.emptyList())
@@ -88,7 +81,6 @@ public class CategoryResultFixture {
                 .id(1L)
                 .name("식품")
                 .depth(1)
-                .path("1")
                 .imagePath("/categories/food.jpg")
                 .isLeaf(false)
                 .children(List.of(meat, vegetable))
@@ -98,7 +90,6 @@ public class CategoryResultFixture {
                 .id(5L)
                 .name("의자")
                 .depth(2)
-                .path("2/5")
                 .imagePath("/categories/chair.jpg")
                 .isLeaf(true)
                 .children(Collections.emptyList())
@@ -108,7 +99,6 @@ public class CategoryResultFixture {
                 .id(6L)
                 .name("책상")
                 .depth(2)
-                .path("2/6")
                 .imagePath("/categories/desk.jpg")
                 .isLeaf(true)
                 .children(Collections.emptyList())
@@ -118,7 +108,6 @@ public class CategoryResultFixture {
                 .id(2L)
                 .name("가구")
                 .depth(1)
-                .path("2")
                 .imagePath("/categories/furniture.jpg")
                 .isLeaf(false)
                 .children(List.of(desk, chair))
@@ -133,7 +122,6 @@ public class CategoryResultFixture {
                 .id(1L)
                 .name("식품")
                 .depth(1)
-                .path("1")
                 .imagePath("/categories/food.jpg")
                 .isLeaf(false);
     }
