@@ -27,4 +27,14 @@ public class CategoryPersistenceAdapter implements CategoryRepository {
     public boolean existsByParentIdAndName(Long parentId, String name) {
         return categoryJpaRepository.existsByParentIdAndName(parentId, name);
     }
+
+    @Override
+    public boolean existsByParentIdAndNameAndIdNot(Long parentId, String name, Long id) {
+        return categoryJpaRepository.existsByParentIdAndNameAndIdNot(parentId, name, id);
+    }
+
+    @Override
+    public void delete(Category category) {
+        categoryJpaRepository.delete(category);
+    }
 }

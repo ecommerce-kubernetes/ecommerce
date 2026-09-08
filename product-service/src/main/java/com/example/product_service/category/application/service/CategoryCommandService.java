@@ -49,14 +49,54 @@ public class CategoryCommandService {
     }
 
     public Long updateCategory(UpdateCategoryCommand command) {
-        return null;
+        Category category = categoryRepository.findById(command.id())
+                .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+
+        if (!category.getName().equals(command.name())) {
+            Long parentId = category.getParent() != null ? category.getParent().getId() : null;
+            if (categoryRepository.existsByParentIdAndNameAndIdNot(parentId, command.name(), category.getId())) {
+                throw new BusinessException(CategoryErrorCode.DUPLICATE_SIBLING_CATEGORY_NAME);
+            }
+        }
+
+        category.update(command.name(), command.imagePath());
+        return category.getId();
     }
 
     public Long moveParent(Long categoryId, Long parentId) {
-        return null;
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+
+        Category parent = parentId != null ? categoryRepository.findById(parentId)
+                .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND)) : null;
+
+        if (parent != null) {
+            if (categoryRepository.existsByParentIdAndName(parent.getId(), category.getName())) {
+                throw new BusinessException(CategoryErrorCode.DUPLICATE_SIBLING_CATEGORY_NAME);
+            }
+
+            if (categoryProductPort.existsProductForCategory(parentId)) {
+                throw new BusinessException(CategoryErrorCode.PARENT_CATEGORY_HAS_PRODUCT);
+            }
+        }
+
+        category.moveParent(parent);
+
+        return category.getId();
     }
 
     public void deleteCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
 
+        if (!category.isLeaf()) {
+            throw new BusinessException(CategoryErrorCode.CATEGORY_HAS_CHILD);
+        }
+
+        if (categoryProductPort.existsProductForCategory(categoryId)) {
+            throw new BusinessException(CategoryErrorCode.PARENT_CATEGORY_HAS_PRODUCT);
+        }
+
+        categoryRepository.delete(category);
     }
 }

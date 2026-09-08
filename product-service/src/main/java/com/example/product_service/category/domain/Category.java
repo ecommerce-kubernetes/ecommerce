@@ -81,6 +81,30 @@ public class Category extends BaseEntity {
         this.imagePath = imagePath;
     }
 
+    public boolean isRoot() {
+        return this.parent == null;
+    }
+
+    public boolean isLeaf() {
+        return this.children.isEmpty();
+    }
+
+    public void moveParent(Category parent) {
+        if (parent == null) {
+            this.parent.getChildren().remove(this);
+            this.parent = null;
+            return;
+        }
+
+        if (parent.getDepth() == MAX_DEPTH) {
+            throw new BusinessException(CategoryErrorCode.EXCEED_MAX_DEPTH);
+        }
+
+        if (parent.getPath().startsWith(this.getPath()+"/")){
+            throw new BusinessException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+        }
+    }
+
     private void assignParent(Category parent) {
         this.parent = parent;
         parent.getChildren().add(this);
