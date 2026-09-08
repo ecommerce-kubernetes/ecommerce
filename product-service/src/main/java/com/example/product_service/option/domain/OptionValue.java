@@ -1,17 +1,19 @@
 package com.example.product_service.option.domain;
 
+import com.example.product_service.option.domain.context.CreateOptionValueContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class OptionValue {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -20,20 +22,22 @@ public class OptionValue {
 
     private String name;
 
-    void setOptionType(OptionType optionType){
-        this.optionType = optionType;
-    }
-
     @Builder(access = AccessLevel.PRIVATE)
-    private OptionValue(String name){
+    private OptionValue(Long id, OptionType optionType, String name) {
+        Assert.notNull(id, "옵션 값 아이디는 필수이다");
+        Assert.notNull(optionType, "옵션 값 타입은 필수이다");
+        Assert.notNull(id, "옵션 값 이름은 필수이다");
+
+        this.id = id;
+        this.optionType = optionType;
         this.name = name;
     }
 
-    public static OptionValue create(String name) {
-        return OptionValue.builder().name(name).build();
-    }
-
-    public void rename(String newName) {
-        this.name = newName;
+    public static OptionValue create(CreateOptionValueContext context, OptionType optionType) {
+        return OptionValue.builder()
+                .id(context.id())
+                .name(context.name())
+                .optionType(optionType)
+                .build();
     }
 }

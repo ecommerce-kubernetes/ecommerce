@@ -1,7 +1,9 @@
 package com.example.product_service.option.domain;
 
+import com.example.product_service.option.domain.context.CreateOptionTypeContext;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,46 +14,36 @@ import java.util.List;
 public class OptionType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
-    @Setter
+
     private String name;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "optionType", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OptionValue> optionValues = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OptionType(String name){
+    private OptionType(Long id, String name){
+        Assert.notNull(id, "옵션 타입 아이디는 필수이다");
+        Assert.notNull(name, "옵션 타입 이름은 필수이다");
+
+        this.id = id;
         this.name = name;
     }
 
-    public static OptionType create(String name, List<String> valueNames) {
-        OptionType optionType = OptionType.builder().name(name).build();
-        valueNames.forEach(optionType::addOptionValue);
+    public static OptionType create(CreateOptionTypeContext context) {
+        OptionType optionType = OptionType.builder()
+                .id(context.id())
+                .name(context.name())
+                .build();
+
+        List<OptionValue> optionValues = context.valueContexts().stream()
+                .map(valueContext -> OptionValue.create(valueContext, optionType)).toList();
+
+        optionType.addOptionValues(optionValues);
         return optionType;
     }
 
-    public void update(String name, List<String> values) {
-        this.name = name;
-        this.optionValues.removeIf(exist -> !values.contains(exist.getName()));
-
-        for (String newValue : values) {
-            boolean isExist = this.optionValues.stream()
-                    .anyMatch(exist -> exist.getName().equals(newValue));
-            if (!isExist) {
-                this.addOptionValue(newValue);
-            }
-        }
-    }
-
-    public void rename(String newName) {
-        this.name = newName;
-    }
-
-    public void addOptionValue(String name) {
-        OptionValue optionValue = OptionValue.create(name);
-        this.optionValues.add(optionValue);
-        optionValue.setOptionType(this);
+    private void addOptionValues(List<OptionValue> optionValues) {
+        this.optionValues.addAll(optionValues);
     }
 }

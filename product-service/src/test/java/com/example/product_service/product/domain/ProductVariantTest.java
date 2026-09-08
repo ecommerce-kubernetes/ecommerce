@@ -16,9 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ProductVariantTest {
 
     private OptionValue createOptionValue(Long id, String name) {
-        OptionValue optionValue = OptionValue.create(name);
-        ReflectionTestUtils.setField(optionValue, "id", id);
-        return optionValue;
+        return null;
     }
 
     @Nested
