@@ -40,4 +40,12 @@ public class OptionValue {
                 .optionType(optionType)
                 .build();
     }
+
+    void update(String newName) {
+        this.name = newName;
+    }
+
+    void detachOptionType() {
+        this.optionType = null;
+    }
 }

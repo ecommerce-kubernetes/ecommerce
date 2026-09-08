@@ -50,6 +50,47 @@ public class OptionType {
         return optionType;
     }
 
+    public void update(String name) {
+        this.name = name;
+    }
+
+    public OptionValue addOptionValue(CreateOptionValueContext context) {
+        boolean isDuplicateName = this.optionValues.stream().anyMatch(optionValue -> optionValue.getName().equals(context.name()));
+        if (isDuplicateName) {
+            throw new BusinessException(OptionErrorCode.OPTION_VALUE_DUPLICATE_NAME);
+        }
+
+        OptionValue optionValue = OptionValue.create(context, this);
+        addOptionValue(optionValue);
+        return optionValue;
+    }
+
+    public void updateOptionValue(Long optionValueId, String newName) {
+        OptionValue findValue = this.optionValues.stream().filter(optionValue -> optionValue.getId().equals(optionValueId)).findFirst()
+                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_VALUE_NOT_FOUND));
+
+        boolean isDuplicate = this.optionValues.stream()
+                .anyMatch(value -> !value.getId().equals(findValue.getId()) && value.getName().equals(newName));
+
+        if (isDuplicate) {
+            throw new BusinessException(OptionErrorCode.OPTION_VALUE_DUPLICATE_NAME);
+        }
+
+        findValue.update(newName);
+    }
+
+    public void deleteOptionValue(Long optionValueId) {
+        OptionValue findValue = this.optionValues.stream().filter(optionValue -> optionValue.getId().equals(optionValueId)).findFirst()
+                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_VALUE_NOT_FOUND));
+
+        findValue.detachOptionType();
+        this.optionValues.remove(findValue);
+    }
+
+    private void addOptionValue(OptionValue optionValue) {
+        this.optionValues.add(optionValue);
+    }
+
     private void addOptionValues(List<OptionValue> optionValues) {
         this.optionValues.addAll(optionValues);
     }

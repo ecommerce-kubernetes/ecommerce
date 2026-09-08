@@ -5,6 +5,9 @@ import com.example.product_service.option.domain.OptionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class OptionTypePersistenceAdapter implements OptionTypeRepository {
@@ -19,5 +22,25 @@ public class OptionTypePersistenceAdapter implements OptionTypeRepository {
     @Override
     public OptionType save(OptionType optionType) {
         return optionTypeJpaRepository.save(optionType);
+    }
+
+    @Override
+    public Optional<OptionType> findById(Long id) {
+        return optionTypeJpaRepository.findById(id);
+    }
+
+    @Override
+    public boolean existsByNameAndIdNot(String name, Long id) {
+        return optionTypeJpaRepository.existsByNameAndIdNot(name, id);
+    }
+
+    @Override
+    public void delete(OptionType optionType) {
+        optionTypeJpaRepository.delete(optionType);
+    }
+
+    @Override
+    public List<OptionType> findAll() {
+        return optionTypeJpaRepository.findAll();
     }
 }
