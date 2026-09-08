@@ -40,6 +40,7 @@ public class CategoryCommandService {
         if (categoryRepository.existsByParentIdAndName(parent.getId(), command.name())) {
             throw new BusinessException(CategoryErrorCode.DUPLICATE_SIBLING_CATEGORY_NAME);
         }
+
         if (categoryProductPort.existsProductForCategory(parent.getId())) {
             throw new BusinessException(CategoryErrorCode.PARENT_CATEGORY_HAS_PRODUCT);
         }

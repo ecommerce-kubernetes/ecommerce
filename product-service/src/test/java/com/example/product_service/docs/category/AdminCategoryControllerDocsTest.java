@@ -88,7 +88,7 @@ public class AdminCategoryControllerDocsTest extends RestDocsSupport {
                 .willReturn(categoryId);
         //when
         //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", categoryId)
+        mockMvc.perform(put("/admin/categories/{categoryId}", categoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(authHeader))

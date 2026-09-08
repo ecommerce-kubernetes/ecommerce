@@ -1,13 +1,13 @@
 package com.example.product_service.category.adapter.in.web.dto.request;
 
 import com.example.product_service.category.application.service.dto.command.UpdateCategoryCommand;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 
 @Builder
 public record UpdateCategoryRequest(
+        @NotBlank(message = "{category.name.notBlank}")
         String name,
         @Pattern(
                 regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
@@ -15,12 +15,6 @@ public record UpdateCategoryRequest(
         )
         String imagePath
 ) {
-
-    @JsonIgnore
-    @AssertTrue(message = "이름 또는 이미지 경로 중 하나는 필수입니다.")
-    public boolean isValidRequest() {
-        return this.name != null || this.imagePath != null;
-    }
 
     public UpdateCategoryCommand toCommand(Long categoryId) {
         return UpdateCategoryCommand.builder()

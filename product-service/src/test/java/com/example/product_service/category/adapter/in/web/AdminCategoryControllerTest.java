@@ -96,7 +96,7 @@ class AdminCategoryControllerTest {
                 .willReturn(categoryId);
         //when
         //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", categoryId)
+        mockMvc.perform(put("/admin/categories/{categoryId}", categoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -113,7 +113,7 @@ class AdminCategoryControllerTest {
         Long categoryId = 1L;
         //when
         //then
-        mockMvc.perform(patch("/admin/categories/{categoryId}", categoryId)
+        mockMvc.perform(put("/admin/categories/{categoryId}", categoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -173,14 +173,14 @@ class AdminCategoryControllerTest {
 
     private static Stream<Arguments> provideInvalidUpdateRequest() {
         return Stream.of(
+                Arguments.of("name 이 누락되면 예외가 발생한다",
+                        anUpdateCategoryRequest().name(null).build(),
+                        "name",
+                        "name은 필수값입니다"),
                 Arguments.of("imagePath가 유효하지 않으면 예외가 발생한다.",
                         anUpdateCategoryRequest().imagePath("invalid-image-path").build(),
                         "imagePath",
-                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
-                Arguments.of("수정값이 하나도 존재하지 않으면 예외가 발생한다.",
-                        anUpdateCategoryRequest().name(null).imagePath(null).build(),
-                        "validRequest",
-                        "이름 또는 이미지 경로 중 하나는 필수입니다.")
+                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
         );
     }
 }

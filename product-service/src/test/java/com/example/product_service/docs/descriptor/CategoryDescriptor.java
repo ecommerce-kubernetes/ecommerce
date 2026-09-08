@@ -38,12 +38,10 @@ public class CategoryDescriptor {
                 fieldWithPath("name")
                         .type(JsonFieldType.STRING)
                         .description("카테고리 이름")
-                        .attributes(key("constraint").value("최소 1개 필드 입력 필수"))
-                        .optional(),
+                        .attributes(key("constraint").value("필수")),
                 fieldWithPath("imagePath")
                         .type(JsonFieldType.STRING)
                         .description("카테고리 이미지 경로 (예: \"/categories/food.jpg\")")
-                        .attributes(key("constraint").value("최소 1개 필드 입력 필수"))
                         .optional()
         };
     }

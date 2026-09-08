@@ -33,7 +33,7 @@ public class AdminCategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateCategoryResponse.of(id));
     }
 
-    @PatchMapping("/categories/{categoryId}")
+    @PutMapping("/categories/{categoryId}")
     public ResponseEntity<UpdateCategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                  @RequestBody @Validated UpdateCategoryRequest request) {
         UpdateCategoryCommand command = request.toCommand(categoryId);
