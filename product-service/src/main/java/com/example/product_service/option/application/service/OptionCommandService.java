@@ -42,8 +42,7 @@ public class OptionCommandService {
     }
 
     public Long updateOptionType(UpdateOptionTypeCommand command) {
-        OptionType optionType = optionTypeRepository.findById(command.optionTypeId())
-                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_TYPE_NOT_FOUND));
+        OptionType optionType = getOptionTypeById(command.optionTypeId());
 
         if (optionTypeRepository.existsByNameAndIdNot(command.name(), optionType.getId())) {
             throw new BusinessException(OptionErrorCode.OPTION_TYPE_DUPLICATE_NAME);
@@ -55,8 +54,7 @@ public class OptionCommandService {
     }
 
     public void deleteOptionType(Long optionTypeId) {
-        OptionType optionType = optionTypeRepository.findById(optionTypeId)
-                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_TYPE_NOT_FOUND));
+        OptionType optionType = getOptionTypeById(optionTypeId);
 
         if (optionProductPort.existsProductForOptionType(optionTypeId)) {
             throw new BusinessException(OptionErrorCode.OPTION_TYPE_IN_PRODUCT);
@@ -66,8 +64,7 @@ public class OptionCommandService {
     }
 
     public Long addOptionValue(AddOptionValueCommand command) {
-        OptionType optionType = optionTypeRepository.findById(command.optionTypeId())
-                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_TYPE_NOT_FOUND));
+        OptionType optionType = getOptionTypeById(command.optionTypeId());
 
         CreateOptionValueContext valueContext = CreateOptionValueContext.of(idGenerator.generate(), command.name());
 
@@ -76,8 +73,7 @@ public class OptionCommandService {
     }
 
     public Long updateOptionValue(UpdateOptionValueCommand command) {
-        OptionType optionType = optionTypeRepository.findById(command.optionTypeId())
-                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_TYPE_NOT_FOUND));
+        OptionType optionType = getOptionTypeById(command.optionTypeId());
 
         optionType.updateOptionValue(command.optionValueId(), command.name());
 
@@ -85,8 +81,7 @@ public class OptionCommandService {
     }
 
     public void deleteOptionValue(Long optionTypeId, Long optionValueId) {
-        OptionType optionType = optionTypeRepository.findById(optionTypeId)
-                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_TYPE_NOT_FOUND));
+        OptionType optionType = getOptionTypeById(optionTypeId);
 
         if (optionProductPort.existsProductForOptionValue(optionValueId)) {
             throw new BusinessException(OptionErrorCode.OPTION_VALUE_IN_PRODUCT);
@@ -100,5 +95,10 @@ public class OptionCommandService {
                 .map(valueCommand -> CreateOptionValueContext.of(idGenerator.generate(), valueCommand.name())).toList();
 
         return CreateOptionTypeContext.of(idGenerator.generate(), command.name(), valueContexts);
+    }
+
+    private OptionType getOptionTypeById(Long optionTypeId) {
+        return optionTypeRepository.findById(optionTypeId)
+                .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_TYPE_NOT_FOUND));
     }
 }

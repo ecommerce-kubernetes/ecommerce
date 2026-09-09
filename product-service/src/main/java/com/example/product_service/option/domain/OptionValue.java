@@ -26,7 +26,7 @@ public class OptionValue {
     private OptionValue(Long id, OptionType optionType, String name) {
         Assert.notNull(id, "옵션 값 아이디는 필수이다");
         Assert.notNull(optionType, "옵션 값 타입은 필수이다");
-        Assert.notNull(id, "옵션 값 이름은 필수이다");
+        Assert.hasText(name, "옵션 값 이름은 필수이다");
 
         this.id = id;
         this.optionType = optionType;
