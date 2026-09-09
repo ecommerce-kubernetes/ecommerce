@@ -4,7 +4,7 @@ import com.example.common.product.Item;
 import com.example.common.product.ProductCommandType;
 import com.example.common.product.ProductSagaCommand;
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.ProductErrorCode;
+import com.example.product_service.product.exception.ProductErrorCode;
 import com.example.product_service.common.exception.SagaErrorCode;
 import com.example.product_service.product.saga.producer.SagaEventProducer;
 import org.junit.jupiter.api.DisplayName;

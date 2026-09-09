@@ -1,7 +1,7 @@
 package com.example.product_service.option.application.service;
 
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.OptionErrorCode;
+import com.example.product_service.option.exception.OptionErrorCode;
 import com.example.product_service.option.application.port.OptionTypeRepository;
 import com.example.product_service.option.application.service.dto.result.OptionTypeResult;
 import com.example.product_service.option.application.service.dto.result.OptionTypesResult;

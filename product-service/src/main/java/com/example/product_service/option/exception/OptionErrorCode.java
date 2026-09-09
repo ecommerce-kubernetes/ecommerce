@@ -1,5 +1,7 @@
-package com.example.product_service.common.exception;
+package com.example.product_service.option.exception;
 
+import com.example.product_service.common.exception.ErrorCategory;
+import com.example.product_service.common.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,7 +1,7 @@
 package com.example.product_service.option.domain;
 
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.OptionErrorCode;
+import com.example.product_service.option.exception.OptionErrorCode;
 import com.example.product_service.option.domain.context.CreateOptionTypeContext;
 import com.example.product_service.option.domain.context.CreateOptionValueContext;
 import org.assertj.core.groups.Tuple;

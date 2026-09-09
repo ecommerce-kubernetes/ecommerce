@@ -1,21 +1,23 @@
 package com.example.product_service.product.application.service;
 
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.ProductErrorCode;
+import com.example.product_service.product.domain.context.*;
+import com.example.product_service.product.exception.ProductErrorCode;
 import com.example.product_service.common.util.IdGenerator;
 import com.example.product_service.product.application.port.ProductCategoryPort;
+import com.example.product_service.product.application.port.ProductOptionPort;
 import com.example.product_service.product.application.port.ProductRepository;
 import com.example.product_service.product.application.port.dto.ProductCategoryResult;
+import com.example.product_service.product.application.port.dto.ProductOptionTypesResult;
 import com.example.product_service.product.application.service.dto.command.*;
 import com.example.product_service.product.domain.Product;
-import com.example.product_service.product.domain.context.CreateProductContext;
-import com.example.product_service.product.domain.context.UpdateProductContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional
@@ -25,6 +27,8 @@ public class ProductCommandService {
     private final ProductRepository productRepository;
 
     private final ProductCategoryPort productCategoryPort;
+
+    private final ProductOptionPort productOptionPort;
 
     private final IdGenerator idGenerator;
 
@@ -45,8 +49,7 @@ public class ProductCommandService {
     }
 
     public Long updateProduct(UpdateProductCommand command) {
-        Product product = productRepository.findById(command.productId())
-                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+        Product product = getProductById(command.productId());
 
         ProductCategoryResult category = productCategoryPort.getCategory(command.categoryId());
 
@@ -61,22 +64,48 @@ public class ProductCommandService {
         return product.getId();
     }
 
-    public void deleteProduct(Long productId) {
-    }
-
-    public Long registerProductOptions(RegisterProductOptionCommand command) {
-        return null;
-    }
-
-    public Long addProductVariants(AddProductVariantCommand command) {
-        return null;
-    }
-
     public Long addProductImages(AddProductImageCommand command) {
-        return null;
+        Product product = getProductById(command.productId());
+
+        List<AddMainImageContext> contexts = command.images().stream()
+                .map(image -> mapToMainImageContext(idGenerator.generate(), image)).toList();
+
+        product.addMainImages(contexts);
+
+        return product.getId();
     }
 
     public Long addProductDescriptionImages(AddProductDescriptionImageCommand command) {
+        Product product = getProductById(command.productId());
+
+        List<AddDetailImageContext> contexts = command.images().stream()
+                .map(image -> mapToDetailImageContext(idGenerator.generate(), image)).toList();
+
+        product.addDetailImages(contexts);
+
+        return product.getId();
+    }
+
+    public Long registerProductOptions(RegisterProductOptionCommand command) {
+        Product product = getProductById(command.productId());
+
+        ProductOptionTypesResult optionTypes = productOptionPort.getOptionTypes(command.optionTypeIds());
+        //TODO 누락된 옵션 타입이 있는지 검증?
+
+        List<RegisterOptionTypeContext> registerOptionTypeContexts = optionTypes.optionTypes().stream()
+                .map(optionType -> mapToRegisterOptionTypeContext(idGenerator.generate(), optionType.id())).toList();
+
+        product.registerOptionTypes(registerOptionTypeContexts);
+
+        return product.getId();
+    }
+
+    public void deleteProduct(Long productId) {
+        Product product = getProductById(productId);
+        product.deleted(LocalDateTime.now(clock));
+    }
+
+    public Long addProductVariants(AddProductVariantCommand command) {
         return null;
     }
 
@@ -96,4 +125,31 @@ public class ProductCommandService {
                 .description(context.description())
                 .build();
     }
+
+    private RegisterOptionTypeContext mapToRegisterOptionTypeContext(Long id, Long optionTypeId) {
+        return RegisterOptionTypeContext.builder()
+                .id(id)
+                .optionTypeId(optionTypeId)
+                .build();
+    }
+
+    private AddMainImageContext mapToMainImageContext(Long id, String imagePath) {
+        return AddMainImageContext.builder()
+                .id(id)
+                .imagePath(imagePath)
+                .build();
+    }
+
+    private AddDetailImageContext mapToDetailImageContext(Long id, String imagePath) {
+        return AddDetailImageContext.builder()
+                .id(id)
+                .imagePath(imagePath)
+                .build();
+    }
+
+    private Product getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
 }

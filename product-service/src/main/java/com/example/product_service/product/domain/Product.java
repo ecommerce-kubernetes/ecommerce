@@ -1,9 +1,10 @@
 package com.example.product_service.product.domain;
 
 import com.example.product_service.common.entity.BaseEntity;
-import com.example.product_service.product.domain.context.CreateProductContext;
-import com.example.product_service.product.domain.context.UpdateProductContext;
+import com.example.product_service.common.exception.BusinessException;
+import com.example.product_service.product.domain.context.*;
 import com.example.product_service.product.domain.vo.RepresentativePrice;
+import com.example.product_service.product.exception.ProductErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,7 +14,9 @@ import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -53,13 +56,13 @@ public class Product extends BaseEntity {
     private List<ProductVariant> variants = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductOption> options = new ArrayList<>();
+    private List<ProductOptionType> productOptionTypes = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images = new ArrayList<>();
+    private List<ProductMainImage> mainImages = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductDescriptionImage> descriptionImages = new ArrayList<>();
+    private List<ProductDetailImage> detailImages = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
     private Product(Long id, String name, Long categoryId, ProductStatus status, String description, LocalDateTime publishedAt,
@@ -105,5 +108,65 @@ public class Product extends BaseEntity {
         this.name = context.name();
         this.description = context.description();
         this.categoryId = context.categoryId();
+    }
+
+    public void registerOptionTypes(List<RegisterOptionTypeContext> contexts) {
+        if (this.status == ProductStatus.ON_SALE || this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_REGISTER_OPTION_TYPE);
+        }
+
+        HashSet<Long> optionTypeIdSet = new HashSet<>();
+        boolean isDuplicateId = contexts.stream().anyMatch(context -> !optionTypeIdSet.add(context.optionTypeId()));
+
+        if (isDuplicateId) {
+            throw new BusinessException(ProductErrorCode.OPTION_TYPE_DUPLICATED);
+        }
+
+        //TODO 상품 변형 비활성화
+
+        this.productOptionTypes.clear();
+
+        IntStream.range(0, contexts.size())
+                .mapToObj(i -> ProductOptionType.create(contexts.get(i), this, i + 1))
+                .forEach(this.productOptionTypes::add);
+    }
+
+    public void deleted(LocalDateTime deletedAt) {
+        if (this.status == ProductStatus.ON_SALE) {
+            throw new BusinessException(ProductErrorCode.CANNOT_DELETE_PRODUCT);
+        }
+
+        //TODO 상품 변형 비활성화
+
+        this.status = ProductStatus.DELETED;
+        this.deletedAt = deletedAt;
+    }
+
+    public void addMainImages(List<AddMainImageContext> contexts) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_ADD_MAIN_IMAGE);
+        }
+
+        this.mainImages.clear();
+
+        IntStream.range(0, contexts.size())
+                .mapToObj(i -> ProductMainImage.create(contexts.get(i), this, i+1))
+                .forEach(this.mainImages::add);
+
+        //TODO 커스텀 예외?
+        ProductMainImage thumbnail = this.mainImages.stream().filter(ProductMainImage::isThumbnail).findFirst().orElseThrow();
+        this.thumbnail = thumbnail.getImagePath();
+    }
+
+    public void addDetailImages(List<AddDetailImageContext> contexts) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_ADD_DETAIL_IMAGE);
+        }
+
+        this.detailImages.clear();
+
+        IntStream.range(0, contexts.size())
+                .mapToObj(i -> ProductDetailImage.create(contexts.get(i), this, i+1))
+                .forEach(this.detailImages::add);
     }
 }

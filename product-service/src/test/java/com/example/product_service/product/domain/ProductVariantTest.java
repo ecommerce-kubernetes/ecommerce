@@ -1,12 +1,11 @@
 package com.example.product_service.product.domain;
 
 import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.ProductErrorCode;
+import com.example.product_service.product.exception.ProductErrorCode;
 import com.example.product_service.option.domain.OptionValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
