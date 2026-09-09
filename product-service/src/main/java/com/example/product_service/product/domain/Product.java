@@ -1,11 +1,8 @@
 package com.example.product_service.product.domain;
 
-import com.example.product_service.category.domain.Category;
 import com.example.product_service.common.entity.BaseEntity;
-import com.example.product_service.common.exception.BusinessException;
-import com.example.product_service.common.exception.ProductErrorCode;
-import com.example.product_service.option.domain.OptionType;
 import com.example.product_service.product.domain.context.CreateProductContext;
+import com.example.product_service.product.domain.context.UpdateProductContext;
 import com.example.product_service.product.domain.vo.RepresentativePrice;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -16,10 +13,7 @@ import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -102,5 +96,14 @@ public class Product extends BaseEntity {
                 .reviewCount(0L)
                 .popularityScore(0.0)
                 .build();
+    }
+
+    public void update(UpdateProductContext context) {
+        Assert.hasText(context.name(), "상품 이름은 필수이다");
+        Assert.notNull(context.categoryId(), "상품 카테고리는 필수이다");
+
+        this.name = context.name();
+        this.description = context.description();
+        this.categoryId = context.categoryId();
     }
 }

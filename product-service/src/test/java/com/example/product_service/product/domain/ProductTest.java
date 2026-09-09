@@ -1,6 +1,7 @@
 package com.example.product_service.product.domain;
 
 import com.example.product_service.product.domain.context.CreateProductContext;
+import com.example.product_service.product.domain.context.UpdateProductContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +80,79 @@ public class ProductTest {
         //when
         //then
         assertThatThrownBy(() -> Product.create(context))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("상품 카테고리는 필수이다");
+    }
+
+    @Test
+    @DisplayName("상품의 이름, 카테고리, 설명을 수정한다")
+    void update() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        UpdateProductContext context = UpdateProductContext.builder()
+                .name("변경된 상품")
+                .categoryId(20L)
+                .description("변경된 상품 설명")
+                .build();
+        //when
+        product.update(context);
+        //then
+        assertThat(product.getName()).isEqualTo("변경된 상품");
+        assertThat(product.getCategoryId()).isEqualTo(20L);
+        assertThat(product.getDescription()).isEqualTo("변경된 상품 설명");
+    }
+
+    @Test
+    @DisplayName("상품 수정시 이름이 없으면 예외가 발생한다")
+    void update_whenNameIsBlank_thenThrownException() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        UpdateProductContext context = UpdateProductContext.builder()
+                .name(" ")
+                .categoryId(20L)
+                .description("변경된 상품 설명")
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> product.update(context))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("상품 이름은 필수이다");
+    }
+
+    @Test
+    @DisplayName("상품 수정시 카테고리가 없으면 예외가 발생한다")
+    void update_whenCategoryIdIsNull_thenThrownException() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        UpdateProductContext context = UpdateProductContext.builder()
+                .name("변경된 상품")
+                .categoryId(null)
+                .description("변경된 상품 설명")
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> product.update(context))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("상품 카테고리는 필수이다");
     }

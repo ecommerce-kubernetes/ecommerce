@@ -7,14 +7,20 @@ import com.example.product_service.product.application.port.ProductCategoryPort;
 import com.example.product_service.product.application.port.ProductRepository;
 import com.example.product_service.product.application.port.dto.ProductCategoryResult;
 import com.example.product_service.product.application.service.dto.command.CreateProductCommand;
+import com.example.product_service.product.application.service.dto.command.UpdateProductCommand;
 import com.example.product_service.product.domain.Product;
+import com.example.product_service.product.fixture.ProductFixtureBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.util.Optional;
+
 import static com.example.product_service.product.fixture.ProductCommandFixture.anCreateProductCommand;
+import static com.example.product_service.product.fixture.ProductCommandFixture.anUpdateProductCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +42,9 @@ class ProductCommandServiceTest {
 
     @Mock
     private IdGenerator idGenerator;
+
+    @Mock
+    private Clock clock;
 
     @Captor
     private ArgumentCaptor<Product> productCaptor;
@@ -81,5 +90,58 @@ class ProductCommandServiceTest {
                 .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
 
         then(productRepository).should(never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 정보를 수정한다")
+    void updateProduct() {
+        //given
+        Product product = ProductFixtureBuilder.given().withName("상품").build();
+        UpdateProductCommand command = anUpdateProductCommand().productId(product.getId()).build();
+        ProductCategoryResult category = new ProductCategoryResult(command.categoryId(), "카테고리", true);
+
+        given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
+        given(productCategoryPort.getCategory(command.categoryId())).willReturn(category);
+        //when
+        Long productId = productCommandService.updateProduct(command);
+        //then
+        assertThat(productId).isEqualTo(product.getId());
+        assertThat(product.getName()).isEqualTo(command.name());
+        assertThat(product.getCategoryId()).isEqualTo(command.categoryId());
+        assertThat(product.getDescription()).isEqualTo(command.description());
+    }
+
+    @Test
+    @DisplayName("수정할 상품을 찾을 수 없으면 예외가 발생한다")
+    void updateProduct_whenProductNotFound_thenThrownException() {
+        //given
+        UpdateProductCommand command = anUpdateProductCommand().productId(999L).build();
+        given(productRepository.findById(999L)).willReturn(Optional.empty());
+        //when
+        //then
+        assertThatThrownBy(() -> productCommandService.updateProduct(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("수정할 카테고리가 리프 카테고리가 아니면 예외가 발생하고 수정하지 않는다")
+    void updateProduct_whenCategoryNotLeaf_thenThrownException() {
+        //given
+        Product product = ProductFixtureBuilder.given().withName("상품").build();
+        UpdateProductCommand command = anUpdateProductCommand().productId(product.getId()).build();
+        ProductCategoryResult category = new ProductCategoryResult(command.categoryId(), "카테고리", false);
+
+        given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
+        given(productCategoryPort.getCategory(command.categoryId())).willReturn(category);
+        //when
+        //then
+        assertThatThrownBy(() -> productCommandService.updateProduct(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
+
+        assertThat(product.getName()).isEqualTo("상품");
     }
 }

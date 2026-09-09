@@ -5,6 +5,8 @@ import com.example.product_service.product.domain.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class ProductPersistenceAdapter implements ProductRepository {
@@ -14,5 +16,10 @@ public class ProductPersistenceAdapter implements ProductRepository {
     @Override
     public Product save(Product product) {
         return productJpaRepository.save(product);
+    }
+
+    @Override
+    public Optional<Product> findById(Long id) {
+        return productJpaRepository.findById(id);
     }
 }

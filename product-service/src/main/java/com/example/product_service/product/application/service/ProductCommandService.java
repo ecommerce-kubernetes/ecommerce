@@ -9,9 +9,13 @@ import com.example.product_service.product.application.port.dto.ProductCategoryR
 import com.example.product_service.product.application.service.dto.command.*;
 import com.example.product_service.product.domain.Product;
 import com.example.product_service.product.domain.context.CreateProductContext;
+import com.example.product_service.product.domain.context.UpdateProductContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -24,6 +28,8 @@ public class ProductCommandService {
 
     private final IdGenerator idGenerator;
 
+    private final Clock clock;
+
     public Long createProduct(CreateProductCommand command) {
         ProductCategoryResult category = productCategoryPort.getCategory(command.categoryId());
 
@@ -31,7 +37,7 @@ public class ProductCommandService {
             throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
         }
 
-        CreateProductContext context = mapToCreateCategoryContext(idGenerator.generate(), command);
+        CreateProductContext context = mapToCreateProductContext(idGenerator.generate(), command);
 
         Product product = Product.create(context);
 
@@ -39,11 +45,23 @@ public class ProductCommandService {
     }
 
     public Long updateProduct(UpdateProductCommand command) {
-        return null;
+        Product product = productRepository.findById(command.productId())
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        ProductCategoryResult category = productCategoryPort.getCategory(command.categoryId());
+
+        if (!category.isLeaf()) {
+            throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
+        }
+
+        UpdateProductContext context = mapToUpdateProductContext(command);
+
+        product.update(context);
+
+        return product.getId();
     }
 
     public void deleteProduct(Long productId) {
-
     }
 
     public Long registerProductOptions(RegisterProductOptionCommand command) {
@@ -62,7 +80,7 @@ public class ProductCommandService {
         return null;
     }
 
-    private CreateProductContext mapToCreateCategoryContext(Long id, CreateProductCommand command) {
+    private CreateProductContext mapToCreateProductContext(Long id, CreateProductCommand command) {
         return CreateProductContext.builder()
                 .id(id)
                 .categoryId(command.categoryId())
@@ -71,4 +89,11 @@ public class ProductCommandService {
                 .build();
     }
 
+    private UpdateProductContext mapToUpdateProductContext(UpdateProductCommand context) {
+        return UpdateProductContext.builder()
+                .name(context.name())
+                .categoryId(context.categoryId())
+                .description(context.description())
+                .build();
+    }
 }
