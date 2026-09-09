@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ProductErrorCode implements ErrorCode {
     // 기본 에러
+    CATEGORY_NOT_LEAF(ErrorCategory.INVALID_REQUEST, "CATEGORY_NOT_LEAF", "최하위 카테고리만 설정 가능합니다"),
     PRODUCT_NOT_FOUND(ErrorCategory.NOT_FOUND, "PRODUCT_001", "상품을 찾을 수 없습니다"),
     PRODUCT_CATEGORY_REQUIRED(ErrorCategory.INVALID_REQUEST, "PRODUCT_002", "상품은 반드시 하나의 카테고리에 속해야 합니다"),
-    CATEGORY_NOT_LEAF(ErrorCategory.INVALID_REQUEST, "PRODUCT_003", "최하위 카테고리만 설정 가능합니다"),
     DELETED_PRODUCT_CANNOT_PUBLISH(ErrorCategory.BUSINESS_CONFLICT, "PRODUCT_004", "삭제된 상품은 게시할 수 없습니다"),
     INVALID_STATUS_FOR_STOP_SALE(ErrorCategory.BUSINESS_CONFLICT, "PRODUCT_005", "판매 중지할 수 없는 상품입니다"),
     PRODUCT_VARIANT_NOT_FOUND(ErrorCategory.NOT_FOUND, "PRODUCT_006", "상품 변형을 찾을 수 없습니다"),
