@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -90,7 +92,12 @@ public class ProductCommandService {
         Product product = getProductById(command.productId());
 
         ProductOptionTypesResult optionTypes = productOptionPort.getOptionTypes(command.optionTypeIds());
-        //TODO 누락된 옵션 타입이 있는지 검증?
+
+        Set<Long> requestedIds = new HashSet<>(command.optionTypeIds());
+
+        if (requestedIds.size() != optionTypes.optionTypes().size()) {
+            throw new BusinessException(ProductErrorCode.OPTION_TYPE_NOT_FOUND);
+        }
 
         List<RegisterOptionTypeContext> registerOptionTypeContexts = optionTypes.optionTypes().stream()
                 .map(optionType -> mapToRegisterOptionTypeContext(idGenerator.generate(), optionType.id())).toList();

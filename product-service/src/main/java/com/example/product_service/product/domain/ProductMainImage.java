@@ -45,8 +45,4 @@ public class ProductMainImage extends BaseEntity {
                 .sortOrder(sortOrder)
                 .build();
     }
-
-    public boolean isThumbnail() {
-        return this.sortOrder == 1;
-    }
 }

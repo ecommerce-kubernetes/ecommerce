@@ -4,9 +4,12 @@ import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.product.exception.ProductErrorCode;
 import com.example.product_service.common.util.IdGenerator;
 import com.example.product_service.product.application.port.ProductCategoryPort;
+import com.example.product_service.product.application.port.ProductOptionPort;
 import com.example.product_service.product.application.port.ProductRepository;
 import com.example.product_service.product.application.port.dto.ProductCategoryResult;
+import com.example.product_service.product.application.port.dto.ProductOptionTypesResult;
 import com.example.product_service.product.application.service.dto.command.CreateProductCommand;
+import com.example.product_service.product.application.service.dto.command.RegisterProductOptionCommand;
 import com.example.product_service.product.application.service.dto.command.UpdateProductCommand;
 import com.example.product_service.product.domain.Product;
 import com.example.product_service.product.fixture.ProductFixtureBuilder;
@@ -17,6 +20,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.product_service.product.fixture.ProductCommandFixture.anCreateProductCommand;
@@ -39,6 +43,9 @@ class ProductCommandServiceTest {
 
     @Mock
     private ProductCategoryPort productCategoryPort;
+
+    @Mock
+    private ProductOptionPort productOptionPort;
 
     @Mock
     private IdGenerator idGenerator;
@@ -143,5 +150,80 @@ class ProductCommandServiceTest {
                 .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
 
         assertThat(product.getName()).isEqualTo("상품");
+    }
+
+    @Test
+    @DisplayName("상품에 옵션 타입을 등록한다")
+    void registerProductOptions() {
+        //given
+        Product product = ProductFixtureBuilder.given().build();
+        RegisterProductOptionCommand command = RegisterProductOptionCommand.builder()
+                .productId(product.getId())
+                .optionTypeIds(List.of(10L, 20L))
+                .build();
+        ProductOptionTypesResult optionTypes = ProductOptionTypesResult.builder()
+                .optionTypes(List.of(
+                        new ProductOptionTypesResult.ProductOptionTypeResult(10L, "색상"),
+                        new ProductOptionTypesResult.ProductOptionTypeResult(20L, "사이즈")
+                ))
+                .build();
+
+        given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
+        given(productOptionPort.getOptionTypes(command.optionTypeIds())).willReturn(optionTypes);
+        given(idGenerator.generate()).willReturn(1L, 2L);
+        //when
+        Long productId = productCommandService.registerProductOptions(command);
+        //then
+        assertThat(productId).isEqualTo(product.getId());
+        assertThat(product.getProductOptionTypes()).hasSize(2);
+        assertThat(product.getProductOptionTypes())
+                .extracting("optionTypeId")
+                .containsExactly(10L, 20L);
+    }
+
+    @Test
+    @DisplayName("옵션 타입을 등록할 상품을 찾을 수 없으면 예외가 발생한다")
+    void registerProductOptions_whenProductNotFound_thenThrownException() {
+        //given
+        RegisterProductOptionCommand command = RegisterProductOptionCommand.builder()
+                .productId(999L)
+                .optionTypeIds(List.of(10L))
+                .build();
+        given(productRepository.findById(999L)).willReturn(Optional.empty());
+        //when
+        //then
+        assertThatThrownBy(() -> productCommandService.registerProductOptions(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("옵션 타입을 4개 이상 등록하면 예외가 발생한다")
+    void registerProductOptions_whenExceedMaxOptionSize_thenThrownException() {
+        //given
+        Product product = ProductFixtureBuilder.given().build();
+        RegisterProductOptionCommand command = RegisterProductOptionCommand.builder()
+                .productId(product.getId())
+                .optionTypeIds(List.of(10L, 20L, 30L, 40L))
+                .build();
+        ProductOptionTypesResult optionTypes = ProductOptionTypesResult.builder()
+                .optionTypes(List.of(
+                        new ProductOptionTypesResult.ProductOptionTypeResult(10L, "색상"),
+                        new ProductOptionTypesResult.ProductOptionTypeResult(20L, "사이즈"),
+                        new ProductOptionTypesResult.ProductOptionTypeResult(30L, "재질"),
+                        new ProductOptionTypesResult.ProductOptionTypeResult(40L, "무게")
+                ))
+                .build();
+
+        given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
+        given(productOptionPort.getOptionTypes(command.optionTypeIds())).willReturn(optionTypes);
+        given(idGenerator.generate()).willReturn(1L, 2L, 3L, 4L);
+        //when
+        //then
+        assertThatThrownBy(() -> productCommandService.registerProductOptions(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.EXCEED_MAX_OPTION_SIZE);
     }
 }

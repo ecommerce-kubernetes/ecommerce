@@ -18,6 +18,8 @@ public enum ProductErrorCode implements ErrorCode {
     PRODUCT_NOT_FOUND(ErrorCategory.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다"),
     CANNOT_ADD_MAIN_IMAGE(ErrorCategory.BUSINESS_CONFLICT, "CANNOT_ADD_MAIN_IMAGE", "메인 이미지를 추가할 수 없는 상태 입니다"),
     CANNOT_ADD_DETAIL_IMAGE(ErrorCategory.BUSINESS_CONFLICT, "CANNOT_ADD_DETAIL_IMAGE", "설명 이미지를 추가할 수 없는 상태입니다"),
+    EXCEED_MAX_OPTION_SIZE(ErrorCategory.BUSINESS_CONFLICT, "EXCEED_MAX_OPTION_SIZE", "적용할 수 있는 옵션 타입을 초과했습니다"),
+    OPTION_TYPE_NOT_FOUND(ErrorCategory.BUSINESS_CONFLICT, "OPTION_TYPE_NOT_FOUND", "옵션 타입을 찾을 수 없습니다"),
 
     VARIANT_DUPLICATE_OPTION(ErrorCategory.BUSINESS_CONFLICT, "PRODUCT_025", "중복된 옵션 값의 상품 변형은 생성할 수 없습니다"),
     VARIANT_OUT_OF_STOCK(ErrorCategory.BUSINESS_CONFLICT, "PRODUCT_026", "상품 변형 재고가 부족합니다");

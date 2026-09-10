@@ -1,9 +1,16 @@
 package com.example.product_service.product.domain;
 
+import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.product.domain.context.CreateProductContext;
+import com.example.product_service.product.domain.context.RegisterOptionTypeContext;
 import com.example.product_service.product.domain.context.UpdateProductContext;
+import com.example.product_service.product.exception.ProductErrorCode;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -155,5 +162,108 @@ public class ProductTest {
         assertThatThrownBy(() -> product.update(context))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("상품 카테고리는 필수이다");
+    }
+
+    @Test
+    @DisplayName("상품 옵션 타입을 등록한다")
+    void registerOptionTypes() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        List<RegisterOptionTypeContext> contexts = List.of(
+                RegisterOptionTypeContext.builder().id(1L).optionTypeId(10L).build(),
+                RegisterOptionTypeContext.builder().id(2L).optionTypeId(20L).build()
+        );
+        //when
+        product.registerOptionTypes(contexts);
+        //then
+        assertThat(product.getProductOptionTypes()).hasSize(2);
+        assertThat(product.getProductOptionTypes())
+                .extracting("optionTypeId", "displayOrder")
+                .containsExactly(
+                        Tuple.tuple(10L, 1),
+                        Tuple.tuple(20L, 2)
+                );
+    }
+
+    @Test
+    @DisplayName("판매중이거나 삭제된 상품은 옵션 타입을 등록할 수 없다")
+    void registerOptionTypes_whenProductDeleted_thenThrownException() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        product.deleted(LocalDateTime.now());
+
+        List<RegisterOptionTypeContext> contexts = List.of(
+                RegisterOptionTypeContext.builder().id(1L).optionTypeId(10L).build()
+        );
+        //when
+        //then
+        assertThatThrownBy(() -> product.registerOptionTypes(contexts))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.CANNOT_REGISTER_OPTION_TYPE);
+    }
+
+    @Test
+    @DisplayName("옵션 타입은 최대 3개까지만 등록할 수 있다")
+    void registerOptionTypes_whenExceedMaxSize_thenThrownException() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        List<RegisterOptionTypeContext> contexts = List.of(
+                RegisterOptionTypeContext.builder().id(1L).optionTypeId(10L).build(),
+                RegisterOptionTypeContext.builder().id(2L).optionTypeId(20L).build(),
+                RegisterOptionTypeContext.builder().id(3L).optionTypeId(30L).build(),
+                RegisterOptionTypeContext.builder().id(4L).optionTypeId(40L).build()
+        );
+        //when
+        //then
+        assertThatThrownBy(() -> product.registerOptionTypes(contexts))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.EXCEED_MAX_OPTION_SIZE);
+    }
+
+    @Test
+    @DisplayName("중복된 옵션 타입은 등록할 수 없다")
+    void registerOptionTypes_whenOptionTypeDuplicated_thenThrownException() {
+        //given
+        Product product = Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
+        List<RegisterOptionTypeContext> contexts = List.of(
+                RegisterOptionTypeContext.builder().id(1L).optionTypeId(10L).build(),
+                RegisterOptionTypeContext.builder().id(2L).optionTypeId(10L).build()
+        );
+        //when
+        //then
+        assertThatThrownBy(() -> product.registerOptionTypes(contexts))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.OPTION_TYPE_DUPLICATED);
     }
 }

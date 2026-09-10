@@ -23,6 +23,8 @@ import java.util.stream.IntStream;
 @Getter
 public class Product extends BaseEntity {
 
+    private static final int MAX_OPTION_SIZE = 3;
+
     @Id
     private Long id;
 
@@ -115,6 +117,10 @@ public class Product extends BaseEntity {
             throw new BusinessException(ProductErrorCode.CANNOT_REGISTER_OPTION_TYPE);
         }
 
+        if (contexts.size() > MAX_OPTION_SIZE) {
+            throw new BusinessException(ProductErrorCode.EXCEED_MAX_OPTION_SIZE);
+        }
+
         HashSet<Long> optionTypeIdSet = new HashSet<>();
         boolean isDuplicateId = contexts.stream().anyMatch(context -> !optionTypeIdSet.add(context.optionTypeId()));
 
@@ -153,9 +159,7 @@ public class Product extends BaseEntity {
                 .mapToObj(i -> ProductMainImage.create(contexts.get(i), this, i+1))
                 .forEach(this.mainImages::add);
 
-        //TODO 커스텀 예외?
-        ProductMainImage thumbnail = this.mainImages.stream().filter(ProductMainImage::isThumbnail).findFirst().orElseThrow();
-        this.thumbnail = thumbnail.getImagePath();
+        this.thumbnail = this.mainImages.getFirst().getImagePath();
     }
 
     public void addDetailImages(List<AddDetailImageContext> contexts) {
