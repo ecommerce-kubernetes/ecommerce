@@ -18,10 +18,15 @@ public enum ProductErrorCode implements ErrorCode {
     PRODUCT_NOT_FOUND(ErrorCategory.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다"),
     CANNOT_ADD_MAIN_IMAGE(ErrorCategory.BUSINESS_CONFLICT, "CANNOT_ADD_MAIN_IMAGE", "메인 이미지를 추가할 수 없는 상태 입니다"),
     CANNOT_ADD_DETAIL_IMAGE(ErrorCategory.BUSINESS_CONFLICT, "CANNOT_ADD_DETAIL_IMAGE", "설명 이미지를 추가할 수 없는 상태입니다"),
+    CANNOT_ADD_VARIANT(ErrorCategory.BUSINESS_CONFLICT, "CANNOT_ADD_VARIANT", "상품 변형을 추가할 수 없습니다"),
+    CANNOT_UPDATE(ErrorCategory.BUSINESS_CONFLICT, "CANNOT_UPDATE", "상품 수정 불가"),
     EXCEED_MAX_OPTION_SIZE(ErrorCategory.BUSINESS_CONFLICT, "EXCEED_MAX_OPTION_SIZE", "적용할 수 있는 옵션 타입을 초과했습니다"),
+    INVALID_OPTION_VALUE_COUNT(ErrorCategory.BUSINESS_CONFLICT, "INVALID_OPTION_VALUE_COUNT", "옵션 타입이 유효하지 않습니다"),
+    ALREADY_DELETED(ErrorCategory.BUSINESS_CONFLICT, "ALREADY_DELETED", "이미 삭제된 상품 입니다"),
     OPTION_TYPE_NOT_FOUND(ErrorCategory.BUSINESS_CONFLICT, "OPTION_TYPE_NOT_FOUND", "옵션 타입을 찾을 수 없습니다"),
-
-    VARIANT_DUPLICATE_OPTION(ErrorCategory.BUSINESS_CONFLICT, "PRODUCT_025", "중복된 옵션 값의 상품 변형은 생성할 수 없습니다"),
+    VARIANT_OPTION_MISMATCH(ErrorCategory.BUSINESS_CONFLICT, "VARIANT_OPTION_MISMATCH", "상품 옵션과 일치하지 않는 옵션 값 조합입니다"),
+    VARIANT_DUPLICATE_OPTION(ErrorCategory.BUSINESS_CONFLICT, "VARIANT_DUPLICATE_OPTION", "중복된 옵션 값의 상품 변형은 생성할 수 없습니다"),
+    VARIANT_INVALID_STOCK(ErrorCategory.BUSINESS_CONFLICT, "VARIANT_INVALID_STOCK", "상품 변형 재고가 유효하지 않습니다"),
     VARIANT_OUT_OF_STOCK(ErrorCategory.BUSINESS_CONFLICT, "PRODUCT_026", "상품 변형 재고가 부족합니다");
 
     private final ErrorCategory category;

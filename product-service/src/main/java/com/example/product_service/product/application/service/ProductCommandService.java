@@ -1,7 +1,11 @@
 package com.example.product_service.product.application.service;
 
+import com.example.product_service.common.domain.vo.Money;
 import com.example.product_service.common.exception.BusinessException;
+import com.example.product_service.product.adapter.out.util.SkuGenerator;
+import com.example.product_service.product.application.port.dto.ProductOptionValuesResult;
 import com.example.product_service.product.domain.context.*;
+import com.example.product_service.product.domain.vo.SalePrice;
 import com.example.product_service.product.exception.ProductErrorCode;
 import com.example.product_service.common.util.IdGenerator;
 import com.example.product_service.product.application.port.ProductCategoryPort;
@@ -17,9 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -33,6 +36,8 @@ public class ProductCommandService {
     private final ProductOptionPort productOptionPort;
 
     private final IdGenerator idGenerator;
+
+    private final SkuGenerator skuGenerator;
 
     private final Clock clock;
 
@@ -102,7 +107,7 @@ public class ProductCommandService {
         List<RegisterOptionTypeContext> registerOptionTypeContexts = optionTypes.optionTypes().stream()
                 .map(optionType -> mapToRegisterOptionTypeContext(idGenerator.generate(), optionType.id())).toList();
 
-        product.registerOptionTypes(registerOptionTypeContexts);
+        product.registerOptionTypes(registerOptionTypeContexts, LocalDateTime.now(clock));
 
         return product.getId();
     }
@@ -113,7 +118,46 @@ public class ProductCommandService {
     }
 
     public Long addProductVariants(AddProductVariantCommand command) {
-        return null;
+        Product product = getProductById(command.productId());
+
+        List<Long> allOptionValueIds = command.variants().stream()
+                .flatMap(v -> v.optionValueIds().stream())
+                .distinct().toList();
+
+        ProductOptionValuesResult optionValues = productOptionPort.getOptionValues(allOptionValueIds);
+
+        Map<Long, Long> optionValueMap = optionValues.optionValues()
+                .stream().collect(Collectors.toMap(ProductOptionValuesResult.OptionValueResult::id, ProductOptionValuesResult.OptionValueResult::optionTypeId));
+
+        List<AddVariantContext> variantContexts = new ArrayList<>();
+        for (AddProductVariantCommand.VariantDetail variant : command.variants()) {
+            List<AddVariantContext.AddVariantOptionValueContext> optionContexts = new ArrayList<>();
+            for (Long optionValueId : variant.optionValueIds()) {
+                Long optionTypeId = optionValueMap.get(optionValueId);
+                AddVariantContext.AddVariantOptionValueContext optionContext = AddVariantContext.AddVariantOptionValueContext.builder()
+                        .id(idGenerator.generate())
+                        .optionValueId(optionValueId)
+                        .optionTypeId(optionTypeId)
+                        .build();
+
+                optionContexts.add(optionContext);
+            }
+            Money discountAmount = Money.wons(variant.originalPrice()).multiple(variant.discountRate() / 100).truncateToTens();
+            SalePrice salePrice = SalePrice.of(Money.wons(variant.originalPrice()), variant.discountRate(), discountAmount, Money.wons(variant.originalPrice()).subtract(discountAmount));
+
+            AddVariantContext addVariantContext = AddVariantContext.builder()
+                    .id(idGenerator.generate())
+                    .sku(skuGenerator.generate())
+                    .salePrice(salePrice)
+                    .stock(variant.stockQuantity())
+                    .optionValues(optionContexts)
+                    .build();
+            variantContexts.add(addVariantContext);
+        }
+
+        product.addVariants(variantContexts);
+
+        return product.getId();
     }
 
     private CreateProductContext mapToCreateProductContext(Long id, CreateProductCommand command) {

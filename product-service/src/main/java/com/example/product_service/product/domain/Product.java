@@ -3,7 +3,7 @@ package com.example.product_service.product.domain;
 import com.example.product_service.common.entity.BaseEntity;
 import com.example.product_service.common.exception.BusinessException;
 import com.example.product_service.product.domain.context.*;
-import com.example.product_service.product.domain.vo.RepresentativePrice;
+import com.example.product_service.product.domain.vo.SalePrice;
 import com.example.product_service.product.exception.ProductErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -16,11 +16,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class Product extends BaseEntity {
 
     private static final int MAX_OPTION_SIZE = 3;
@@ -52,7 +54,7 @@ public class Product extends BaseEntity {
     private Double popularityScore;
 
     @Embedded
-    private RepresentativePrice representativePrice;
+    private SalePrice representativePrice;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
@@ -69,7 +71,7 @@ public class Product extends BaseEntity {
     @Builder(access = AccessLevel.PRIVATE)
     private Product(Long id, String name, Long categoryId, ProductStatus status, String description, LocalDateTime publishedAt,
                     LocalDateTime saleStoppedAt, LocalDateTime deletedAt, String thumbnail, Double rating, Long reviewCount,
-                    Double popularityScore, RepresentativePrice representativePrice) {
+                    Double popularityScore, SalePrice representativePrice) {
         Assert.notNull(id, "상품 아이디는 필수이다");
         Assert.hasText(name, "상품 이름은 필수이다");
         Assert.notNull(categoryId, "상품 카테고리는 필수이다");
@@ -104,6 +106,9 @@ public class Product extends BaseEntity {
     }
 
     public void update(UpdateProductContext context) {
+        if(this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_UPDATE);
+        }
         Assert.hasText(context.name(), "상품 이름은 필수이다");
         Assert.notNull(context.categoryId(), "상품 카테고리는 필수이다");
 
@@ -112,7 +117,7 @@ public class Product extends BaseEntity {
         this.categoryId = context.categoryId();
     }
 
-    public void registerOptionTypes(List<RegisterOptionTypeContext> contexts) {
+    public void registerOptionTypes(List<RegisterOptionTypeContext> contexts, LocalDateTime registeredAt) {
         if (this.status == ProductStatus.ON_SALE || this.status == ProductStatus.DELETED) {
             throw new BusinessException(ProductErrorCode.CANNOT_REGISTER_OPTION_TYPE);
         }
@@ -128,7 +133,9 @@ public class Product extends BaseEntity {
             throw new BusinessException(ProductErrorCode.OPTION_TYPE_DUPLICATED);
         }
 
-        //TODO 상품 변형 비활성화
+        for (ProductVariant variant : this.variants) {
+            variant.discontinued(registeredAt);
+        }
 
         this.productOptionTypes.clear();
 
@@ -138,11 +145,17 @@ public class Product extends BaseEntity {
     }
 
     public void deleted(LocalDateTime deletedAt) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.ALREADY_DELETED);
+        }
+
         if (this.status == ProductStatus.ON_SALE) {
             throw new BusinessException(ProductErrorCode.CANNOT_DELETE_PRODUCT);
         }
 
-        //TODO 상품 변형 비활성화
+        for (ProductVariant variant : this.variants) {
+            variant.discontinued(deletedAt);
+        }
 
         this.status = ProductStatus.DELETED;
         this.deletedAt = deletedAt;
@@ -156,7 +169,7 @@ public class Product extends BaseEntity {
         this.mainImages.clear();
 
         IntStream.range(0, contexts.size())
-                .mapToObj(i -> ProductMainImage.create(contexts.get(i), this, i+1))
+                .mapToObj(i -> ProductMainImage.create(contexts.get(i), this, i + 1))
                 .forEach(this.mainImages::add);
 
         this.thumbnail = this.mainImages.getFirst().getImagePath();
@@ -170,7 +183,51 @@ public class Product extends BaseEntity {
         this.detailImages.clear();
 
         IntStream.range(0, contexts.size())
-                .mapToObj(i -> ProductDetailImage.create(contexts.get(i), this, i+1))
+                .mapToObj(i -> ProductDetailImage.create(contexts.get(i), this, i + 1))
                 .forEach(this.detailImages::add);
+    }
+
+    public void addVariants(List<AddVariantContext> contexts) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_ADD_VARIANT);
+        }
+
+        Set<Long> expectedOptionTypeIds = this.productOptionTypes.stream()
+                .map(ProductOptionType::getOptionTypeId)
+                .collect(Collectors.toSet());
+
+        int expectedOptionSize = this.productOptionTypes.size();
+
+        for (AddVariantContext context : contexts) {
+
+            if (context.optionValues().size() != expectedOptionSize) {
+                throw new BusinessException(ProductErrorCode.INVALID_OPTION_VALUE_COUNT);
+            }
+
+            Set<Long> requestedOptionTypeIds = context.optionValues().stream()
+                    .map(AddVariantContext.AddVariantOptionValueContext::optionTypeId)
+                    .collect(Collectors.toSet());
+
+            if (!expectedOptionTypeIds.equals(requestedOptionTypeIds)) {
+                throw new BusinessException(ProductErrorCode.VARIANT_OPTION_MISMATCH);
+            }
+
+            Set<Long> requestOptionValues = context.optionValues().stream()
+                    .map(AddVariantContext.AddVariantOptionValueContext::optionValueId)
+                    .collect(Collectors.toSet());
+
+            for (ProductVariant variant : this.variants) {
+                Set<Long> existOptionValues = variant.getProductVariantOptionValues().stream()
+                        .map(ProductVariantOptionValue::getOptionValueId)
+                        .collect(Collectors.toSet());
+
+                if (existOptionValues.equals(requestOptionValues)) {
+                    throw new BusinessException(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
+                }
+            }
+
+            ProductVariant productVariant = ProductVariant.create(context, this);
+            this.variants.add(productVariant);
+        }
     }
 }

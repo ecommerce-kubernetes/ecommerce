@@ -1,5 +1,6 @@
-package com.example.product_service.product.adapter.out.persistence;
+package com.example.product_service.product.adapter.out;
 
+import com.example.product_service.product.adapter.out.persistence.ProductJpaRepository;
 import com.example.product_service.product.application.port.ProductRepository;
 import com.example.product_service.product.domain.Product;
 import lombok.RequiredArgsConstructor;

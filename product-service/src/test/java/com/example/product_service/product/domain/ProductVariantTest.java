@@ -1,12 +1,15 @@
 package com.example.product_service.product.domain;
 
+import com.example.product_service.common.domain.vo.Money;
 import com.example.product_service.common.exception.BusinessException;
+import com.example.product_service.product.domain.context.AddVariantContext;
+import com.example.product_service.product.domain.context.CreateProductContext;
+import com.example.product_service.product.domain.vo.SalePrice;
 import com.example.product_service.product.exception.ProductErrorCode;
-import com.example.product_service.option.domain.OptionValue;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,90 +17,76 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ProductVariantTest {
 
-    private OptionValue createOptionValue(Long id, String name) {
-        return null;
+    @Test
+    @DisplayName("상품 변형을 생성한다")
+    void create() {
+        //given
+        Product product = aProduct();
+        AddVariantContext context = aVariantContext(1L, "SKU-001", 100);
+        //when
+        ProductVariant variant = ProductVariant.create(context, product);
+        //then
+        assertThat(variant.getId()).isEqualTo(1L);
+        assertThat(variant.getProduct()).isEqualTo(product);
+        assertThat(variant.getStatus()).isEqualTo(ProductVariantStatus.PREPARING);
+        assertThat(variant.getSku()).isEqualTo("SKU-001");
+        assertThat(variant.getStock()).isEqualTo(100);
+        assertThat(variant.getProductVariantOptionValues()).hasSize(1);
+        assertThat(variant.getProductVariantOptionValues().get(0).getOptionValueId()).isEqualTo(100L);
     }
 
-    @Nested
-    @DisplayName("상품 변형 생성")
-    class Create {
-        @Test
-        @DisplayName("상품 변형을 생성한다")
-        void create(){
-            //given
-            //when
-            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
-            //then
-            assertThat(variant.getSku()).isEqualTo("TEST");
-            assertThat(variant.getStockQuantity()).isEqualTo(100);
-            assertThat(variant.getPrice()).isEqualTo(9000L);
-            assertThat(variant.getDiscountRate()).isEqualTo(10);
-            assertThat(variant.getDiscountAmount()).isEqualTo(1000L);
-            assertThat(variant.getOriginalPrice()).isEqualTo(10000L);
-        }
+    @Test
+    @DisplayName("재고가 0보다 작으면 상품 변형을 생성할 수 없다")
+    void create_whenStockIsNegative_thenThrownException() {
+        //given
+        Product product = aProduct();
+        AddVariantContext context = aVariantContext(1L, "SKU-001", -1);
+        //when
+        //then
+        assertThatThrownBy(() -> ProductVariant.create(context, product))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.VARIANT_INVALID_STOCK);
     }
 
-    @Nested
-    @DisplayName("상품 변형 옵션 추가")
-    class AddOption {
-
-        @Test
-        @DisplayName("동일한 옵션의 상품 변형은 생성할 수 없다")
-        void addProductVariantOptions_duplicate_option_value(){
-            //given
-            OptionValue xl = createOptionValue(1L, "XL");
-            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
-            List<OptionValue> variantOptions = List.of(xl, xl);
-            //when
-            //then
-            assertThatThrownBy(() -> variant.addProductVariantOptions(variantOptions))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
-        }
+    @Test
+    @DisplayName("상품 변형을 판매 중지한다")
+    void discontinued() {
+        //given
+        Product product = aProduct();
+        ProductVariant variant = ProductVariant.create(aVariantContext(1L, "SKU-001", 100), product);
+        LocalDateTime discontinuedAt = LocalDateTime.now();
+        //when
+        variant.discontinued(discontinuedAt);
+        //then
+        assertThat(variant.getStatus()).isEqualTo(ProductVariantStatus.DISCONTINUED);
+        assertThat(variant.getDiscontinuedAt()).isEqualTo(discontinuedAt);
     }
 
-    @Nested
-    @DisplayName("상품 변형 재고 감소")
-    class Deduct {
-
-        @Test
-        @DisplayName("상품 변형 재고를 감소시킨다")
-        void deductStock(){
-            //given
-            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
-            //when
-            variant.deductStock(10);
-            //then
-            assertThat(variant.getStockQuantity()).isEqualTo(90);
-        }
-
-        @Test
-        @DisplayName("상품 변형의 재고가 부족한 경우 재고를 감소시킬 수 없다")
-        void deductStock_out_of_stock(){
-            //given
-            ProductVariant variant = ProductVariant.create("TEST", 10000L, 10, 10);
-            //when
-            //then
-            assertThatThrownBy(() -> variant.deductStock(11))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.VARIANT_OUT_OF_STOCK);
-        }
+    private Product aProduct() {
+        return Product.create(
+                CreateProductContext.builder()
+                        .id(1L)
+                        .categoryId(10L)
+                        .name("상품")
+                        .description("상품 설명")
+                        .build()
+        );
     }
 
-    @Nested
-    @DisplayName("상품 변형 재고 복구")
-    class Restore {
-        @Test
-        @DisplayName("상품 변형 재고를 복구한다")
-        void restore(){
-            //given
-            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
-            //when
-            variant.restoreStock(10);
-            //then
-            assertThat(variant.getStockQuantity()).isEqualTo(110);
-        }
+    private AddVariantContext aVariantContext(Long id, String sku, int stock) {
+        return AddVariantContext.builder()
+                .id(id)
+                .sku(sku)
+                .salePrice(SalePrice.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L)))
+                .stock(stock)
+                .optionValues(List.of(
+                        AddVariantContext.AddVariantOptionValueContext.builder()
+                                .id(id)
+                                .optionTypeId(10L)
+                                .optionValueId(100L)
+                                .build()
+                ))
+                .build();
     }
 }

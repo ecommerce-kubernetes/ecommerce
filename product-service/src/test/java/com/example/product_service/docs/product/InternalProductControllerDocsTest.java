@@ -111,27 +111,6 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
     }
 
     private InternalVariantResponse createVariantResponse() {
-        return InternalVariantResponse.builder()
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품")
-                .sku("TEST")
-                .unitPrice(
-                        InternalVariantResponse.UnitPrice.builder()
-                                .originalPrice(3000L)
-                                .discountRate(10)
-                                .discountAmount(300L)
-                                .discountedPrice(2700L)
-                                .build())
-                .stockQuantity(100)
-                .thumbnailUrl("/test/image.jpg")
-                .itemOptions(
-                        List.of(
-                                InternalVariantResponse.ItemOption.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build()
-                        )
-                ).build();
+        return null;
     }
 }

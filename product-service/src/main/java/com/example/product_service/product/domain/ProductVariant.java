@@ -1,102 +1,93 @@
 package com.example.product_service.product.domain;
 
 import com.example.product_service.common.exception.BusinessException;
+import com.example.product_service.product.domain.context.AddVariantContext;
+import com.example.product_service.product.domain.vo.SalePrice;
 import com.example.product_service.product.exception.ProductErrorCode;
-import com.example.product_service.option.domain.OptionValue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
+@Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class ProductVariant {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductVariantOption> productVariantOptions = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private ProductVariantStatus status;
 
     private String sku;
-    private Long price;
-    private Long originalPrice;
-    private Long discountAmount;
-    private Integer stockQuantity;
-    private Integer discountRate;
+
+    @Embedded
+    private SalePrice salePrice;
+
+    private Integer stock;
+
+    private LocalDateTime discontinuedAt;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariantOptionValue> productVariantOptionValues = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ProductVariant(String sku, Long price, Long originalPrice, Long discountAmount, Integer stockQuantity, Integer discountRate) {
-        this.sku = sku;
-        this.price = price;
-        this.originalPrice = originalPrice;
-        this.discountAmount = discountAmount;
-        this.stockQuantity = stockQuantity;
-        this.discountRate = discountRate;
-    }
+    private ProductVariant(Long id, Product product, ProductVariantStatus status, String sku, SalePrice salePrice, int stock,
+                           LocalDateTime discontinuedAt) {
+        Assert.notNull(id, "상품 변형 아이디는 필수이다");
+        Assert.notNull(product, "상품 변형 상품은 필수이다");
+        Assert.notNull(status, "상품 변형 상태는 필수이다");
+        Assert.notNull(sku, "상품 변형 SKU는 필수이다");
+        Assert.notNull(salePrice, "상품 변형 판매 가격은 필수이다");
 
-    public static ProductVariant create(String sku, Long originalPrice, Integer stockQuantity, Integer discountRate) {
-        Long discountAmount = calculateDiscountAmount(originalPrice, discountRate);
-        return ProductVariant.builder()
-                .sku(sku)
-                .originalPrice(originalPrice)
-                .price(originalPrice - discountAmount)
-                .discountAmount(discountAmount)
-                .stockQuantity(stockQuantity)
-                .discountRate(discountRate)
-                .build();
-    }
-
-    public void deductStock(int stock) {
-        if (this.stockQuantity < stock) {
-            throw new BusinessException(ProductErrorCode.VARIANT_OUT_OF_STOCK);
-        }
-        this.stockQuantity -= stock;
-    }
-
-    public void restoreStock(int stock) {
-        this.stockQuantity += stock;
-    }
-
-    public boolean hasSameOptions(Set<Long> targetOptionIds) {
-        Set<Long> optionIds = this.productVariantOptions.stream()
-                .map(o -> o.getOptionValue().getId())
-                .collect(Collectors.toSet());
-        return optionIds.equals(targetOptionIds);
-    }
-
-    public void addProductVariantOptions(List<OptionValue> optionValues) {
-        validateDuplicateOptions(optionValues);
-        List<ProductVariantOption> productVariantOptionList = optionValues.stream().map(optionValue -> ProductVariantOption.create(this, optionValue)).toList();
-        this.productVariantOptions.addAll(productVariantOptionList);
-    }
-
-    private void validateDuplicateOptions(List<OptionValue> optionValues){
-        Set<Long> distinctIds = optionValues.stream().map(OptionValue::getId).collect(Collectors.toSet());
-        if (distinctIds.size() != optionValues.size()) {
-            throw new BusinessException(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
-        }
-    }
-
-    private static Long calculateDiscountAmount(Long originalPrice, Integer discountRate) {
-        if (discountRate == null || discountRate == 0 ){
-            return 0L;
-        }
-        return (long) (originalPrice * (discountRate / 100.0));
-    }
-
-    protected void setProduct(Product product) {
+        this.id = id;
         this.product = product;
+        this.status = status;
+        this.sku = sku;
+        this.salePrice = salePrice;
+        this.stock = stock;
+        this.discontinuedAt = discontinuedAt;
     }
+
+    public static ProductVariant create(AddVariantContext context, Product product) {
+        if (context.stock() < 0) {
+            throw new BusinessException(ProductErrorCode.VARIANT_INVALID_STOCK);
+        }
+
+        ProductVariant variant = ProductVariant.builder()
+                .id(context.id())
+                .product(product)
+                .status(ProductVariantStatus.PREPARING)
+                .sku(context.sku())
+                .salePrice(context.salePrice())
+                .stock(context.stock())
+                .build();
+
+        for (AddVariantContext.AddVariantOptionValueContext optionValue : context.optionValues()) {
+            ProductVariantOptionValue productVariantOptionValue = ProductVariantOptionValue.create(optionValue.id(), optionValue.optionValueId(), variant);
+            variant.addProductVariantOptionValue(productVariantOptionValue);
+        }
+        return variant;
+    }
+
+    private void addProductVariantOptionValue(ProductVariantOptionValue productVariantOptionValue) {
+        this.productVariantOptionValues.add(productVariantOptionValue);
+    }
+
+    public void discontinued(LocalDateTime discontinuedAt) {
+        this.status = ProductVariantStatus.DISCONTINUED;
+        this.discontinuedAt = discontinuedAt;
+    }
+
 }
