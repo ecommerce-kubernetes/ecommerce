@@ -1,0 +1,143 @@
+== 관리자 전용
+
+[[option-type-create]]
+=== 옵션 타입 생성
+
+==== HTTP Request
+include::{snippets}/admin/option-types/create/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/create/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/option-types/create/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/create/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/create/response-fields.adoc[]
+
+[[option-type-list]]
+=== 옵션 타입 목록 조회
+
+==== HTTP Request
+include::{snippets}/admin/option-types/list/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/list/request-headers.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/list/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/list/response-fields.adoc[]
+
+[[option-type-detail]]
+=== 옵션 타입 조회
+
+==== HTTP Request
+include::{snippets}/admin/option-types/detail/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/detail/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/detail/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/detail/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/detail/response-fields.adoc[]
+
+[[option-type-update]]
+=== 옵션 타입 수정
+
+==== HTTP Request
+include::{snippets}/admin/option-types/update/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/update/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/update/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/update/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/update/response-fields.adoc[]
+
+[[option-type-delete]]
+=== 옵션 타입 삭제
+
+==== HTTP Request
+include::{snippets}/admin/option-types/delete/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/delete/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/delete/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/delete/http-response.adoc[]
+
+
+[[option-type-addValue]]
+=== 옵션 값 추가
+
+==== HTTP Request
+include::{snippets}/admin/option-types/add-value/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/add-value/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/option-types/add-value/request-fields.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/add-value/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/add-value/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/add-value/response-fields.adoc[]
+
+[[option-type-updateValue]]
+=== 옵션 값 수정
+
+==== HTTP Request
+include::{snippets}/admin/option-types/update-value/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/update-value/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/option-types/update-value/request-fields.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/update-value/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/update-value/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/option-types/update-value/response-fields.adoc[]
+
+[[option-type-deleteValue]]
+
+=== 옵션 값 삭제
+==== HTTP Request
+include::{snippets}/admin/option-types/delete-value/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/option-types/delete-value/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/option-types/delete-value/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/option-types/delete-value/http-response.adoc[]

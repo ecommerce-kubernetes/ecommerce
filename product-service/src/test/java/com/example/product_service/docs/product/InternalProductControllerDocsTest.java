@@ -1,10 +1,10 @@
 package com.example.product_service.docs.product;
 
-import com.example.product_service.api.product.controller.InternalProductController;
-import com.example.product_service.api.product.controller.dto.InternalVariantRequest;
-import com.example.product_service.api.product.service.VariantService;
-import com.example.product_service.api.product.service.dto.result.InternalVariantResponse;
 import com.example.product_service.docs.RestDocsSupport;
+import com.example.product_service.product.adapter.in.web.InternalProductController;
+import com.example.product_service.product.adapter.in.web.dto.InternalVariantRequest;
+import com.example.product_service.product.application.service.VariantService;
+import com.example.product_service.product.application.service.dto.result.InternalVariantResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -27,11 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class InternalProductControllerDocsTest extends RestDocsSupport {
     private VariantService variantService = Mockito.mock(VariantService.class);
-
-    @Override
-    protected String getTag() {
-        return ""; //내부 호출 API
-    }
 
     @Override
     protected Object initController() {
@@ -116,27 +111,6 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
     }
 
     private InternalVariantResponse createVariantResponse() {
-        return InternalVariantResponse.builder()
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품")
-                .sku("TEST")
-                .unitPrice(
-                        InternalVariantResponse.UnitPrice.builder()
-                                .originalPrice(3000L)
-                                .discountRate(10)
-                                .discountAmount(300L)
-                                .discountedPrice(2700L)
-                                .build())
-                .stockQuantity(100)
-                .thumbnailUrl("/test/image.jpg")
-                .itemOptions(
-                        List.of(
-                                InternalVariantResponse.ItemOption.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build()
-                        )
-                ).build();
+        return null;
     }
 }
