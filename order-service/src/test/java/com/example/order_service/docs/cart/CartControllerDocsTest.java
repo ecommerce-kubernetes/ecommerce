@@ -1,13 +1,14 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.api.cart.controller.CartController;
-import com.example.order_service.api.cart.controller.dto.request.CartRequest;
-import com.example.order_service.api.cart.controller.dto.response.CartResponse;
-import com.example.order_service.api.cart.facade.CartFacade;
-import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
-import com.example.order_service.api.cart.facade.dto.result.CartResult;
-import com.example.order_service.docs.descriptor.CartDescriptor;
+import com.example.order_service.cart.adapter.in.web.CartController;
+import com.example.order_service.cart.adapter.in.web.dto.request.AddCartItemsRequest;
+import com.example.order_service.cart.adapter.in.web.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.service.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.service.dto.command.UpdateCartItemQuantityCommand;
+import com.example.order_service.cart.application.service.dto.result.*;
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,13 +18,19 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static com.example.order_service.docs.descriptor.CartDescriptor.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class CartControllerDocsTest extends RestDocSupport {
@@ -31,34 +38,26 @@ public class CartControllerDocsTest extends RestDocSupport {
     private CartFacade cartFacade = Mockito.mock(CartFacade.class);
 
     @Override
-    protected String getTag() {
-        return "Cart";
-    }
-
-    private static final String TAG = "CART";
-
-    @Override
     protected Object initController() {
         return new CartController(cartFacade);
     }
 
     @Test
-    @DisplayName("장바구니 추가 API")
-    void addCartItem() throws Exception {
+    @DisplayName("장바구니 추가")
+    void addCartItems() throws Exception {
         //given
-        CartRequest.Item item = CartRequest.Item.builder()
+        AddCartItemsRequest.Item item = AddCartItemsRequest.Item.builder()
                 .productVariantId(1L)
                 .quantity(2)
                 .build();
-        CartRequest.AddItems request = CartRequest.AddItems.builder()
+        AddCartItemsRequest request = AddCartItemsRequest.builder()
                 .items(List.of(item))
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult.Cart result = createCartAddResult();
-        given(cartFacade.addItems(any(CartCommand.AddItems.class)))
-                .willReturn(result);
-        CartResponse.Cart response = CartResponse.Cart.from(result);
+        AddCartItemsResult addCartItemsResult = createAddCartItemsResult();
+        given(cartFacade.addItems(any(AddCartItemsCommand.class)))
+                .willReturn(addCartItemsResult);
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -67,22 +66,27 @@ public class CartControllerDocsTest extends RestDocSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("02-cart-01-add-cartItem",
-                        "장바구니 상품 추가",
-                        "장바구니에 상품을 추가",
-                        CartDescriptor.getAddCartItemRequest(),
-                        CartDescriptor.getCartItemResponse())
-                );
+                .andDo(document(
+                        "carts/add",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(addCartItemsRequest()),
+                        responseFields(addCartItemsResponse())
+                ));
     }
 
     @Test
-    @DisplayName("장바구니 목록 조회")
-    void addAllCartItem() throws Exception {
+    @DisplayName("장바구니 전체 항목 조회")
+    void getCart() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult.Cart result = createCartResult();
-        CartResponse.Cart response = CartResponse.Cart.from(result);
+        CartResult result = createCartResult();
         given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(result);
 
@@ -93,30 +97,53 @@ public class CartControllerDocsTest extends RestDocSupport {
                         .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
-                .andDo(createSecuredDocument("02-cart-02-get-list",
-                        "장바구니 목록 조회",
-                        "장바구니 상품 목록을 조회한다",
-                        CartDescriptor.getCartItemResponse()));
+                .andDo(document(
+                        "carts/get",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(cartResponse())
+                ));
     }
 
     @Test
-    @DisplayName("장바구니 상품 삭제")
-    void removeCartItem() throws Exception {
+    @DisplayName("장바구니 항목 조회")
+    void getCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
+        CartItemResult cartItemResult = createCartItemResult();
+        given(cartFacade.getCartItemDetails(anyLong(), anyLong()))
+                .willReturn(cartItemResult);
         //when
         //then
-        mockMvc.perform(delete("/carts")
-                        .headers(roleUser)
-                        .queryParam("cartItemIds", "1,2,3,4"))
+        mockMvc.perform(get("/carts/{cartItemId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser))
                 .andDo(print())
-                .andExpect(status().isNoContent())
-                .andDo(createSecuredDocumentWithQuery("02-cart-03-delete-item",
-                        "장바구니 상품 삭제",
-                        "장바구니 상품을 삭제한다",
-                        parameterWithName("cartItemIds").description("삭제할 장바구니 상품 ID 목록 (콤마로 구분하여 전달)")));
+                .andExpect(status().isOk())
+                .andDo(document(
+                        "carts/get-item",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        pathParameters(
+                                parameterWithName("cartItemId")
+                                        .description("장바구니 항목 ID(장바구니 항목 식별자)")
+                        ),
+                        responseFields(
+                                cartItemResponse()
+                        )
+                ));
     }
 
     @Test
@@ -124,16 +151,13 @@ public class CartControllerDocsTest extends RestDocSupport {
     void updateQuantity() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartRequest.UpdateQuantity request = CartRequest.UpdateQuantity.builder()
+        UpdateCartItemQuantityRequest request = UpdateCartItemQuantityRequest.builder()
                 .quantity(3)
                 .build();
-        CartResult.Update result = CartResult.Update.builder()
-                .id(1L)
-                .quantity(3)
-                .build();
-        given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
-                .willReturn(result);
+        UpdateCartItemQuantityResult result = createUpdateCartItemQuantityResult();
 
+        given(cartFacade.updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class)))
+                .willReturn(result);
 
         //when
         //then
@@ -143,84 +167,106 @@ public class CartControllerDocsTest extends RestDocSupport {
                         .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(createSecuredDocument(
-                                "02-cart-05-update-quantity",
-                                "장바구니 상품 수량 변경",
-                                "장바구니의 상품 수량을 변경한다",
-                                CartDescriptor.getCartUpdateRequest(),
-                                CartDescriptor.getUpdateCartResponse(),
-                                parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
-                        )
+                .andDo(document(
+                        "carts/update-quantity",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        pathParameters(
+                                parameterWithName("cartItemId")
+                                        .description("장바구니 항목 ID(장바구니 항목 식별자)")
+                        ),
+                        requestFields(
+                                updateCartItemQuantityRequest()
+                        ),
+                        responseFields(
+                                updateCartItemQuantityResponse()
+                        ))
                 );
     }
 
-    private HttpHeaders createUserHeader(String userRole) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", userRole);
-        return headers;
+    @Test
+    @DisplayName("장바구니 상품 삭제")
+    void deleteCartItems() throws Exception {
+        //given
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        willDoNothing().given(cartFacade).deleteCartItems(any(DeleteCartItemsCommand.class));
+        //when
+        //then
+        mockMvc.perform(delete("/carts")
+                        .headers(roleUser)
+                        .queryParam("cartItemIds", "1,2,3,4"))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andDo(document(
+                        "carts/delete",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        requestHeaders(AUTH_HEADER),
+                        queryParameters(
+                                parameterWithName("cartItemIds")
+                                        .description("장바구니 항목 ID(장바구니 항목 식별자")
+                        )
+                ));
     }
 
-    private CartResult.Cart createCartAddResult() {
-        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
-                .id(1L)
+    private CartResult createCartResult() {
+        CartItemResult cartItemResult = createCartItemResult();
+        return CartResult.builder()
+                .items(List.of(cartItemResult))
+                .build();
+    }
+
+    private CartItemResult createCartItemResult() {
+        return CartItemResult.builder()
+                .cartItemId(1L)
+                .status(CartItemAvailability.AVAILABLE)
                 .productId(1L)
                 .productVariantId(1L)
-                .productName("상품1")
-                .status(CartItemStatus.AVAILABLE)
-                .isAvailable(true)
-                .thumbnail("/product/product/PROD1_thumbnail.jpg")
+                .productName("청바지")
+                .thumbnail("/product/product/jean_1.jpg")
                 .quantity(2)
                 .price(
-                        CartResult.CartItemPrice.builder()
-                                .originalPrice(3000)
-                                .discountAmount(300)
-                                .discountedPrice(2700)
+                        CartItemPrice.builder()
+                                .originalPrice(Money.wons(3000L))
+                                .discountAmount(Money.wons(300L))
+                                .discountedPrice(Money.wons(2700L))
                                 .discountRate(10)
                                 .build()
                 )
-                .lineTotal(5400)
+                .lineTotal(Money.wons(5400L))
                 .options(
                         List.of(
-                                CartResult.CartItemOption.builder()
+                                CartItemOption.builder()
                                         .optionTypeName("사이즈")
                                         .optionValueName("XL")
                                         .build()
                         )
                 )
                 .build();
-        return CartResult.Cart.builder().items(List.of(cartResult)).build();
     }
 
-    private CartResult.Cart createCartResult() {
-        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
-                .id(1L)
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품1")
-                .status(CartItemStatus.AVAILABLE)
-                .isAvailable(true)
-                .thumbnail("/product/product/PROD1_thumbnail.jpg")
-                .quantity(2)
-                .price(
-                        CartResult.CartItemPrice.builder()
-                                .originalPrice(3000)
-                                .discountAmount(300)
-                                .discountedPrice(2700)
-                                .discountRate(10)
-                                .build()
-                )
-                .lineTotal(5400)
-                .options(
-                        List.of(
-                                CartResult.CartItemOption.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build()
-                        )
-                )
+    private AddCartItemsResult createAddCartItemsResult() {
+        AddCartItemsResult.AddedItemResult item = AddCartItemsResult.AddedItemResult.builder()
+                .cartItemId(1L)
                 .build();
-        return CartResult.Cart.builder().items(List.of(cartResult))
+        return AddCartItemsResult.builder()
+                .items(List.of(item))
+                .build();
+    }
+
+    private UpdateCartItemQuantityResult createUpdateCartItemQuantityResult() {
+        return UpdateCartItemQuantityResult.builder()
+                .cartItemId(1L)
                 .build();
     }
 }

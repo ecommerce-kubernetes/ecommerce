@@ -2,9 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
-    // api 명세 restdocs 플러그인
     id "org.asciidoctor.jvm.convert" version "3.3.2"
-    id 'com.epages.restdocs-api-spec' version '0.19.2'
     id 'jacoco'
 }
 
@@ -21,59 +19,57 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
-    //아스키독
     asciidoctorExt
 }
 
 repositories {
-    maven { url = uri("https://jitpack.io") }
     mavenCentral()
 }
 
 ext {
-    //명세 스니펫
     snippetsDir = file('build/generated-snippets')
     set('springCloudVersion', "2024.0.1")
 }
 
 test {
-    outputs.dir snippetsDir
     useJUnitPlatform()
+    outputs.dir snippetsDir
     finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
     dependsOn test
+
     reports {
         xml.required = true
         html.required = true
     }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: "**/Q*")
+        }))
+    }
 }
 
-
 asciidoctor {
-    inputs.dir snippetsDir
-    configurations 'asciidoctorExt'
     dependsOn test
+
+    configurations 'asciidoctorExt'
+
+    inputs.dir snippetsDir
+
     sources {
         include("**/index.adoc")
     }
-    baseDirFollowsSourceFile()
 
-    doLast {
-        copy {
-            from outputDir
-            into file("build/resources/main/static/docs")
-        }
-    }
+    baseDirFollowsSourceFile()
 }
 
 bootJar {
     dependsOn asciidoctor
+
     from("${asciidoctor.outputDir}") {
-        into 'static/docs'
-    }
-    from("build/api-spec") {
         into 'static/docs'
     }
 }
@@ -91,11 +87,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
     implementation 'org.mapstruct:mapstruct:1.6.3'
-
-    //kafka module
-    implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.9'
+    implementation 'io.hypersistence:hypersistence-tsid:2.1.4'
 
     //QueryDsl
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -115,16 +108,19 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'com.github.loki4j:loki-logback-appender:2.0.3'
 
+    //scheduler
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:6.10.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.10.0'
+
     //Test
     testImplementation 'org.projectlombok:lombok'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.19'
+    testImplementation 'org.instancio:instancio-junit:5.6.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers:2.0.2'
-    testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.19'
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
@@ -132,7 +128,6 @@ dependencies {
     //API 명세
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-    testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.2'
 
     //flyway
     implementation 'org.flywaydb:flyway-core'
@@ -150,40 +145,6 @@ clean {
     delete file('src/main/generated')
 }
 
-openapi3 {
-    title = 'BuyNest Order API'
-    description = '주문 서비스 API 명세서'
-    version = '1.0.0'
-    format = 'json'
-    servers = [
-            {
-                url = 'https://api.buynest.cloud/order-service'
-                description = '운영'
-            },
-    ]
-    outputFileNamePrefix = 'order-openapi'
-}
-
 jar {
     enabled = false
-}
-
-jacocoTestReport {
-    reports { html.required = true }
-
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: "**/Q*")
-        }))
-    }
-}
-
-afterEvaluate {
-    tasks.named('openapi3') {
-        dependsOn tasks.named('test')
-    }
-
-    tasks.named('bootJar') {
-        dependsOn tasks.named('openapi3')
-    }
 }

@@ -1,0 +1,139 @@
+== 관리자 전용
+
+[[product-create]]
+=== 상품 생성
+
+==== HTTP Request
+include::{snippets}/admin/products/create/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/create/request-headers.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/products/create/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/create/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/products/create/response-fields.adoc[]
+
+[[product-update]]
+=== 상품 수정
+
+==== HTTP Request
+include::{snippets}/admin/products/update/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/update/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/products/update/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/products/update/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/update/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/products/update/response-fields.adoc[]
+
+[[product-delete]]
+=== 상품 삭제
+
+==== HTTP Request
+include::{snippets}/admin/products/delete/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/delete/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/products/delete/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/delete/http-response.adoc[]
+
+[[product-options]]
+=== 상품 옵션 등록
+
+==== HTTP Request
+include::{snippets}/admin/products/options/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/options/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/products/options/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/products/options/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/options/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/products/options/response-fields.adoc[]
+
+[[product-variants]]
+=== 상품 변형 추가
+
+==== HTTP Request
+include::{snippets}/admin/products/variants/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/variants/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/products/variants/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/products/variants/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/variants/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/products/variants/response-fields.adoc[]
+
+[[product-images]]
+=== 상품 이미지 추가
+
+==== HTTP Request
+include::{snippets}/admin/products/images/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/images/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/products/images/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/products/images/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/images/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/products/images/response-fields.adoc[]
+
+[[product-description-images]]
+=== 상품 설명 이미지 추가
+
+==== HTTP Request
+include::{snippets}/admin/products/description-images/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/admin/products/description-images/request-headers.adoc[]
+
+==== Path Parameters
+include::{snippets}/admin/products/description-images/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/admin/products/description-images/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/admin/products/description-images/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/admin/products/description-images/response-fields.adoc[]

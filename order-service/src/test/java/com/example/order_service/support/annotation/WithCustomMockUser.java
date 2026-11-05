@@ -1,0 +1,15 @@
+package com.example.order_service.support.annotation;
+
+import com.example.order_service.common.security.model.UserRole;
+import com.example.order_service.support.WithCustomMockUserSecurityContextFactory;
+import org.springframework.security.test.context.support.WithSecurityContext;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.RUNTIME)
+@WithSecurityContext(factory = WithCustomMockUserSecurityContextFactory.class)
+public @interface WithCustomMockUser {
+    long userId() default 1L;
+    UserRole userRole() default UserRole.ROLE_USER;
+}
